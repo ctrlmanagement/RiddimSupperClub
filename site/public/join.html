@@ -1182,6 +1182,9 @@ body::before {
   </div>
 </footer>
 
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
 const nav = document.getElementById('nav');
 window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 60), { passive: true });
@@ -1203,21 +1206,63 @@ reveals.forEach(el => obs.observe(el));
 async function submitJoin() {
   const first = document.getElementById('jFirst').value.trim();
   const last  = document.getElementById('jLast').value.trim();
-  const phone = document.getElementById('jPhone').value.trim();
+  const rawPhone = document.getElementById('jPhone').value.trim();
   const dob   = document.getElementById('jDOB').value;
-  if (!first || !last || !phone || !dob) { alert('Please fill in all required fields.'); return; }
-  const payload = {
-    id: 'M' + Date.now(),
-    first_name: first, last_name: last,
-    phone, date_of_birth: dob,
-    email: document.getElementById('jEmail').value,
-    status: 'bronze', total_points: 0, total_visits: 0,
-    created_at: new Date().toISOString()
-  };
-  // TODO: Wire to Supabase POST /rest/v1/members
-  console.log('Join payload:', payload);
-  document.getElementById('joinForm').style.display = 'none';
-  document.getElementById('joinSuccess').classList.add('show');
+  const email = document.getElementById('jEmail').value.trim();
+
+  if (!first || !last || !rawPhone || !dob) { alert('Please fill in all required fields.'); return; }
+
+  // Normalize phone to E.164
+  const digits = rawPhone.replace(/\D/g, '');
+  const phone = digits.length === 10 ? '+1' + digits : '+' + digits;
+
+  const btn = document.querySelector('.form-submit');
+  btn.disabled = true;
+  btn.textContent = 'Creating membership…';
+
+  try {
+    const { createClient } = window.supabase;
+    const sb = createClient(
+      'https://cbvryfgrqzdvbqigyrgh.supabase.co',
+      'sb_publishable_fQlHFhC7tPkZNRl1djnvcA_68LpKQpv'
+    );
+
+    // Check for duplicate phone
+    const { data: existing } = await sb.from('members').select('id').eq('phone', phone).single();
+    if (existing) {
+      alert('A membership already exists for this phone number. Visit the Members portal to log in.');
+      btn.disabled = false;
+      btn.textContent = 'Create My Membership';
+      return;
+    }
+
+    // Generate member ID
+    const memberId = 'RDM-' + String(Math.floor(1000 + Math.random() * 9000));
+
+    const { error } = await sb.from('members').insert({
+      id:           memberId,
+      first_name:   first,
+      last_name:    last,
+      phone:        phone,
+      email:        email || null,
+      date_of_birth: dob,
+      status:       'active',
+      total_points: 0,
+      total_visits: 0,
+      created_at:   new Date().toISOString(),
+    });
+
+    if (error) throw error;
+
+    document.getElementById('joinForm').style.display = 'none';
+    document.getElementById('joinSuccess').classList.add('show');
+
+  } catch(err) {
+    console.error('Registration error:', err);
+    alert('Something went wrong. Please try again or see a team member.');
+    btn.disabled = false;
+    btn.textContent = 'Create My Membership';
+  }
 }
 </script>
 
