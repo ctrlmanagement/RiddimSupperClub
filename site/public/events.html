@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Events — RIDDIM Supper Club Atlanta</title>
+<meta name="description" content="Upcoming events at RIDDIM Supper Club Atlanta. DJ nights, live performances, and special events. Reserve your table.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,600&family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* SHARED */
+/* ============================================================
+   RIDDIM SUPPER CLUB — Design System v1.0
+   Session 15 · AG Entertainment
+   Cormorant Garamond (display) · Bebas Neue (label) · DM Sans (body)
+   ============================================================ */
+
+
+
+/* ── TOKENS ────────────────────────────────────────────────── */
+:root {
+  /* Foundation */
+  --color-obsidian:  #0A0A0A;
+  --color-void:      #111111;
+  --color-carbon:    #1A1A1A;
+  --color-graphite:  #2A2A2A;
+  --color-ash:       #888888;
+  --color-mist:      #CCCCCC;
+  --color-ivory:     #F5F0E8;
+
+  /* Gold Spectrum */
+  --color-gold-deep:   #B8860B;
+  --color-gold-warm:   #D4A843;
+  --color-gold-bright: #F0C060;
+  --color-gold-light:  #FAE29A;
+  --color-ember:       #C0392B;
+
+  /* Fonts */
+  --font-display: 'Cormorant Garamond', serif;
+  --font-label:   'Bebas Neue', sans-serif;
+  --font-body:    'DM Sans', sans-serif;
+
+  /* Type Scale */
+  --t-hero:        clamp(56px, 10vw, 140px);
+  --t-display:     clamp(36px, 6vw, 80px);
+  --t-subhead:     clamp(24px, 3vw, 40px);
+  --t-headline:    22px;
+  --t-headline-sm: 14px;
+  --t-body-lg:     18px;
+  --t-body:        15px;
+  --t-caption:     11px;
+
+  /* Spacing — 4px base unit */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-24: 96px;
+  --space-32: 128px;
+
+  /* Border Radius */
+  --radius-sm:   3px;
+  --radius-md:   6px;
+  --radius-lg:   12px;
+  --radius-full: 999px;
+
+  /* Shadows */
+  --shadow-card:    0 4px 24px rgba(0,0,0,0.4);
+  --shadow-gold:    0 0 24px rgba(212,168,67,0.2);
+  --shadow-gold-lg: 0 0 48px rgba(212,168,67,0.15);
+  --shadow-inset:   inset 0 1px 0 rgba(255,255,255,0.06);
+
+  /* Transitions */
+  --ease-standard:  cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-cinematic: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast:   150ms;
+  --duration-base:   300ms;
+  --duration-slow:   600ms;
+  --duration-reveal: 800ms;
+}
+
+/* ── RESET ─────────────────────────────────────────────────── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--color-obsidian);
+  color: var(--color-ivory);
+  font-family: var(--font-body);
+  font-weight: 300;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+img { display: block; max-width: 100%; }
+a   { color: inherit; text-decoration: none; }
+
+/* ── GRAIN OVERLAY ─────────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  opacity: 0.45;
+}
+
+/* ── NAV ────────────────────────────────────────────────────── */
+.nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  padding: var(--space-8) var(--space-12);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background var(--duration-slow) var(--ease-standard),
+              padding var(--duration-slow) var(--ease-standard),
+              border-color var(--duration-slow) var(--ease-standard);
+  border-bottom: 1px solid transparent;
+}
+.nav.scrolled {
+  background: rgba(10,10,10,0.96);
+  padding: var(--space-4) var(--space-12);
+  border-bottom-color: rgba(184,134,11,0.15);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+.nav.solid {
+  background: rgba(10,10,10,0.96);
+  border-bottom-color: rgba(184,134,11,0.12);
+  backdrop-filter: blur(16px);
+}
+.nav-logo {
+  font-family: var(--font-label);
+  font-size: 26px;
+  letter-spacing: 0.22em;
+  color: var(--color-gold-warm);
+  transition: color var(--duration-fast);
+}
+.nav-logo:hover { color: var(--color-gold-bright); }
+
+.nav-links {
+  display: flex;
+  gap: var(--space-8);
+  list-style: none;
+  align-items: center;
+}
+.nav-links a {
+  font-size: var(--t-caption);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-mist);
+  transition: color var(--duration-fast);
+  position: relative;
+}
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0; right: 0;
+  height: 1px;
+  background: var(--color-gold-warm);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--duration-base) var(--ease-standard);
+}
+.nav-links a:hover,
+.nav-links a.active { color: var(--color-gold-warm); }
+.nav-links a:hover::after,
+.nav-links a.active::after { transform: scaleX(1); }
+
+/* Reserve CTA pill — override underline */
+.nav-cta {
+  background: var(--color-gold-warm) !important;
+  color: var(--color-obsidian) !important;
+  padding: var(--space-2) var(--space-6) !important;
+  border-radius: var(--radius-sm) !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.18em !important;
+  transition: background var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast) !important;
+}
+.nav-cta::after { display: none !important; }
+.nav-cta:hover {
+  background: var(--color-gold-bright) !important;
+  box-shadow: var(--shadow-gold) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Hamburger */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+  z-index: 101;
+  padding: var(--space-2);
+}
+.hamburger span {
+  width: 22px;
+  height: 1px;
+  background: var(--color-ivory);
+  transition: transform var(--duration-base), opacity var(--duration-base);
+}
+.hamburger.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+/* Mobile menu */
+.mobile-menu {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: var(--color-obsidian);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  z-index: 100;
+}
+.mobile-menu.open { display: flex; }
+.mobile-menu a {
+  font-size: 13px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--color-mist);
+  transition: color var(--duration-fast);
+}
+.mobile-menu a:hover  { color: var(--color-gold-warm); }
+.mobile-menu .m-cta   { color: var(--color-gold-warm) !important; }
+
+@media (max-width: 900px) {
+  .nav-links  { display: none; }
+  .hamburger  { display: flex; }
+  .nav        { padding: var(--space-4) var(--space-6); }
+  .nav.scrolled { padding: var(--space-3) var(--space-6); }
+}
+
+/* ── BUTTONS ────────────────────────────────────────────────── */
+.btn {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-size: var(--t-caption);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all var(--duration-base) var(--ease-standard);
+}
+.btn-primary {
+  background: var(--color-gold-warm);
+  color: var(--color-obsidian);
+  padding: var(--space-4) var(--space-8);
+  border-radius: var(--radius-sm);
+}
+.btn-primary:hover {
+  background: var(--color-gold-bright);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-gold);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--color-gold-warm);
+  padding: var(--space-4) var(--space-8);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(212,168,67,0.45);
+}
+.btn-ghost:hover {
+  border-color: var(--color-gold-warm);
+  background: rgba(212,168,67,0.08);
+  color: var(--color-gold-bright);
+}
+
+/* ── SECTION PATTERN ───────────────────────────────────────── */
+.section       { padding: var(--space-24) var(--space-12); }
+.section-inner { max-width: 1100px; margin: 0 auto; }
+
+.section-eyebrow {
+  font-family: var(--font-label);
+  font-size: var(--t-caption);
+  letter-spacing: 0.4em;
+  color: var(--color-gold-deep);
+  margin-bottom: var(--space-3);
+}
+.section-title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  line-height: 1.05;
+  color: var(--color-ivory);
+}
+.section-title em { color: var(--color-gold-warm); font-style: italic; }
+
+.gold-rule {
+  width: 1px;
+  height: 56px;
+  background: linear-gradient(var(--color-gold-warm), transparent);
+  margin: var(--space-8) auto;
+}
+
+/* ── FOOTER ─────────────────────────────────────────────────── */
+.footer {
+  background: var(--color-void);
+  border-top: 1px solid var(--color-graphite);
+  padding: var(--space-24) var(--space-12) var(--space-12);
+}
+.footer-grid {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.8fr 1fr 1fr 1.2fr;
+  gap: var(--space-16);
+}
+@media (max-width: 900px) { .footer-grid { grid-template-columns: 1fr 1fr; gap: var(--space-12); } }
+@media (max-width: 500px) { .footer-grid { grid-template-columns: 1fr; gap: var(--space-8); } }
+
+.footer-brand-name {
+  font-family: var(--font-label);
+  font-size: 34px;
+  letter-spacing: 0.2em;
+  color: var(--color-gold-warm);
+  margin-bottom: var(--space-1);
+}
+.footer-brand-tagline {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--color-ash);
+  margin-bottom: var(--space-6);
+}
+.footer-brand-desc {
+  font-size: 13px;
+  color: var(--color-ash);
+  line-height: 1.9;
+  max-width: 260px;
+}
+.footer-social {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+.footer-social a {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--color-graphite);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-family: var(--font-label);
+  letter-spacing: 0.05em;
+  color: var(--color-ash);
+  transition: border-color var(--duration-fast), color var(--duration-fast);
+}
+.footer-social a:hover { border-color: var(--color-gold-warm); color: var(--color-gold-warm); }
+
+.footer-col-title {
+  font-family: var(--font-label);
+  font-size: 12px;
+  letter-spacing: 0.35em;
+  color: var(--color-gold-deep);
+  margin-bottom: var(--space-6);
+}
+.footer-links {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.footer-links a {
+  font-size: 13px;
+  color: var(--color-ash);
+  transition: color var(--duration-fast);
+  letter-spacing: 0.04em;
+}
+.footer-links a:hover { color: var(--color-ivory); }
+
+.footer-hours p  { font-size: 13px; color: var(--color-ash); line-height: 1.95; }
+.footer-hours strong { color: var(--color-mist); font-weight: 400; }
+.footer-hours .note  { color: var(--color-gold-deep); font-size: 12px; margin-top: var(--space-3); }
+
+.footer-address {
+  font-size: 13px;
+  color: var(--color-ash);
+  line-height: 1.95;
+}
+.footer-address a {
+  color: var(--color-gold-warm);
+  transition: opacity var(--duration-fast);
+}
+.footer-address a:hover { opacity: 0.8; }
+
+.footer-bottom {
+  max-width: 1100px;
+  margin: var(--space-12) auto 0;
+  padding-top: var(--space-6);
+  border-top: 1px solid rgba(255,255,255,0.04);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-size: var(--t-caption);
+  color: rgba(255,255,255,0.12);
+  letter-spacing: 0.1em;
+}
+@media (max-width: 600px) {
+  .footer-bottom { flex-direction: column; text-align: center; }
+}
+
+/* ── RESERVE BANNER (global) ───────────────────────────────── */
+.reserve-banner {
+  background: var(--color-gold-warm);
+  padding: var(--space-6) var(--space-12);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+}
+.reserve-banner-text {
+  font-family: var(--font-display);
+  font-size: clamp(18px, 2.2vw, 26px);
+  font-weight: 300;
+  color: var(--color-obsidian);
+}
+.reserve-banner-text em { font-style: italic; }
+.reserve-banner-cta {
+  background: var(--color-obsidian);
+  color: var(--color-ivory) !important;
+  padding: var(--space-3) var(--space-8);
+  border-radius: var(--radius-sm);
+  font-size: var(--t-caption);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 500;
+  transition: background var(--duration-fast);
+  white-space: nowrap;
+  display: inline-block;
+}
+.reserve-banner-cta:hover { background: var(--color-carbon); }
+@media (max-width: 600px) {
+  .reserve-banner { padding: var(--space-6); justify-content: center; text-align: center; }
+}
+
+/* ── SCROLL REVEAL ─────────────────────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity var(--duration-reveal) var(--ease-cinematic),
+              transform var(--duration-reveal) var(--ease-cinematic);
+}
+.reveal.in { opacity: 1; transform: none; }
+.reveal-d1 { transition-delay: 100ms; }
+.reveal-d2 { transition-delay: 200ms; }
+.reveal-d3 { transition-delay: 300ms; }
+.reveal-d4 { transition-delay: 450ms; }
+
+/* ── PAGE HEADER PATTERN ────────────────────────────────────── */
+.page-header {
+  padding: var(--space-32) var(--space-12) var(--space-16);
+  border-bottom: 1px solid var(--color-graphite);
+  position: relative;
+  overflow: hidden;
+}
+.page-header-inner  { max-width: 1100px; margin: 0 auto; position: relative; z-index: 1; }
+.page-header-eyebrow {
+  font-family: var(--font-label);
+  font-size: var(--t-caption);
+  letter-spacing: 0.4em;
+  color: var(--color-gold-deep);
+  margin-bottom: var(--space-3);
+}
+.page-header-title {
+  font-family: var(--font-display);
+  font-size: var(--t-display);
+  font-weight: 300;
+  line-height: 0.95;
+  color: var(--color-ivory);
+}
+.page-header-title em { color: var(--color-gold-warm); font-style: italic; }
+.page-header-desc {
+  font-size: 14px;
+  color: var(--color-ash);
+  max-width: 480px;
+  line-height: 1.9;
+  margin-top: var(--space-4);
+}
+.page-header-watermark {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-label);
+  font-size: clamp(80px, 18vw, 260px);
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(184,134,11,0.04);
+  pointer-events: none;
+  white-space: nowrap;
+  user-select: none;
+  letter-spacing: 0.05em;
+}
+
+/* ── FORM ELEMENTS (shared) ────────────────────────────────── */
+.form-group    { margin-bottom: var(--space-4); }
+.form-label {
+  display: block;
+  font-size: var(--t-caption);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-ash);
+  margin-bottom: var(--space-2);
+}
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  background: var(--color-carbon);
+  border: 1px solid var(--color-graphite);
+  border-radius: var(--radius-sm);
+  color: var(--color-ivory);
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 14px;
+  padding: 13px var(--space-4);
+  transition: border-color var(--duration-fast), box-shadow var(--duration-fast);
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  border-color: rgba(212,168,67,0.5);
+  box-shadow: 0 0 0 3px rgba(212,168,67,0.08);
+}
+.form-input::placeholder,
+.form-textarea::placeholder { color: rgba(136,136,136,0.5); }
+.form-select {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='1.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+}
+.form-select option { background: var(--color-carbon); color: var(--color-ivory); }
+.form-textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+@media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+
+.form-section-label {
+  font-family: var(--font-label);
+  font-size: 12px;
+  letter-spacing: 0.35em;
+  color: var(--color-gold-deep);
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-graphite);
+}
+.form-submit {
+  width: 100%;
+  background: var(--color-gold-warm);
+  color: var(--color-obsidian);
+  padding: var(--space-4) var(--space-8);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--t-caption);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 500;
+  transition: background var(--duration-fast), transform var(--duration-fast), box-shadow var(--duration-fast);
+  margin-top: var(--space-2);
+}
+.form-submit:hover {
+  background: var(--color-gold-bright);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-gold);
+}
+.form-note {
+  font-size: 12px;
+  color: var(--color-ash);
+  line-height: 1.7;
+  margin-top: var(--space-4);
+}
+
+/* ── SUCCESS STATE ──────────────────────────────────────────── */
+.form-success {
+  display: none;
+  text-align: center;
+  padding: var(--space-12) var(--space-6);
+}
+.form-success.show { display: block; }
+.success-icon {
+  font-size: 44px;
+  color: var(--color-gold-warm);
+  margin-bottom: var(--space-4);
+}
+.success-title {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 3vw, 40px);
+  font-weight: 300;
+  color: var(--color-ivory);
+  margin-bottom: var(--space-3);
+}
+.success-title em { color: var(--color-gold-warm); font-style: italic; }
+.success-desc {
+  font-size: 14px;
+  color: var(--color-ash);
+  line-height: 1.9;
+  max-width: 400px;
+  margin: 0 auto var(--space-6);
+}
+.success-back {
+  font-size: var(--t-caption);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-gold-warm);
+}
+
+/* ── BADGE ──────────────────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: rgba(184,134,11,0.12);
+  border: 1px solid rgba(184,134,11,0.28);
+  border-radius: var(--radius-sm);
+  padding: 5px var(--space-4);
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--color-gold-warm);
+}
+
+/* ── DIVIDER ────────────────────────────────────────────────── */
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-graphite) 30%, var(--color-graphite) 70%, transparent);
+}
+
+/* ── SHARED MOBILE ──────────────────────────────────────────── */
+@media (max-width: 700px) {
+  .section          { padding: var(--space-12) var(--space-6); }
+  .reserve-banner   { padding: var(--space-6); }
+  .page-header      { padding: var(--space-24) var(--space-6) var(--space-12); }
+  .footer           { padding: var(--space-16) var(--space-6) var(--space-8); }
+}
+</style>
+<style>
+
+/* ── PAGE HEADER OVERRIDE ─────────────────────────────────────── */
+.page-header-flex {
+  padding: var(--space-32) var(--space-12) var(--space-16);
+  border-bottom: 1px solid var(--color-graphite);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-8);
+  flex-wrap: wrap;
+}
+.page-header-flex-inner { max-width: 1100px; margin: 0 auto; width: 100%; display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-8); flex-wrap: wrap; }
+.page-eyebrow {
+  font-family: var(--font-label);
+  font-size: var(--t-caption);
+  letter-spacing: 0.4em;
+  color: var(--color-gold-deep);
+  margin-bottom: var(--space-3);
+}
+.page-title {
+  font-family: var(--font-display);
+  font-size: var(--t-display);
+  font-weight: 300;
+  line-height: 0.93;
+  color: var(--color-ivory);
+}
+.page-title em { color: var(--color-gold-warm); font-style: italic; }
+@media (max-width: 700px) { .page-header-flex { padding: var(--space-24) var(--space-6) var(--space-12); } }
+
+/* ── FILTER BAR ─────────────────────────────────────────────────── */
+.filter-bar {
+  padding: var(--space-6) var(--space-12);
+  background: var(--color-void);
+  border-bottom: 1px solid var(--color-graphite);
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  align-items: center;
+}
+.filter-label {
+  font-size: var(--t-caption);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-ash);
+  margin-right: var(--space-1);
+}
+.filter-chip {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-graphite);
+  border-radius: var(--radius-sm);
+  font-size: var(--t-caption);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-ash);
+  cursor: pointer;
+  transition: all var(--duration-fast);
+  background: var(--color-carbon);
+}
+.filter-chip:hover,
+.filter-chip.active {
+  border-color: var(--color-gold-warm);
+  color: var(--color-gold-warm);
+  background: rgba(212,168,67,0.07);
+}
+@media (max-width: 600px) { .filter-bar { padding: var(--space-4) var(--space-6); } }
+
+/* ── EVENTS LAYOUT ─────────────────────────────────────────────── */
+.events-layout {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--space-12) var(--space-12) var(--space-24);
+  gap: var(--space-12);
+}
+@media (max-width: 1000px) { .events-layout { grid-template-columns: 1fr; padding: var(--space-8) var(--space-6); } }
+
+/* ── FEATURED EVENT ─────────────────────────────────────────────── */
+.event-featured {
+  border: 1px solid rgba(184,134,11,0.3);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: var(--space-4);
+  background: var(--color-void);
+  transition: border-color var(--duration-base), transform var(--duration-base);
+}
+.event-featured:hover { border-color: rgba(184,134,11,0.6); transform: translateY(-2px); }
+.event-featured-img { position: relative; height: 280px; overflow: hidden; }
+.event-featured-img img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform var(--duration-slow) var(--ease-cinematic), filter var(--duration-slow);
+  filter: brightness(0.72);
+}
+.event-featured:hover .event-featured-img img { transform: scale(1.04); filter: brightness(0.88); }
+.event-featured-badge {
+  position: absolute;
+  top: var(--space-4);
+  left: var(--space-4);
+  background: rgba(184,134,11,0.92);
+  color: var(--color-obsidian);
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  font-weight: 500;
+  padding: 4px var(--space-3);
+  border-radius: var(--radius-sm);
+}
+.event-featured-body { padding: var(--space-6); }
+
+/* ── EVENT CARD ─────────────────────────────────────────────────── */
+.event-card {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  border: 1px solid var(--color-graphite);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: var(--space-4);
+  transition: border-color var(--duration-base), transform var(--duration-base);
+  background: var(--color-void);
+}
+.event-card:hover { border-color: rgba(184,134,11,0.35); transform: translateY(-2px); }
+@media (max-width: 600px) { .event-card { grid-template-columns: 1fr; } }
+
+.event-card-img { position: relative; overflow: hidden; min-height: 160px; }
+.event-card-img img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform var(--duration-slow) var(--ease-cinematic), filter var(--duration-slow);
+  filter: brightness(0.78);
+}
+.event-card:hover .event-card-img img { transform: scale(1.06); filter: brightness(1); }
+.event-card-body {
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* ── EVENT META ─────────────────────────────────────────────────── */
+.event-meta { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; margin-bottom: var(--space-2); }
+.event-date-chip {
+  font-family: var(--font-label);
+  font-size: var(--t-caption);
+  letter-spacing: 0.2em;
+  background: rgba(184,134,11,0.12);
+  border: 1px solid rgba(184,134,11,0.25);
+  color: var(--color-gold-warm);
+  padding: 3px var(--space-3);
+  border-radius: var(--radius-sm);
+}
+.event-type-chip {
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-ash);
+}
+.event-name {
+  font-family: var(--font-display);
+  font-size: clamp(18px, 2vw, 26px);
+  font-weight: 300;
+  color: var(--color-ivory);
+  line-height: 1.1;
+  margin-bottom: var(--space-2);
+}
+.event-name em { color: var(--color-gold-warm); font-style: italic; }
+.event-desc { font-size: 13px; color: var(--color-ash); line-height: 1.7; margin-bottom: var(--space-4); }
+.event-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+.event-time {
+  font-size: var(--t-caption);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ash);
+}
+
+/* ── SIDEBAR ─────────────────────────────────────────────────────── */
+.sidebar-title {
+  font-family: var(--font-label);
+  font-size: 12px;
+  letter-spacing: 0.35em;
+  color: var(--color-gold-deep);
+  margin-bottom: var(--space-4);
+}
+
+/* MINI CALENDAR */
+.mini-cal {
+  background: var(--color-carbon);
+  border: 1px solid var(--color-graphite);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+.cal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+.cal-month {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 300;
+  color: var(--color-ivory);
+}
+.cal-nav {
+  width: 28px; height: 28px;
+  border: 1px solid var(--color-graphite);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--color-ash);
+  transition: border-color var(--duration-fast), color var(--duration-fast);
+  background: transparent;
+}
+.cal-nav:hover { border-color: var(--color-gold-warm); color: var(--color-gold-warm); }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.cal-day-name {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-ash);
+  text-align: center;
+  padding: var(--space-1) 0;
+}
+.cal-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--color-mist);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--duration-fast);
+  position: relative;
+}
+.cal-day:hover { background: var(--color-graphite); }
+.cal-day.empty { color: transparent; cursor: default; pointer-events: none; }
+.cal-day.has-event { color: var(--color-gold-warm); font-weight: 500; }
+.cal-day.has-event::after {
+  content: '';
+  position: absolute;
+  bottom: 3px; left: 50%;
+  transform: translateX(-50%);
+  width: 3px; height: 3px;
+  background: var(--color-gold-warm);
+  border-radius: 50%;
+}
+.cal-day.today { background: rgba(184,134,11,0.12); color: var(--color-gold-bright); }
+
+/* SIDEBAR PANELS */
+.sidebar-panel {
+  background: var(--color-carbon);
+  border: 1px solid var(--color-graphite);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+.sidebar-panel p { font-size: 13px; color: var(--color-ash); line-height: 1.8; }
+.sidebar-panel strong { color: var(--color-mist); font-weight: 400; }
+
+.sidebar-gold {
+  background: rgba(184,134,11,0.07);
+  border: 1px solid rgba(184,134,11,0.2);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+.sidebar-gold p { font-size: 13px; color: var(--color-ash); line-height: 1.8; margin-bottom: var(--space-4); }
+
+</style>
+</head>
+<body>
+
+<nav class="nav solid" id="nav">
+  <a href="index.html" class="nav-logo">RIDDIM</a>
+  <ul class="nav-links">
+    <li><a href="experience.html">Experience</a></li>
+    <li><a href="menu.html">Menu</a></li>
+    <li><a href="events.html" class="active">Events</a></li>
+    <li><a href="private-events.html">Private Events</a></li>
+    <li><a href="join.html">Join the Club</a></li>
+    <li><a href="members/index.html">Members</a></li>
+    <li><a href="reserve.html" class="nav-cta">Reserve</a></li>
+  </ul>
+  <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="index.html" onclick="closeMobile()">Home</a>
+  <a href="experience.html" onclick="closeMobile()">Experience</a>
+  <a href="menu.html" onclick="closeMobile()">Menu</a>
+  <a href="private-events.html" onclick="closeMobile()">Private Events</a>
+  <a href="join.html" onclick="closeMobile()">Join the Club</a>
+  <a href="members/index.html" onclick="closeMobile()">Members</a>
+  <a href="reserve.html" onclick="closeMobile()" class="m-cta">Reserve</a>
+</div>
+
+<!-- PAGE HEADER -->
+<div style="padding: var(--space-32) var(--space-12) 0; border-bottom: 1px solid var(--color-graphite); background: var(--color-obsidian);">
+  <div style="max-width: 1100px; margin: 0 auto; display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-8); flex-wrap: wrap; padding-bottom: var(--space-16);">
+    <div>
+      <div class="page-eyebrow">Upcoming</div>
+      <h1 class="page-title">Events<br>at <em>RIDDIM</em></h1>
+    </div>
+    <a href="reserve.html" class="btn btn-primary" style="flex-shrink:0; margin-bottom: 4px;">Reserve for an Event</a>
+  </div>
+</div>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+  <span class="filter-label">Filter:</span>
+  <div class="filter-chip active" onclick="filterEvents('all',this)">All Events</div>
+  <div class="filter-chip" onclick="filterEvents('dj',this)">DJ Night</div>
+  <div class="filter-chip" onclick="filterEvents('live',this)">Live Performance</div>
+  <div class="filter-chip" onclick="filterEvents('special',this)">Special Event</div>
+</div>
+
+<!-- EVENTS + SIDEBAR -->
+<div class="events-layout">
+
+  <!-- EVENTS LIST -->
+  <div id="eventsList">
+
+    <!-- FEATURED -->
+    <div class="event-featured" data-type="dj">
+      <div class="event-featured-img">
+        <img src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=1200&q=80" alt="Headz Only" loading="lazy">
+        <div class="event-featured-badge">⭐ Featured This Week</div>
+      </div>
+      <div class="event-featured-body">
+        <div class="event-meta">
+          <span class="event-date-chip">FRI · MAR 7</span>
+          <span class="event-type-chip">DJ Night</span>
+        </div>
+        <h2 class="event-name"><em>Headz Only</em> with DJ Kole</h2>
+        <p class="event-desc">Atlanta's most respected DJ returns to RIDDIM for a night of pure hip-hop culture. No gimmicks, no compromises. Just the records that shaped the culture and the ones defining where it's going.</p>
+        <div class="event-footer">
+          <span class="event-time">9PM – 3AM · Patio Open · Hookah Available</span>
+          <a href="reserve.html" class="btn btn-primary">Reserve a Table</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- EVENT CARDS -->
+    <div class="event-card" data-type="live">
+      <div class="event-card-img">
+        <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=400&q=80" alt="" loading="lazy">
+      </div>
+      <div class="event-card-body">
+        <div>
+          <div class="event-meta">
+            <span class="event-date-chip">SAT · MAR 8</span>
+            <span class="event-type-chip">Live Performance</span>
+          </div>
+          <h3 class="event-name">Saturday <em>Jazz Supper</em></h3>
+          <p class="event-desc">Live quartet. Full dinner service. The Dining Room at its most intimate.</p>
+        </div>
+        <div class="event-footer">
+          <span class="event-time">7PM – 11PM</span>
+          <a href="reserve.html" class="btn btn-ghost">Book Dinner</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="event-card" data-type="special">
+      <div class="event-card-img">
+        <img src="https://images.unsplash.com/photo-1533174072545-7780ea8d615a?auto=format&fit=crop&w=400&q=80" alt="" loading="lazy">
+      </div>
+      <div class="event-card-body">
+        <div>
+          <div class="event-meta">
+            <span class="event-date-chip">SUN · MAR 9</span>
+            <span class="event-type-chip">Members Only</span>
+          </div>
+          <h3 class="event-name">Members <em>Dinner Night</em></h3>
+          <p class="event-desc">Exclusive Sunday dinner for RIDDIM Members Club. Limited seating. Members-only reservation access.</p>
+        </div>
+        <div class="event-footer">
+          <span class="event-time">5PM – 10PM</span>
+          <a href="members/index.html" class="btn btn-ghost">Member Login</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="event-card" data-type="dj">
+      <div class="event-card-img">
+        <img src="https://images.unsplash.com/photo-1470337458703-4ad1d7ba7fd8?auto=format&fit=crop&w=400&q=80" alt="" loading="lazy">
+      </div>
+      <div class="event-card-body">
+        <div>
+          <div class="event-meta">
+            <span class="event-date-chip">FRI · MAR 14</span>
+            <span class="event-type-chip">DJ Night</span>
+          </div>
+          <h3 class="event-name"><em>Afrobeats</em> Friday</h3>
+          <p class="event-desc">The monthly Afrobeats takeover. Full patio, bottle service, and a lineup built for the culture.</p>
+        </div>
+        <div class="event-footer">
+          <span class="event-time">9PM – 3AM</span>
+          <a href="reserve.html" class="btn btn-ghost">Reserve</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="event-card" data-type="special">
+      <div class="event-card-img">
+        <img src="https://images.unsplash.com/photo-1551024601-bec78aea367e?auto=format&fit=crop&w=400&q=80" alt="" loading="lazy">
+      </div>
+      <div class="event-card-body">
+        <div>
+          <div class="event-meta">
+            <span class="event-date-chip">SAT · MAR 15</span>
+            <span class="event-type-chip">Special Event</span>
+          </div>
+          <h3 class="event-name">Chef's <em>Table Night</em></h3>
+          <p class="event-desc">A six-course tasting menu prepared by the executive chef. Pairing menu available. Very limited seats.</p>
+        </div>
+        <div class="event-footer">
+          <span class="event-time">7PM – 10PM · 12 Seats Only</span>
+          <a href="reserve.html" class="btn btn-primary">Reserve a Seat</a>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /eventsList -->
+
+  <!-- SIDEBAR -->
+  <div>
+    <div class="sidebar-title">March 2026</div>
+    <div class="mini-cal">
+      <div class="cal-header">
+        <button class="cal-nav">‹</button>
+        <div class="cal-month">March 2026</div>
+        <button class="cal-nav">›</button>
+      </div>
+      <div class="cal-grid">
+        <div class="cal-day-name">Su</div><div class="cal-day-name">Mo</div><div class="cal-day-name">Tu</div>
+        <div class="cal-day-name">We</div><div class="cal-day-name">Th</div><div class="cal-day-name">Fr</div><div class="cal-day-name">Sa</div>
+        <div class="cal-day empty"></div><div class="cal-day empty"></div><div class="cal-day empty"></div>
+        <div class="cal-day empty"></div><div class="cal-day empty"></div><div class="cal-day empty"></div>
+        <div class="cal-day">1</div>
+        <div class="cal-day today">2</div><div class="cal-day">3</div><div class="cal-day">4</div><div class="cal-day">5</div><div class="cal-day">6</div>
+        <div class="cal-day has-event">7</div><div class="cal-day has-event">8</div>
+        <div class="cal-day has-event">9</div><div class="cal-day">10</div><div class="cal-day">11</div><div class="cal-day">12</div><div class="cal-day">13</div>
+        <div class="cal-day has-event">14</div><div class="cal-day has-event">15</div>
+        <div class="cal-day">16</div><div class="cal-day">17</div><div class="cal-day">18</div><div class="cal-day">19</div><div class="cal-day">20</div>
+        <div class="cal-day has-event">21</div><div class="cal-day has-event">22</div>
+        <div class="cal-day">23</div><div class="cal-day">24</div><div class="cal-day">25</div><div class="cal-day">26</div><div class="cal-day">27</div>
+        <div class="cal-day has-event">28</div><div class="cal-day has-event">29</div>
+        <div class="cal-day">30</div><div class="cal-day">31</div>
+      </div>
+    </div>
+
+    <div class="sidebar-panel">
+      <div class="sidebar-title">Event Info</div>
+      <p><strong>Event nights:</strong> Friday and Saturday are our primary event nights. Programming typically begins at 9PM.<br><br><strong>Doors:</strong> General entry opens at 7PM Wed–Sun.</p>
+    </div>
+
+    <div class="sidebar-gold">
+      <div class="sidebar-title">Private Events</div>
+      <p>Host your celebration at RIDDIM — full venue, patio, or dining room. We'll build the night around you.</p>
+      <a href="private-events.html" class="btn btn-ghost" style="font-size:10px; padding: 9px 18px;">Inquire About Events</a>
+    </div>
+
+    <div class="sidebar-gold">
+      <div class="sidebar-title">Members Get First Access</div>
+      <p>RIDDIM Members Club members get early reservation access to all event nights and exclusive invitations to members-only programming.</p>
+      <a href="join.html" class="btn btn-primary" style="font-size:10px; padding: 9px 18px;">Join Free</a>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-grid">
+    <div>
+      <div class="footer-brand-name">RIDDIM</div>
+      <div class="footer-brand-tagline">Supper Club · Atlanta</div>
+      <p class="footer-brand-desc">Atlanta's only venue combining fine dining, hookah, outdoor patio, and nightclub under one roof.</p>
+    </div>
+    <div>
+      <div class="footer-col-title">Navigate</div>
+      <ul class="footer-links">
+        <li><a href="experience.html">Experience</a></li>
+        <li><a href="menu.html">Menu</a></li>
+        <li><a href="events.html">Events</a></li>
+        <li><a href="reserve.html">Reserve</a></li>
+        <li><a href="private-events.html">Private Events</a></li>
+        <li><a href="join.html">Join the Club</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Hours</div>
+      <div class="footer-hours">
+        <p><strong>Wednesday – Thursday</strong><br>7PM – 2AM</p>
+        <p style="margin-top:12px"><strong>Friday – Saturday</strong><br>6PM – 3AM</p>
+        <p style="margin-top:12px"><strong>Sunday</strong><br>5PM – 12AM</p>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-title">Find Us</div>
+      <div class="footer-address">Atlanta, Georgia<br><br><a href="reserve.html">Reserve a Table →</a></div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 AG Entertainment · RIDDIM Supper Club</span>
+    <span>Atlanta, GA</span>
+  </div>
+</footer>
+
+<script>
+const hamburger = document.getElementById('hamburger'), mobileMenu = document.getElementById('mobileMenu');
+hamburger.addEventListener('click', () => {
+  hamburger.classList.toggle('open');
+  mobileMenu.classList.toggle('open');
+  document.body.style.overflow = mobileMenu.classList.contains('open') ? 'hidden' : '';
+});
+function closeMobile() {
+  hamburger.classList.remove('open');
+  mobileMenu.classList.remove('open');
+  document.body.style.overflow = '';
+}
+function filterEvents(type, el) {
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('[data-type]').forEach(card => {
+    card.style.display = (type === 'all' || card.dataset.type === type) ? '' : 'none';
+  });
+}
+</script>
+
+<!-- SECRET PORTAL ACCESS: triple-tap logo = Staff, 5-tap = Owner -->
+<script>
+(function secretPortalAccess() {
+  var STAFF_URL = "staff/index.html";
+  var OWNER_URL = "owner/index.html";
+  var TAP_WINDOW = 600;
+  var tapCount = 0;
+  var tapTimer = null;
+
+  function flashLogo() {
+    var logo = document.querySelector(".nav-logo");
+    if (!logo) return;
+    logo.style.transition = "color 80ms";
+    logo.style.color = "#F0C060";
+    setTimeout(function(){ logo.style.color = ""; }, 180);
+  }
+
+  function handleTap(e) {
+    tapCount++;
+    clearTimeout(tapTimer);
+
+    if (tapCount === 3) {
+      e.preventDefault();
+      flashLogo();
+      setTimeout(function(){ window.location.href = STAFF_URL; }, 200);
+      tapCount = 0;
+      return;
+    }
+    if (tapCount === 5) {
+      e.preventDefault();
+      flashLogo();
+      setTimeout(function(){ flashLogo(); }, 200);
+      setTimeout(function(){ window.location.href = OWNER_URL; }, 400);
+      tapCount = 0;
+      return;
+    }
+    // Not a secret sequence yet — let normal navigation happen
+    tapTimer = setTimeout(function(){ tapCount = 0; }, TAP_WINDOW);
+  }
+
+  var navLogo = document.querySelector(".nav-logo");
+  if (navLogo) {
+    navLogo.addEventListener("touchend", function(e){ handleTap(e); }, { passive: false });
+    navLogo.addEventListener("click", function(e){
+      if (window.matchMedia("(pointer: coarse)").matches) return;
+      handleTap(e);
+    });
+  }
+
+  document.addEventListener("keydown", function(e){
+    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+    if (e.shiftKey && e.key === "S") window.location.href = STAFF_URL;
+    if (e.shiftKey && e.key === "O") window.location.href = OWNER_URL;
+  });
+})();
+</script>
+</body>
+</html>

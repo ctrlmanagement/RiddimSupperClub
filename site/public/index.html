@@ -1,0 +1,1505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RIDDIM Supper Club — Atlanta's Premier Nightlife Experience</title>
+<meta name="description" content="RIDDIM Supper Club — Atlanta's only venue combining fine dining, hookah, outdoor patio, and nightclub under one roof. Reserve your table.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,600&family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* SHARED */
+/* ============================================================
+   RIDDIM SUPPER CLUB — Design System v1.0
+   Session 15 · AG Entertainment
+   Cormorant Garamond (display) · Bebas Neue (label) · DM Sans (body)
+   ============================================================ */
+
+
+
+/* ── TOKENS ────────────────────────────────────────────────── */
+:root {
+  /* Foundation */
+  --color-obsidian:  #0A0A0A;
+  --color-void:      #111111;
+  --color-carbon:    #1A1A1A;
+  --color-graphite:  #2A2A2A;
+  --color-ash:       #888888;
+  --color-mist:      #CCCCCC;
+  --color-ivory:     #F5F0E8;
+
+  /* Gold Spectrum */
+  --color-gold-deep:   #B8860B;
+  --color-gold-warm:   #D4A843;
+  --color-gold-bright: #F0C060;
+  --color-gold-light:  #FAE29A;
+  --color-ember:       #C0392B;
+
+  /* Fonts */
+  --font-display: 'Cormorant Garamond', serif;
+  --font-label:   'Bebas Neue', sans-serif;
+  --font-body:    'DM Sans', sans-serif;
+
+  /* Type Scale */
+  --t-hero:        clamp(56px, 10vw, 140px);
+  --t-display:     clamp(36px, 6vw, 80px);
+  --t-subhead:     clamp(24px, 3vw, 40px);
+  --t-headline:    22px;
+  --t-headline-sm: 14px;
+  --t-body-lg:     18px;
+  --t-body:        15px;
+  --t-caption:     11px;
+
+  /* Spacing — 4px base unit */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-24: 96px;
+  --space-32: 128px;
+
+  /* Border Radius */
+  --radius-sm:   3px;
+  --radius-md:   6px;
+  --radius-lg:   12px;
+  --radius-full: 999px;
+
+  /* Shadows */
+  --shadow-card:    0 4px 24px rgba(0,0,0,0.4);
+  --shadow-gold:    0 0 24px rgba(212,168,67,0.2);
+  --shadow-gold-lg: 0 0 48px rgba(212,168,67,0.15);
+  --shadow-inset:   inset 0 1px 0 rgba(255,255,255,0.06);
+
+  /* Transitions */
+  --ease-standard:  cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-cinematic: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast:   150ms;
+  --duration-base:   300ms;
+  --duration-slow:   600ms;
+  --duration-reveal: 800ms;
+}
+
+/* ── RESET ─────────────────────────────────────────────────── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--color-obsidian);
+  color: var(--color-ivory);
+  font-family: var(--font-body);
+  font-weight: 300;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+img { display: block; max-width: 100%; }
+a   { color: inherit; text-decoration: none; }
+
+/* ── GRAIN OVERLAY ─────────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  opacity: 0.45;
+}
+
+/* ── NAV ────────────────────────────────────────────────────── */
+.nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  padding: var(--space-8) var(--space-12);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background var(--duration-slow) var(--ease-standard),
+              padding var(--duration-slow) var(--ease-standard),
+              border-color var(--duration-slow) var(--ease-standard);
+  border-bottom: 1px solid transparent;
+}
+.nav.scrolled {
+  background: rgba(10,10,10,0.96);
+  padding: var(--space-4) var(--space-12);
+  border-bottom-color: rgba(184,134,11,0.15);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+.nav.solid {
+  background: rgba(10,10,10,0.96);
+  border-bottom-color: rgba(184,134,11,0.12);
+  backdrop-filter: blur(16px);
+}
+.nav-logo {
+  font-family: var(--font-label);
+  font-size: 26px;
+  letter-spacing: 0.22em;
+  color: var(--color-gold-warm);
+  transition: color var(--duration-fast);
+}
+.nav-logo:hover { color: var(--color-gold-bright); }
+
+.nav-links {
+  display: flex;
+  gap: var(--space-8);
+  list-style: none;
+  align-items: center;
+}
+.nav-links a {
+  font-size: var(--t-caption);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-mist);
+  transition: color var(--duration-fast);
+  position: relative;
+}
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0; right: 0;
+  height: 1px;
+  background: var(--color-gold-warm);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--duration-base) var(--ease-standard);
+}
+.nav-links a:hover,
+.nav-links a.active { color: var(--color-gold-warm); }
+.nav-links a:hover::after,
+.nav-links a.active::after { transform: scaleX(1); }
+
+/* Reserve CTA pill — override underline */
+.nav-cta {
+  background: var(--color-gold-warm) !important;
+  color: var(--color-obsidian) !important;
+  padding: var(--space-2) var(--space-6) !important;
+  border-radius: var(--radius-sm) !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.18em !important;
+  transition: background var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast) !important;
+}
+.nav-cta::after { display: none !important; }
+.nav-cta:hover {
+  background: var(--color-gold-bright) !important;
+  box-shadow: var(--shadow-gold) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Hamburger */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+  z-index: 101;
+  padding: var(--space-2);
+}
+.hamburger span {
+  width: 22px;
+  height: 1px;
+  background: var(--color-ivory);
+  transition: transform var(--duration-base), opacity var(--duration-base);
+}
+.hamburger.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+/* Mobile menu */
+.mobile-menu {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: var(--color-obsidian);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  z-index: 100;
+}
+.mobile-menu.open { display: flex; }
+.mobile-menu a {
+  font-size: 13px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--color-mist);
+  transition: color var(--duration-fast);
+}
+.mobile-menu a:hover  { color: var(--color-gold-warm); }
+.mobile-menu .m-cta   { color: var(--color-gold-warm) !important; }
+
+@media (max-width: 900px) {
+  .nav-links  { display: none; }
+  .hamburger  { display: flex; }
+  .nav        { padding: var(--space-4) var(--space-6); }
+  .nav.scrolled { padding: var(--space-3) var(--space-6); }
+}
+
+/* ── BUTTONS ────────────────────────────────────────────────── */
+.btn {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-size: var(--t-caption);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all var(--duration-base) var(--ease-standard);
+}
+.btn-primary {
+  background: var(--color-gold-warm);
+  color: var(--color-obsidian);
+  padding: var(--space-4) var(--space-8);
+  border-radius: var(--radius-sm);
+}
+.btn-primary:hover {
+  background: var(--color-gold-bright);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-gold);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--color-gold-warm);
+  padding: var(--space-4) var(--space-8);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(212,168,67,0.45);
+}
+.btn-ghost:hover {
+  border-color: var(--color-gold-warm);
+  background: rgba(212,168,67,0.08);
+  color: var(--color-gold-bright);
+}
+
+/* ── SECTION PATTERN ───────────────────────────────────────── */
+.section       { padding: var(--space-24) var(--space-12); }
+.section-inner { max-width: 1100px; margin: 0 auto; }
+
+.section-eyebrow {
+  font-family: var(--font-label);
+  font-size: var(--t-caption);
+  letter-spacing: 0.4em;
+  color: var(--color-gold-deep);
+  margin-bottom: var(--space-3);
+}
+.section-title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  line-height: 1.05;
+  color: var(--color-ivory);
+}
+.section-title em { color: var(--color-gold-warm); font-style: italic; }
+
+.gold-rule {
+  width: 1px;
+  height: 56px;
+  background: linear-gradient(var(--color-gold-warm), transparent);
+  margin: var(--space-8) auto;
+}
+
+/* ── FOOTER ─────────────────────────────────────────────────── */
+.footer {
+  background: var(--color-void);
+  border-top: 1px solid var(--color-graphite);
+  padding: var(--space-24) var(--space-12) var(--space-12);
+}
+.footer-grid {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.8fr 1fr 1fr 1.2fr;
+  gap: var(--space-16);
+}
+@media (max-width: 900px) { .footer-grid { grid-template-columns: 1fr 1fr; gap: var(--space-12); } }
+@media (max-width: 500px) { .footer-grid { grid-template-columns: 1fr; gap: var(--space-8); } }
+
+.footer-brand-name {
+  font-family: var(--font-label);
+  font-size: 34px;
+  letter-spacing: 0.2em;
+  color: var(--color-gold-warm);
+  margin-bottom: var(--space-1);
+}
+.footer-brand-tagline {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--color-ash);
+  margin-bottom: var(--space-6);
+}
+.footer-brand-desc {
+  font-size: 13px;
+  color: var(--color-ash);
+  line-height: 1.9;
+  max-width: 260px;
+}
+.footer-social {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+.footer-social a {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--color-graphite);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-family: var(--font-label);
+  letter-spacing: 0.05em;
+  color: var(--color-ash);
+  transition: border-color var(--duration-fast), color var(--duration-fast);
+}
+.footer-social a:hover { border-color: var(--color-gold-warm); color: var(--color-gold-warm); }
+
+.footer-col-title {
+  font-family: var(--font-label);
+  font-size: 12px;
+  letter-spacing: 0.35em;
+  color: var(--color-gold-deep);
+  margin-bottom: var(--space-6);
+}
+.footer-links {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.footer-links a {
+  font-size: 13px;
+  color: var(--color-ash);
+  transition: color var(--duration-fast);
+  letter-spacing: 0.04em;
+}
+.footer-links a:hover { color: var(--color-ivory); }
+
+.footer-hours p  { font-size: 13px; color: var(--color-ash); line-height: 1.95; }
+.footer-hours strong { color: var(--color-mist); font-weight: 400; }
+.footer-hours .note  { color: var(--color-gold-deep); font-size: 12px; margin-top: var(--space-3); }
+
+.footer-address {
+  font-size: 13px;
+  color: var(--color-ash);
+  line-height: 1.95;
+}
+.footer-address a {
+  color: var(--color-gold-warm);
+  transition: opacity var(--duration-fast);
+}
+.footer-address a:hover { opacity: 0.8; }
+
+.footer-bottom {
+  max-width: 1100px;
+  margin: var(--space-12) auto 0;
+  padding-top: var(--space-6);
+  border-top: 1px solid rgba(255,255,255,0.04);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-size: var(--t-caption);
+  color: rgba(255,255,255,0.12);
+  letter-spacing: 0.1em;
+}
+@media (max-width: 600px) {
+  .footer-bottom { flex-direction: column; text-align: center; }
+}
+
+/* ── RESERVE BANNER (global) ───────────────────────────────── */
+.reserve-banner {
+  background: var(--color-gold-warm);
+  padding: var(--space-6) var(--space-12);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+}
+.reserve-banner-text {
+  font-family: var(--font-display);
+  font-size: clamp(18px, 2.2vw, 26px);
+  font-weight: 300;
+  color: var(--color-obsidian);
+}
+.reserve-banner-text em { font-style: italic; }
+.reserve-banner-cta {
+  background: var(--color-obsidian);
+  color: var(--color-ivory) !important;
+  padding: var(--space-3) var(--space-8);
+  border-radius: var(--radius-sm);
+  font-size: var(--t-caption);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 500;
+  transition: background var(--duration-fast);
+  white-space: nowrap;
+  display: inline-block;
+}
+.reserve-banner-cta:hover { background: var(--color-carbon); }
+@media (max-width: 600px) {
+  .reserve-banner { padding: var(--space-6); justify-content: center; text-align: center; }
+}
+
+/* ── SCROLL REVEAL ─────────────────────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity var(--duration-reveal) var(--ease-cinematic),
+              transform var(--duration-reveal) var(--ease-cinematic);
+}
+.reveal.in { opacity: 1; transform: none; }
+.reveal-d1 { transition-delay: 100ms; }
+.reveal-d2 { transition-delay: 200ms; }
+.reveal-d3 { transition-delay: 300ms; }
+.reveal-d4 { transition-delay: 450ms; }
+
+/* ── PAGE HEADER PATTERN ────────────────────────────────────── */
+.page-header {
+  padding: var(--space-32) var(--space-12) var(--space-16);
+  border-bottom: 1px solid var(--color-graphite);
+  position: relative;
+  overflow: hidden;
+}
+.page-header-inner  { max-width: 1100px; margin: 0 auto; position: relative; z-index: 1; }
+.page-header-eyebrow {
+  font-family: var(--font-label);
+  font-size: var(--t-caption);
+  letter-spacing: 0.4em;
+  color: var(--color-gold-deep);
+  margin-bottom: var(--space-3);
+}
+.page-header-title {
+  font-family: var(--font-display);
+  font-size: var(--t-display);
+  font-weight: 300;
+  line-height: 0.95;
+  color: var(--color-ivory);
+}
+.page-header-title em { color: var(--color-gold-warm); font-style: italic; }
+.page-header-desc {
+  font-size: 14px;
+  color: var(--color-ash);
+  max-width: 480px;
+  line-height: 1.9;
+  margin-top: var(--space-4);
+}
+.page-header-watermark {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-label);
+  font-size: clamp(80px, 18vw, 260px);
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(184,134,11,0.04);
+  pointer-events: none;
+  white-space: nowrap;
+  user-select: none;
+  letter-spacing: 0.05em;
+}
+
+/* ── FORM ELEMENTS (shared) ────────────────────────────────── */
+.form-group    { margin-bottom: var(--space-4); }
+.form-label {
+  display: block;
+  font-size: var(--t-caption);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-ash);
+  margin-bottom: var(--space-2);
+}
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  background: var(--color-carbon);
+  border: 1px solid var(--color-graphite);
+  border-radius: var(--radius-sm);
+  color: var(--color-ivory);
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 14px;
+  padding: 13px var(--space-4);
+  transition: border-color var(--duration-fast), box-shadow var(--duration-fast);
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  border-color: rgba(212,168,67,0.5);
+  box-shadow: 0 0 0 3px rgba(212,168,67,0.08);
+}
+.form-input::placeholder,
+.form-textarea::placeholder { color: rgba(136,136,136,0.5); }
+.form-select {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='1.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+}
+.form-select option { background: var(--color-carbon); color: var(--color-ivory); }
+.form-textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+@media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+
+.form-section-label {
+  font-family: var(--font-label);
+  font-size: 12px;
+  letter-spacing: 0.35em;
+  color: var(--color-gold-deep);
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-graphite);
+}
+.form-submit {
+  width: 100%;
+  background: var(--color-gold-warm);
+  color: var(--color-obsidian);
+  padding: var(--space-4) var(--space-8);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--t-caption);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 500;
+  transition: background var(--duration-fast), transform var(--duration-fast), box-shadow var(--duration-fast);
+  margin-top: var(--space-2);
+}
+.form-submit:hover {
+  background: var(--color-gold-bright);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-gold);
+}
+.form-note {
+  font-size: 12px;
+  color: var(--color-ash);
+  line-height: 1.7;
+  margin-top: var(--space-4);
+}
+
+/* ── SUCCESS STATE ──────────────────────────────────────────── */
+.form-success {
+  display: none;
+  text-align: center;
+  padding: var(--space-12) var(--space-6);
+}
+.form-success.show { display: block; }
+.success-icon {
+  font-size: 44px;
+  color: var(--color-gold-warm);
+  margin-bottom: var(--space-4);
+}
+.success-title {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 3vw, 40px);
+  font-weight: 300;
+  color: var(--color-ivory);
+  margin-bottom: var(--space-3);
+}
+.success-title em { color: var(--color-gold-warm); font-style: italic; }
+.success-desc {
+  font-size: 14px;
+  color: var(--color-ash);
+  line-height: 1.9;
+  max-width: 400px;
+  margin: 0 auto var(--space-6);
+}
+.success-back {
+  font-size: var(--t-caption);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-gold-warm);
+}
+
+/* ── BADGE ──────────────────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: rgba(184,134,11,0.12);
+  border: 1px solid rgba(184,134,11,0.28);
+  border-radius: var(--radius-sm);
+  padding: 5px var(--space-4);
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--color-gold-warm);
+}
+
+/* ── DIVIDER ────────────────────────────────────────────────── */
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-graphite) 30%, var(--color-graphite) 70%, transparent);
+}
+
+/* ── SHARED MOBILE ──────────────────────────────────────────── */
+@media (max-width: 700px) {
+  .section          { padding: var(--space-12) var(--space-6); }
+  .reserve-banner   { padding: var(--space-6); }
+  .page-header      { padding: var(--space-24) var(--space-6) var(--space-12); }
+  .footer           { padding: var(--space-16) var(--space-6) var(--space-8); }
+}
+</style>
+<style>
+
+/* ── HERO ────────────────────────────────────────────────────── */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+}
+.hero-img {
+  position: absolute;
+  inset: 0;
+  background: url('https://images.unsplash.com/photo-1470337458703-4ad1d7ba7fd8?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
+  animation: heroZoom var(--duration-reveal) * 10 ease-out forwards;
+  animation: heroZoom 8s ease-out forwards;
+}
+@keyframes heroZoom {
+  from { transform: scale(1.07); }
+  to   { transform: scale(1); }
+}
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(10,10,10,0.15) 0%,
+    rgba(10,10,10,0.08) 35%,
+    rgba(10,10,10,0.65) 70%,
+    rgba(10,10,10,0.95) 100%
+  );
+}
+.hero-content {
+  position: relative;
+  z-index: 2;
+  padding: 0 var(--space-12) var(--space-16);
+  max-width: 840px;
+  animation: heroFadeUp 1.2s var(--ease-cinematic) 0.3s both;
+}
+@keyframes heroFadeUp {
+  from { opacity: 0; transform: translateY(36px); }
+  to   { opacity: 1; transform: none; }
+}
+.hero-eyebrow {
+  font-family: var(--font-label);
+  font-size: var(--t-caption);
+  letter-spacing: 0.45em;
+  color: var(--color-gold-warm);
+  margin-bottom: var(--space-4);
+}
+.hero-title {
+  font-family: var(--font-display);
+  font-size: var(--t-hero);
+  font-weight: 300;
+  line-height: 0.93;
+  color: var(--color-ivory);
+  margin-bottom: var(--space-6);
+}
+.hero-title em { color: var(--color-gold-warm); font-style: italic; }
+.hero-sub {
+  font-size: var(--t-body-lg);
+  color: var(--color-mist);
+  font-weight: 300;
+  max-width: 500px;
+  line-height: 1.8;
+  margin-bottom: var(--space-8);
+}
+.hero-actions { display: flex; gap: var(--space-4); flex-wrap: wrap; }
+
+.hero-scroll {
+  position: absolute;
+  bottom: var(--space-8);
+  right: var(--space-12);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--color-ash);
+  animation: heroFadeUp 1.2s var(--ease-cinematic) 1.1s both;
+}
+.hero-scroll-line {
+  width: 1px;
+  height: 48px;
+  background: linear-gradient(var(--color-gold-warm), transparent);
+}
+@media (max-width: 700px) {
+  .hero-content { padding: 0 var(--space-6) var(--space-16); }
+  .hero-scroll  { right: var(--space-6); }
+}
+
+/* ── TONIGHT STRIP ──────────────────────────────────────────── */
+.tonight {
+  background: var(--color-carbon);
+  border-top: 1px solid var(--color-graphite);
+  border-bottom: 1px solid var(--color-graphite);
+  padding: var(--space-12) var(--space-12);
+}
+.tonight-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+  flex-wrap: wrap;
+}
+.tonight-label {
+  font-family: var(--font-label);
+  font-size: var(--t-caption);
+  letter-spacing: 0.4em;
+  color: var(--color-gold-deep);
+  margin-bottom: var(--space-2);
+}
+.tonight-event {
+  font-family: var(--font-display);
+  font-size: clamp(22px, 3vw, 36px);
+  font-weight: 300;
+  color: var(--color-ivory);
+}
+.tonight-event em { color: var(--color-gold-warm); font-style: italic; }
+.tonight-meta  { display: flex; gap: var(--space-6); margin-top: var(--space-2); flex-wrap: wrap; }
+.tonight-tag {
+  font-size: var(--t-caption);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-ash);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.tonight-actions { display: flex; gap: var(--space-3); flex-wrap: wrap; }
+@media (max-width: 600px) { .tonight { padding: var(--space-8) var(--space-6); } }
+
+/* ── THREE SPACES ────────────────────────────────────────────── */
+.spaces { background: var(--color-void); }
+.spaces-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  min-height: 540px;
+}
+@media (max-width: 800px) { .spaces-grid { grid-template-columns: 1fr; } }
+
+.space-card { position: relative; overflow: hidden; cursor: pointer; }
+.space-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(10,10,10,0.92) 0%, rgba(10,10,10,0.2) 55%, transparent 100%);
+  transition: opacity var(--duration-slow);
+}
+.space-card:hover::after { opacity: 0.75; }
+
+.space-img {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  transition: transform var(--duration-slow) var(--ease-cinematic);
+}
+.space-card:hover .space-img { transform: scale(1.07); }
+
+.space-info {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  height: 540px;
+  padding: var(--space-8);
+}
+@media (max-width: 800px) { .space-info { height: 300px; padding: var(--space-6); } }
+
+.space-number {
+  font-family: var(--font-label);
+  font-size: var(--t-caption);
+  letter-spacing: 0.4em;
+  color: var(--color-gold-deep);
+  margin-bottom: var(--space-2);
+}
+.space-name {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 3vw, 44px);
+  font-weight: 300;
+  color: var(--color-ivory);
+  line-height: 1.05;
+  margin-bottom: var(--space-3);
+}
+.space-name em { color: var(--color-gold-warm); font-style: italic; }
+.space-desc { font-size: 13px; color: var(--color-mist); line-height: 1.7; max-width: 280px; }
+.space-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  font-size: var(--t-caption);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-gold-warm);
+  transition: gap var(--duration-base);
+}
+.space-card:hover .space-link { gap: var(--space-3); }
+
+/* ── BRAND STATEMENT ─────────────────────────────────────────── */
+.statement {
+  padding: var(--space-32) var(--space-12);
+  background: var(--color-obsidian);
+  position: relative;
+  overflow: hidden;
+}
+.statement::before {
+  content: 'RIDDIM';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-label);
+  font-size: clamp(120px, 22vw, 320px);
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(184,134,11,0.04);
+  pointer-events: none;
+  white-space: nowrap;
+  letter-spacing: 0.05em;
+  user-select: none;
+}
+.statement-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+  text-align: center;
+}
+.statement-text {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 4.5vw, 58px);
+  font-weight: 300;
+  line-height: 1.15;
+  color: var(--color-ivory);
+}
+.statement-text em { color: var(--color-gold-warm); font-style: italic; }
+.statement-sub {
+  font-size: 14px;
+  color: var(--color-ash);
+  max-width: 520px;
+  margin: 0 auto;
+  line-height: 1.9;
+}
+
+/* ── FEATURES ────────────────────────────────────────────────── */
+.features { padding: var(--space-24) var(--space-12); background: var(--color-void); }
+.features-inner { max-width: 1100px; margin: 0 auto; }
+.features-header { margin-bottom: var(--space-16); }
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--color-graphite);
+  border: 1px solid var(--color-graphite);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+@media (max-width: 900px) { .features-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 500px) { .features-grid { grid-template-columns: 1fr; } }
+
+.feature {
+  background: var(--color-carbon);
+  padding: var(--space-8);
+  transition: background var(--duration-base);
+}
+.feature:hover { background: var(--color-graphite); }
+.feature-icon   { font-size: 28px; margin-bottom: var(--space-4); }
+.feature-name {
+  font-family: var(--font-label);
+  font-size: var(--t-headline-sm);
+  letter-spacing: 0.15em;
+  color: var(--color-gold-bright);
+  margin-bottom: var(--space-3);
+}
+.feature-desc { font-size: 13px; color: var(--color-ash); line-height: 1.8; }
+
+/* ── MEMBER CTA ──────────────────────────────────────────────── */
+.member-cta {
+  position: relative;
+  overflow: hidden;
+  min-height: 500px;
+  display: flex;
+  align-items: center;
+}
+.member-cta-bg {
+  position: absolute;
+  inset: 0;
+  background: url('https://images.unsplash.com/photo-1566417713428-102ccc4df6c8?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
+}
+.member-cta-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(10,10,10,0.97) 42%, rgba(10,10,10,0.5) 100%);
+}
+.member-cta-inner {
+  position: relative;
+  z-index: 2;
+  padding: var(--space-24) var(--space-12);
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+}
+.member-cta-title {
+  font-family: var(--font-display);
+  font-size: clamp(36px, 5vw, 68px);
+  font-weight: 300;
+  color: var(--color-ivory);
+  line-height: 1.05;
+  max-width: 620px;
+  margin-bottom: var(--space-4);
+  margin-top: var(--space-6);
+}
+.member-cta-title em { color: var(--color-gold-warm); font-style: italic; }
+.member-cta-desc {
+  font-size: 14px;
+  color: var(--color-mist);
+  max-width: 460px;
+  line-height: 1.9;
+  margin-bottom: var(--space-8);
+}
+.member-perks { display: flex; gap: var(--space-8); margin-bottom: var(--space-8); flex-wrap: wrap; }
+.member-perk {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--color-ash);
+}
+.member-perk::before { content: '—'; color: var(--color-gold-warm); }
+.member-cta-actions { display: flex; gap: var(--space-3); flex-wrap: wrap; }
+@media (max-width: 600px) { .member-cta-inner { padding: var(--space-16) var(--space-6); } }
+
+/* ── PRIVATE EVENTS ──────────────────────────────────────────── */
+.private { padding: var(--space-24) var(--space-12); background: var(--color-obsidian); }
+.private-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-24);
+  align-items: center;
+}
+@media (max-width: 800px) { .private-inner { grid-template-columns: 1fr; gap: var(--space-12); } }
+
+.private-img-wrap {
+  position: relative;
+  aspect-ratio: 3/4;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+}
+.private-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.8s var(--ease-cinematic);
+}
+.private-img-wrap:hover img { transform: scale(1.04); }
+.private-img-badge {
+  position: absolute;
+  bottom: var(--space-6);
+  left: var(--space-6);
+  right: var(--space-6);
+  background: rgba(10,10,10,0.9);
+  border: 1px solid rgba(184,134,11,0.2);
+  border-radius: var(--radius-sm);
+  padding: var(--space-4) var(--space-4);
+  backdrop-filter: blur(8px);
+}
+.private-img-badge-label {
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--color-gold-deep);
+  margin-bottom: var(--space-1);
+}
+.private-img-badge-text { font-size: 14px; color: var(--color-ivory); }
+
+.private-content {}
+.private-title {
+  font-family: var(--font-display);
+  font-size: var(--t-subhead);
+  font-weight: 300;
+  color: var(--color-ivory);
+  line-height: 1.05;
+  margin: var(--space-4) 0 var(--space-6);
+}
+.private-title em { color: var(--color-gold-warm); font-style: italic; }
+.private-desc { font-size: 14px; color: var(--color-ash); line-height: 1.9; margin-bottom: var(--space-4); }
+
+.private-types { display: flex; flex-direction: column; gap: var(--space-4); margin: var(--space-8) 0; }
+.private-type {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--color-graphite);
+  border-radius: var(--radius-sm);
+  transition: border-color var(--duration-base);
+}
+.private-type:hover { border-color: rgba(184,134,11,0.3); }
+.private-type-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+.private-type-name {
+  font-size: 12px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-gold-warm);
+  margin-bottom: var(--space-1);
+}
+.private-type-desc { font-size: 13px; color: var(--color-ash); line-height: 1.7; }
+
+/* ── INSTAGRAM GRID ──────────────────────────────────────────── */
+.instagram { padding: var(--space-24) var(--space-12); background: var(--color-void); }
+.instagram-inner { max-width: 1100px; margin: 0 auto; }
+.instagram-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-8);
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+.instagram-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+}
+@media (max-width: 800px) { .instagram-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 500px) { .instagram-grid { grid-template-columns: repeat(2, 1fr); } }
+
+.insta-item {
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: var(--color-carbon);
+  position: relative;
+  cursor: pointer;
+}
+.insta-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--duration-slow) var(--ease-cinematic), filter var(--duration-slow);
+  filter: brightness(0.82);
+}
+.insta-item:hover img { transform: scale(1.09); filter: brightness(1); }
+.insta-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(10,10,10,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--duration-base);
+  font-size: 22px;
+}
+.insta-item:hover .insta-overlay { opacity: 1; }
+
+</style>
+</head>
+<body>
+
+<!-- ── NAV ────────────────────────────────────────────────────── -->
+<nav class="nav" id="nav">
+  <a href="index.html" class="nav-logo">RIDDIM</a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="experience.html">Experience</a></li>
+    <li><a href="menu.html">Menu</a></li>
+    <li><a href="events.html">Events</a></li>
+    <li><a href="private-events.html">Private Events</a></li>
+    <li><a href="join.html">Join the Club</a></li>
+    <li><a href="members/index.html">Members</a></li>
+    <li><a href="reserve.html" class="nav-cta">Reserve</a></li>
+  </ul>
+  <div class="hamburger" id="hamburger">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<div class="mobile-menu" id="mobileMenu">
+  <a href="experience.html" onclick="closeMobile()">Experience</a>
+  <a href="menu.html" onclick="closeMobile()">Menu</a>
+  <a href="events.html" onclick="closeMobile()">Events</a>
+  <a href="private-events.html" onclick="closeMobile()">Private Events</a>
+  <a href="join.html" onclick="closeMobile()">Join the Club</a>
+  <a href="members/index.html" onclick="closeMobile()">Members</a>
+  <a href="reserve.html" onclick="closeMobile()" class="m-cta">Reserve a Table</a>
+</div>
+
+<!-- ── HERO ──────────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-img"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">Atlanta's Premier Supper Club</div>
+    <h1 class="hero-title">
+      Where the<br>
+      Night<br>
+      <em>Begins.</em>
+    </h1>
+    <p class="hero-sub">Dining. Hookah. Nightlife. Atlanta's only venue combining an outdoor patio, fine dining, and a full nightclub experience under one roof.</p>
+    <div class="hero-actions">
+      <a href="reserve.html" class="btn btn-primary">Reserve a Table</a>
+      <a href="experience.html" class="btn btn-ghost">Explore the Venue</a>
+    </div>
+  </div>
+  <div class="hero-scroll">
+    <div class="hero-scroll-line"></div>
+    Scroll
+  </div>
+</section>
+
+<!-- ── TONIGHT STRIP ──────────────────────────────────────────── -->
+<div class="tonight">
+  <div class="tonight-inner">
+    <div>
+      <div class="tonight-label">Happening This Friday</div>
+      <div class="tonight-event">DJ Night — <em>Headz Only</em></div>
+      <div class="tonight-meta">
+        <span class="tonight-tag">9PM – 3AM</span>
+        <span class="tonight-tag">Hip-Hop · Afrobeats</span>
+        <span class="tonight-tag">Patio Open</span>
+        <span class="tonight-tag">Hookah Available</span>
+      </div>
+    </div>
+    <div class="tonight-actions">
+      <a href="events.html" class="btn btn-ghost">All Events</a>
+      <a href="reserve.html" class="btn btn-primary">Book a Table</a>
+    </div>
+  </div>
+</div>
+
+<!-- ── THREE SPACES ───────────────────────────────────────────── -->
+<section class="spaces reveal">
+  <div class="spaces-grid">
+
+    <div class="space-card">
+      <div class="space-img" style="background-image:url('https://images.unsplash.com/photo-1529543544282-ea669407fca3?auto=format&fit=crop&w=900&q=80')"></div>
+      <div class="space-info">
+        <div class="space-number">01 / 03</div>
+        <h2 class="space-name">The <em>Patio</em></h2>
+        <p class="space-desc">Atlanta's most coveted outdoor experience. Hookah, craft cocktails, and the city air — the evening starts here.</p>
+        <a href="experience.html#patio" class="space-link">Explore ↗</a>
+      </div>
+    </div>
+
+    <div class="space-card">
+      <div class="space-img" style="background-image:url('https://images.unsplash.com/photo-1544025162-d76538641a23?auto=format&fit=crop&w=900&q=80')"></div>
+      <div class="space-info">
+        <div class="space-number">02 / 03</div>
+        <h2 class="space-name">The <em>Dining Room</em></h2>
+        <p class="space-desc">An intimate supper club experience. Curated plates, attentive service, and the full rhythm of the room.</p>
+        <a href="experience.html#dining" class="space-link">Explore ↗</a>
+      </div>
+    </div>
+
+    <div class="space-card">
+      <div class="space-img" style="background-image:url('https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=900&q=80')"></div>
+      <div class="space-info">
+        <div class="space-number">03 / 03</div>
+        <h2 class="space-name">The <em>Floor</em></h2>
+        <p class="space-desc">When the lights drop and the bassline takes over. Atlanta's hip-hop nightclub experience, elevated.</p>
+        <a href="experience.html#floor" class="space-link">Explore ↗</a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── BRAND STATEMENT ─────────────────────────────────────────── -->
+<section class="statement">
+  <div class="statement-inner reveal">
+    <p class="statement-text">
+      No other Atlanta venue combines<br>
+      <em>restaurant, nightclub, patio,</em><br>
+      and hookah under one roof.
+    </p>
+    <div class="gold-rule"></div>
+    <p class="statement-sub">RIDDIM is the only destination that moves with you from sundown to sunrise — from your first cocktail on the patio to the last song on the floor.</p>
+  </div>
+</section>
+
+<!-- ── FEATURES ────────────────────────────────────────────────── -->
+<section class="features">
+  <div class="features-inner">
+    <div class="features-header reveal">
+      <div class="section-eyebrow">Why RIDDIM</div>
+      <h2 class="section-title" style="font-size: var(--t-display)">The Full <em>Experience</em></h2>
+    </div>
+    <div class="features-grid">
+      <div class="feature reveal reveal-d1">
+        <div class="feature-icon">🪴</div>
+        <div class="feature-name">Outdoor Patio</div>
+        <p class="feature-desc">Atlanta's largest dedicated outdoor lounge — covered, ventilated, and open until close.</p>
+      </div>
+      <div class="feature reveal reveal-d2">
+        <div class="feature-icon">💨</div>
+        <div class="feature-name">Premium Hookah</div>
+        <p class="feature-desc">Curated flavors, full hookah bar service, paired with cocktails or bottle service.</p>
+      </div>
+      <div class="feature reveal reveal-d3">
+        <div class="feature-icon">🍽️</div>
+        <div class="feature-name">Supper Club Dining</div>
+        <p class="feature-desc">Elevated plates from an executive chef — full dinner service until midnight on weekends.</p>
+      </div>
+      <div class="feature reveal reveal-d4">
+        <div class="feature-icon">🎵</div>
+        <div class="feature-name">Hip-Hop Nightclub</div>
+        <p class="feature-desc">Live DJs, curated hip-hop and Afrobeats sets, VIP bottle service and table reservations.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── MEMBER CTA ──────────────────────────────────────────────── -->
+<section class="member-cta">
+  <div class="member-cta-bg"></div>
+  <div class="member-cta-overlay"></div>
+  <div class="member-cta-inner">
+    <div class="reveal">
+      <div class="badge">👑 RIDDIM Members Club</div>
+      <h2 class="member-cta-title">
+        Belong to<br><em>something exclusive.</em>
+      </h2>
+      <p class="member-cta-desc">Our members earn points every visit, unlock reserved sections, and get first access to events, private dinners, and bottle priority.</p>
+      <div class="member-perks">
+        <span class="member-perk">Priority reservations</span>
+        <span class="member-perk">Points on every visit</span>
+        <span class="member-perk">Secret menu access</span>
+        <span class="member-perk">Patio section priority</span>
+      </div>
+      <div class="member-cta-actions">
+        <a href="join.html" class="btn btn-primary">Join the Club</a>
+        <a href="members/index.html" class="btn btn-ghost">Member Login</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── PRIVATE EVENTS ──────────────────────────────────────────── -->
+<section class="private">
+  <div class="private-inner">
+    <div class="reveal">
+      <div class="private-img-wrap">
+        <img src="https://images.unsplash.com/photo-1519214605650-76cfb4ce5b19?auto=format&fit=crop&w=800&q=80" alt="Private event at RIDDIM" loading="lazy">
+        <div class="private-img-badge">
+          <div class="private-img-badge-label">Available for Booking</div>
+          <div class="private-img-badge-text">Full Venue · Patio Only · Dining Room</div>
+        </div>
+      </div>
+    </div>
+    <div class="reveal reveal-d2 private-content">
+      <div class="section-eyebrow">Private Events</div>
+      <h2 class="private-title">Make it<br><em>unforgettable.</em></h2>
+      <p class="private-desc">From intimate birthday dinners to full venue buyouts — RIDDIM's team tailors every detail for an experience your guests will not stop talking about.</p>
+      <div class="private-types">
+        <div class="private-type">
+          <div class="private-type-icon">🎂</div>
+          <div>
+            <div class="private-type-name">Birthday Celebrations</div>
+            <p class="private-type-desc">Private section or full dining room, custom bottle arrangements, and a dedicated host.</p>
+          </div>
+        </div>
+        <div class="private-type">
+          <div class="private-type-icon">🥂</div>
+          <div>
+            <div class="private-type-name">Bachelorette & Bachelor</div>
+            <p class="private-type-desc">Hookah service, VIP floor access, bottle packages designed for the night of nights.</p>
+          </div>
+        </div>
+        <div class="private-type">
+          <div class="private-type-icon">💼</div>
+          <div>
+            <div class="private-type-name">Corporate & Brand Events</div>
+            <p class="private-type-desc">Full venue buyouts with A/V support, custom branding, and executive dining service.</p>
+          </div>
+        </div>
+      </div>
+      <a href="private-events.html" class="btn btn-primary">Inquire About Events</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── INSTAGRAM GRID ──────────────────────────────────────────── -->
+<section class="instagram">
+  <div class="instagram-inner">
+    <div class="instagram-header reveal">
+      <div>
+        <div class="section-eyebrow">Follow the Night</div>
+        <h2 class="section-title" style="font-size: clamp(28px, 3vw, 44px)">@<em>riddimatlanta</em></h2>
+      </div>
+      <a href="#" class="btn btn-ghost">View on Instagram</a>
+    </div>
+    <div class="instagram-grid reveal">
+      <div class="insta-item"><img src="https://images.unsplash.com/photo-1533174072545-7780ea8d615a?auto=format&fit=crop&w=400&q=80" alt="" loading="lazy"><div class="insta-overlay">♡</div></div>
+      <div class="insta-item"><img src="https://images.unsplash.com/photo-1551024601-bec78aea367e?auto=format&fit=crop&w=400&q=80" alt="" loading="lazy"><div class="insta-overlay">♡</div></div>
+      <div class="insta-item"><img src="https://images.unsplash.com/photo-1517263904808-5dc91e3e7044?auto=format&fit=crop&w=400&q=80" alt="" loading="lazy"><div class="insta-overlay">♡</div></div>
+      <div class="insta-item"><img src="https://images.unsplash.com/photo-1581790061086-9e0db8a2e2a3?auto=format&fit=crop&w=400&q=80" alt="" loading="lazy"><div class="insta-overlay">♡</div></div>
+      <div class="insta-item"><img src="https://images.unsplash.com/photo-1505236858219-8359eb29e329?auto=format&fit=crop&w=400&q=80" alt="" loading="lazy"><div class="insta-overlay">♡</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── RESERVE BANNER ──────────────────────────────────────────── -->
+<div class="reserve-banner">
+  <div class="reserve-banner-text">Ready for a night that moves you? <em>Your table is waiting.</em></div>
+  <a href="reserve.html" class="reserve-banner-cta">Reserve Now</a>
+</div>
+
+<!-- ── FOOTER ─────────────────────────────────────────────────── -->
+<footer class="footer">
+  <div class="footer-grid">
+    <div>
+      <div class="footer-brand-name">RIDDIM</div>
+      <div class="footer-brand-tagline">Supper Club · Atlanta</div>
+      <p class="footer-brand-desc">Atlanta's only venue combining fine dining, hookah, outdoor patio, and nightclub under one roof.</p>
+      <div class="footer-social">
+        <a href="#">ig</a><a href="#">tw</a><a href="#">tk</a><a href="#">fb</a>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-title">Navigate</div>
+      <ul class="footer-links">
+        <li><a href="experience.html">Experience</a></li>
+        <li><a href="menu.html">Menu</a></li>
+        <li><a href="events.html">Events</a></li>
+        <li><a href="reserve.html">Reserve</a></li>
+        <li><a href="private-events.html">Private Events</a></li>
+        <li><a href="join.html">Join the Club</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Hours</div>
+      <div class="footer-hours">
+        <p><strong>Wednesday – Thursday</strong><br>7PM – 2AM</p>
+        <p style="margin-top:12px"><strong>Friday – Saturday</strong><br>6PM – 3AM</p>
+        <p style="margin-top:12px"><strong>Sunday</strong><br>5PM – 12AM</p>
+        <p class="note">Kitchen closes at midnight</p>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-title">Find Us</div>
+      <div class="footer-address">
+        Atlanta, Georgia<br><br>
+        <a href="reserve.html">Reserve a Table →</a><br>
+        <a href="contact.html" style="color: var(--color-ash); margin-top: 8px; display: inline-block;">Contact Us →</a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 AG Entertainment · RIDDIM Supper Club</span>
+    <span>Atlanta, GA · All rights reserved</span>
+  </div>
+</footer>
+
+<script>
+// ── Nav scroll
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 60);
+}, { passive: true });
+
+// ── Hamburger
+const hamburger = document.getElementById('hamburger');
+const mobileMenu = document.getElementById('mobileMenu');
+hamburger.addEventListener('click', () => {
+  hamburger.classList.toggle('open');
+  mobileMenu.classList.toggle('open');
+  document.body.style.overflow = mobileMenu.classList.contains('open') ? 'hidden' : '';
+});
+function closeMobile() {
+  hamburger.classList.remove('open');
+  mobileMenu.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ── Scroll reveal
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); } });
+}, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+reveals.forEach(el => observer.observe(el));
+
+// ══════════════════════════════════════════════
+//  SECRET PORTAL ACCESS
+//  Mobile : Triple-tap logo  → Staff Portal
+//           5-tap logo       → Owner Portal
+//  Desktop: Shift+S          → Staff Portal
+//           Shift+O          → Owner Portal
+// ══════════════════════════════════════════════
+(function secretPortalAccess() {
+  const STAFF_URL = 'staff/index.html';
+  const OWNER_URL = 'owner/index.html';
+  const TAP_WINDOW = 600;
+  let tapCount = 0;
+  let tapTimer = null;
+
+  function flashLogo() {
+    const logo = document.querySelector('.nav-logo');
+    if (!logo) return;
+    logo.style.transition = 'color 80ms';
+    logo.style.color = '#F0C060';
+    setTimeout(() => { logo.style.color = ''; }, 180);
+  }
+
+  function handleTap(e) {
+    tapCount++;
+    clearTimeout(tapTimer);
+
+    if (tapCount === 3) {
+      e.preventDefault();
+      flashLogo();
+      setTimeout(() => { window.location.href = STAFF_URL; }, 200);
+      tapCount = 0; return;
+    }
+    if (tapCount === 5) {
+      e.preventDefault();
+      flashLogo();
+      setTimeout(() => { flashLogo(); }, 200);
+      setTimeout(() => { window.location.href = OWNER_URL; }, 400);
+      tapCount = 0; return;
+    }
+    // Not a secret sequence — let normal nav happen
+    tapTimer = setTimeout(() => { tapCount = 0; }, TAP_WINDOW);
+  }
+
+  const navLogo = document.querySelector('.nav-logo');
+  if (navLogo) {
+    navLogo.addEventListener('touchend', (e) => { handleTap(e); }, { passive: false });
+    navLogo.addEventListener('click', (e) => {
+      if (window.matchMedia('(pointer: coarse)').matches) return;
+      handleTap(e);
+    });
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (e.shiftKey && e.key === 'S') { window.location.href = STAFF_URL; }
+    if (e.shiftKey && e.key === 'O') { window.location.href = OWNER_URL; }
+  });
+})();
+</script>
+</body>
+</html>

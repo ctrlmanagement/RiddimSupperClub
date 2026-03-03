@@ -1,0 +1,60 @@
+---
+const { variant = 'primary', href, type = 'button', class: className = '' } = Astro.props
+const tag = href ? 'a' : 'button'
+---
+
+{tag === 'a' ? (
+  <a href={href} class={`btn btn--${variant} ${className}`}>
+    <slot />
+  </a>
+) : (
+  <button type={type} class={`btn btn--${variant} ${className}`}>
+    <slot />
+  </button>
+)}
+
+<style>
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-2) var(--space-8);
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    border: 1px solid transparent;
+  }
+  .btn--primary {
+    background: var(--color-gold);
+    color: var(--color-black);
+    border-color: var(--color-gold);
+  }
+  .btn--primary:hover {
+    background: var(--color-gold-light);
+    border-color: var(--color-gold-light);
+  }
+  .btn--secondary {
+    background: transparent;
+    color: var(--color-gold);
+    border-color: var(--color-gold);
+  }
+  .btn--secondary:hover {
+    background: var(--color-gold);
+    color: var(--color-black);
+  }
+  .btn--ghost {
+    background: transparent;
+    color: var(--color-white);
+    border-color: var(--color-white);
+  }
+  .btn--ghost:hover {
+    background: var(--color-white);
+    color: var(--color-black);
+  }
+</style>
