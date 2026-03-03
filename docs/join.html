@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Join the Club — RIDDIM Members Club Atlanta</title>
+<meta name="description" content="Join the RIDDIM Members Club. Earn points every visit, unlock VIP perks, and get priority access to events and reservations.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,600&family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* SHARED */
+/* ============================================================
+   RIDDIM SUPPER CLUB — Design System v1.0
+   Session 15 · AG Entertainment
+   Cormorant Garamond (display) · Bebas Neue (label) · DM Sans (body)
+   ============================================================ */
+
+
+
+/* ── TOKENS ────────────────────────────────────────────────── */
+:root {
+  /* Foundation */
+  --color-obsidian:  #0A0A0A;
+  --color-void:      #111111;
+  --color-carbon:    #1A1A1A;
+  --color-graphite:  #2A2A2A;
+  --color-ash:       #888888;
+  --color-mist:      #CCCCCC;
+  --color-ivory:     #F5F0E8;
+
+  /* Gold Spectrum */
+  --color-gold-deep:   #B8860B;
+  --color-gold-warm:   #D4A843;
+  --color-gold-bright: #F0C060;
+  --color-gold-light:  #FAE29A;
+  --color-ember:       #C0392B;
+
+  /* Fonts */
+  --font-display: 'Cormorant Garamond', serif;
+  --font-label:   'Bebas Neue', sans-serif;
+  --font-body:    'DM Sans', sans-serif;
+
+  /* Type Scale */
+  --t-hero:        clamp(56px, 10vw, 140px);
+  --t-display:     clamp(36px, 6vw, 80px);
+  --t-subhead:     clamp(24px, 3vw, 40px);
+  --t-headline:    22px;
+  --t-headline-sm: 14px;
+  --t-body-lg:     18px;
+  --t-body:        15px;
+  --t-caption:     11px;
+
+  /* Spacing — 4px base unit */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-24: 96px;
+  --space-32: 128px;
+
+  /* Border Radius */
+  --radius-sm:   3px;
+  --radius-md:   6px;
+  --radius-lg:   12px;
+  --radius-full: 999px;
+
+  /* Shadows */
+  --shadow-card:    0 4px 24px rgba(0,0,0,0.4);
+  --shadow-gold:    0 0 24px rgba(212,168,67,0.2);
+  --shadow-gold-lg: 0 0 48px rgba(212,168,67,0.15);
+  --shadow-inset:   inset 0 1px 0 rgba(255,255,255,0.06);
+
+  /* Transitions */
+  --ease-standard:  cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-cinematic: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast:   150ms;
+  --duration-base:   300ms;
+  --duration-slow:   600ms;
+  --duration-reveal: 800ms;
+}
+
+/* ── RESET ─────────────────────────────────────────────────── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--color-obsidian);
+  color: var(--color-ivory);
+  font-family: var(--font-body);
+  font-weight: 300;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+img { display: block; max-width: 100%; }
+a   { color: inherit; text-decoration: none; }
+
+/* ── GRAIN OVERLAY ─────────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  opacity: 0.45;
+}
+
+/* ── NAV ────────────────────────────────────────────────────── */
+.nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  padding: var(--space-8) var(--space-12);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background var(--duration-slow) var(--ease-standard),
+              padding var(--duration-slow) var(--ease-standard),
+              border-color var(--duration-slow) var(--ease-standard);
+  border-bottom: 1px solid transparent;
+}
+.nav.scrolled {
+  background: rgba(10,10,10,0.96);
+  padding: var(--space-4) var(--space-12);
+  border-bottom-color: rgba(184,134,11,0.15);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+.nav.solid {
+  background: rgba(10,10,10,0.96);
+  border-bottom-color: rgba(184,134,11,0.12);
+  backdrop-filter: blur(16px);
+}
+.nav-logo {
+  font-family: var(--font-label);
+  font-size: 26px;
+  letter-spacing: 0.22em;
+  color: var(--color-gold-warm);
+  transition: color var(--duration-fast);
+}
+.nav-logo:hover { color: var(--color-gold-bright); }
+
+.nav-links {
+  display: flex;
+  gap: var(--space-8);
+  list-style: none;
+  align-items: center;
+}
+.nav-links a {
+  font-size: var(--t-caption);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-mist);
+  transition: color var(--duration-fast);
+  position: relative;
+}
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0; right: 0;
+  height: 1px;
+  background: var(--color-gold-warm);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--duration-base) var(--ease-standard);
+}
+.nav-links a:hover,
+.nav-links a.active { color: var(--color-gold-warm); }
+.nav-links a:hover::after,
+.nav-links a.active::after { transform: scaleX(1); }
+
+/* Reserve CTA pill — override underline */
+.nav-cta {
+  background: var(--color-gold-warm) !important;
+  color: var(--color-obsidian) !important;
+  padding: var(--space-2) var(--space-6) !important;
+  border-radius: var(--radius-sm) !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.18em !important;
+  transition: background var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast) !important;
+}
+.nav-cta::after { display: none !important; }
+.nav-cta:hover {
+  background: var(--color-gold-bright) !important;
+  box-shadow: var(--shadow-gold) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Hamburger */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+  z-index: 101;
+  padding: var(--space-2);
+}
+.hamburger span {
+  width: 22px;
+  height: 1px;
+  background: var(--color-ivory);
+  transition: transform var(--duration-base), opacity var(--duration-base);
+}
+.hamburger.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+/* Mobile menu */
+.mobile-menu {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: var(--color-obsidian);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  z-index: 100;
+}
+.mobile-menu.open { display: flex; }
+.mobile-menu a {
+  font-size: 13px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--color-mist);
+  transition: color var(--duration-fast);
+}
+.mobile-menu a:hover  { color: var(--color-gold-warm); }
+.mobile-menu .m-cta   { color: var(--color-gold-warm) !important; }
+
+@media (max-width: 900px) {
+  .nav-links  { display: none; }
+  .hamburger  { display: flex; }
+  .nav        { padding: var(--space-4) var(--space-6); }
+  .nav.scrolled { padding: var(--space-3) var(--space-6); }
+}
+
+/* ── BUTTONS ────────────────────────────────────────────────── */
+.btn {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-size: var(--t-caption);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all var(--duration-base) var(--ease-standard);
+}
+.btn-primary {
+  background: var(--color-gold-warm);
+  color: var(--color-obsidian);
+  padding: var(--space-4) var(--space-8);
+  border-radius: var(--radius-sm);
+}
+.btn-primary:hover {
+  background: var(--color-gold-bright);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-gold);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--color-gold-warm);
+  padding: var(--space-4) var(--space-8);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(212,168,67,0.45);
+}
+.btn-ghost:hover {
+  border-color: var(--color-gold-warm);
+  background: rgba(212,168,67,0.08);
+  color: var(--color-gold-bright);
+}
+
+/* ── SECTION PATTERN ───────────────────────────────────────── */
+.section       { padding: var(--space-24) var(--space-12); }
+.section-inner { max-width: 1100px; margin: 0 auto; }
+
+.section-eyebrow {
+  font-family: var(--font-label);
+  font-size: var(--t-caption);
+  letter-spacing: 0.4em;
+  color: var(--color-gold-deep);
+  margin-bottom: var(--space-3);
+}
+.section-title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  line-height: 1.05;
+  color: var(--color-ivory);
+}
+.section-title em { color: var(--color-gold-warm); font-style: italic; }
+
+.gold-rule {
+  width: 1px;
+  height: 56px;
+  background: linear-gradient(var(--color-gold-warm), transparent);
+  margin: var(--space-8) auto;
+}
+
+/* ── FOOTER ─────────────────────────────────────────────────── */
+.footer {
+  background: var(--color-void);
+  border-top: 1px solid var(--color-graphite);
+  padding: var(--space-24) var(--space-12) var(--space-12);
+}
+.footer-grid {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.8fr 1fr 1fr 1.2fr;
+  gap: var(--space-16);
+}
+@media (max-width: 900px) { .footer-grid { grid-template-columns: 1fr 1fr; gap: var(--space-12); } }
+@media (max-width: 500px) { .footer-grid { grid-template-columns: 1fr; gap: var(--space-8); } }
+
+.footer-brand-name {
+  font-family: var(--font-label);
+  font-size: 34px;
+  letter-spacing: 0.2em;
+  color: var(--color-gold-warm);
+  margin-bottom: var(--space-1);
+}
+.footer-brand-tagline {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--color-ash);
+  margin-bottom: var(--space-6);
+}
+.footer-brand-desc {
+  font-size: 13px;
+  color: var(--color-ash);
+  line-height: 1.9;
+  max-width: 260px;
+}
+.footer-social {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+.footer-social a {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--color-graphite);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-family: var(--font-label);
+  letter-spacing: 0.05em;
+  color: var(--color-ash);
+  transition: border-color var(--duration-fast), color var(--duration-fast);
+}
+.footer-social a:hover { border-color: var(--color-gold-warm); color: var(--color-gold-warm); }
+
+.footer-col-title {
+  font-family: var(--font-label);
+  font-size: 12px;
+  letter-spacing: 0.35em;
+  color: var(--color-gold-deep);
+  margin-bottom: var(--space-6);
+}
+.footer-links {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.footer-links a {
+  font-size: 13px;
+  color: var(--color-ash);
+  transition: color var(--duration-fast);
+  letter-spacing: 0.04em;
+}
+.footer-links a:hover { color: var(--color-ivory); }
+
+.footer-hours p  { font-size: 13px; color: var(--color-ash); line-height: 1.95; }
+.footer-hours strong { color: var(--color-mist); font-weight: 400; }
+.footer-hours .note  { color: var(--color-gold-deep); font-size: 12px; margin-top: var(--space-3); }
+
+.footer-address {
+  font-size: 13px;
+  color: var(--color-ash);
+  line-height: 1.95;
+}
+.footer-address a {
+  color: var(--color-gold-warm);
+  transition: opacity var(--duration-fast);
+}
+.footer-address a:hover { opacity: 0.8; }
+
+.footer-bottom {
+  max-width: 1100px;
+  margin: var(--space-12) auto 0;
+  padding-top: var(--space-6);
+  border-top: 1px solid rgba(255,255,255,0.04);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-size: var(--t-caption);
+  color: rgba(255,255,255,0.12);
+  letter-spacing: 0.1em;
+}
+@media (max-width: 600px) {
+  .footer-bottom { flex-direction: column; text-align: center; }
+}
+
+/* ── RESERVE BANNER (global) ───────────────────────────────── */
+.reserve-banner {
+  background: var(--color-gold-warm);
+  padding: var(--space-6) var(--space-12);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+}
+.reserve-banner-text {
+  font-family: var(--font-display);
+  font-size: clamp(18px, 2.2vw, 26px);
+  font-weight: 300;
+  color: var(--color-obsidian);
+}
+.reserve-banner-text em { font-style: italic; }
+.reserve-banner-cta {
+  background: var(--color-obsidian);
+  color: var(--color-ivory) !important;
+  padding: var(--space-3) var(--space-8);
+  border-radius: var(--radius-sm);
+  font-size: var(--t-caption);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 500;
+  transition: background var(--duration-fast);
+  white-space: nowrap;
+  display: inline-block;
+}
+.reserve-banner-cta:hover { background: var(--color-carbon); }
+@media (max-width: 600px) {
+  .reserve-banner { padding: var(--space-6); justify-content: center; text-align: center; }
+}
+
+/* ── SCROLL REVEAL ─────────────────────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity var(--duration-reveal) var(--ease-cinematic),
+              transform var(--duration-reveal) var(--ease-cinematic);
+}
+.reveal.in { opacity: 1; transform: none; }
+.reveal-d1 { transition-delay: 100ms; }
+.reveal-d2 { transition-delay: 200ms; }
+.reveal-d3 { transition-delay: 300ms; }
+.reveal-d4 { transition-delay: 450ms; }
+
+/* ── PAGE HEADER PATTERN ────────────────────────────────────── */
+.page-header {
+  padding: var(--space-32) var(--space-12) var(--space-16);
+  border-bottom: 1px solid var(--color-graphite);
+  position: relative;
+  overflow: hidden;
+}
+.page-header-inner  { max-width: 1100px; margin: 0 auto; position: relative; z-index: 1; }
+.page-header-eyebrow {
+  font-family: var(--font-label);
+  font-size: var(--t-caption);
+  letter-spacing: 0.4em;
+  color: var(--color-gold-deep);
+  margin-bottom: var(--space-3);
+}
+.page-header-title {
+  font-family: var(--font-display);
+  font-size: var(--t-display);
+  font-weight: 300;
+  line-height: 0.95;
+  color: var(--color-ivory);
+}
+.page-header-title em { color: var(--color-gold-warm); font-style: italic; }
+.page-header-desc {
+  font-size: 14px;
+  color: var(--color-ash);
+  max-width: 480px;
+  line-height: 1.9;
+  margin-top: var(--space-4);
+}
+.page-header-watermark {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-label);
+  font-size: clamp(80px, 18vw, 260px);
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(184,134,11,0.04);
+  pointer-events: none;
+  white-space: nowrap;
+  user-select: none;
+  letter-spacing: 0.05em;
+}
+
+/* ── FORM ELEMENTS (shared) ────────────────────────────────── */
+.form-group    { margin-bottom: var(--space-4); }
+.form-label {
+  display: block;
+  font-size: var(--t-caption);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-ash);
+  margin-bottom: var(--space-2);
+}
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  background: var(--color-carbon);
+  border: 1px solid var(--color-graphite);
+  border-radius: var(--radius-sm);
+  color: var(--color-ivory);
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 14px;
+  padding: 13px var(--space-4);
+  transition: border-color var(--duration-fast), box-shadow var(--duration-fast);
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  border-color: rgba(212,168,67,0.5);
+  box-shadow: 0 0 0 3px rgba(212,168,67,0.08);
+}
+.form-input::placeholder,
+.form-textarea::placeholder { color: rgba(136,136,136,0.5); }
+.form-select {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='1.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+}
+.form-select option { background: var(--color-carbon); color: var(--color-ivory); }
+.form-textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+@media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+
+.form-section-label {
+  font-family: var(--font-label);
+  font-size: 12px;
+  letter-spacing: 0.35em;
+  color: var(--color-gold-deep);
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-graphite);
+}
+.form-submit {
+  width: 100%;
+  background: var(--color-gold-warm);
+  color: var(--color-obsidian);
+  padding: var(--space-4) var(--space-8);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--t-caption);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 500;
+  transition: background var(--duration-fast), transform var(--duration-fast), box-shadow var(--duration-fast);
+  margin-top: var(--space-2);
+}
+.form-submit:hover {
+  background: var(--color-gold-bright);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-gold);
+}
+.form-note {
+  font-size: 12px;
+  color: var(--color-ash);
+  line-height: 1.7;
+  margin-top: var(--space-4);
+}
+
+/* ── SUCCESS STATE ──────────────────────────────────────────── */
+.form-success {
+  display: none;
+  text-align: center;
+  padding: var(--space-12) var(--space-6);
+}
+.form-success.show { display: block; }
+.success-icon {
+  font-size: 44px;
+  color: var(--color-gold-warm);
+  margin-bottom: var(--space-4);
+}
+.success-title {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 3vw, 40px);
+  font-weight: 300;
+  color: var(--color-ivory);
+  margin-bottom: var(--space-3);
+}
+.success-title em { color: var(--color-gold-warm); font-style: italic; }
+.success-desc {
+  font-size: 14px;
+  color: var(--color-ash);
+  line-height: 1.9;
+  max-width: 400px;
+  margin: 0 auto var(--space-6);
+}
+.success-back {
+  font-size: var(--t-caption);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-gold-warm);
+}
+
+/* ── BADGE ──────────────────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: rgba(184,134,11,0.12);
+  border: 1px solid rgba(184,134,11,0.28);
+  border-radius: var(--radius-sm);
+  padding: 5px var(--space-4);
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--color-gold-warm);
+}
+
+/* ── DIVIDER ────────────────────────────────────────────────── */
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-graphite) 30%, var(--color-graphite) 70%, transparent);
+}
+
+/* ── SHARED MOBILE ──────────────────────────────────────────── */
+@media (max-width: 700px) {
+  .section          { padding: var(--space-12) var(--space-6); }
+  .reserve-banner   { padding: var(--space-6); }
+  .page-header      { padding: var(--space-24) var(--space-6) var(--space-12); }
+  .footer           { padding: var(--space-16) var(--space-6) var(--space-8); }
+}
+</style>
+<style>
+
+/* ── HERO ────────────────────────────────────────────────────── */
+.hero {
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  padding: var(--space-32) var(--space-12) var(--space-16);
+}
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background: url('https://images.unsplash.com/photo-1581790061086-9e0db8a2e2a3?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
+  animation: hZoom 8s ease-out forwards;
+}
+@keyframes hZoom { from { transform: scale(1.06); } to { transform: scale(1); } }
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(10,10,10,0.95) 45%, rgba(10,10,10,0.4) 100%);
+}
+.hero-content {
+  position: relative;
+  z-index: 2;
+  max-width: 620px;
+  animation: fadeUp 1s var(--ease-cinematic) 0.3s both;
+}
+@keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+.hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(40px, 7vw, 86px);
+  font-weight: 300;
+  line-height: 0.93;
+  color: var(--color-ivory);
+  margin: var(--space-4) 0 var(--space-4);
+}
+.hero-title em { color: var(--color-gold-warm); font-style: italic; }
+.hero-desc {
+  font-size: 14px;
+  color: var(--color-mist);
+  line-height: 1.9;
+  max-width: 480px;
+  margin-bottom: var(--space-8);
+}
+.hero-actions { display: flex; gap: var(--space-4); flex-wrap: wrap; }
+@media (max-width: 600px) { .hero { padding: var(--space-24) var(--space-6) var(--space-12); } }
+
+/* ── HOW IT WORKS ────────────────────────────────────────────── */
+.how { padding: var(--space-24) var(--space-12); background: var(--color-void); }
+.how-inner { max-width: 1100px; margin: 0 auto; }
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--color-graphite);
+  border: 1px solid var(--color-graphite);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-top: var(--space-12);
+}
+@media (max-width: 800px) { .steps { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 500px) { .steps { grid-template-columns: 1fr; } }
+
+.step { background: var(--color-carbon); padding: var(--space-8); }
+.step-num {
+  font-family: var(--font-label);
+  font-size: 52px;
+  color: rgba(184,134,11,0.12);
+  line-height: 1;
+  margin-bottom: var(--space-3);
+}
+.step-title {
+  font-family: var(--font-label);
+  font-size: var(--t-headline-sm);
+  letter-spacing: 0.12em;
+  color: var(--color-gold-bright);
+  margin-bottom: var(--space-3);
+}
+.step-desc { font-size: 13px; color: var(--color-ash); line-height: 1.8; }
+
+/* ── TIER CARDS ──────────────────────────────────────────────── */
+.tiers { padding: var(--space-24) var(--space-12); background: var(--color-obsidian); }
+.tiers-inner { max-width: 1100px; margin: 0 auto; }
+.tier-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
+  margin-top: var(--space-12);
+}
+@media (max-width: 1000px) { .tier-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px)  { .tier-grid { grid-template-columns: 1fr; max-width: 400px; } }
+
+.tier-card {
+  border: 1px solid var(--color-graphite);
+  border-radius: var(--radius-md);
+  padding: var(--space-8);
+  position: relative;
+  overflow: hidden;
+  transition: transform var(--duration-base), border-color var(--duration-base);
+  background: var(--color-carbon);
+}
+.tier-card:hover { transform: translateY(-4px); }
+
+/* Tier accent borders */
+.tier-card.bronze { border-top: 2px solid #9A7B2A; }
+.tier-card.silver { border-top: 2px solid #C0C8D0; }
+.tier-card.gold   { border-top: 2px solid var(--color-gold-warm); border-color: rgba(184,134,11,0.4); background: linear-gradient(135deg, var(--color-carbon) 0%, rgba(184,134,11,0.04) 100%); }
+.tier-card.obsidian { border-top: 2px solid var(--color-gold-bright); border-color: rgba(240,192,96,0.25); background: linear-gradient(135deg, var(--color-carbon) 0%, rgba(240,192,96,0.04) 100%); }
+
+.tier-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-3);
+}
+.tier-card.bronze  .tier-badge { color: #9A7B2A; }
+.tier-card.silver  .tier-badge { color: #C0C8D0; }
+.tier-card.gold    .tier-badge { color: var(--color-gold-warm); }
+.tier-card.obsidian .tier-badge { color: var(--color-gold-bright); }
+
+.tier-name {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 300;
+  color: var(--color-ivory);
+  margin-bottom: var(--space-1);
+}
+.tier-threshold {
+  font-size: 12px;
+  color: var(--color-ash);
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-6);
+  border-bottom: 1px solid var(--color-graphite);
+}
+.tier-perks {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+.tier-perk {
+  font-size: 13px;
+  color: var(--color-mist);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+.tier-perk::before {
+  content: '—';
+  color: var(--color-gold-deep);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.tier-perk.locked { color: var(--color-graphite); }
+.tier-perk.locked::before { color: var(--color-graphite); }
+
+/* ── JOIN FORM SECTION ───────────────────────────────────────── */
+.join-form-section { padding: var(--space-24) var(--space-12); background: var(--color-void); }
+.join-layout {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-24);
+  align-items: start;
+}
+@media (max-width: 900px) { .join-layout { grid-template-columns: 1fr; gap: var(--space-12); } }
+
+.join-success { display: none; text-align: center; padding: var(--space-12) var(--space-6); }
+.join-success.show { display: block; }
+
+/* WALLET PREVIEW CARD */
+.wallet-preview {
+  background: linear-gradient(135deg, var(--color-carbon) 0%, rgba(184,134,11,0.06) 100%);
+  border: 1px solid rgba(184,134,11,0.25);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  position: relative;
+  overflow: hidden;
+  margin-bottom: var(--space-6);
+}
+.wallet-preview::before {
+  content: 'RIDDIM';
+  position: absolute;
+  right: -20px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-label);
+  font-size: 80px;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(184,134,11,0.06);
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+}
+.wallet-tier {
+  font-size: 9px;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--color-gold-deep);
+  margin-bottom: var(--space-2);
+}
+.wallet-name {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 300;
+  color: var(--color-ivory);
+  margin-bottom: var(--space-1);
+}
+.wallet-id { font-size: 12px; color: var(--color-ash); font-family: monospace; margin-bottom: var(--space-4); }
+.wallet-points {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+.wallet-pts-num {
+  font-family: var(--font-label);
+  font-size: 44px;
+  color: var(--color-gold-warm);
+  line-height: 1;
+}
+.wallet-pts-label {
+  font-size: var(--t-caption);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-ash);
+}
+.wallet-bar-wrap {
+  background: var(--color-graphite);
+  border-radius: 2px;
+  height: 3px;
+  margin-bottom: var(--space-2);
+}
+.wallet-bar {
+  background: linear-gradient(90deg, var(--color-gold-deep), var(--color-gold-warm));
+  width: 40%;
+  height: 100%;
+  border-radius: 2px;
+}
+.wallet-bar-label { font-size: var(--t-caption); color: var(--color-ash); }
+
+/* INFO ITEMS */
+.join-info  { padding-top: var(--space-2); }
+.info-item  { display: flex; gap: var(--space-4); margin-bottom: var(--space-4); align-items: flex-start; }
+.info-item-icon { font-size: 22px; flex-shrink: 0; margin-top: 4px; }
+.info-item-title {
+  font-size: var(--t-caption);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-gold-warm);
+  margin-bottom: var(--space-1);
+}
+.info-item-text { font-size: 13px; color: var(--color-ash); line-height: 1.8; }
+
+</style>
+</head>
+<body>
+
+<nav class="nav" id="nav">
+  <a href="index.html" class="nav-logo">RIDDIM</a>
+  <ul class="nav-links">
+    <li><a href="experience.html">Experience</a></li>
+    <li><a href="menu.html">Menu</a></li>
+    <li><a href="events.html">Events</a></li>
+    <li><a href="private-events.html">Private Events</a></li>
+    <li><a href="join.html" class="active">Members</a></li>
+    <li><a href="reserve.html" class="nav-cta">Reserve</a></li>
+  </ul>
+  <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="index.html" onclick="closeMobile()">Home</a>
+  <a href="experience.html" onclick="closeMobile()">Experience</a>
+  <a href="events.html" onclick="closeMobile()">Events</a>
+  <a href="reserve.html" onclick="closeMobile()" class="m-cta">Reserve</a>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <div class="badge">👑 RIDDIM Members Club</div>
+    <h1 class="hero-title">Belong to<br><em>the inside.</em></h1>
+    <p class="hero-desc">Membership is free. Join at the venue, on the RIDDIM WiFi, or register here. From your first visit, you earn points, unlock perks, and become part of something Atlanta doesn't have anywhere else.</p>
+    <div class="hero-actions">
+      <a href="#register" class="btn btn-primary">Join Free Now</a>
+      <a href="members/index.html" class="btn btn-ghost">Already a Member?</a>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how">
+  <div class="how-inner reveal">
+    <div class="section-eyebrow">How It Works</div>
+    <h2 class="section-title" style="font-size: var(--t-display)">Simple. <em>Rewarding.</em></h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-title">Register</div>
+        <p class="step-desc">Join free at the venue, via RIDDIM WiFi, or on this page. Takes 60 seconds. Your phone number is your ID.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-title">Show Up</div>
+        <p class="step-desc">Visit RIDDIM. Your host scans your QR wallet card on arrival and records your visit.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-title">Earn Points</div>
+        <p class="step-desc">Every visit, every purchase, every referral builds your points and moves you toward the next tier.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <div class="step-title">Unlock Perks</div>
+        <p class="step-desc">Redeem your points for cocktails, hookah sessions, table upgrades, and exclusive experiences.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TIERS -->
+<section class="tiers">
+  <div class="tiers-inner reveal">
+    <div class="section-eyebrow">Membership Tiers</div>
+    <h2 class="section-title" style="font-size: var(--t-display)">The <em>Higher You Go,</em><br>The Better It Gets.</h2>
+    <div class="tier-grid">
+      <div class="tier-card bronze">
+        <div class="tier-badge">Bronze</div>
+        <div class="tier-name">Bronze</div>
+        <div class="tier-threshold">Starting tier — all new members</div>
+        <ul class="tier-perks">
+          <li class="tier-perk">Digital wallet card + QR code</li>
+          <li class="tier-perk">Points on every visit</li>
+          <li class="tier-perk">Event calendar access</li>
+          <li class="tier-perk">Save the Date notifications</li>
+          <li class="tier-perk">Online reservation access</li>
+          <li class="tier-perk locked">Priority reservation</li>
+          <li class="tier-perk locked">Secret menu</li>
+        </ul>
+        <a href="#register" class="btn btn-ghost" style="width:100%;text-align:center">Join Free</a>
+      </div>
+      <div class="tier-card silver">
+        <div class="tier-badge">Silver</div>
+        <div class="tier-name">Silver</div>
+        <div class="tier-threshold">500 pts / 5 visits</div>
+        <ul class="tier-perks">
+          <li class="tier-perk">All Bronze perks</li>
+          <li class="tier-perk">Priority reservation confirmation</li>
+          <li class="tier-perk">Birthday perk</li>
+          <li class="tier-perk">Secret menu preview</li>
+          <li class="tier-perk">Early event registration</li>
+          <li class="tier-perk locked">Comp access</li>
+          <li class="tier-perk locked">VIP queue bypass</li>
+        </ul>
+        <a href="#register" class="btn btn-ghost" style="width:100%;text-align:center">Join to Progress</a>
+      </div>
+      <div class="tier-card gold">
+        <div class="tier-badge">Gold</div>
+        <div class="tier-name">Gold</div>
+        <div class="tier-threshold">1,500 pts / 15 visits</div>
+        <ul class="tier-perks">
+          <li class="tier-perk">All Silver perks</li>
+          <li class="tier-perk">Full secret menu</li>
+          <li class="tier-perk">Comp access</li>
+          <li class="tier-perk">VIP queue bypass</li>
+          <li class="tier-perk">Patio section priority</li>
+          <li class="tier-perk locked">Concierge SMS line</li>
+          <li class="tier-perk locked">Table hold</li>
+        </ul>
+        <a href="#register" class="btn btn-primary" style="width:100%;text-align:center">Start Journey</a>
+      </div>
+      <div class="tier-card obsidian">
+        <div class="tier-badge">Obsidian</div>
+        <div class="tier-name">Obsidian</div>
+        <div class="tier-threshold">5,000 pts / 50 visits</div>
+        <ul class="tier-perks">
+          <li class="tier-perk">All Gold perks</li>
+          <li class="tier-perk">Concierge SMS line</li>
+          <li class="tier-perk">Table hold</li>
+          <li class="tier-perk">Event presale access</li>
+          <li class="tier-perk">Owner direct line</li>
+          <li class="tier-perk">Annual exclusive experience</li>
+          <li class="tier-perk">Named on permanent list</li>
+        </ul>
+        <a href="#register" class="btn btn-ghost" style="width:100%;text-align:center">Earn Your Way</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- JOIN FORM -->
+<section class="join-form-section" id="register">
+  <div class="join-layout">
+
+    <div class="reveal">
+      <div class="section-eyebrow">Register</div>
+      <h2 class="section-title" style="font-size: var(--t-display); margin-bottom: var(--space-8);">Join <em>the Club.</em></h2>
+
+      <div id="joinForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">First Name *</label>
+            <input class="form-input" type="text" id="jFirst" placeholder="First name" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Last Name *</label>
+            <input class="form-input" type="text" id="jLast" placeholder="Last name" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone Number *</label>
+          <input class="form-input" type="tel" id="jPhone" placeholder="(404) 000-0000" required>
+          <p class="form-note" style="margin-top: var(--space-2);">Your phone number is your membership ID. We'll never spam you.</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Date of Birth *</label>
+          <input class="form-input" type="date" id="jDOB" required>
+          <p class="form-note" style="margin-top: var(--space-2);">Required for age verification. RIDDIM is 21+ after 9PM.</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email (Optional)</label>
+          <input class="form-input" type="email" id="jEmail" placeholder="For event notifications">
+        </div>
+        <button class="form-submit" onclick="submitJoin()">Create My Membership</button>
+        <p class="form-note" style="margin-top: var(--space-4);">By joining you agree to receive SMS notifications about your membership and events. Membership is free. No payment required.</p>
+      </div>
+
+      <div class="join-success" id="joinSuccess">
+        <div class="success-icon">✓</div>
+        <h2 class="success-title">Welcome to <em>RIDDIM.</em></h2>
+        <p class="success-desc">You're now a Bronze member. Your digital wallet card will be available after your first verified visit.<br><br>We'll see you on the floor.</p>
+        <a href="members/index.html" class="success-back">Go to Member Portal →</a>
+      </div>
+    </div>
+
+    <div class="reveal reveal-d2">
+      <!-- WALLET PREVIEW -->
+      <div class="wallet-preview">
+        <div class="wallet-tier">🟫 Bronze Member</div>
+        <div class="wallet-name">Your Name Here</div>
+        <div class="wallet-id">M-######</div>
+        <div class="wallet-points">
+          <span class="wallet-pts-num">0</span>
+          <span class="wallet-pts-label">Points</span>
+        </div>
+        <div class="wallet-bar-wrap"><div class="wallet-bar"></div></div>
+        <div class="wallet-bar-label">0 pts toward Silver</div>
+      </div>
+
+      <!-- INFO ITEMS -->
+      <div class="join-info">
+        <div class="info-item">
+          <div class="info-item-icon">📱</div>
+          <div>
+            <div class="info-item-title">QR Wallet Card</div>
+            <div class="info-item-text">Your digital membership card lives in your member portal. Show it on arrival for instant check-in.</div>
+          </div>
+        </div>
+        <div class="info-item">
+          <div class="info-item-icon">🎯</div>
+          <div>
+            <div class="info-item-title">Points Every Visit</div>
+            <div class="info-item-text">Visit points are credited automatically when your card is scanned at the door.</div>
+          </div>
+        </div>
+        <div class="info-item">
+          <div class="info-item-icon">🔒</div>
+          <div>
+            <div class="info-item-title">Private by Design</div>
+            <div class="info-item-text">Your membership data is private. We never sell or share your information.</div>
+          </div>
+        </div>
+        <div class="info-item">
+          <div class="info-item-icon">✉️</div>
+          <div>
+            <div class="info-item-title">Concierge Access</div>
+            <div class="info-item-text">Gold and Obsidian members get a direct line to the RIDDIM concierge for reservations and requests.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-grid">
+    <div>
+      <div class="footer-brand-name">RIDDIM</div>
+      <div class="footer-brand-tagline">Supper Club · Atlanta</div>
+      <p class="footer-brand-desc">Atlanta's only venue combining fine dining, hookah, outdoor patio, and nightclub under one roof.</p>
+    </div>
+    <div>
+      <div class="footer-col-title">Navigate</div>
+      <ul class="footer-links">
+        <li><a href="experience.html">Experience</a></li>
+        <li><a href="menu.html">Menu</a></li>
+        <li><a href="events.html">Events</a></li>
+        <li><a href="reserve.html">Reserve</a></li>
+        <li><a href="private-events.html">Private Events</a></li>
+        <li><a href="join.html">Join the Club</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Hours</div>
+      <div class="footer-hours">
+        <p><strong>Wednesday – Thursday</strong><br>7PM – 2AM</p>
+        <p style="margin-top:12px"><strong>Friday – Saturday</strong><br>6PM – 3AM</p>
+        <p style="margin-top:12px"><strong>Sunday</strong><br>5PM – 12AM</p>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-title">Find Us</div>
+      <div class="footer-address">Atlanta, Georgia<br><br><a href="reserve.html">Reserve a Table →</a></div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 AG Entertainment · RIDDIM Supper Club</span>
+    <span>Atlanta, GA</span>
+  </div>
+</footer>
+
+<script>
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 60), { passive: true });
+const hamburger = document.getElementById('hamburger'), mobileMenu = document.getElementById('mobileMenu');
+hamburger.addEventListener('click', () => {
+  hamburger.classList.toggle('open');
+  mobileMenu.classList.toggle('open');
+  document.body.style.overflow = mobileMenu.classList.contains('open') ? 'hidden' : '';
+});
+function closeMobile() {
+  hamburger.classList.remove('open');
+  mobileMenu.classList.remove('open');
+  document.body.style.overflow = '';
+}
+const reveals = document.querySelectorAll('.reveal');
+const obs = new IntersectionObserver(e => e.forEach(r => { if (r.isIntersecting) r.target.classList.add('in'); }), { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+reveals.forEach(el => obs.observe(el));
+
+async function submitJoin() {
+  const first = document.getElementById('jFirst').value.trim();
+  const last  = document.getElementById('jLast').value.trim();
+  const phone = document.getElementById('jPhone').value.trim();
+  const dob   = document.getElementById('jDOB').value;
+  if (!first || !last || !phone || !dob) { alert('Please fill in all required fields.'); return; }
+  const payload = {
+    id: 'M' + Date.now(),
+    first_name: first, last_name: last,
+    phone, date_of_birth: dob,
+    email: document.getElementById('jEmail').value,
+    status: 'bronze', total_points: 0, total_visits: 0,
+    created_at: new Date().toISOString()
+  };
+  // TODO: Wire to Supabase POST /rest/v1/members
+  console.log('Join payload:', payload);
+  document.getElementById('joinForm').style.display = 'none';
+  document.getElementById('joinSuccess').classList.add('show');
+}
+</script>
+
+<!-- SECRET PORTAL ACCESS: triple-tap logo = Staff, 5-tap = Owner -->
+<script>
+(function secretPortalAccess() {
+  var STAFF_URL = "staff/index.html";
+  var OWNER_URL = "owner/index.html";
+  var TAP_WINDOW = 600;
+  var tapCount = 0;
+  var tapTimer = null;
+
+  function flashLogo() {
+    var logo = document.querySelector(".nav-logo");
+    if (!logo) return;
+    logo.style.transition = "color 80ms";
+    logo.style.color = "#F0C060";
+    setTimeout(function(){ logo.style.color = ""; }, 180);
+  }
+
+  function handleTap(e) {
+    tapCount++;
+    clearTimeout(tapTimer);
+
+    if (tapCount === 3) {
+      e.preventDefault();
+      flashLogo();
+      setTimeout(function(){ window.location.href = STAFF_URL; }, 200);
+      tapCount = 0;
+      return;
+    }
+    if (tapCount === 5) {
+      e.preventDefault();
+      flashLogo();
+      setTimeout(function(){ flashLogo(); }, 200);
+      setTimeout(function(){ window.location.href = OWNER_URL; }, 400);
+      tapCount = 0;
+      return;
+    }
+    // Not a secret sequence yet — let normal navigation happen
+    tapTimer = setTimeout(function(){ tapCount = 0; }, TAP_WINDOW);
+  }
+
+  var navLogo = document.querySelector(".nav-logo");
+  if (navLogo) {
+    navLogo.addEventListener("touchend", function(e){ handleTap(e); }, { passive: false });
+    navLogo.addEventListener("click", function(e){
+      if (window.matchMedia("(pointer: coarse)").matches) return;
+      handleTap(e);
+    });
+  }
+
+  document.addEventListener("keydown", function(e){
+    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+    if (e.shiftKey && e.key === "S") window.location.href = STAFF_URL;
+    if (e.shiftKey && e.key === "O") window.location.href = OWNER_URL;
+  });
+})();
+</script>
+</body>
+</html>

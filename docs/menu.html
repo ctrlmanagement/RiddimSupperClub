@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Menu — RIDDIM Supper Club Atlanta</title>
+<meta name="description" content="RIDDIM Supper Club menu — elevated dining, hookah bar, and craft cocktails. Atlanta's finest supper club experience.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,600&family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* SHARED */
+/* ============================================================
+   RIDDIM SUPPER CLUB — Design System v1.0
+   Session 15 · AG Entertainment
+   Cormorant Garamond (display) · Bebas Neue (label) · DM Sans (body)
+   ============================================================ */
+
+
+
+/* ── TOKENS ────────────────────────────────────────────────── */
+:root {
+  /* Foundation */
+  --color-obsidian:  #0A0A0A;
+  --color-void:      #111111;
+  --color-carbon:    #1A1A1A;
+  --color-graphite:  #2A2A2A;
+  --color-ash:       #888888;
+  --color-mist:      #CCCCCC;
+  --color-ivory:     #F5F0E8;
+
+  /* Gold Spectrum */
+  --color-gold-deep:   #B8860B;
+  --color-gold-warm:   #D4A843;
+  --color-gold-bright: #F0C060;
+  --color-gold-light:  #FAE29A;
+  --color-ember:       #C0392B;
+
+  /* Fonts */
+  --font-display: 'Cormorant Garamond', serif;
+  --font-label:   'Bebas Neue', sans-serif;
+  --font-body:    'DM Sans', sans-serif;
+
+  /* Type Scale */
+  --t-hero:        clamp(56px, 10vw, 140px);
+  --t-display:     clamp(36px, 6vw, 80px);
+  --t-subhead:     clamp(24px, 3vw, 40px);
+  --t-headline:    22px;
+  --t-headline-sm: 14px;
+  --t-body-lg:     18px;
+  --t-body:        15px;
+  --t-caption:     11px;
+
+  /* Spacing — 4px base unit */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-24: 96px;
+  --space-32: 128px;
+
+  /* Border Radius */
+  --radius-sm:   3px;
+  --radius-md:   6px;
+  --radius-lg:   12px;
+  --radius-full: 999px;
+
+  /* Shadows */
+  --shadow-card:    0 4px 24px rgba(0,0,0,0.4);
+  --shadow-gold:    0 0 24px rgba(212,168,67,0.2);
+  --shadow-gold-lg: 0 0 48px rgba(212,168,67,0.15);
+  --shadow-inset:   inset 0 1px 0 rgba(255,255,255,0.06);
+
+  /* Transitions */
+  --ease-standard:  cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-cinematic: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast:   150ms;
+  --duration-base:   300ms;
+  --duration-slow:   600ms;
+  --duration-reveal: 800ms;
+}
+
+/* ── RESET ─────────────────────────────────────────────────── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--color-obsidian);
+  color: var(--color-ivory);
+  font-family: var(--font-body);
+  font-weight: 300;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+img { display: block; max-width: 100%; }
+a   { color: inherit; text-decoration: none; }
+
+/* ── GRAIN OVERLAY ─────────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  opacity: 0.45;
+}
+
+/* ── NAV ────────────────────────────────────────────────────── */
+.nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  padding: var(--space-8) var(--space-12);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background var(--duration-slow) var(--ease-standard),
+              padding var(--duration-slow) var(--ease-standard),
+              border-color var(--duration-slow) var(--ease-standard);
+  border-bottom: 1px solid transparent;
+}
+.nav.scrolled {
+  background: rgba(10,10,10,0.96);
+  padding: var(--space-4) var(--space-12);
+  border-bottom-color: rgba(184,134,11,0.15);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+.nav.solid {
+  background: rgba(10,10,10,0.96);
+  border-bottom-color: rgba(184,134,11,0.12);
+  backdrop-filter: blur(16px);
+}
+.nav-logo {
+  font-family: var(--font-label);
+  font-size: 26px;
+  letter-spacing: 0.22em;
+  color: var(--color-gold-warm);
+  transition: color var(--duration-fast);
+}
+.nav-logo:hover { color: var(--color-gold-bright); }
+
+.nav-links {
+  display: flex;
+  gap: var(--space-8);
+  list-style: none;
+  align-items: center;
+}
+.nav-links a {
+  font-size: var(--t-caption);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-mist);
+  transition: color var(--duration-fast);
+  position: relative;
+}
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0; right: 0;
+  height: 1px;
+  background: var(--color-gold-warm);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--duration-base) var(--ease-standard);
+}
+.nav-links a:hover,
+.nav-links a.active { color: var(--color-gold-warm); }
+.nav-links a:hover::after,
+.nav-links a.active::after { transform: scaleX(1); }
+
+/* Reserve CTA pill — override underline */
+.nav-cta {
+  background: var(--color-gold-warm) !important;
+  color: var(--color-obsidian) !important;
+  padding: var(--space-2) var(--space-6) !important;
+  border-radius: var(--radius-sm) !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.18em !important;
+  transition: background var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast) !important;
+}
+.nav-cta::after { display: none !important; }
+.nav-cta:hover {
+  background: var(--color-gold-bright) !important;
+  box-shadow: var(--shadow-gold) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Hamburger */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+  z-index: 101;
+  padding: var(--space-2);
+}
+.hamburger span {
+  width: 22px;
+  height: 1px;
+  background: var(--color-ivory);
+  transition: transform var(--duration-base), opacity var(--duration-base);
+}
+.hamburger.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+/* Mobile menu */
+.mobile-menu {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: var(--color-obsidian);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  z-index: 100;
+}
+.mobile-menu.open { display: flex; }
+.mobile-menu a {
+  font-size: 13px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--color-mist);
+  transition: color var(--duration-fast);
+}
+.mobile-menu a:hover  { color: var(--color-gold-warm); }
+.mobile-menu .m-cta   { color: var(--color-gold-warm) !important; }
+
+@media (max-width: 900px) {
+  .nav-links  { display: none; }
+  .hamburger  { display: flex; }
+  .nav        { padding: var(--space-4) var(--space-6); }
+  .nav.scrolled { padding: var(--space-3) var(--space-6); }
+}
+
+/* ── BUTTONS ────────────────────────────────────────────────── */
+.btn {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-size: var(--t-caption);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all var(--duration-base) var(--ease-standard);
+}
+.btn-primary {
+  background: var(--color-gold-warm);
+  color: var(--color-obsidian);
+  padding: var(--space-4) var(--space-8);
+  border-radius: var(--radius-sm);
+}
+.btn-primary:hover {
+  background: var(--color-gold-bright);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-gold);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--color-gold-warm);
+  padding: var(--space-4) var(--space-8);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(212,168,67,0.45);
+}
+.btn-ghost:hover {
+  border-color: var(--color-gold-warm);
+  background: rgba(212,168,67,0.08);
+  color: var(--color-gold-bright);
+}
+
+/* ── SECTION PATTERN ───────────────────────────────────────── */
+.section       { padding: var(--space-24) var(--space-12); }
+.section-inner { max-width: 1100px; margin: 0 auto; }
+
+.section-eyebrow {
+  font-family: var(--font-label);
+  font-size: var(--t-caption);
+  letter-spacing: 0.4em;
+  color: var(--color-gold-deep);
+  margin-bottom: var(--space-3);
+}
+.section-title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  line-height: 1.05;
+  color: var(--color-ivory);
+}
+.section-title em { color: var(--color-gold-warm); font-style: italic; }
+
+.gold-rule {
+  width: 1px;
+  height: 56px;
+  background: linear-gradient(var(--color-gold-warm), transparent);
+  margin: var(--space-8) auto;
+}
+
+/* ── FOOTER ─────────────────────────────────────────────────── */
+.footer {
+  background: var(--color-void);
+  border-top: 1px solid var(--color-graphite);
+  padding: var(--space-24) var(--space-12) var(--space-12);
+}
+.footer-grid {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.8fr 1fr 1fr 1.2fr;
+  gap: var(--space-16);
+}
+@media (max-width: 900px) { .footer-grid { grid-template-columns: 1fr 1fr; gap: var(--space-12); } }
+@media (max-width: 500px) { .footer-grid { grid-template-columns: 1fr; gap: var(--space-8); } }
+
+.footer-brand-name {
+  font-family: var(--font-label);
+  font-size: 34px;
+  letter-spacing: 0.2em;
+  color: var(--color-gold-warm);
+  margin-bottom: var(--space-1);
+}
+.footer-brand-tagline {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--color-ash);
+  margin-bottom: var(--space-6);
+}
+.footer-brand-desc {
+  font-size: 13px;
+  color: var(--color-ash);
+  line-height: 1.9;
+  max-width: 260px;
+}
+.footer-social {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+.footer-social a {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--color-graphite);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-family: var(--font-label);
+  letter-spacing: 0.05em;
+  color: var(--color-ash);
+  transition: border-color var(--duration-fast), color var(--duration-fast);
+}
+.footer-social a:hover { border-color: var(--color-gold-warm); color: var(--color-gold-warm); }
+
+.footer-col-title {
+  font-family: var(--font-label);
+  font-size: 12px;
+  letter-spacing: 0.35em;
+  color: var(--color-gold-deep);
+  margin-bottom: var(--space-6);
+}
+.footer-links {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.footer-links a {
+  font-size: 13px;
+  color: var(--color-ash);
+  transition: color var(--duration-fast);
+  letter-spacing: 0.04em;
+}
+.footer-links a:hover { color: var(--color-ivory); }
+
+.footer-hours p  { font-size: 13px; color: var(--color-ash); line-height: 1.95; }
+.footer-hours strong { color: var(--color-mist); font-weight: 400; }
+.footer-hours .note  { color: var(--color-gold-deep); font-size: 12px; margin-top: var(--space-3); }
+
+.footer-address {
+  font-size: 13px;
+  color: var(--color-ash);
+  line-height: 1.95;
+}
+.footer-address a {
+  color: var(--color-gold-warm);
+  transition: opacity var(--duration-fast);
+}
+.footer-address a:hover { opacity: 0.8; }
+
+.footer-bottom {
+  max-width: 1100px;
+  margin: var(--space-12) auto 0;
+  padding-top: var(--space-6);
+  border-top: 1px solid rgba(255,255,255,0.04);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-size: var(--t-caption);
+  color: rgba(255,255,255,0.12);
+  letter-spacing: 0.1em;
+}
+@media (max-width: 600px) {
+  .footer-bottom { flex-direction: column; text-align: center; }
+}
+
+/* ── RESERVE BANNER (global) ───────────────────────────────── */
+.reserve-banner {
+  background: var(--color-gold-warm);
+  padding: var(--space-6) var(--space-12);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+}
+.reserve-banner-text {
+  font-family: var(--font-display);
+  font-size: clamp(18px, 2.2vw, 26px);
+  font-weight: 300;
+  color: var(--color-obsidian);
+}
+.reserve-banner-text em { font-style: italic; }
+.reserve-banner-cta {
+  background: var(--color-obsidian);
+  color: var(--color-ivory) !important;
+  padding: var(--space-3) var(--space-8);
+  border-radius: var(--radius-sm);
+  font-size: var(--t-caption);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 500;
+  transition: background var(--duration-fast);
+  white-space: nowrap;
+  display: inline-block;
+}
+.reserve-banner-cta:hover { background: var(--color-carbon); }
+@media (max-width: 600px) {
+  .reserve-banner { padding: var(--space-6); justify-content: center; text-align: center; }
+}
+
+/* ── SCROLL REVEAL ─────────────────────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity var(--duration-reveal) var(--ease-cinematic),
+              transform var(--duration-reveal) var(--ease-cinematic);
+}
+.reveal.in { opacity: 1; transform: none; }
+.reveal-d1 { transition-delay: 100ms; }
+.reveal-d2 { transition-delay: 200ms; }
+.reveal-d3 { transition-delay: 300ms; }
+.reveal-d4 { transition-delay: 450ms; }
+
+/* ── PAGE HEADER PATTERN ────────────────────────────────────── */
+.page-header {
+  padding: var(--space-32) var(--space-12) var(--space-16);
+  border-bottom: 1px solid var(--color-graphite);
+  position: relative;
+  overflow: hidden;
+}
+.page-header-inner  { max-width: 1100px; margin: 0 auto; position: relative; z-index: 1; }
+.page-header-eyebrow {
+  font-family: var(--font-label);
+  font-size: var(--t-caption);
+  letter-spacing: 0.4em;
+  color: var(--color-gold-deep);
+  margin-bottom: var(--space-3);
+}
+.page-header-title {
+  font-family: var(--font-display);
+  font-size: var(--t-display);
+  font-weight: 300;
+  line-height: 0.95;
+  color: var(--color-ivory);
+}
+.page-header-title em { color: var(--color-gold-warm); font-style: italic; }
+.page-header-desc {
+  font-size: 14px;
+  color: var(--color-ash);
+  max-width: 480px;
+  line-height: 1.9;
+  margin-top: var(--space-4);
+}
+.page-header-watermark {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-label);
+  font-size: clamp(80px, 18vw, 260px);
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(184,134,11,0.04);
+  pointer-events: none;
+  white-space: nowrap;
+  user-select: none;
+  letter-spacing: 0.05em;
+}
+
+/* ── FORM ELEMENTS (shared) ────────────────────────────────── */
+.form-group    { margin-bottom: var(--space-4); }
+.form-label {
+  display: block;
+  font-size: var(--t-caption);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-ash);
+  margin-bottom: var(--space-2);
+}
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  background: var(--color-carbon);
+  border: 1px solid var(--color-graphite);
+  border-radius: var(--radius-sm);
+  color: var(--color-ivory);
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 14px;
+  padding: 13px var(--space-4);
+  transition: border-color var(--duration-fast), box-shadow var(--duration-fast);
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  border-color: rgba(212,168,67,0.5);
+  box-shadow: 0 0 0 3px rgba(212,168,67,0.08);
+}
+.form-input::placeholder,
+.form-textarea::placeholder { color: rgba(136,136,136,0.5); }
+.form-select {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='1.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+}
+.form-select option { background: var(--color-carbon); color: var(--color-ivory); }
+.form-textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+@media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+
+.form-section-label {
+  font-family: var(--font-label);
+  font-size: 12px;
+  letter-spacing: 0.35em;
+  color: var(--color-gold-deep);
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-graphite);
+}
+.form-submit {
+  width: 100%;
+  background: var(--color-gold-warm);
+  color: var(--color-obsidian);
+  padding: var(--space-4) var(--space-8);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--t-caption);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 500;
+  transition: background var(--duration-fast), transform var(--duration-fast), box-shadow var(--duration-fast);
+  margin-top: var(--space-2);
+}
+.form-submit:hover {
+  background: var(--color-gold-bright);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-gold);
+}
+.form-note {
+  font-size: 12px;
+  color: var(--color-ash);
+  line-height: 1.7;
+  margin-top: var(--space-4);
+}
+
+/* ── SUCCESS STATE ──────────────────────────────────────────── */
+.form-success {
+  display: none;
+  text-align: center;
+  padding: var(--space-12) var(--space-6);
+}
+.form-success.show { display: block; }
+.success-icon {
+  font-size: 44px;
+  color: var(--color-gold-warm);
+  margin-bottom: var(--space-4);
+}
+.success-title {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 3vw, 40px);
+  font-weight: 300;
+  color: var(--color-ivory);
+  margin-bottom: var(--space-3);
+}
+.success-title em { color: var(--color-gold-warm); font-style: italic; }
+.success-desc {
+  font-size: 14px;
+  color: var(--color-ash);
+  line-height: 1.9;
+  max-width: 400px;
+  margin: 0 auto var(--space-6);
+}
+.success-back {
+  font-size: var(--t-caption);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-gold-warm);
+}
+
+/* ── BADGE ──────────────────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: rgba(184,134,11,0.12);
+  border: 1px solid rgba(184,134,11,0.28);
+  border-radius: var(--radius-sm);
+  padding: 5px var(--space-4);
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--color-gold-warm);
+}
+
+/* ── DIVIDER ────────────────────────────────────────────────── */
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-graphite) 30%, var(--color-graphite) 70%, transparent);
+}
+
+/* ── SHARED MOBILE ──────────────────────────────────────────── */
+@media (max-width: 700px) {
+  .section          { padding: var(--space-12) var(--space-6); }
+  .reserve-banner   { padding: var(--space-6); }
+  .page-header      { padding: var(--space-24) var(--space-6) var(--space-12); }
+  .footer           { padding: var(--space-16) var(--space-6) var(--space-8); }
+}
+</style>
+<style>
+
+/* ── MENU HERO ───────────────────────────────────────────────── */
+.menu-hero {
+  position: relative;
+  height: 60vh;
+  min-height: 440px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+.menu-hero-img {
+  position: absolute;
+  inset: 0;
+  background: url('https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1920&q=80') center/cover;
+  animation: hZ 8s ease-out forwards;
+}
+@keyframes hZ { from { transform: scale(1.05); } to { transform: scale(1); } }
+.menu-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(10,10,10,0.15) 0%, rgba(10,10,10,0.9) 100%);
+}
+.menu-hero-content {
+  position: relative;
+  z-index: 2;
+  padding: 0 var(--space-12) var(--space-16);
+  animation: fU 1s var(--ease-cinematic) 0.3s both;
+}
+@keyframes fU { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+.menu-eyebrow {
+  font-family: var(--font-label);
+  font-size: var(--t-caption);
+  letter-spacing: 0.4em;
+  color: var(--color-gold-deep);
+  margin-bottom: var(--space-2);
+}
+.menu-title {
+  font-family: var(--font-display);
+  font-size: clamp(40px, 7vw, 90px);
+  font-weight: 300;
+  line-height: 0.93;
+  color: var(--color-ivory);
+}
+.menu-title em { color: var(--color-gold-warm); font-style: italic; }
+@media (max-width: 600px) { .menu-hero-content { padding: 0 var(--space-6) var(--space-12); } }
+
+/* ── MENU TABS ───────────────────────────────────────────────── */
+.menu-tabs {
+  position: sticky;
+  top: 57px;
+  z-index: 50;
+  background: rgba(10,10,10,0.97);
+  border-bottom: 1px solid var(--color-graphite);
+  backdrop-filter: blur(16px);
+}
+.menu-tabs-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 var(--space-12);
+  display: flex;
+}
+@media (max-width: 600px) { .menu-tabs-inner { padding: 0 var(--space-4); overflow-x: auto; } }
+.menu-tab {
+  padding: var(--space-4) var(--space-6);
+  font-size: var(--t-caption);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-ash);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color var(--duration-fast), border-color var(--duration-fast);
+  white-space: nowrap;
+}
+.menu-tab:hover,
+.menu-tab.active { color: var(--color-gold-warm); border-bottom-color: var(--color-gold-warm); }
+
+/* ── MENU BODY ───────────────────────────────────────────────── */
+.menu-body {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--space-16) var(--space-12) var(--space-24);
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: var(--space-16);
+}
+@media (max-width: 1000px) { .menu-body { grid-template-columns: 1fr; padding: var(--space-12) var(--space-6); } }
+
+/* ── MENU SECTIONS ───────────────────────────────────────────── */
+.menu-section        { display: none; }
+.menu-section.active { display: block; }
+
+.menu-cat { margin-bottom: var(--space-12); }
+.menu-cat-header {
+  border-bottom: 1px solid var(--color-graphite);
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-6);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+.menu-cat-name {
+  font-family: var(--font-display);
+  font-size: clamp(22px, 2.5vw, 32px);
+  font-weight: 300;
+  color: var(--color-ivory);
+}
+.menu-cat-name em { color: var(--color-gold-warm); font-style: italic; }
+.menu-cat-note { font-size: var(--t-caption); color: var(--color-ash); }
+
+.menu-items { display: flex; flex-direction: column; }
+.menu-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  gap: var(--space-6);
+  transition: background var(--duration-fast);
+}
+.menu-item:hover { background: rgba(255,255,255,0.01); padding-left: var(--space-3); }
+.menu-item:last-child { border-bottom: none; }
+
+.menu-item-info { flex: 1; }
+.menu-item-name {
+  font-size: 15px;
+  color: var(--color-ivory);
+  margin-bottom: var(--space-1);
+  font-weight: 400;
+}
+.menu-item-desc { font-size: 13px; color: var(--color-ash); line-height: 1.7; }
+.menu-item-tags { display: flex; gap: var(--space-2); margin-top: var(--space-2); flex-wrap: wrap; }
+.menu-item-tag {
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 2px var(--space-2);
+  border-radius: 2px;
+  background: rgba(184,134,11,0.1);
+  color: var(--color-gold-deep);
+}
+.menu-item-tag.members-only {
+  background: rgba(96,165,250,0.1);
+  color: #60A5FA;
+}
+.menu-item-price {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 300;
+  color: var(--color-gold-warm);
+  white-space: nowrap;
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
+/* ── SIDEBAR ─────────────────────────────────────────────────── */
+.menu-sidebar { padding-top: var(--space-4); }
+.menu-info-card {
+  background: var(--color-carbon);
+  border: 1px solid var(--color-graphite);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+  margin-bottom: var(--space-4);
+}
+.menu-info-title {
+  font-family: var(--font-label);
+  font-size: 12px;
+  letter-spacing: 0.3em;
+  color: var(--color-gold-deep);
+  margin-bottom: var(--space-4);
+}
+.menu-info-card p { font-size: 13px; color: var(--color-ash); line-height: 1.8; }
+.menu-info-card strong { color: var(--color-mist); font-weight: 400; }
+
+.menu-sidebar-cta {
+  background: rgba(184,134,11,0.07);
+  border: 1px solid rgba(184,134,11,0.2);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+  margin-bottom: var(--space-4);
+}
+.menu-sidebar-cta p { font-size: 13px; color: var(--color-ash); line-height: 1.8; margin-bottom: var(--space-4); }
+
+/* SECRET MENU LOCK SCREEN */
+.secret-lock {
+  background: rgba(96,165,250,0.05);
+  border: 1px solid rgba(96,165,250,0.2);
+  border-radius: var(--radius-md);
+  padding: var(--space-8);
+  text-align: center;
+  margin-bottom: var(--space-8);
+}
+.secret-lock-icon { font-size: 36px; margin-bottom: var(--space-3); }
+.secret-lock-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 300;
+  color: var(--color-ivory);
+  margin-bottom: var(--space-3);
+}
+.secret-lock-title em { color: #60A5FA; font-style: italic; }
+.secret-lock-desc {
+  font-size: 13px;
+  color: var(--color-ash);
+  max-width: 420px;
+  margin: 0 auto var(--space-4);
+  line-height: 1.8;
+}
+.secret-actions { display: flex; gap: var(--space-3); justify-content: center; flex-wrap: wrap; }
+
+</style>
+</head>
+<body>
+
+<nav class="nav solid" id="nav">
+  <a href="index.html" class="nav-logo">RIDDIM</a>
+  <ul class="nav-links">
+    <li><a href="experience.html">Experience</a></li>
+    <li><a href="menu.html" class="active">Menu</a></li>
+    <li><a href="events.html">Events</a></li>
+    <li><a href="private-events.html">Private Events</a></li>
+    <li><a href="join.html">Join the Club</a></li>
+    <li><a href="members/index.html">Members</a></li>
+    <li><a href="reserve.html" class="nav-cta">Reserve</a></li>
+  </ul>
+  <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="index.html" onclick="closeMobile()">Home</a>
+  <a href="experience.html" onclick="closeMobile()">Experience</a>
+  <a href="events.html" onclick="closeMobile()">Events</a>
+  <a href="join.html" onclick="closeMobile()">Join the Club</a>
+  <a href="members/index.html" onclick="closeMobile()">Members</a>
+  <a href="reserve.html" onclick="closeMobile()" class="m-cta">Reserve</a>
+</div>
+
+<!-- HERO -->
+<div class="menu-hero">
+  <div class="menu-hero-img"></div>
+  <div class="menu-hero-overlay"></div>
+  <div class="menu-hero-content">
+    <div class="menu-eyebrow">Dining · Bar · Hookah</div>
+    <h1 class="menu-title">The <em>Menu.</em></h1>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="menu-tabs" id="menuTabs">
+  <div class="menu-tabs-inner">
+    <div class="menu-tab active"  onclick="switchMenu('dining',this)">Dining Room</div>
+    <div class="menu-tab"         onclick="switchMenu('bar',this)">Bar</div>
+    <div class="menu-tab"         onclick="switchMenu('hookah',this)">Hookah</div>
+    <div class="menu-tab"         onclick="switchMenu('secret',this)">👑 Secret Menu</div>
+  </div>
+</div>
+
+<div class="menu-body">
+  <div>
+
+    <!-- ── DINING MENU ─────────────────────────────────────────── -->
+    <div class="menu-section active" id="menu-dining">
+      <div class="menu-cat">
+        <div class="menu-cat-header">
+          <div class="menu-cat-name">To <em>Start</em></div>
+          <div class="menu-cat-note">Shared plates</div>
+        </div>
+        <div class="menu-items">
+          <div class="menu-item">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Wagyu Beef Tartare</div>
+              <div class="menu-item-desc">hand-cut wagyu, quail egg, caper aioli, micro herbs, crostini</div>
+            </div>
+            <div class="menu-item-price">$22</div>
+          </div>
+          <div class="menu-item">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Truffle Deviled Eggs</div>
+              <div class="menu-item-desc">black truffle, smoked paprika, chive, crispy prosciutto</div>
+            </div>
+            <div class="menu-item-price">$16</div>
+          </div>
+          <div class="menu-item">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Ahi Tuna Crispy Rice</div>
+              <div class="menu-item-desc">sushi-grade tuna, spicy mayo, jalapeño, micro sesame</div>
+            </div>
+            <div class="menu-item-price">$24</div>
+          </div>
+          <div class="menu-item">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Burrata Board</div>
+              <div class="menu-item-desc">fresh burrata, heirloom tomatoes, EVOO, sea salt, grilled focaccia</div>
+              <div class="menu-item-tags"><span class="menu-item-tag">vegetarian</span></div>
+            </div>
+            <div class="menu-item-price">$18</div>
+          </div>
+          <div class="menu-item">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Crispy Shrimp</div>
+              <div class="menu-item-desc">tempura-fried gulf shrimp, honey sriracha glaze, sesame slaw</div>
+            </div>
+            <div class="menu-item-price">$20</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="menu-cat">
+        <div class="menu-cat-header">
+          <div class="menu-cat-name"><em>Mains</em></div>
+          <div class="menu-cat-note">Dinner service until midnight</div>
+        </div>
+        <div class="menu-items">
+          <div class="menu-item">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Pan-Seared Salmon</div>
+              <div class="menu-item-desc">herb-crusted atlantic salmon, lemon butter caper sauce, garlic broccolini, roasted fingerling</div>
+            </div>
+            <div class="menu-item-price">$38</div>
+          </div>
+          <div class="menu-item">
+            <div class="menu-item-info">
+              <div class="menu-item-name">8oz Filet Mignon</div>
+              <div class="menu-item-desc">prime tenderloin, truffle compound butter, asparagus, pommes gratin</div>
+            </div>
+            <div class="menu-item-price">$58</div>
+          </div>
+          <div class="menu-item">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Braised Short Rib</div>
+              <div class="menu-item-desc">12-hour red wine braise, celery root purée, crispy shallots, reduction</div>
+            </div>
+            <div class="menu-item-price">$46</div>
+          </div>
+          <div class="menu-item">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Lemon Herb Chicken</div>
+              <div class="menu-item-desc">free-range airline breast, herb jus, roasted root vegetables</div>
+            </div>
+            <div class="menu-item-price">$34</div>
+          </div>
+          <div class="menu-item">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Saffron Risotto</div>
+              <div class="menu-item-desc">arborio, parmesan, wild mushroom, truffle oil, crispy sage</div>
+              <div class="menu-item-tags"><span class="menu-item-tag">vegetarian</span></div>
+            </div>
+            <div class="menu-item-price">$32</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="menu-cat">
+        <div class="menu-cat-header">
+          <div class="menu-cat-name">Dessert & <em>Endings</em></div>
+        </div>
+        <div class="menu-items">
+          <div class="menu-item">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Warm Chocolate Fondant</div>
+              <div class="menu-item-desc">valrhona dark chocolate, vanilla bean ice cream, gold leaf dust</div>
+            </div>
+            <div class="menu-item-price">$14</div>
+          </div>
+          <div class="menu-item">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Crème Brûlée</div>
+              <div class="menu-item-desc">classic vanilla, seasonal berry compote, candied zest</div>
+            </div>
+            <div class="menu-item-price">$12</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── BAR MENU ────────────────────────────────────────────── -->
+    <div class="menu-section" id="menu-bar">
+      <div class="menu-cat">
+        <div class="menu-cat-header"><div class="menu-cat-name">Signature <em>Cocktails</em></div></div>
+        <div class="menu-items">
+          <div class="menu-item">
+            <div class="menu-item-info">
+              <div class="menu-item-name">The RIDDIM</div>
+              <div class="menu-item-desc">hennessy VS, elderflower, fresh lemon, black walnut bitters, smoked rosemary</div>
+            </div>
+            <div class="menu-item-price">$18</div>
+          </div>
+          <div class="menu-item">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Patio Sunset</div>
+              <div class="menu-item-desc">tequila blanco, aperol, passionfruit, chili lime salt, dehydrated citrus</div>
+            </div>
+            <div class="menu-item-price">$16</div>
+          </div>
+          <div class="menu-item">
+            <div class="menu-item-info">
+              <div class="menu-item-name">ATL Gold</div>
+              <div class="menu-item-desc">bourbon, honey syrup, lemon, angostura, 24k edible gold shimmer</div>
+            </div>
+            <div class="menu-item-price">$19</div>
+          </div>
+          <div class="menu-item">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Velvet Smoke</div>
+              <div class="menu-item-desc">mezcal, blackberry, lime, activated charcoal, smoked sea salt rim</div>
+            </div>
+            <div class="menu-item-price">$17</div>
+          </div>
+          <div class="menu-item">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Concierge Fizz</div>
+              <div class="menu-item-desc">grey goose, peach, elderflower, champagne, orchid garnish</div>
+              <div class="menu-item-tags"><span class="menu-item-tag members-only">🔒 Silver Members</span></div>
+            </div>
+            <div class="menu-item-price">$22</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="menu-cat">
+        <div class="menu-cat-header">
+          <div class="menu-cat-name">Bottle <em>Service</em></div>
+          <div class="menu-cat-note">Table reservations</div>
+        </div>
+        <div class="menu-items">
+          <div class="menu-item">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Hennessy VS 750ml</div>
+              <div class="menu-item-desc">with your choice of mixers · serves 4–6</div>
+            </div>
+            <div class="menu-item-price">$280</div>
+          </div>
+          <div class="menu-item">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Moët & Chandon NV</div>
+              <div class="menu-item-desc">champagne · with sparkler presentation</div>
+            </div>
+            <div class="menu-item-price">$220</div>
+          </div>
+          <div class="menu-item">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Don Julio 1942</div>
+              <div class="menu-item-desc">premium tequila · table side pour</div>
+            </div>
+            <div class="menu-item-price">$380</div>
+          </div>
+          <div class="menu-item">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Ace of Spades Magnum</div>
+              <div class="menu-item-desc">1.5L armand de brignac · full floor presentation</div>
+            </div>
+            <div class="menu-item-price">$1,200</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── HOOKAH MENU ─────────────────────────────────────────── -->
+    <div class="menu-section" id="menu-hookah">
+      <div class="menu-cat">
+        <div class="menu-cat-header">
+          <div class="menu-cat-name">Premium <em>Hookah</em></div>
+          <div class="menu-cat-note">All sessions include coal, tongs, and dedicated service</div>
+        </div>
+        <div class="menu-items">
+          <div class="menu-item">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Single Head Setup</div>
+              <div class="menu-item-desc">standard shisha bowl, one flavor, single session</div>
+            </div>
+            <div class="menu-item-price">$40</div>
+          </div>
+          <div class="menu-item">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Double Head Setup</div>
+              <div class="menu-item-desc">two bowls, two flavors, simultaneous session · recommended for 2–4</div>
+            </div>
+            <div class="menu-item-price">$70</div>
+          </div>
+          <div class="menu-item">
+            <div class="menu-item-info">
+              <div class="menu-item-name">VIP Premium Package</div>
+              <div class="menu-item-desc">jumbo head, premium tobacco, extended session, frequent coal changes, dedicated hookah attendant</div>
+              <div class="menu-item-tags"><span class="menu-item-tag">most popular</span></div>
+            </div>
+            <div class="menu-item-price">$95</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="menu-cat">
+        <div class="menu-cat-header"><div class="menu-cat-name">Flavor <em>Selection</em></div></div>
+        <div class="menu-items">
+          <div class="menu-item">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Tropical Blends</div>
+              <div class="menu-item-desc">Watermelon Mint · Mango Passionfruit · Pineapple Coconut · Guava Chill</div>
+            </div>
+          </div>
+          <div class="menu-item">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Classic Flavors</div>
+              <div class="menu-item-desc">Double Apple · Grape · Lemon Mint · Rose Mint · Blue Mist</div>
+            </div>
+          </div>
+          <div class="menu-item">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Signature RIDDIM Blends</div>
+              <div class="menu-item-desc">Atlanta Gold (peach + honey) · The Patio (melon + mint + lime) · Late Night (berry + dark cherry)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SECRET MENU ─────────────────────────────────────────── -->
+    <div class="menu-section" id="menu-secret">
+      <div class="secret-lock">
+        <div class="secret-lock-icon">🔒</div>
+        <h3 class="secret-lock-title">Members <em>Only</em></h3>
+        <p class="secret-lock-desc">The RIDDIM Secret Menu is reserved for Silver, Gold, and Obsidian members. Sign in to your member portal to unlock it — or join today.</p>
+        <div class="secret-actions">
+          <a href="members/index.html" class="btn btn-ghost" style="font-size:10px;padding:10px 20px;">Member Login</a>
+          <a href="join.html" class="btn btn-primary" style="font-size:10px;padding:10px 20px;">Join Free</a>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /menu content -->
+
+  <!-- ── SIDEBAR ────────────────────────────────────────────── -->
+  <div class="menu-sidebar">
+    <div class="menu-info-card">
+      <div class="menu-info-title">Kitchen Hours</div>
+      <p>
+        <strong>Wednesday – Thursday</strong><br>7PM – midnight<br><br>
+        <strong>Friday – Saturday</strong><br>6PM – midnight<br><br>
+        <strong>Sunday</strong><br>5PM – 11PM
+      </p>
+    </div>
+    <div class="menu-info-card">
+      <div class="menu-info-title">Dietary Notes</div>
+      <p>Our kitchen accommodates most dietary requirements. Please inform your server of any allergies. Gluten-free, dairy-free, and vegan options are available on request.</p>
+    </div>
+    <div class="menu-sidebar-cta">
+      <div class="menu-info-title">Reservations</div>
+      <p>Dining reservations recommended for Friday and Saturday. Walk-in seating available based on availability.</p>
+      <a href="reserve.html" class="btn btn-primary" style="font-size:10px;padding:10px 20px;display:block;text-align:center;">Reserve a Table</a>
+    </div>
+    <div class="menu-info-card">
+      <div class="menu-info-title">Members Secret Menu</div>
+      <p>Silver, Gold, and Obsidian members unlock our chef's secret menu — off-menu items, exclusive cocktails, and limited seasonal specials. <a href="join.html" style="color:var(--color-gold-warm)">Join to unlock →</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-grid">
+    <div>
+      <div class="footer-brand-name">RIDDIM</div>
+      <div class="footer-brand-tagline">Supper Club · Atlanta</div>
+      <p class="footer-brand-desc">Atlanta's only venue combining fine dining, hookah, outdoor patio, and nightclub under one roof.</p>
+    </div>
+    <div>
+      <div class="footer-col-title">Navigate</div>
+      <ul class="footer-links">
+        <li><a href="experience.html">Experience</a></li>
+        <li><a href="menu.html">Menu</a></li>
+        <li><a href="events.html">Events</a></li>
+        <li><a href="reserve.html">Reserve</a></li>
+        <li><a href="private-events.html">Private Events</a></li>
+        <li><a href="join.html">Join the Club</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Hours</div>
+      <div class="footer-hours">
+        <p><strong>Wednesday – Thursday</strong><br>7PM – 2AM</p>
+        <p style="margin-top:12px"><strong>Friday – Saturday</strong><br>6PM – 3AM</p>
+        <p style="margin-top:12px"><strong>Sunday</strong><br>5PM – 12AM</p>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-title">Find Us</div>
+      <div class="footer-address">Atlanta, Georgia<br><br><a href="reserve.html">Reserve a Table →</a></div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 AG Entertainment · RIDDIM Supper Club</span>
+    <span>Atlanta, GA</span>
+  </div>
+</footer>
+
+<script>
+const hamburger = document.getElementById('hamburger'), mobileMenu = document.getElementById('mobileMenu');
+hamburger.addEventListener('click', () => {
+  hamburger.classList.toggle('open');
+  mobileMenu.classList.toggle('open');
+  document.body.style.overflow = mobileMenu.classList.contains('open') ? 'hidden' : '';
+});
+function closeMobile() {
+  hamburger.classList.remove('open');
+  mobileMenu.classList.remove('open');
+  document.body.style.overflow = '';
+}
+function switchMenu(id, el) {
+  document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.menu-section').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('menu-' + id).classList.add('active');
+}
+</script>
+
+<!-- SECRET PORTAL ACCESS: triple-tap logo = Staff, 5-tap = Owner -->
+<script>
+(function secretPortalAccess() {
+  var STAFF_URL = "staff/index.html";
+  var OWNER_URL = "owner/index.html";
+  var TAP_WINDOW = 600;
+  var tapCount = 0;
+  var tapTimer = null;
+
+  function flashLogo() {
+    var logo = document.querySelector(".nav-logo");
+    if (!logo) return;
+    logo.style.transition = "color 80ms";
+    logo.style.color = "#F0C060";
+    setTimeout(function(){ logo.style.color = ""; }, 180);
+  }
+
+  function handleTap(e) {
+    tapCount++;
+    clearTimeout(tapTimer);
+
+    if (tapCount === 3) {
+      e.preventDefault();
+      flashLogo();
+      setTimeout(function(){ window.location.href = STAFF_URL; }, 200);
+      tapCount = 0;
+      return;
+    }
+    if (tapCount === 5) {
+      e.preventDefault();
+      flashLogo();
+      setTimeout(function(){ flashLogo(); }, 200);
+      setTimeout(function(){ window.location.href = OWNER_URL; }, 400);
+      tapCount = 0;
+      return;
+    }
+    // Not a secret sequence yet — let normal navigation happen
+    tapTimer = setTimeout(function(){ tapCount = 0; }, TAP_WINDOW);
+  }
+
+  var navLogo = document.querySelector(".nav-logo");
+  if (navLogo) {
+    navLogo.addEventListener("touchend", function(e){ handleTap(e); }, { passive: false });
+    navLogo.addEventListener("click", function(e){
+      if (window.matchMedia("(pointer: coarse)").matches) return;
+      handleTap(e);
+    });
+  }
+
+  document.addEventListener("keydown", function(e){
+    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+    if (e.shiftKey && e.key === "S") window.location.href = STAFF_URL;
+    if (e.shiftKey && e.key === "O") window.location.href = OWNER_URL;
+  });
+})();
+</script>
+</body>
+</html>
