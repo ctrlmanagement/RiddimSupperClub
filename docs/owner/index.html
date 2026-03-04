@@ -735,6 +735,8 @@
         <button class="portal-tab portal-tab-back" onclick="goToMainSite()">← Main Site</button>
         <button class="portal-tab active" data-tab="dashboard">◈ Dashboard</button>
         <button class="portal-tab" data-tab="members">◉ Members</button>
+        <button class="portal-tab" data-tab="reservations">◇ Reservations</button>
+        <button class="portal-tab" data-tab="events">◆ Events</button>
         <button class="portal-tab" data-tab="analytics">▣ Analytics</button>
         <button class="portal-tab" data-tab="scheduling">⊞ Scheduling</button>
         <button class="portal-tab" data-tab="employees">◎ Employees</button>
@@ -874,6 +876,70 @@
             <!-- Rendered by JS -->
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- ── TAB: RESERVATIONS ── -->
+    <div class="tab-panel" id="tab-reservations">
+      <div id="resErrorBanner"></div>
+      <div class="page-header">
+        <p class="page-eyebrow">Bookings</p>
+        <h1 class="page-title">Reservations</h1>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+        <div class="res-filters" style="margin-bottom:0;">
+          <button class="res-filter active" onclick="ownerResTabFilter(this,'all')">All</button>
+          <button class="res-filter" onclick="ownerResTabFilter(this,'pending')">Pending</button>
+          <button class="res-filter" onclick="ownerResTabFilter(this,'confirmed')">Confirmed</button>
+          <button class="res-filter" onclick="ownerResTabFilter(this,'seated')">Seated</button>
+          <button class="res-filter" onclick="ownerResTabFilter(this,'cancelled')">Cancelled</button>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="date" id="resTabDateFilter" style="background:var(--void);border:1px solid var(--graphite);color:var(--mist);padding:6px 10px;border-radius:6px;font-family:var(--font-body);font-size:13px;" onchange="renderResTab()" />
+          <button class="res-btn confirm" style="padding:6px 14px;" onclick="document.getElementById('resTabDateFilter').value='';renderResTab();">Clear Date</button>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;">
+        <div class="panel" style="padding:16px;text-align:center;">
+          <div style="font-family:var(--font-display);font-size:28px;font-weight:300;color:var(--ivory);" id="resStatTotal">—</div>
+          <div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-top:4px;">TOTAL</div>
+        </div>
+        <div class="panel" style="padding:16px;text-align:center;">
+          <div style="font-family:var(--font-display);font-size:28px;font-weight:300;color:#81C784;" id="resStatConfirmed">—</div>
+          <div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-top:4px;">CONFIRMED</div>
+        </div>
+        <div class="panel" style="padding:16px;text-align:center;">
+          <div style="font-family:var(--font-display);font-size:28px;font-weight:300;color:var(--gold-warm);" id="resStatPending">—</div>
+          <div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-top:4px;">PENDING</div>
+        </div>
+      </div>
+
+      <div class="res-grid" id="ownerResTabGrid">
+        <div style="text-align:center;padding:40px;color:var(--ash);">Loading reservations…</div>
+      </div>
+    </div>
+
+    <!-- ── TAB: EVENTS ── -->
+    <div class="tab-panel" id="tab-events">
+      <div id="eventsErrorBanner"></div>
+      <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div>
+          <p class="page-eyebrow">Calendar</p>
+          <h1 class="page-title">Events</h1>
+        </div>
+        <button class="btn-add-emp" onclick="openAddEventModal()" style="margin-top:8px;">+ Add Event</button>
+      </div>
+
+      <div class="res-filters" style="margin-bottom:20px;">
+        <button class="res-filter active" onclick="eventsTabFilter(this,'upcoming')">Upcoming</button>
+        <button class="res-filter" onclick="eventsTabFilter(this,'past')">Past</button>
+        <button class="res-filter" onclick="eventsTabFilter(this,'all')">All</button>
+      </div>
+
+      <div id="eventsGrid" style="display:flex;flex-direction:column;gap:12px;">
+        <div style="text-align:center;padding:40px;color:var(--ash);">Loading events…</div>
       </div>
     </div>
 
@@ -1082,6 +1148,8 @@
     <div class="mobile-tabs">
       <button class="mobile-tab active" data-tab="dashboard"><span class="mobile-tab-icon">◈</span><span class="mobile-tab-label">Dash</span></button>
       <button class="mobile-tab" data-tab="members"><span class="mobile-tab-icon">◉</span><span class="mobile-tab-label">Members</span></button>
+      <button class="mobile-tab" data-tab="reservations"><span class="mobile-tab-icon">◇</span><span class="mobile-tab-label">Reservations</span></button>
+      <button class="mobile-tab" data-tab="events"><span class="mobile-tab-icon">◆</span><span class="mobile-tab-label">Events</span></button>
       <button class="mobile-tab" data-tab="analytics"><span class="mobile-tab-icon">▣</span><span class="mobile-tab-label">Analytics</span></button>
       <button class="mobile-tab" data-tab="scheduling"><span class="mobile-tab-icon">⊞</span><span class="mobile-tab-label">Schedule</span></button>
       <button class="mobile-tab" data-tab="employees"><span class="mobile-tab-icon">◎</span><span class="mobile-tab-label">Employees</span></button>
@@ -1301,7 +1369,7 @@ async function loadOwnerData() {
     document.getElementById('kpiMembers').textContent = MEMBERS.length;
     document.getElementById('kpiPoints').textContent  = totalPts.toLocaleString();
     renderMembersTable(); renderBarChart(); renderDonut(); renderAnalytics();
-    renderOwnerReservations(); renderEmployees();
+    renderOwnerReservations(); renderResTab(); renderEmployees();
     return;
   }
 
@@ -1425,8 +1493,10 @@ async function loadOwnerData() {
   renderDonut();
   renderAnalytics();
   renderOwnerReservations();
+  renderResTab();
   renderEmployees();
-  loadRetentionAnalytics(); // live retention — runs after MEMBERS is populated
+  loadRetentionAnalytics();
+  loadEvents();
 }
 
 function goScreen(id) {
@@ -1794,6 +1864,233 @@ async function ownerUpdateRes(id,status){
   r.status=status; renderOwnerReservations(); showToast(`Updated to ${status}`);
 }
 
+/* ═══ RESERVATIONS TAB ═══ */
+let resTabFilter = 'all';
+
+function ownerResTabFilter(btn, status) {
+  resTabFilter = status;
+  document.querySelectorAll('#tab-reservations .res-filter').forEach(b => b.classList.toggle('active', b === btn));
+  renderResTab();
+}
+
+function renderResTab() {
+  const dateVal = document.getElementById('resTabDateFilter').value;
+  let data = [...ownerResData];
+
+  if (resTabFilter !== 'all') data = data.filter(r => r.status === resTabFilter);
+  if (dateVal) data = data.filter(r => (r.event_date || r.date || '').slice(0,10) === dateVal);
+
+  // Update stats (always from full ownerResData)
+  document.getElementById('resStatTotal').textContent     = ownerResData.length;
+  document.getElementById('resStatConfirmed').textContent = ownerResData.filter(r => r.status === 'confirmed').length;
+  document.getElementById('resStatPending').textContent   = ownerResData.filter(r => r.status === 'pending').length;
+
+  if (!data.length) {
+    document.getElementById('ownerResTabGrid').innerHTML =
+      '<div style="text-align:center;padding:40px;color:var(--ash);">No reservations match this filter.</div>';
+    return;
+  }
+
+  document.getElementById('ownerResTabGrid').innerHTML = data.map(r => {
+    const dateStr = r.event_date ? new Date(r.event_date + 'T12:00:00').toLocaleDateString('en-US', {weekday:'short',month:'short',day:'numeric'}) : '';
+    return `
+    <div class="res-card status-${r.status}">
+      <div class="res-card-header">
+        <div class="res-guest-name">${r.member_name || r.guest_name || '—'}</div>
+        <span class="res-status ${r.status}">${r.status.charAt(0).toUpperCase()+r.status.slice(1)}</span>
+      </div>
+      <div class="res-meta">
+        ${dateStr ? `<strong>${dateStr}</strong> · ` : ''}Party of ${r.party_size || r.party || '—'}
+        ${r.occasion ? `<br>${r.occasion}` : ''}
+        ${r.notes    ? `<br><em style="color:var(--ash);font-size:12px;">${r.notes}</em>` : ''}
+        ${r.member_phone ? `<br><span style="font-size:12px;color:var(--ash);">${r.member_phone}</span>` : ''}
+      </div>
+      <div class="res-actions">
+        ${r.status==='pending'   ? `<button class="res-btn confirm" onclick="ownerResTabUpdate('${r.id}','confirmed')">Confirm</button>` : ''}
+        ${r.status==='confirmed' ? `<button class="res-btn seat"    onclick="ownerResTabUpdate('${r.id}','seated')">Seat</button>` : ''}
+        ${r.status!=='seated' && r.status!=='cancelled' ? `<button class="res-btn cancel" onclick="ownerResTabUpdate('${r.id}','cancelled')">Cancel</button>` : ''}
+        ${r.status==='seated'    ? `<span style="font-size:12px;color:#81C784;">✓ Seated</span>` : ''}
+        ${r.status==='cancelled' ? `<span style="font-size:12px;color:var(--ash);">Cancelled</span>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function ownerResTabUpdate(id, status) {
+  const r = ownerResData.find(r => r.id === id);
+  if (!r) return;
+  if (LIVE_DATA) {
+    await supabaseClient.from('reservations').update({ status }).eq('id', id);
+  }
+  r.status = status;
+  renderResTab();
+  renderOwnerReservations(); // keep staffview in sync
+  showToast(`Reservation ${status}`, 'gold');
+}
+
+/* ═══ EVENTS TAB ═══ */
+let EVENTS = [];
+let eventsFilter = 'upcoming';
+let editingEventId = null;
+
+function eventsTabFilter(btn, filter) {
+  eventsFilter = filter;
+  document.querySelectorAll('#tab-events .res-filter').forEach(b => b.classList.toggle('active', b === btn));
+  renderEventsTab();
+}
+
+async function loadEvents() {
+  if (!LIVE_DATA || !supabaseClient) { renderEventsTab(); return; }
+  try {
+    const { data, error } = await supabaseClient.from('events').select('*').order('event_date');
+    if (error) throw error;
+    EVENTS = data || [];
+  } catch(e) {
+    console.warn('Events fetch error:', e);
+    document.getElementById('eventsErrorBanner').innerHTML =
+      `<div class="error-banner"><span class="error-banner-icon">⚠</span><span>Could not load events. <a onclick="loadEvents()">Retry</a></span></div>`;
+  }
+  renderEventsTab();
+}
+
+function renderEventsTab() {
+  const today = new Date().toISOString().slice(0,10);
+  let data = [...EVENTS];
+  if (eventsFilter === 'upcoming') data = data.filter(e => e.event_date >= today);
+  if (eventsFilter === 'past')     data = data.filter(e => e.event_date < today);
+
+  if (!data.length) {
+    document.getElementById('eventsGrid').innerHTML =
+      `<div style="text-align:center;padding:60px;color:var(--ash);">
+        <div style="font-size:32px;margin-bottom:12px;opacity:0.3;">◆</div>
+        No ${eventsFilter === 'upcoming' ? 'upcoming' : eventsFilter === 'past' ? 'past' : ''} events.
+      </div>`;
+    return;
+  }
+
+  const STATUS_COLORS = { scheduled:'#81C784', cancelled:'#E57373', sold_out:'var(--gold-warm)', completed:'var(--ash)' };
+
+  document.getElementById('eventsGrid').innerHTML = data.map(e => {
+    const d = new Date(e.event_date + 'T12:00:00');
+    const dateStr = d.toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric', year:'numeric'});
+    const color = STATUS_COLORS[e.status] || 'var(--ash)';
+    return `
+    <div class="panel" style="display:flex;align-items:flex-start;gap:20px;padding:20px 24px;">
+      <div style="min-width:56px;text-align:center;background:var(--deep);border-radius:8px;padding:10px 8px;">
+        <div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);">${d.toLocaleString('default',{month:'short'}).toUpperCase()}</div>
+        <div style="font-family:var(--font-display);font-size:28px;font-weight:300;color:var(--ivory);line-height:1;">${d.getDate()}</div>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap;">
+          <div style="font-family:var(--font-display);font-size:20px;font-weight:300;color:var(--ivory);">${e.name}</div>
+          <span style="font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:${color};border:1px solid ${color};padding:2px 8px;border-radius:4px;">${e.status.replace('_',' ').toUpperCase()}</span>
+        </div>
+        <div style="font-size:13px;color:var(--ash);">
+          ${e.start_time ? e.start_time.slice(0,5) : ''} ${e.end_time ? '– '+e.end_time.slice(0,5) : ''}
+          ${e.capacity ? ` · Capacity: ${e.capacity}` : ''}
+        </div>
+        ${e.description ? `<div style="font-size:13px;color:var(--mist);margin-top:6px;">${e.description}</div>` : ''}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;">
+        <button class="res-btn confirm" style="white-space:nowrap;" onclick="openEditEventModal('${e.id}')">Edit</button>
+        <button class="res-btn cancel"  style="white-space:nowrap;" onclick="deleteEvent('${e.id}')">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openAddEventModal() {
+  editingEventId = null;
+  document.getElementById('eventModalTitle').textContent = 'Add Event';
+  document.getElementById('eventName').value = '';
+  document.getElementById('eventDate').value = '';
+  document.getElementById('eventStart').value = '20:00';
+  document.getElementById('eventEnd').value = '02:00';
+  document.getElementById('eventCapacity').value = '';
+  document.getElementById('eventStatus').value = 'scheduled';
+  document.getElementById('eventDesc').value = '';
+  document.getElementById('eventError').textContent = '';
+  document.getElementById('eventModal').classList.add('open');
+  document.getElementById('eventName').focus();
+}
+
+function openEditEventModal(id) {
+  const e = EVENTS.find(e => e.id === id);
+  if (!e) return;
+  editingEventId = id;
+  document.getElementById('eventModalTitle').textContent = 'Edit Event';
+  document.getElementById('eventName').value     = e.name || '';
+  document.getElementById('eventDate').value     = e.event_date || '';
+  document.getElementById('eventStart').value    = e.start_time ? e.start_time.slice(0,5) : '20:00';
+  document.getElementById('eventEnd').value      = e.end_time ? e.end_time.slice(0,5) : '02:00';
+  document.getElementById('eventCapacity').value = e.capacity || '';
+  document.getElementById('eventStatus').value   = e.status || 'scheduled';
+  document.getElementById('eventDesc').value     = e.description || '';
+  document.getElementById('eventError').textContent = '';
+  document.getElementById('eventModal').classList.add('open');
+}
+
+function closeEventModal() {
+  document.getElementById('eventModal').classList.remove('open');
+  editingEventId = null;
+}
+
+async function saveEvent() {
+  const name     = document.getElementById('eventName').value.trim();
+  const date     = document.getElementById('eventDate').value;
+  const start    = document.getElementById('eventStart').value;
+  const end      = document.getElementById('eventEnd').value;
+  const capacity = document.getElementById('eventCapacity').value;
+  const status   = document.getElementById('eventStatus').value;
+  const desc     = document.getElementById('eventDesc').value.trim();
+  const errEl    = document.getElementById('eventError');
+
+  if (!name) { errEl.textContent = 'Event name is required.'; return; }
+  if (!date) { errEl.textContent = 'Date is required.'; return; }
+  errEl.textContent = '';
+
+  const payload = {
+    name, event_date: date, start_time: start || null, end_time: end || null,
+    capacity: capacity ? parseInt(capacity) : null, status, description: desc || null,
+  };
+
+  if (editingEventId) {
+    if (LIVE_DATA) {
+      const { error } = await supabaseClient.from('events').update(payload).eq('id', editingEventId);
+      if (error) { errEl.textContent = 'Could not save. Try again.'; return; }
+    }
+    const idx = EVENTS.findIndex(e => e.id === editingEventId);
+    if (idx > -1) EVENTS[idx] = { ...EVENTS[idx], ...payload };
+    showToast(`✦ ${name} updated`, 'gold');
+  } else {
+    if (LIVE_DATA) {
+      const { data, error } = await supabaseClient.from('events').insert({
+        ...payload, created_by: 'owner', created_at: new Date().toISOString()
+      }).select().single();
+      if (error) { errEl.textContent = 'Could not save. Try again.'; return; }
+      EVENTS.push(data);
+    } else {
+      EVENTS.push({ id: 'E'+Date.now(), ...payload, created_by:'owner', created_at: new Date().toISOString() });
+    }
+    showToast(`✦ ${name} added`, 'gold');
+  }
+
+  renderEventsTab();
+  closeEventModal();
+}
+
+async function deleteEvent(id) {
+  const e = EVENTS.find(e => e.id === id);
+  if (!e) return;
+  if (!confirm(`Delete "${e.name}"? This cannot be undone.`)) return;
+  if (LIVE_DATA) {
+    await supabaseClient.from('events').delete().eq('id', id);
+  }
+  EVENTS = EVENTS.filter(e => e.id !== id);
+  renderEventsTab();
+  showToast(`${e.name} deleted`);
+}
+
 /* ═══ TOAST ═══ */
 let toastTimeout;
 function showToast(msg,type=''){
@@ -1804,6 +2101,56 @@ function showToast(msg,type=''){
 }
 </script>
 
+
+<!-- Add/Edit Event Modal -->
+<div class="modal-overlay" id="eventModal">
+  <div class="modal-card" style="max-width:520px;">
+    <div class="modal-title" id="eventModalTitle">Add Event</div>
+    <div class="modal-sub">Events appear in the member portal calendar</div>
+    <div class="field">
+      <label for="eventName">Event Name</label>
+      <input type="text" id="eventName" placeholder="Friday Night Live" />
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="field">
+        <label for="eventDate">Date</label>
+        <input type="date" id="eventDate" />
+      </div>
+      <div class="field">
+        <label for="eventStatus">Status</label>
+        <select id="eventStatus">
+          <option value="scheduled">Scheduled</option>
+          <option value="cancelled">Cancelled</option>
+          <option value="sold_out">Sold Out</option>
+          <option value="completed">Completed</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+      <div class="field">
+        <label for="eventStart">Start Time</label>
+        <input type="time" id="eventStart" value="20:00" />
+      </div>
+      <div class="field">
+        <label for="eventEnd">End Time</label>
+        <input type="time" id="eventEnd" value="02:00" />
+      </div>
+      <div class="field">
+        <label for="eventCapacity">Capacity</label>
+        <input type="number" id="eventCapacity" placeholder="250" min="1" />
+      </div>
+    </div>
+    <div class="field">
+      <label for="eventDesc">Description <span style="font-size:10px;color:var(--ash);font-weight:300;">(optional)</span></label>
+      <textarea id="eventDesc" rows="3" placeholder="Featured performer, dress code, cover charge…" style="width:100%;background:var(--void);border:1px solid var(--graphite);color:var(--ivory);padding:10px 12px;border-radius:6px;font-family:var(--font-body);font-size:14px;resize:vertical;"></textarea>
+    </div>
+    <div class="auth-error" id="eventError" style="text-align:left;margin-bottom:8px;"></div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="saveEvent()">Save Event</button>
+      <button class="btn-ghost" onclick="closeEventModal()">Cancel</button>
+    </div>
+  </div>
+</div>
 
 <!-- Add Shift Modal -->
 <div class="modal-overlay" id="shiftModal">
