@@ -1619,23 +1619,17 @@ function renderTorHistory() {
 }
 
 /* ── Hook into tab nav to lazy-load schedule ── */
-const _staffOrigGoToTab = goToTab;
-function goToTab(tabId) {
-  _staffOrigGoToTab(tabId);
-  if (tabId === 'schedule' && !staffSchedInited) {
-    staffSchedInited = true;
-    staffSchedBase = getMonday(new Date());
-    loadStaffSchedule();
-  }
-}
-// Re-bind tab listeners after override
+// Patch schedule tab buttons to trigger lazy load on first click
 document.querySelectorAll('.portal-tab,.mobile-tab').forEach(btn => {
-  if (btn.dataset.tab) {
-    btn.replaceWith(btn.cloneNode(true)); // remove old listener
+  if (btn.dataset.tab === 'schedule') {
+    btn.addEventListener('click', () => {
+      if (!staffSchedInited) {
+        staffSchedInited = true;
+        staffSchedBase = getMonday(new Date());
+        loadStaffSchedule();
+      }
+    });
   }
-});
-document.querySelectorAll('.portal-tab,.mobile-tab').forEach(btn => {
-  if (btn.dataset.tab) btn.addEventListener('click', () => goToTab(btn.dataset.tab));
 });
 
 

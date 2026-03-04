@@ -1426,6 +1426,7 @@ async function loadOwnerData() {
   renderAnalytics();
   renderOwnerReservations();
   renderEmployees();
+  loadRetentionAnalytics(); // live retention — runs after MEMBERS is populated
 }
 
 function goScreen(id) {
@@ -1509,9 +1510,59 @@ function renderDonut() {
 }
 
 /* ═══ ANALYTICS ═══ */
+
+// Retention analytics — populated by loadRetentionAnalytics()
+let RETENTION_DATA = [
+  {label:'Visited 3+ times',pct:0},
+  {label:'Visited this month',pct:0},
+  {label:'Visited this week',pct:0}
+];
+
+async function loadRetentionAnalytics() {
+  if (!LIVE_DATA || !supabaseClient || MEMBERS.length === 0) return;
+  try {
+    const now = new Date();
+    const weekAgo  = new Date(now); weekAgo.setDate(now.getDate() - 7);
+    const monthAgo = new Date(now); monthAgo.setDate(now.getDate() - 30);
+
+    // Get all check-ins from points_ledger
+    const { data: ledger } = await supabaseClient
+      .from('points_ledger')
+      .select('member_id, created_at')
+      .eq('type', 'checkin');
+
+    if (!ledger) return;
+
+    const totalMembers = MEMBERS.length;
+    if (totalMembers === 0) return;
+
+    // Members with 3+ total visits
+    const visitCount = {};
+    ledger.forEach(r => { visitCount[r.member_id] = (visitCount[r.member_id] || 0) + 1; });
+    const visited3Plus = Object.values(visitCount).filter(v => v >= 3).length;
+
+    // Members who visited this month (last 30 days)
+    const visitedMonthSet = new Set();
+    ledger.forEach(r => { if (new Date(r.created_at) >= monthAgo) visitedMonthSet.add(r.member_id); });
+
+    // Members who visited this week (last 7 days)
+    const visitedWeekSet = new Set();
+    ledger.forEach(r => { if (new Date(r.created_at) >= weekAgo) visitedWeekSet.add(r.member_id); });
+
+    RETENTION_DATA = [
+      {label:'Visited 3+ times',    pct: Math.round((visited3Plus / totalMembers) * 100)},
+      {label:'Visited this month',  pct: Math.round((visitedMonthSet.size / totalMembers) * 100)},
+      {label:'Visited this week',   pct: Math.round((visitedWeekSet.size  / totalMembers) * 100)},
+    ];
+    renderAnalytics();
+  } catch(e) {
+    console.warn('Retention analytics error:', e);
+  }
+}
+
 function renderAnalytics() {
-  // Retention bars
-  const retData = [{label:'Visited 3+ times',pct:78},{label:'Visited this month',pct:54},{label:'Visited this week',pct:32}];
+  // Retention bars — live from RETENTION_DATA
+  const retData = RETENTION_DATA;
   document.getElementById('retentionBars').innerHTML = retData.map(d=>`
     <div style="margin-bottom:16px;">
       <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
@@ -1829,6 +1880,10 @@ function showToast(msg,type=''){
         <option value="barback">Barback</option>
         <option value="promoter">Promoter</option>
       </select>
+    </div>
+    <div class="field">
+      <label for="empMac">WiFi MAC Address <span style="font-size:10px;color:var(--ash);font-weight:300;letter-spacing:0;">(optional — required for clock-in)</span></label>
+      <input type="text" id="empMac" placeholder="AA:BB:CC:DD:EE:FF" maxlength="17" style="font-family:monospace;letter-spacing:0.05em;" />
     </div>
     <div class="auth-error" id="empError" style="text-align:left;margin-bottom:8px;"></div>
     <div class="modal-actions">
@@ -2209,6 +2264,7 @@ function openAddEmpModal() {
   document.getElementById('empLastName').value = '';
   document.getElementById('empPhone').value = '';
   document.getElementById('empRole').value = 'manager';
+  document.getElementById('empMac').value = '';
   document.getElementById('empError').textContent = '';
   document.getElementById('empModal').classList.add('open');
   document.getElementById('empFirstName').focus();
@@ -2224,6 +2280,7 @@ function openEditEmpModal(id) {
   const phone = emp.phone.replace('+1','').replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
   document.getElementById('empPhone').value = phone;
   document.getElementById('empRole').value = emp.role;
+  document.getElementById('empMac').value = emp.mac_address || '';
   document.getElementById('empError').textContent = '';
   document.getElementById('empModal').classList.add('open');
 }
@@ -2249,35 +2306,40 @@ async function saveEmployee() {
   const last  = document.getElementById('empLastName').value.trim();
   const phoneRaw = document.getElementById('empPhone').value.replace(/\D/g,'');
   const role  = document.getElementById('empRole').value;
+  const macRaw = document.getElementById('empMac').value.trim().toUpperCase();
   const errEl = document.getElementById('empError');
 
   if (!first) { errEl.textContent = 'First name is required.'; return; }
   if (!last)  { errEl.textContent = 'Last name is required.'; return; }
   if (phoneRaw.length < 10) { errEl.textContent = 'Enter a valid 10-digit phone number.'; return; }
+  if (macRaw && !/^([0-9A-F]{2}:){5}[0-9A-F]{2}$/.test(macRaw)) {
+    errEl.textContent = 'MAC address must be in format AA:BB:CC:DD:EE:FF'; return;
+  }
   errEl.textContent = '';
 
   const phone = '+1' + phoneRaw;
+  const mac_address = macRaw || null;
   const duplicate = EMPLOYEES.find(e => e.phone === phone && e.id !== editingEmpId);
   if (duplicate) { errEl.textContent = 'That phone number is already registered.'; return; }
 
   if (editingEmpId) {
     if (LIVE_DATA) {
-      await supabaseClient.from('staff').update({ first_name:first, last_name:last, phone, role }).eq('id', editingEmpId);
+      await supabaseClient.from('staff').update({ first_name:first, last_name:last, phone, role, mac_address }).eq('id', editingEmpId);
     }
     const emp = EMPLOYEES.find(e => e.id === editingEmpId);
-    if (emp) { emp.first_name=first; emp.last_name=last; emp.phone=phone; emp.role=role; }
+    if (emp) { emp.first_name=first; emp.last_name=last; emp.phone=phone; emp.role=role; emp.mac_address=mac_address; }
     showToast(`✦ ${first} ${last} updated`, 'gold');
   } else {
     if (LIVE_DATA) {
       const { data, error } = await supabaseClient.from('staff').insert({
-        first_name: first, last_name: last, phone, role, active: true,
+        first_name: first, last_name: last, phone, role, mac_address, active: true,
         created_at: new Date().toISOString(),
       }).select().single();
       if (error) { errEl.textContent = 'Could not save. Try again.'; return; }
       EMPLOYEES.push(data);
     } else {
       const newId = 'E' + String(EMPLOYEES.length + 1).padStart(3, '0');
-      EMPLOYEES.push({ id:newId, first_name:first, last_name:last, phone, role, active:true, created_at: new Date().toISOString().slice(0,10) });
+      EMPLOYEES.push({ id:newId, first_name:first, last_name:last, phone, role, mac_address, active:true, created_at: new Date().toISOString().slice(0,10) });
     }
     showToast(`✦ ${first} ${last} added as ${ROLE_LABELS[role]}`, 'gold');
   }
