@@ -556,6 +556,126 @@
     .field select:focus { border-color:var(--owner-gold); box-shadow:0 0 0 3px rgba(218,165,32,0.1); }
     .field select option { background:var(--carbon); }
 
+
+    /* ── LOADING / ERROR STATES ── */
+    .portal-loading {
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      padding:60px 20px; gap:16px; color:var(--ash); font-size:13px;
+    }
+    .spinner {
+      width:28px; height:28px; border-radius:50%;
+      border:2px solid var(--graphite);
+      border-top-color:var(--owner-gold);
+      animation:spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .error-banner {
+      display:flex; align-items:flex-start; gap:12px;
+      padding:14px 20px; border-radius:8px; margin-bottom:20px;
+      background:rgba(192,57,43,0.08); border:1px solid rgba(192,57,43,0.3);
+      font-size:13px; color:#E57373; line-height:1.5;
+    }
+    .error-banner-icon { font-size:16px; flex-shrink:0; margin-top:1px; }
+    .error-banner a { color:var(--owner-gold); cursor:pointer; text-decoration:underline; }
+
+    /* ── SCHEDULING ── */
+    .sched-toolbar {
+      display:flex; align-items:center; justify-content:space-between;
+      flex-wrap:wrap; gap:12px; margin-bottom:24px;
+    }
+    .sched-week-nav { display:flex; align-items:center; gap:12px; }
+    .sched-week-label {
+      font-family:var(--font-label); font-size:13px; letter-spacing:0.15em;
+      color:var(--ivory); min-width:200px; text-align:center;
+    }
+    .sched-nav-btn {
+      width:32px; height:32px; border-radius:6px; border:1px solid var(--graphite);
+      background:none; color:var(--ash); cursor:pointer; font-size:14px;
+      display:flex; align-items:center; justify-content:center; transition:all 150ms;
+    }
+    .sched-nav-btn:hover { border-color:var(--owner-gold); color:var(--owner-gold); }
+    .btn-add-shift {
+      display:flex; align-items:center; gap:8px;
+      padding:10px 20px; border-radius:6px;
+      background:linear-gradient(135deg,var(--owner-accent),var(--owner-gold));
+      border:none; color:var(--ivory); font-family:var(--font-label);
+      font-size:12px; letter-spacing:0.15em; cursor:pointer; transition:opacity 150ms;
+    }
+    .btn-add-shift:hover { opacity:0.85; }
+
+    .sched-grid-wrap { overflow-x:auto; margin-bottom:28px; }
+    .sched-grid {
+      display:grid; grid-template-columns:140px repeat(7,1fr);
+      border:1px solid var(--graphite); border-radius:8px; overflow:hidden; min-width:700px;
+    }
+    .sched-grid-head {
+      background:var(--void); border-bottom:1px solid var(--graphite);
+      padding:10px 8px; text-align:center;
+      font-family:var(--font-label); font-size:9px; letter-spacing:0.2em;
+      color:var(--owner-gold); text-transform:uppercase;
+    }
+    .sched-grid-head.name-col { text-align:left; padding-left:16px; }
+    .sched-grid-head.today-col { color:var(--gold-bright); background:rgba(240,192,96,0.06); }
+    .sched-row { display:contents; }
+    .sched-row:hover .sched-cell { background:rgba(218,165,32,0.02); }
+    .sched-name-cell {
+      padding:12px 16px; border-bottom:1px solid rgba(42,42,42,0.5);
+      background:var(--void); display:flex; align-items:center; gap:10px;
+    }
+    .sched-emp-init {
+      width:30px; height:30px; border-radius:50%; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+      font-size:11px; font-weight:500; color:var(--void);
+      background:linear-gradient(135deg,var(--staff-blue),var(--staff-light));
+    }
+    .sched-emp-name { font-size:13px; color:var(--ivory); line-height:1.3; }
+    .sched-emp-role { font-family:var(--font-label); font-size:9px; letter-spacing:0.15em; color:var(--ash); }
+    .sched-cell {
+      padding:6px; border-left:1px solid rgba(42,42,42,0.4); border-bottom:1px solid rgba(42,42,42,0.4);
+      vertical-align:top; min-height:56px; cursor:pointer; transition:background 150ms;
+    }
+    .sched-cell:hover { background:rgba(218,165,32,0.04) !important; }
+    .sched-cell.today-col { background:rgba(240,192,96,0.03); }
+    .sched-shift-chip {
+      background:linear-gradient(135deg,rgba(139,69,19,0.3),rgba(218,165,32,0.2));
+      border:1px solid rgba(218,165,32,0.3); border-radius:4px;
+      padding:4px 7px; margin-bottom:3px;
+    }
+    .sched-shift-chip:hover { border-color:var(--owner-gold); background:rgba(218,165,32,0.15); }
+    .sched-shift-time { font-family:var(--font-label); font-size:9px; letter-spacing:0.1em; color:var(--owner-gold); }
+    .sched-shift-role { font-size:10px; color:var(--mist); }
+    .sched-add-chip { font-size:18px; color:rgba(218,165,32,0.15); text-align:center; line-height:40px; transition:color 150ms; }
+    .sched-cell:hover .sched-add-chip { color:rgba(218,165,32,0.45); }
+    .sched-empty { font-size:12px; color:var(--ash); text-align:center; padding:32px; }
+
+    .timeoff-list { display:flex; flex-direction:column; gap:10px; }
+    .timeoff-card {
+      display:flex; align-items:center; gap:16px; padding:14px 20px;
+      border-radius:8px; background:var(--carbon); border:1px solid var(--graphite); flex-wrap:wrap;
+    }
+    .timeoff-name { font-family:var(--font-display); font-size:16px; font-weight:300; color:var(--ivory); flex:1; min-width:120px; }
+    .timeoff-dates { font-size:12px; color:var(--ash); flex:2; min-width:140px; }
+    .timeoff-reason { font-size:12px; color:var(--mist); flex:2; font-style:italic; }
+    .timeoff-status {
+      font-family:var(--font-label); font-size:9px; letter-spacing:0.15em;
+      padding:3px 10px; border-radius:999px; border:1px solid; flex-shrink:0;
+    }
+    .timeoff-status.pending  { color:var(--gold-warm); border-color:rgba(212,168,67,0.4); background:rgba(212,168,67,0.08); }
+    .timeoff-status.approved { color:#81C784; border-color:rgba(76,175,80,0.4); background:rgba(76,175,80,0.08); }
+    .timeoff-status.denied   { color:var(--ember); border-color:rgba(192,57,43,0.4); background:rgba(192,57,43,0.08); }
+    .timeoff-actions { display:flex; gap:6px; flex-shrink:0; }
+    .timeoff-btn {
+      padding:6px 14px; border-radius:4px; font-family:var(--font-label);
+      font-size:10px; letter-spacing:0.1em; cursor:pointer; border:1px solid; background:none; transition:all 150ms;
+    }
+    .timeoff-btn.approve { color:#81C784; border-color:rgba(76,175,80,0.4); }
+    .timeoff-btn.approve:hover { background:rgba(76,175,80,0.1); }
+    .timeoff-btn.deny    { color:var(--ember); border-color:rgba(192,57,43,0.3); }
+    .timeoff-btn.deny:hover { background:rgba(192,57,43,0.08); }
+    .timeoff-empty { font-size:13px; color:var(--ash); text-align:center; padding:32px; }
+    .field-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    @media(max-width:480px){ .field-row{ grid-template-columns:1fr; } }
+
   </style>
 </head>
 <body>
@@ -616,6 +736,7 @@
         <button class="portal-tab active" data-tab="dashboard">◈ Dashboard</button>
         <button class="portal-tab" data-tab="members">◉ Members</button>
         <button class="portal-tab" data-tab="analytics">▣ Analytics</button>
+        <button class="portal-tab" data-tab="scheduling">⊞ Scheduling</button>
         <button class="portal-tab" data-tab="employees">◎ Employees</button>
         <button class="portal-tab staff-view-tab" data-tab="staffview">⬡ Staff View</button>
       </nav>
@@ -638,6 +759,7 @@
 
     <!-- ── TAB: DASHBOARD ── -->
     <div class="tab-panel active" id="tab-dashboard">
+      <div id="dashErrorBanner"></div>
       <div class="page-header">
         <p class="page-eyebrow">AG Entertainment · RIDDIM</p>
         <h1 class="page-title">Owner Dashboard</h1>
@@ -875,6 +997,57 @@
     </div>
 
 
+
+    <!-- ── TAB: SCHEDULING ── -->
+    <div class="tab-panel" id="tab-scheduling">
+      <div id="schedErrorBanner"></div>
+      <div class="page-header">
+        <p class="page-eyebrow">Team Management</p>
+        <h1 class="page-title">Scheduling</h1>
+        <p class="page-sub">Publish shifts, track attendance, and manage time-off requests.</p>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="sched-toolbar">
+        <div class="sched-week-nav">
+          <button class="sched-nav-btn" onclick="schedWeekOffset(-1)">&#8592;</button>
+          <div class="sched-week-label" id="schedWeekLabel">—</div>
+          <button class="sched-nav-btn" onclick="schedWeekOffset(1)">&#8594;</button>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button class="sched-nav-btn" onclick="schedWeekOffset(0, true)" style="width:auto;padding:0 14px;font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;">Today</button>
+          <button class="btn-add-shift" onclick="openShiftModal()">+ Add Shift</button>
+        </div>
+      </div>
+
+      <!-- Week grid -->
+      <div class="sched-grid-wrap">
+        <div id="schedLoadingState" class="portal-loading" style="display:none;">
+          <div class="spinner"></div>Loading schedule…
+        </div>
+        <div class="sched-grid" id="schedGrid"><!-- Rendered by JS --></div>
+      </div>
+
+      <!-- Time-off requests -->
+      <div class="panel" style="margin-top:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+          <div>
+            <div class="panel-eyebrow">Requests</div>
+            <div class="panel-title" style="margin-bottom:0;">Time-Off Requests</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="res-filter active" onclick="filterTimeOff(this,'pending')">Pending</button>
+            <button class="res-filter" onclick="filterTimeOff(this,'approved')">Approved</button>
+            <button class="res-filter" onclick="filterTimeOff(this,'denied')">Denied</button>
+            <button class="res-filter" onclick="filterTimeOff(this,'all')">All</button>
+          </div>
+        </div>
+        <div class="timeoff-list" id="timeoffList">
+          <div class="portal-loading"><div class="spinner"></div>Loading requests…</div>
+        </div>
+      </div>
+    </div>
+
     <!-- ── TAB: EMPLOYEES ── -->
     <div class="tab-panel" id="tab-employees">
       <div class="page-header">
@@ -910,6 +1083,7 @@
       <button class="mobile-tab active" data-tab="dashboard"><span class="mobile-tab-icon">◈</span><span class="mobile-tab-label">Dash</span></button>
       <button class="mobile-tab" data-tab="members"><span class="mobile-tab-icon">◉</span><span class="mobile-tab-label">Members</span></button>
       <button class="mobile-tab" data-tab="analytics"><span class="mobile-tab-icon">▣</span><span class="mobile-tab-label">Analytics</span></button>
+      <button class="mobile-tab" data-tab="scheduling"><span class="mobile-tab-icon">⊞</span><span class="mobile-tab-label">Schedule</span></button>
       <button class="mobile-tab" data-tab="employees"><span class="mobile-tab-icon">◎</span><span class="mobile-tab-label">Employees</span></button>
       <button class="mobile-tab staff-view-tab" data-tab="staffview"><span class="mobile-tab-icon">⬡</span><span class="mobile-tab-label">Staff</span></button>
     </div>
@@ -986,10 +1160,11 @@ const RESERVATIONS = [
   {id:'r5', guest_name:'Amara Johnson',   party:2, time:'9:30 PM', occasion:'Anniversary', notes:'Champagne on arrival',   status:'pending',   tier:'GOLD'},
 ];
 
-const WEEKLY_VISITS = [28,34,22,41,38,29,45,52];
-const WEEKLY_LABELS = ['W1','W2','W3','W4','W5','W6','W7','This'];
-const MONTHLY_NEW   = [8,12,7,15,10,18,14,22,11,19,13,16];
-const MONTHS        = ['M','J','J','A','S','O','N','D','J','F','M','A'];
+// Analytics data — populated from live Supabase queries in loadOwnerData()
+let WEEKLY_VISITS = [];
+let WEEKLY_LABELS = [];
+let MONTHLY_NEW   = [];
+let MONTHS        = [];
 
 /* ═══ GOOGLE OAUTH ═══ */
 const GOOGLE_CLIENT_ID = '46572233442-7ppaitpmvnm0vvmj6uqk0683rsocka9a.apps.googleusercontent.com';
@@ -1106,25 +1281,142 @@ function enterPortal() {
   setTimeout(()=>document.getElementById('portalMain').classList.add('visible'),100);
 }
 
-async function loadOwnerData() {
-  if (LIVE_DATA) {
-    const { data: mData } = await supabaseClient.from('members').select('*').order('first_name');
-    if (mData) MEMBERS = mData;
+function showErrorBanner(containerId, msg) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = `<div class="error-banner">
+    <span class="error-banner-icon">⚠</span>
+    <span>${msg} &nbsp;<a onclick="loadOwnerData()">Retry</a></span>
+  </div>`;
+}
+function clearErrorBanner(containerId) {
+  const el = document.getElementById(containerId);
+  if (el) el.innerHTML = '';
+}
 
+async function loadOwnerData() {
+  if (!LIVE_DATA) {
+    // Use mock data
+    const totalPts = MEMBERS.reduce((s,m)=>s+(m.total_points||0),0);
+    document.getElementById('kpiMembers').textContent = MEMBERS.length;
+    document.getElementById('kpiPoints').textContent  = totalPts.toLocaleString();
+    renderMembersTable(); renderBarChart(); renderDonut(); renderAnalytics();
+    renderOwnerReservations(); renderEmployees();
+    return;
+  }
+
+  // ── Members ──
+  try {
+    const { data: mData, error } = await supabaseClient.from('members').select('*').order('first_name');
+    if (error) throw error;
+    if (mData) MEMBERS = mData;
+  } catch(e) {
+    showErrorBanner('dashErrorBanner', 'Could not load member data from Supabase. Check your connection.');
+    console.error('Members fetch error:', e);
+  }
+
+  // ── Reservations ──
+  try {
     const today = new Date().toISOString().slice(0,10);
-    const { data: rData } = await supabaseClient
+    const { data: rData, error } = await supabaseClient
       .from('reservations').select('*')
       .gte('event_date', today).order('event_date').limit(50);
+    if (error) throw error;
     if (rData) {
       ownerResData = rData;
       RESERVATIONS.length = 0;
       rData.forEach(r => RESERVATIONS.push(r));
     }
-
-    const { data: sData } = await supabaseClient.from('staff').select('*').order('first_name');
-    if (sData) EMPLOYEES = sData;
+  } catch(e) {
+    console.error('Reservations fetch error:', e);
   }
 
+  // ── Staff ──
+  try {
+    const { data: sData, error } = await supabaseClient.from('staff').select('*').order('first_name');
+    if (error) throw error;
+    if (sData) EMPLOYEES = sData;
+  } catch(e) {
+    console.error('Staff fetch error:', e);
+  }
+
+  // ── Live analytics: weekly check-ins from points_ledger ──
+  try {
+    const eightWeeksAgo = new Date();
+    eightWeeksAgo.setDate(eightWeeksAgo.getDate() - 56);
+    const { data: ledgerData, error } = await supabaseClient
+      .from('points_ledger')
+      .select('created_at')
+      .eq('type', 'checkin')
+      .gte('created_at', eightWeeksAgo.toISOString())
+      .order('created_at');
+
+    if (!error && ledgerData) {
+      // Bucket into 8 ISO weeks
+      const weekMap = {};
+      ledgerData.forEach(row => {
+        const d = new Date(row.created_at);
+        // ISO week start = Monday
+        const day = d.getDay() || 7;
+        const mon = new Date(d);
+        mon.setDate(d.getDate() - day + 1);
+        const key = mon.toISOString().slice(0,10);
+        weekMap[key] = (weekMap[key] || 0) + 1;
+      });
+      const sortedKeys = Object.keys(weekMap).sort().slice(-8);
+      WEEKLY_VISITS = sortedKeys.map(k => weekMap[k]);
+      WEEKLY_LABELS = sortedKeys.map((k, i) => {
+        if (i === sortedKeys.length - 1) return 'This';
+        const d = new Date(k);
+        return (d.getMonth()+1)+'/'+d.getDate();
+      });
+      // Pad to 8 if fewer weeks have data
+      while (WEEKLY_VISITS.length < 8) { WEEKLY_VISITS.unshift(0); WEEKLY_LABELS.unshift('—'); }
+    }
+  } catch(e) {
+    console.warn('Weekly visits analytics error:', e);
+    WEEKLY_VISITS = [0,0,0,0,0,0,0,0];
+    WEEKLY_LABELS = ['W1','W2','W3','W4','W5','W6','W7','This'];
+  }
+
+  // ── Live analytics: new members per month (last 12 months) ──
+  try {
+    const twelveMonthsAgo = new Date();
+    twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 11);
+    twelveMonthsAgo.setDate(1);
+    const { data: memberDates, error } = await supabaseClient
+      .from('members')
+      .select('created_at')
+      .gte('created_at', twelveMonthsAgo.toISOString());
+
+    if (!error && memberDates) {
+      const monthMap = {};
+      // Build 12 month buckets
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date();
+        d.setMonth(d.getMonth() - i);
+        const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+        monthMap[key] = 0;
+      }
+      memberDates.forEach(row => {
+        const d = new Date(row.created_at);
+        const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+        if (key in monthMap) monthMap[key]++;
+      });
+      const sortedMonths = Object.keys(monthMap).sort();
+      MONTHLY_NEW = sortedMonths.map(k => monthMap[k]);
+      MONTHS = sortedMonths.map(k => {
+        const [y,m] = k.split('-');
+        return new Date(y, m-1).toLocaleString('default',{month:'short'}).slice(0,1);
+      });
+    }
+  } catch(e) {
+    console.warn('Monthly new members analytics error:', e);
+    MONTHLY_NEW = [0,0,0,0,0,0,0,0,0,0,0,0];
+    MONTHS = ['J','F','M','A','M','J','J','A','S','O','N','D'];
+  }
+
+  // ── Render everything ──
   const totalPts = MEMBERS.reduce((s,m)=>s+(m.total_points||0),0);
   document.getElementById('kpiMembers').textContent = MEMBERS.length;
   document.getElementById('kpiPoints').textContent  = totalPts.toLocaleString();
@@ -1141,9 +1433,15 @@ function goScreen(id) {
 }
 
 /* ═══ TAB NAV ═══ */
+let schedInitialized = false;
 function goToTab(tabId) {
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id===`tab-${tabId}`));
   document.querySelectorAll('.portal-tab,.mobile-tab').forEach(btn=>btn.classList.toggle('active',btn.dataset.tab===tabId));
+  if (tabId === 'scheduling' && !schedInitialized) {
+    schedInitialized = true;
+    schedBaseDate = getMonday(new Date());
+    loadScheduleWeek();
+  }
 }
 document.querySelectorAll('.portal-tab,.mobile-tab').forEach(btn=>{
   if(btn.dataset.tab) btn.addEventListener('click',()=>goToTab(btn.dataset.tab));
@@ -1455,6 +1753,55 @@ function showToast(msg,type=''){
 }
 </script>
 
+
+<!-- Add Shift Modal -->
+<div class="modal-overlay" id="shiftModal">
+  <div class="modal-card" style="max-width:480px;">
+    <div class="modal-title">Add Shift</div>
+    <div class="modal-sub">Schedule a shift for a team member</div>
+    <div class="field">
+      <label for="shiftStaff">Employee</label>
+      <select id="shiftStaff"></select>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="shiftDate">Date</label>
+        <input type="date" id="shiftDate" />
+      </div>
+      <div class="field">
+        <label for="shiftRole">Role for Shift</label>
+        <select id="shiftRole">
+          <option value="manager">Manager</option>
+          <option value="host">VIP Host</option>
+          <option value="server">Server</option>
+          <option value="security">Security</option>
+          <option value="barback">Barback</option>
+          <option value="promoter">Promoter</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="shiftStart">Start Time</label>
+        <input type="time" id="shiftStart" value="18:00" />
+      </div>
+      <div class="field">
+        <label for="shiftEnd">End Time</label>
+        <input type="time" id="shiftEnd" value="02:00" />
+      </div>
+    </div>
+    <div class="field">
+      <label for="shiftNotes">Notes (optional)</label>
+      <input type="text" id="shiftNotes" placeholder="e.g. Cover for Jordan" />
+    </div>
+    <div class="auth-error" id="shiftError" style="text-align:left;margin-bottom:8px;"></div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="saveShift()">Publish Shift</button>
+      <button class="btn-ghost" onclick="closeShiftModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <!-- Add/Edit Employee Modal -->
 <div class="modal-overlay" id="empModal">
   <div class="modal-card">
@@ -1493,6 +1840,303 @@ function showToast(msg,type=''){
 
 <script>
 
+
+/* ═══════════════════════════════════════════
+   SCHEDULING MODULE
+   ═══════════════════════════════════════════ */
+
+let SCHEDULES      = [];   // rows from schedules table
+let TIME_OFF       = [];   // rows from time_off_requests table
+let schedBaseDate  = null; // Monday of currently displayed week
+let timeOffFilter  = 'pending';
+
+const DAY_NAMES = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+/* ── Week helpers ── */
+function getMonday(d) {
+  const dt = new Date(d);
+  const day = dt.getDay() || 7;
+  dt.setDate(dt.getDate() - day + 1);
+  dt.setHours(0,0,0,0);
+  return dt;
+}
+function addDays(d, n) {
+  const dt = new Date(d);
+  dt.setDate(dt.getDate() + n);
+  return dt;
+}
+function isoDate(d) { return d.toISOString().slice(0,10); }
+function fmtDate(d) {
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+}
+function fmtTime(t) {
+  // t = "18:00:00" or "18:00"
+  const [h, m] = t.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const h12  = h % 12 || 12;
+  return h12 + (m ? ':' + String(m).padStart(2,'0') : '') + ' ' + ampm;
+}
+
+function schedWeekOffset(dir, reset) {
+  if (reset) {
+    schedBaseDate = getMonday(new Date());
+  } else {
+    schedBaseDate = addDays(schedBaseDate, dir * 7);
+  }
+  loadScheduleWeek();
+}
+
+/* ── Load schedule data for current week ── */
+async function loadScheduleWeek() {
+  const mon = schedBaseDate;
+  const sun = addDays(mon, 6);
+  const monStr = isoDate(mon);
+  const sunStr = isoDate(sun);
+
+  // Update week label
+  document.getElementById('schedWeekLabel').textContent =
+    fmtDate(mon) + ' — ' + fmtDate(sun) + ', ' + sun.getFullYear();
+
+  const loading = document.getElementById('schedLoadingState');
+  const grid    = document.getElementById('schedGrid');
+  if (loading) loading.style.display = 'flex';
+  if (grid)    grid.style.display = 'none';
+
+  if (LIVE_DATA) {
+    try {
+      const { data, error } = await supabaseClient
+        .from('schedules')
+        .select('*, staff:staff_id(id, first_name, last_name, role)')
+        .gte('shift_date', monStr)
+        .lte('shift_date', sunStr)
+        .order('shift_date');
+      if (error) throw error;
+      SCHEDULES = data || [];
+      clearErrorBanner('schedErrorBanner');
+    } catch(e) {
+      showErrorBanner('schedErrorBanner', 'Could not load schedule from Supabase. Check your connection.');
+      console.error('Schedules fetch error:', e);
+      SCHEDULES = [];
+    }
+
+    try {
+      const { data: tor } = await supabaseClient
+        .from('time_off_requests')
+        .select('*, staff:staff_id(first_name, last_name)')
+        .order('requested_at', { ascending: false })
+        .limit(50);
+      if (tor) TIME_OFF = tor;
+    } catch(e) {
+      console.warn('Time-off fetch error:', e);
+    }
+  }
+
+  if (loading) loading.style.display = 'none';
+  if (grid)    grid.style.display = 'grid';
+
+  renderSchedGrid();
+  renderTimeOff();
+}
+
+/* ── Render week grid ── */
+function renderSchedGrid() {
+  const mon   = schedBaseDate;
+  const today = isoDate(new Date());
+  const activeEmps = EMPLOYEES.filter(e => e.active);
+
+  const days = Array.from({length:7}, (_,i) => {
+    const d = addDays(mon, i);
+    return { date: isoDate(d), label: DAY_NAMES[i], display: fmtDate(d), isToday: isoDate(d) === today };
+  });
+
+  // Header row
+  let html = '<div class="sched-grid-head name-col">Employee</div>';
+  days.forEach(d => {
+    html += `<div class="sched-grid-head${d.isToday?' today-col':''}">${d.label}<br><span style="font-size:10px;color:var(--ash);letter-spacing:0;">${d.display}</span></div>`;
+  });
+
+  if (!activeEmps.length) {
+    html += `<div style="grid-column:1/-1;" class="sched-empty">No active employees. Add staff in the Employees tab first.</div>`;
+    document.getElementById('schedGrid').innerHTML = html;
+    return;
+  }
+
+  activeEmps.forEach(emp => {
+    const initials = (emp.first_name[0] + (emp.last_name[0]||'')).toUpperCase();
+    html += `
+      <div class="sched-name-cell">
+        <div class="sched-emp-init">${initials}</div>
+        <div>
+          <div class="sched-emp-name">${emp.first_name} ${emp.last_name}</div>
+          <div class="sched-emp-role">${(ROLE_LABELS[emp.role]||emp.role).toUpperCase()}</div>
+        </div>
+      </div>`;
+
+    days.forEach(d => {
+      const shifts = SCHEDULES.filter(s =>
+        (s.staff_id === emp.id || (s.staff && s.staff.id === emp.id)) &&
+        s.shift_date === d.date
+      );
+      let cellContent = '';
+      if (shifts.length) {
+        shifts.forEach(s => {
+          cellContent += `<div class="sched-shift-chip" title="Click to remove" onclick="deleteShift('${s.id}')">
+            <div class="sched-shift-time">${fmtTime(s.start_time)} – ${fmtTime(s.end_time)}</div>
+            <div class="sched-shift-role">${ROLE_LABELS[s.role]||s.role}</div>
+          </div>`;
+        });
+      } else {
+        cellContent = `<div class="sched-add-chip">+</div>`;
+      }
+      html += `<div class="sched-cell${d.isToday?' today-col':''}" onclick="quickAddShift('${emp.id}','${emp.first_name} ${emp.last_name}','${emp.role}','${d.date}')">${cellContent}</div>`;
+    });
+  });
+
+  document.getElementById('schedGrid').innerHTML = html;
+}
+
+/* ── Delete a shift ── */
+async function deleteShift(shiftId) {
+  if (!confirm('Remove this shift?')) return;
+  if (LIVE_DATA) {
+    const { error } = await supabaseClient.from('schedules').delete().eq('id', shiftId);
+    if (error) { showToast('Could not remove shift.'); return; }
+  }
+  SCHEDULES = SCHEDULES.filter(s => s.id !== shiftId);
+  renderSchedGrid();
+  showToast('Shift removed');
+}
+
+/* ── Quick-add: click a cell to pre-fill the modal ── */
+function quickAddShift(staffId, staffName, role, date) {
+  openShiftModal(staffId, staffName, role, date);
+}
+
+/* ── Shift Modal ── */
+function openShiftModal(staffId, staffName, role, date) {
+  // Populate staff dropdown
+  const sel = document.getElementById('shiftStaff');
+  sel.innerHTML = EMPLOYEES.filter(e=>e.active).map(e =>
+    `<option value="${e.id}">${e.first_name} ${e.last_name} — ${ROLE_LABELS[e.role]||e.role}</option>`
+  ).join('');
+  if (staffId) sel.value = staffId;
+
+  // Pre-fill date
+  document.getElementById('shiftDate').value = date || isoDate(schedBaseDate);
+
+  // Pre-fill role
+  if (role) document.getElementById('shiftRole').value = role;
+
+  document.getElementById('shiftError').textContent = '';
+  document.getElementById('shiftNotes').value = '';
+  document.getElementById('shiftModal').classList.add('open');
+}
+
+function closeShiftModal() {
+  document.getElementById('shiftModal').classList.remove('open');
+}
+
+async function saveShift() {
+  const staffId   = document.getElementById('shiftStaff').value;
+  const date      = document.getElementById('shiftDate').value;
+  const role      = document.getElementById('shiftRole').value;
+  const startTime = document.getElementById('shiftStart').value;
+  const endTime   = document.getElementById('shiftEnd').value;
+  const notes     = document.getElementById('shiftNotes').value.trim();
+  const errEl     = document.getElementById('shiftError');
+
+  if (!staffId) { errEl.textContent = 'Select an employee.'; return; }
+  if (!date)    { errEl.textContent = 'Select a shift date.'; return; }
+  if (!startTime || !endTime) { errEl.textContent = 'Enter start and end times.'; return; }
+
+  errEl.textContent = '';
+
+  const payload = {
+    staff_id:   staffId,
+    shift_date: date,
+    start_time: startTime,
+    end_time:   endTime,
+    role:       role,
+    notes:      notes || null,
+    created_at: new Date().toISOString(),
+  };
+
+  if (LIVE_DATA) {
+    const { data, error } = await supabaseClient.from('schedules').insert(payload).select().single();
+    if (error) { errEl.textContent = 'Could not save shift. Try again.'; console.error(error); return; }
+    SCHEDULES.push(data);
+  } else {
+    SCHEDULES.push({ id: 'local-' + Date.now(), ...payload });
+  }
+
+  closeShiftModal();
+  renderSchedGrid();
+  const emp = EMPLOYEES.find(e => e.id === staffId);
+  showToast(`✦ Shift published for ${emp ? emp.first_name : 'employee'}`, 'gold');
+}
+
+/* ── Time-off requests ── */
+function filterTimeOff(btn, status) {
+  timeOffFilter = status;
+  document.querySelectorAll('#tab-scheduling .res-filter').forEach(b => b.classList.toggle('active', b === btn));
+  renderTimeOff();
+}
+
+function renderTimeOff() {
+  const filtered = timeOffFilter === 'all'
+    ? TIME_OFF
+    : TIME_OFF.filter(r => r.status === timeOffFilter);
+
+  const el = document.getElementById('timeoffList');
+  if (!filtered.length) {
+    el.innerHTML = `<p class="timeoff-empty">No ${timeOffFilter === 'all' ? '' : timeOffFilter + ' '}time-off requests.</p>`;
+    return;
+  }
+
+  el.innerHTML = filtered.map(r => {
+    const name = r.staff
+      ? r.staff.first_name + ' ' + r.staff.last_name
+      : 'Unknown';
+    const start = new Date(r.start_date + 'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    const end   = new Date(r.end_date   + 'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    const actions = r.status === 'pending' ? `
+      <div class="timeoff-actions">
+        <button class="timeoff-btn approve" onclick="resolveTimeOff('${r.id}','approved')">Approve</button>
+        <button class="timeoff-btn deny"    onclick="resolveTimeOff('${r.id}','denied')">Deny</button>
+      </div>` : '';
+    return `
+      <div class="timeoff-card">
+        <div class="timeoff-name">${name}</div>
+        <div class="timeoff-dates">${start} — ${end}</div>
+        <div class="timeoff-reason">${r.reason || '—'}</div>
+        <span class="timeoff-status ${r.status}">${r.status.charAt(0).toUpperCase()+r.status.slice(1)}</span>
+        ${actions}
+      </div>`;
+  }).join('');
+}
+
+async function resolveTimeOff(id, status) {
+  const r = TIME_OFF.find(r => r.id === id);
+  if (!r) return;
+  if (LIVE_DATA) {
+    const { error } = await supabaseClient
+      .from('time_off_requests')
+      .update({
+        status,
+        approved_at:       new Date().toISOString(),
+        approved_by_role:  'owner',
+      })
+      .eq('id', id);
+    if (error) { showToast('Could not update request.'); return; }
+  }
+  r.status = status;
+  renderTimeOff();
+  showToast(status === 'approved' ? '✓ Request approved' : 'Request denied');
+}
+
+/* ── Init scheduling on tab switch ── */
+const _origGoToTab = goToTab;
+// Wrap tab switch to lazy-load schedule
 /* ═══ EMPLOYEE MANAGEMENT ═══ */
 let EMPLOYEES = [
   { id:'E001', first_name:'Jordan', last_name:'Mills',    phone:'+14045550199', role:'manager',  active:true,  created_at:'2024-03-15' },
