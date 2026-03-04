@@ -543,6 +543,95 @@
     .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
     .toast.success { border-color:rgba(76,175,80,0.5); color:#81C784; }
     .toast.blue { border-color:rgba(74,127,193,0.5); color:var(--staff-light); }
+
+    /* ── SCHEDULE TAB ── */
+    .schedule-week-header {
+      display:flex; align-items:center; justify-content:space-between;
+      flex-wrap:wrap; gap:12px; margin-bottom:24px;
+    }
+    .schedule-week-label {
+      font-family:var(--font-label); font-size:13px; letter-spacing:0.15em; color:var(--ivory);
+    }
+    .schedule-week-nav { display:flex; align-items:center; gap:10px; }
+    .sched-nav-btn {
+      width:32px; height:32px; border-radius:6px; border:1px solid var(--graphite);
+      background:none; color:var(--ash); cursor:pointer; font-size:14px;
+      display:flex; align-items:center; justify-content:center; transition:all 150ms;
+    }
+    .sched-nav-btn:hover { border-color:var(--staff-accent); color:var(--staff-light); }
+
+    .my-schedule-grid { display:flex; flex-direction:column; gap:10px; margin-bottom:32px; }
+    .shift-day-block {
+      background:var(--carbon); border:1px solid var(--graphite);
+      border-radius:8px; overflow:hidden;
+    }
+    .shift-day-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:10px 16px;
+      border-bottom:1px solid var(--graphite);
+      background:var(--void);
+    }
+    .shift-day-name {
+      font-family:var(--font-label); font-size:11px; letter-spacing:0.2em; color:var(--staff-light);
+    }
+    .shift-day-date { font-size:12px; color:var(--ash); }
+    .shift-day-today .shift-day-header { border-left:3px solid var(--staff-accent); }
+    .shift-day-today .shift-day-name { color:var(--gold-bright); }
+
+    .shift-item {
+      display:flex; align-items:center; gap:16px;
+      padding:14px 16px;
+    }
+    .shift-time-block { flex-shrink:0; text-align:center; min-width:90px; }
+    .shift-time { font-family:var(--font-label); font-size:13px; letter-spacing:0.1em; color:var(--staff-light); }
+    .shift-duration { font-size:11px; color:var(--ash); margin-top:2px; }
+    .shift-role-badge {
+      display:inline-flex; align-items:center; gap:6px;
+      padding:4px 12px; border-radius:999px;
+      font-family:var(--font-label); font-size:9px; letter-spacing:0.2em;
+      border:1px solid rgba(74,127,193,0.4); background:rgba(74,127,193,0.1);
+      color:var(--staff-light);
+    }
+    .shift-notes { font-size:12px; color:var(--ash); font-style:italic; margin-top:4px; }
+    .shift-off-text {
+      padding:14px 16px; font-size:13px; color:var(--ash); font-style:italic;
+    }
+
+    .schedule-empty {
+      text-align:center; padding:48px 20px;
+      font-size:14px; color:var(--ash);
+    }
+    .schedule-empty-icon { font-size:32px; margin-bottom:12px; opacity:0.3; }
+
+    /* Time-off request form */
+    .timeoff-form {
+      background:var(--carbon); border:1px solid var(--graphite);
+      border-radius:8px; padding:24px; max-width:560px;
+    }
+    .timeoff-form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    @media(max-width:480px){ .timeoff-form-row{ grid-template-columns:1fr; } }
+    .timeoff-history { margin-top:20px; display:flex; flex-direction:column; gap:10px; }
+    .timeoff-history-item {
+      display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+      padding:12px 16px; border-radius:6px;
+      background:var(--void); border:1px solid var(--graphite); font-size:13px;
+    }
+    .timeoff-history-dates { color:var(--mist); flex:1; min-width:120px; }
+    .timeoff-history-reason { color:var(--ash); flex:2; font-style:italic; }
+    .timeoff-status-badge {
+      font-family:var(--font-label); font-size:9px; letter-spacing:0.15em;
+      padding:3px 10px; border-radius:999px; border:1px solid; flex-shrink:0;
+    }
+    .timeoff-status-badge.pending  { color:#D4A843; border-color:rgba(212,168,67,0.4); background:rgba(212,168,67,0.08); }
+    .timeoff-status-badge.approved { color:#81C784; border-color:rgba(76,175,80,0.4); background:rgba(76,175,80,0.08); }
+    .timeoff-status-badge.denied   { color:#E57373; border-color:rgba(192,57,43,0.4); background:rgba(192,57,43,0.08); }
+    .spinner-sm {
+      width:18px; height:18px; border-radius:50%;
+      border:2px solid var(--graphite); border-top-color:var(--staff-light);
+      animation:spin 0.8s linear infinite; display:inline-block; vertical-align:middle;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
   </style>
 </head>
 <body>
@@ -637,6 +726,7 @@
         <button class="portal-tab active" data-tab="checkin">⬡ Check-In</button>
         <button class="portal-tab" data-tab="reservations">◈ Reservations</button>
         <button class="portal-tab" data-tab="members">◉ Members</button>
+        <button class="portal-tab" data-tab="schedule">⊞ My Schedule</button>
       </nav>
 
       <div class="portal-user">
@@ -787,6 +877,66 @@
       </div>
     </div>
 
+
+    <!-- ── TAB: SCHEDULE ── -->
+    <div class="tab-panel" id="tab-schedule">
+      <div class="page-header">
+        <p class="page-eyebrow">My Shifts</p>
+        <h1 class="page-title">My Schedule</h1>
+        <p class="page-sub" id="schedStaffName">—</p>
+      </div>
+
+      <!-- Week nav -->
+      <div class="schedule-week-header">
+        <div class="schedule-week-nav">
+          <button class="sched-nav-btn" onclick="staffSchedWeek(-1)">&#8592;</button>
+          <div class="schedule-week-label" id="staffSchedLabel">—</div>
+          <button class="sched-nav-btn" onclick="staffSchedWeek(1)">&#8594;</button>
+        </div>
+        <button class="sched-nav-btn" onclick="staffSchedWeek(0, true)" style="width:auto;padding:0 14px;font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;">This Week</button>
+      </div>
+
+      <!-- Week grid -->
+      <div class="my-schedule-grid" id="myScheduleGrid">
+        <div style="text-align:center;padding:40px;color:var(--ash);">
+          <div class="spinner-sm"></div>&nbsp; Loading schedule…
+        </div>
+      </div>
+
+      <!-- Time-off request -->
+      <div class="panel" style="max-width:560px;">
+        <div class="panel-eyebrow">Availability</div>
+        <div class="panel-title">Request Time Off</div>
+
+        <div class="timeoff-form">
+          <div class="timeoff-form-row">
+            <div class="field">
+              <label for="torStart">From</label>
+              <input type="date" id="torStart" />
+            </div>
+            <div class="field">
+              <label for="torEnd">To</label>
+              <input type="date" id="torEnd" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="torReason">Reason (optional)</label>
+            <input type="text" id="torReason" placeholder="e.g. Family event, vacation…" />
+          </div>
+          <div class="auth-error" id="torError" style="text-align:left;margin-bottom:8px;min-height:0;"></div>
+          <button class="btn-primary" onclick="submitTimeOff()" style="margin-top:4px;">Submit Request</button>
+        </div>
+
+        <!-- Past requests -->
+        <div style="margin-top:28px;">
+          <div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.25em;color:var(--staff-light);margin-bottom:12px;">MY REQUESTS</div>
+          <div class="timeoff-history" id="torHistory">
+            <div style="font-size:13px;color:var(--ash);font-style:italic;">No requests yet.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </main>
 
   <!-- Mobile nav -->
@@ -803,6 +953,10 @@
       <button class="mobile-tab" data-tab="members">
         <span class="mobile-tab-icon">◉</span>
         <span class="mobile-tab-label">Members</span>
+      </button>
+      <button class="mobile-tab" data-tab="schedule">
+        <span class="mobile-tab-icon">⊞</span>
+        <span class="mobile-tab-label">Schedule</span>
       </button>
     </div>
   </div>
@@ -1262,6 +1416,229 @@ function showToast(msg, type='') {
 /* ═══ ERRORS ═══ */
 function showError(id,msg){ document.getElementById(id).textContent=msg; }
 function clearError(id){ document.getElementById(id).textContent=''; }
+
+/* ═══ STAFF SCHEDULE TAB ═══ */
+let staffSchedBase  = null;   // Monday of displayed week
+let myShifts        = [];     // schedules for current staff member
+let myTimeOffReqs   = [];     // time_off_requests for current staff member
+let staffSchedInited = false;
+
+const S_DAY_NAMES = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+
+function getMonday(d) {
+  const dt = new Date(d); const day = dt.getDay() || 7;
+  dt.setDate(dt.getDate() - day + 1); dt.setHours(0,0,0,0); return dt;
+}
+function addDays(d, n) { const dt = new Date(d); dt.setDate(dt.getDate()+n); return dt; }
+function isoDate(d)    { return d.toISOString().slice(0,10); }
+function fmtDateShort(d) { return d.toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
+function fmtTime12(t) {
+  const [h,m] = t.split(':').map(Number);
+  const ampm = h>=12?'PM':'AM'; const h12 = h%12||12;
+  return h12 + (m?':'+String(m).padStart(2,'0'):'') + ' ' + ampm;
+}
+function shiftDuration(start, end) {
+  const [sh,sm] = start.split(':').map(Number);
+  let   [eh,em] = end.split(':').map(Number);
+  if (eh < sh) eh += 24; // overnight shift
+  const mins = (eh*60+em) - (sh*60+sm);
+  const hrs = Math.floor(mins/60); const rem = mins%60;
+  return hrs + (rem ? `h ${rem}m` : 'h');
+}
+
+function staffSchedWeek(dir, reset) {
+  if (reset || !staffSchedBase) {
+    staffSchedBase = getMonday(new Date());
+  } else {
+    staffSchedBase = addDays(staffSchedBase, dir * 7);
+  }
+  loadStaffSchedule();
+}
+
+async function loadStaffSchedule() {
+  if (!currentStaff) return;
+
+  const mon = staffSchedBase;
+  const sun = addDays(mon, 6);
+  const monStr = isoDate(mon);
+  const sunStr = isoDate(sun);
+
+  document.getElementById('staffSchedLabel').textContent =
+    fmtDateShort(mon) + ' — ' + fmtDateShort(sun) + ', ' + sun.getFullYear();
+  document.getElementById('schedStaffName').textContent = currentStaff.name;
+
+  const grid = document.getElementById('myScheduleGrid');
+  grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--ash);"><div class="spinner-sm"></div>&nbsp; Loading…</div>';
+
+  if (LIVE_DATA && supabaseClient) {
+    try {
+      // Get staff UUID from phone
+      const { data: staffRow } = await supabaseClient
+        .from('staff').select('id').eq('phone', currentStaff.phone).single();
+
+      if (staffRow) {
+        const { data: shifts } = await supabaseClient
+          .from('schedules')
+          .select('*')
+          .eq('staff_id', staffRow.id)
+          .gte('shift_date', monStr)
+          .lte('shift_date', sunStr)
+          .order('shift_date');
+        myShifts = shifts || [];
+
+        // Also load their time-off requests
+        const { data: tor } = await supabaseClient
+          .from('time_off_requests')
+          .select('*')
+          .eq('staff_id', staffRow.id)
+          .order('requested_at', { ascending: false })
+          .limit(20);
+        myTimeOffReqs = tor || [];
+        // Store staff UUID for submissions
+        currentStaff.supabaseId = staffRow.id;
+      }
+    } catch(e) {
+      console.warn('Staff schedule fetch error:', e);
+      myShifts = [];
+    }
+  }
+
+  renderStaffSchedule();
+  renderTorHistory();
+}
+
+const ROLE_LABELS_STAFF = {
+  manager:'Manager', host:'VIP Host', server:'Server',
+  security:'Security', barback:'Barback', promoter:'Promoter'
+};
+
+function renderStaffSchedule() {
+  const today = isoDate(new Date());
+  const days = Array.from({length:7}, (_,i) => {
+    const d = addDays(staffSchedBase, i);
+    return { date: isoDate(d), label: S_DAY_NAMES[i], display: fmtDateShort(d), isToday: isoDate(d) === today };
+  });
+
+  const hasAnyShift = myShifts.length > 0;
+
+  const html = days.map(day => {
+    const dayShifts = myShifts.filter(s => s.shift_date === day.date);
+    const todayClass = day.isToday ? ' shift-day-today' : '';
+
+    let innerContent = '';
+    if (dayShifts.length) {
+      innerContent = dayShifts.map(s => `
+        <div class="shift-item">
+          <div class="shift-time-block">
+            <div class="shift-time">${fmtTime12(s.start_time)}</div>
+            <div class="shift-duration">${shiftDuration(s.start_time, s.end_time)}</div>
+          </div>
+          <div>
+            <span class="shift-role-badge">${ROLE_LABELS_STAFF[s.role]||s.role}</span>
+            ${s.notes ? `<div class="shift-notes">${s.notes}</div>` : ''}
+          </div>
+        </div>`).join('');
+    } else {
+      innerContent = `<div class="shift-off-text">Off</div>`;
+    }
+
+    return `
+      <div class="shift-day-block${todayClass}">
+        <div class="shift-day-header">
+          <span class="shift-day-name">${day.label}${day.isToday ? ' · Today' : ''}</span>
+          <span class="shift-day-date">${day.display}</span>
+        </div>
+        ${innerContent}
+      </div>`;
+  }).join('');
+
+  document.getElementById('myScheduleGrid').innerHTML = html ||
+    '<div class="schedule-empty"><div class="schedule-empty-icon">⊞</div>No schedule published for this week yet.</div>';
+}
+
+/* ── Time-off submission ── */
+async function submitTimeOff() {
+  const start  = document.getElementById('torStart').value;
+  const end    = document.getElementById('torEnd').value;
+  const reason = document.getElementById('torReason').value.trim();
+  const errEl  = document.getElementById('torError');
+
+  if (!start)        { errEl.textContent = 'Select a start date.'; return; }
+  if (!end)          { errEl.textContent = 'Select an end date.'; return; }
+  if (end < start)   { errEl.textContent = 'End date must be after start date.'; return; }
+  errEl.textContent = '';
+
+  if (!currentStaff?.supabaseId) {
+    // Try to resolve ID now if not yet set
+    if (LIVE_DATA && supabaseClient) {
+      const { data } = await supabaseClient.from('staff').select('id').eq('phone', currentStaff.phone).single();
+      if (data) currentStaff.supabaseId = data.id;
+    }
+  }
+
+  const payload = {
+    staff_id:     currentStaff.supabaseId || null,
+    start_date:   start,
+    end_date:     end,
+    reason:       reason || null,
+    status:       'pending',
+    requested_at: new Date().toISOString(),
+  };
+
+  if (LIVE_DATA && supabaseClient) {
+    const { data, error } = await supabaseClient.from('time_off_requests').insert(payload).select().single();
+    if (error) { errEl.textContent = 'Could not submit. Try again.'; console.error(error); return; }
+    myTimeOffReqs.unshift(data);
+  } else {
+    myTimeOffReqs.unshift({ id: 'local-' + Date.now(), ...payload });
+  }
+
+  document.getElementById('torStart').value  = '';
+  document.getElementById('torEnd').value    = '';
+  document.getElementById('torReason').value = '';
+  renderTorHistory();
+  showToast('Time-off request submitted', 'blue');
+}
+
+function renderTorHistory() {
+  const el = document.getElementById('torHistory');
+  if (!myTimeOffReqs.length) {
+    el.innerHTML = '<div style="font-size:13px;color:var(--ash);font-style:italic;">No requests yet.</div>';
+    return;
+  }
+  el.innerHTML = myTimeOffReqs.map(r => {
+    const start = new Date(r.start_date + 'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    const end   = new Date(r.end_date   + 'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    return `
+      <div class="timeoff-history-item">
+        <div class="timeoff-history-dates">${start} — ${end}</div>
+        <div class="timeoff-history-reason">${r.reason || '—'}</div>
+        <span class="timeoff-status-badge ${r.status}">${r.status.charAt(0).toUpperCase()+r.status.slice(1)}</span>
+      </div>`;
+  }).join('');
+}
+
+/* ── Hook into tab nav to lazy-load schedule ── */
+const _staffOrigGoToTab = goToTab;
+function goToTab(tabId) {
+  _staffOrigGoToTab(tabId);
+  if (tabId === 'schedule' && !staffSchedInited) {
+    staffSchedInited = true;
+    staffSchedBase = getMonday(new Date());
+    loadStaffSchedule();
+  }
+}
+// Re-bind tab listeners after override
+document.querySelectorAll('.portal-tab,.mobile-tab').forEach(btn => {
+  if (btn.dataset.tab) {
+    btn.replaceWith(btn.cloneNode(true)); // remove old listener
+  }
+});
+document.querySelectorAll('.portal-tab,.mobile-tab').forEach(btn => {
+  if (btn.dataset.tab) btn.addEventListener('click', () => goToTab(btn.dataset.tab));
+});
+
+
 </script>
 </body>
 </html>
