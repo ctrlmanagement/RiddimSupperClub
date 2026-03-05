@@ -807,7 +807,7 @@
         <button class="portal-tab portal-tab-back" onclick="goToMainSite()">← Main Site</button>
         <button class="portal-tab active" data-tab="dashboard">◈ Dashboard</button>
         <button class="portal-tab" data-tab="members">◉ Members</button>
-        <button class="portal-tab" data-tab="reservations">◇ Reservations</button>
+        <button class="portal-tab" data-tab="reservations">◇ Reservations <span id="ownerResPendingBadge" style="display:none;background:var(--gold-warm);color:#000;font-family:var(--font-label);font-size:10px;letter-spacing:0.1em;padding:2px 6px;border-radius:10px;margin-left:4px;"></span></button>
         <button class="portal-tab" data-tab="events">◆ Events</button>
         <button class="portal-tab" data-tab="analytics">▣ Analytics</button>
         <button class="portal-tab" data-tab="scheduling">⊞ Scheduling</button>
@@ -2146,9 +2146,17 @@ function renderResTab() {
   if (dateVal) data = data.filter(r => (r.event_date || r.date || '').slice(0,10) === dateVal);
 
   // Update stats (always from full ownerResData)
+  const pendingCount = ownerResData.filter(r => r.status === 'pending').length;
   document.getElementById('resStatTotal').textContent     = ownerResData.length;
   document.getElementById('resStatConfirmed').textContent = ownerResData.filter(r => r.status === 'confirmed').length;
-  document.getElementById('resStatPending').textContent   = ownerResData.filter(r => r.status === 'pending').length;
+  document.getElementById('resStatPending').textContent   = pendingCount;
+
+  // Update nav badge
+  const badge = document.getElementById('ownerResPendingBadge');
+  if (badge) {
+    if (pendingCount > 0) { badge.textContent = pendingCount; badge.style.display = 'inline'; }
+    else { badge.style.display = 'none'; }
+  }
 
   if (!data.length) {
     document.getElementById('ownerResTabGrid').innerHTML =

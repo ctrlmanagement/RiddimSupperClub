@@ -1080,7 +1080,7 @@
           ← Main Site
         </button>
         <button class="portal-tab active" data-tab="checkin">⬡ Check-In</button>
-        <button class="portal-tab" data-tab="reservations">◈ Reservations</button>
+        <button class="portal-tab" data-tab="reservations">◈ Reservations <span id="resPendingBadge" style="display:none;background:var(--gold-warm);color:#000;font-family:var(--font-label);font-size:10px;letter-spacing:0.1em;padding:2px 6px;border-radius:10px;margin-left:4px;"></span></button>
         <button class="portal-tab" data-tab="members">◉ Members</button>
         <button class="portal-tab" data-tab="guests">✦ Guests</button>
         <button class="portal-tab" data-tab="schedule">⊞ My Schedule</button>
@@ -1796,13 +1796,14 @@ async function verifyCode() {
       if (LIVE_DATA) {
         const { data } = await supabaseClient
           .from('staff')
-          .select('first_name, last_name, role')
+          .select('id, first_name, last_name, role')
           .eq('phone', loginPhone)
           .single();
         currentStaff = {
-          name: data ? `${data.first_name} ${data.last_name}` : 'Staff Member',
-          role: data ? data.role : 'staff',
-          phone: loginPhone
+          name:       data ? `${data.first_name} ${data.last_name}` : 'Staff Member',
+          role:       data ? data.role : 'staff',
+          phone:      loginPhone,
+          supabaseId: data ? data.id : null,
         };
       } else {
         currentStaff = {...MOCK_STAFF, phone: loginPhone};
@@ -1847,6 +1848,9 @@ function enterPortal() {
   loadLiveData();
   goScreen('screenPortal');
   setTimeout(()=>document.getElementById('portalMain').classList.add('visible'),100);
+  // Pre-generate QR codes in background so they are ready when tabs open
+  setTimeout(generateResQR, 900);
+  setTimeout(generateStaffQR, 1000);
 }
 
 let liveMembers = [];
@@ -2034,6 +2038,13 @@ function filterRes(btn, status) {
 }
 
 function renderReservations() {
+  // Update pending badge
+  const pendingCount = resData.filter(r => r.status === 'pending').length;
+  const badge = document.getElementById('resPendingBadge');
+  if (badge) {
+    if (pendingCount > 0) { badge.textContent = pendingCount; badge.style.display = 'inline'; }
+    else { badge.style.display = 'none'; }
+  }
   const filtered = resFilter==='all' ? resData : resData.filter(r=>r.status===resFilter);
   document.getElementById('resGrid').innerHTML = filtered.map(r=>`
     <div class="res-card status-${r.status}" id="res-${r.id}">
@@ -3138,30 +3149,38 @@ async function generateResQR() {
   const wrap = document.getElementById('resQrCanvas');
   if (!wrap) return;
 
-  // Resolve staff UUID if needed
+  // Resolve staff UUID — first from currentStaff, then live lookup if missing
   if (!currentStaff?.supabaseId && LIVE_DATA && supabaseClient) {
     try {
       const { data } = await supabaseClient
         .from('staff').select('id').eq('phone', currentStaff.phone).single();
       if (data) currentStaff.supabaseId = data.id;
-    } catch(e) {}
+    } catch(e) { console.warn('generateResQR: staff UUID lookup failed', e); }
   }
 
   const staffId = currentStaff?.supabaseId;
   if (!staffId) {
-    wrap.innerHTML = '<span style="font-size:12px;color:var(--ash);">Sign in to generate QR</span>';
+    // Still no UUID — show fallback link so staff can still share
+    wrap.innerHTML = `
+      <div style="text-align:center;padding:12px;">
+        <div style="font-size:11px;color:var(--ash);margin-bottom:8px;">QR unavailable — use link below</div>
+        <a href="https://ctrlmanagement.github.io/RiddimSupperClub/reserve.html"
+           style="font-size:11px;color:var(--staff-light);word-break:break-all;"
+           target="_blank">reserve.html</a>
+      </div>`;
     return;
   }
 
   resBookingUrl = `https://ctrlmanagement.github.io/RiddimSupperClub/reserve.html?ref=${staffId}`;
-  wrap.innerHTML = '';
 
+  // Render RIDDIM-branded QR (gold-on-black, matching Referrals tab style)
+  wrap.innerHTML = '';
   try {
     new QRCode(wrap, {
       text:         resBookingUrl,
       width:        168,
       height:       168,
-      colorDark:    '#6B9FE4',
+      colorDark:    '#D4A843',
       colorLight:   '#0A0A0A',
       correctLevel: QRCode.CorrectLevel.H,
     });

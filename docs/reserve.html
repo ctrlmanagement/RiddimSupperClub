@@ -940,8 +940,10 @@ body::before {
           <input class="form-input" type="text" id="memberId" placeholder="e.g. M-004521 (check your wallet card)">
         </div>
         <p class="form-note">Members receive priority confirmation and point credit for every dining visit. <a href="join.html" style="color: var(--color-gold-warm);">Not a member? Join free →</a></p>
+        <p class="form-note" id="staffCreditNote" style="display:none;color:var(--color-gold-warm);margin-top:6px;">✦ Referred by your RIDDIM host — they'll be credited when you're seated.</p>
       </div>
 
+      <div id="formError" style="color:#E57373;font-size:13px;margin-bottom:12px;min-height:18px;"></div>
       <button class="form-submit" onclick="submitReservation()">Request Reservation</button>
       <p class="form-note" style="margin-top: var(--space-4);">All reservations are reviewed within 24 hours. You will receive a confirmation via phone or email. For same-day requests, please call us directly.</p>
     </div>
@@ -1040,7 +1042,38 @@ body::before {
   </div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
+/* ═══════════════════════════════════════════════════
+   SUPABASE CONFIG
+═══════════════════════════════════════════════════ */
+const SUPABASE_URL = 'https://cbvryfgrqzdvbqigyrgh.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_fQlHFhC7tPkZNRl1djnvcA_68LpKQpv';
+let supabaseClient = null;
+try {
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+} catch(e) { console.warn('Supabase init failed:', e); }
+
+/* ═══════════════════════════════════════════════════
+   CAPTURE ref= (staff UUID) ON PAGE LOAD
+   Same pattern as join.html — IIFE, runs immediately
+═══════════════════════════════════════════════════ */
+let REFERRAL_STAFF_ID = (function captureRef() {
+  try {
+    // Check query string: reserve.html?ref=UUID
+    const qp = new URLSearchParams(window.location.search);
+    if (qp.get('ref')) return qp.get('ref');
+    // Fallback: hash fragment
+    const hash = window.location.hash.slice(1);
+    const hp = new URLSearchParams(hash);
+    if (hp.get('ref')) return hp.get('ref');
+  } catch(e) {}
+  return null;
+})();
+
+/* ═══════════════════════════════════════════════════
+   NAV
+═══════════════════════════════════════════════════ */
 const hamburger = document.getElementById('hamburger'), mobileMenu = document.getElementById('mobileMenu');
 hamburger.addEventListener('click', () => {
   hamburger.classList.toggle('open');
@@ -1053,11 +1086,21 @@ function closeMobile() {
   document.body.style.overflow = '';
 }
 
-// Min date
+/* ═══════════════════════════════════════════════════
+   MIN DATE + REFERRAL NOTE
+═══════════════════════════════════════════════════ */
 const dateInput = document.getElementById('date');
 dateInput.min = new Date().toISOString().split('T')[0];
 
-// Space selector
+// Show staff credit note if staff referred this guest
+if (REFERRAL_STAFF_ID) {
+  const noteEl = document.getElementById('staffCreditNote');
+  if (noteEl) noteEl.style.display = 'block';
+}
+
+/* ═══════════════════════════════════════════════════
+   SPACE SELECTOR
+═══════════════════════════════════════════════════ */
 let selectedSpace = 'patio';
 function selectSpace(el) {
   document.querySelectorAll('.space-option').forEach(o => o.classList.remove('selected'));
@@ -1065,33 +1108,89 @@ function selectSpace(el) {
   selectedSpace = el.dataset.space;
 }
 
-// Submit
+/* ═══════════════════════════════════════════════════
+   PHONE FORMATTER
+═══════════════════════════════════════════════════ */
+document.getElementById('phone').addEventListener('input', function() {
+  let v = this.value.replace(/\D/g,'').slice(0,10);
+  if (v.length >= 7)      v = `(${v.slice(0,3)}) ${v.slice(3,6)}-${v.slice(6)}`;
+  else if (v.length >= 4) v = `(${v.slice(0,3)}) ${v.slice(3)}`;
+  else if (v.length > 0)  v = `(${v}`;
+  this.value = v;
+});
+
+/* ═══════════════════════════════════════════════════
+   SUBMIT — writes to Supabase reservations table
+   Includes handled_by (staff UUID from ref=)
+═══════════════════════════════════════════════════ */
 async function submitReservation() {
   const firstName = document.getElementById('firstName').value.trim();
   const lastName  = document.getElementById('lastName').value.trim();
   const phone     = document.getElementById('phone').value.trim();
   const date      = document.getElementById('date').value;
   const partySize = document.getElementById('partySize').value;
-  if (!firstName || !lastName || !phone || !date || !partySize) {
-    alert('Please fill in all required fields.'); return;
-  }
+  const time      = document.getElementById('time').value;
+  const memberId  = document.getElementById('memberId').value.trim();
+
+  // Validation
+  const errEl = document.getElementById('formError');
+  if (!firstName || !lastName) { errEl.textContent = 'Please enter your full name.'; return; }
+  if (!phone || phone.replace(/\D/g,'').length < 10) { errEl.textContent = 'Please enter a valid 10-digit phone number.'; return; }
+  if (!date) { errEl.textContent = 'Please select a date.'; return; }
+  if (!time) { errEl.textContent = 'Please select a time.'; return; }
+  if (!partySize) { errEl.textContent = 'Please select your party size.'; return; }
+  errEl.textContent = '';
+
+  const btn = document.querySelector('.form-submit');
+  btn.disabled = true;
+  btn.textContent = 'Submitting…';
+
+  // Build payload matching reservations table schema
+  const now = new Date().toISOString();
+  const phoneE164 = '+1' + phone.replace(/\D/g,'').slice(-10);
+
   const payload = {
-    id: 'RES' + Date.now(),
-    member_name: `${firstName} ${lastName}`,
-    member_phone: phone,
-    email: document.getElementById('email').value,
-    event_date: date,
-    time: document.getElementById('time').value,
-    party_size: partySize,
-    occasion: document.getElementById('occasion').value,
-    type: selectedSpace,
-    notes: document.getElementById('notes').value,
-    member_id: document.getElementById('memberId').value,
-    status: 'pending',
-    requested_at: new Date().toISOString()
+    member_name:  `${firstName} ${lastName}`,
+    member_phone: phoneE164,
+    member_id:    memberId || null,
+    event_date:   date,
+    party_size:   parseInt(partySize),
+    status:       'pending',
+    notes:        [
+      time ? `Time: ${time}` : '',
+      document.getElementById('occasion').value ? `Occasion: ${document.getElementById('occasion').value}` : '',
+      document.getElementById('notes').value.trim() ? document.getElementById('notes').value.trim() : '',
+      selectedSpace ? `Space: ${selectedSpace}` : '',
+    ].filter(Boolean).join(' · ') || null,
+    handled_by:   REFERRAL_STAFF_ID || null,
+    handled_at:   REFERRAL_STAFF_ID ? now : null,
+    created_at:   now,
   };
-  // TODO: Wire to Supabase
-  console.log('Reservation payload:', payload);
+
+  // Write to Supabase
+  if (supabaseClient) {
+    try {
+      const { error } = await supabaseClient.from('reservations').insert(payload);
+      if (error) {
+        console.error('Reservation insert error:', error);
+        errEl.textContent = 'Something went wrong. Please try again or call us directly.';
+        btn.disabled = false;
+        btn.textContent = 'Request Reservation';
+        return;
+      }
+    } catch(e) {
+      console.error('Reservation insert exception:', e);
+      errEl.textContent = 'Connection error. Please try again.';
+      btn.disabled = false;
+      btn.textContent = 'Request Reservation';
+      return;
+    }
+  } else {
+    // No Supabase — log for debugging
+    console.log('Reservation payload (no Supabase):', payload);
+  }
+
+  // Show success
   document.getElementById('reserveForm').style.display = 'none';
   document.getElementById('formSuccess').classList.add('show');
   window.scrollTo({ top: 0, behavior: 'smooth' });

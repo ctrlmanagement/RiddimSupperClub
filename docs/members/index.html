@@ -1794,14 +1794,41 @@ const MOCK_LEDGER = [
   { created_at: '2025-12-20T21:30:00Z', type: 'visit',  amount: 25,  note: 'Friday Night',      balance_after: 2597 },
 ];
 
+// Live events loaded from Supabase — replaces MOCK_EVENTS
+let LIVE_EVENTS = [];
+
+// Fallback mock events used only if Supabase is unreachable
 const MOCK_EVENTS = [
-  { date: '2026-03-07', title: 'DJ Kev Live',      type: 'Hip-Hop Night',   members_only: false },
-  { date: '2026-03-08', title: 'Hookah Social',    type: 'Members Only',    members_only: true  },
-  { date: '2026-03-14', title: 'Silent Party ATL', type: 'Special Event',   members_only: false },
-  { date: '2026-03-21', title: 'Afrobeats Night',  type: 'Monthly Series',  members_only: false },
-  { date: '2026-03-28', title: 'Private Dinner',   type: 'Gold+ Members',   members_only: true  },
-  { date: '2026-04-04', title: 'Spring Kickoff',   type: 'Open Event',      members_only: false },
+  { event_date: '2026-03-14', name: 'Silent Party ATL', description: 'Special Event',   status: 'scheduled' },
+  { event_date: '2026-03-21', name: 'Afrobeats Night',  description: 'Monthly Series',  status: 'scheduled' },
+  { event_date: '2026-04-04', name: 'Spring Kickoff',   description: 'Open Event',      status: 'scheduled' },
 ];
+
+async function loadEvents() {
+  if (!LIVE_DATA || !supabaseClient) {
+    LIVE_EVENTS = MOCK_EVENTS;
+    renderEvents();
+    renderUpcomingEvents();
+    return;
+  }
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+    const { data, error } = await supabaseClient
+      .from('events')
+      .select('id, name, event_date, start_time, description, status, flyer_url, capacity')
+      .in('status', ['scheduled', 'live', 'sold_out'])
+      .gte('event_date', today)
+      .order('event_date', { ascending: true })
+      .limit(20);
+    if (error) throw error;
+    LIVE_EVENTS = (data && data.length) ? data : MOCK_EVENTS;
+  } catch(e) {
+    console.warn('Events fetch failed, using mock:', e);
+    LIVE_EVENTS = MOCK_EVENTS;
+  }
+  renderEvents();
+  renderUpcomingEvents();
+}
 
 /* ═══════════════════════════════════════════════════════
    STATE
@@ -2142,9 +2169,8 @@ function renderPortal(m) {
   document.getElementById('histTotalPts').textContent    = (m.total_points || 0).toLocaleString();
   renderHistory();
 
-  // Events
-  renderEvents();
-  renderUpcomingEvents();
+  // Events — load live from Supabase
+  loadEvents();
 }
 
 /* ─── Tier badge helper ─── */
@@ -2206,35 +2232,68 @@ function renderTierPerks(tier) {
 
 /* ─── Upcoming events (sidebar) ─── */
 function renderUpcomingEvents() {
-  const upcoming = MOCK_EVENTS.slice(0, 4);
-  document.getElementById('upcomingEventsList').innerHTML = upcoming.map(ev => `
+  const upcoming = LIVE_EVENTS.slice(0, 4);
+  const el = document.getElementById('upcomingEventsList');
+  if (!upcoming.length) {
+    el.innerHTML = '<p style="font-size:13px;color:var(--color-ash);padding:8px 0;">No upcoming events.</p>';
+    return;
+  }
+  el.innerHTML = upcoming.map(ev => {
+    const dateStr  = ev.event_date || ev.date || '';
+    const title    = ev.name  || ev.title || '—';
+    const type     = ev.description || ev.type || '';
+    const isLive   = ev.status === 'live';
+    const isSoldOut = ev.status === 'sold_out';
+    return `
     <div class="event-list-item">
-      <p class="event-date-label">${formatEventDate(ev.date)}</p>
+      <p class="event-date-label">${formatEventDate(dateStr)}</p>
       <div>
-        <p class="event-title">${ev.title}</p>
-        <p class="event-type">${ev.type}</p>
-        ${ev.members_only ? '<span class="event-member-badge">✦ Members Only</span>' : ''}
+        <p class="event-title">${title}${isLive ? ' <span style="color:#81C784;font-size:10px;font-family:var(--font-label);letter-spacing:0.15em;">● LIVE</span>' : ''}</p>
+        ${type ? `<p class="event-type">${type}</p>` : ''}
+        ${isSoldOut ? '<span class="event-member-badge" style="background:rgba(192,57,43,0.15);color:#E57373;border-color:rgba(192,57,43,0.3);">Sold Out</span>' : ''}
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
 /* ─── Events tab ─── */
 function renderEvents() {
-  document.getElementById('eventsTabGrid').innerHTML = MOCK_EVENTS.map(ev => `
+  const el = document.getElementById('eventsTabGrid');
+  if (!LIVE_EVENTS.length) {
+    el.innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:48px;color:var(--color-ash);font-size:14px;">No upcoming events. Check back soon.</p>';
+    return;
+  }
+  el.innerHTML = LIVE_EVENTS.map(ev => {
+    const dateStr   = ev.event_date || ev.date || '';
+    const title     = ev.name  || ev.title || '—';
+    const type      = ev.description || ev.type || '';
+    const isLive    = ev.status === 'live';
+    const isSoldOut = ev.status === 'sold_out';
+    const statusBadge = isLive
+      ? '<span class="event-card-members-tag" style="background:rgba(129,199,132,0.12);color:#81C784;border-color:rgba(129,199,132,0.3);">● Live Now</span>'
+      : isSoldOut
+      ? '<span class="event-card-members-tag" style="background:rgba(192,57,43,0.12);color:#E57373;border-color:rgba(192,57,43,0.3);">Sold Out</span>'
+      : '';
+    const flyerSection = ev.flyer_url
+      ? `<div style="margin:-4px 0 12px;border-radius:6px;overflow:hidden;max-height:140px;">
+           <img src="${ev.flyer_url}" alt="${title}" style="width:100%;height:140px;object-fit:cover;" loading="lazy" />
+         </div>`
+      : '';
+    return `
     <div class="event-card">
-      <p class="event-card-date">${formatEventDateLong(ev.date)}</p>
-      ${ev.members_only ? '<span class="event-card-members-tag">✦ Members Only</span>' : ''}
-      <h3 class="event-card-title">${ev.title}</h3>
-      <p class="event-card-type">${ev.type}</p>
+      ${flyerSection}
+      <p class="event-card-date">${formatEventDateLong(dateStr)}</p>
+      ${statusBadge}
+      <h3 class="event-card-title">${title}</h3>
+      ${type ? `<p class="event-card-type">${type}</p>` : ''}
       <div class="event-card-actions">
-        <button class="event-card-btn primary" onclick="openReserveForm('${ev.title}', '${ev.date}')">
-          Reserve a Table
-        </button>
-        <button class="event-card-btn ghost">Details</button>
+        ${!isSoldOut
+          ? `<button class="event-card-btn primary" onclick="openReserveForm('${title.replace(/'/g,"\'")}', '${dateStr}')">Reserve a Table</button>`
+          : `<button class="event-card-btn primary" disabled style="opacity:0.4;cursor:default;">Sold Out</button>`
+        }
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
 /* ─── History tab ─── */
