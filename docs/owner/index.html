@@ -2057,7 +2057,7 @@ async function saveEvent() {
   if (editingEventId) {
     if (LIVE_DATA) {
       const { error } = await supabaseClient.from('events').update(payload).eq('id', editingEventId);
-      if (error) { errEl.textContent = 'Could not save. Try again.'; return; }
+      if (error) { console.error('Event update error:', error); errEl.textContent = 'Could not save: ' + (error.message || 'Try again.'); return; }
     }
     const idx = EVENTS.findIndex(e => e.id === editingEventId);
     if (idx > -1) EVENTS[idx] = { ...EVENTS[idx], ...payload };
@@ -2065,12 +2065,12 @@ async function saveEvent() {
   } else {
     if (LIVE_DATA) {
       const { data, error } = await supabaseClient.from('events').insert({
-        ...payload, created_by: 'owner', created_at: new Date().toISOString()
+        ...payload, created_by: null
       }).select().single();
-      if (error) { errEl.textContent = 'Could not save. Try again.'; return; }
+      if (error) { console.error('Event insert error:', error); errEl.textContent = 'Could not save: ' + (error.message || 'Try again.'); return; }
       EVENTS.push(data);
     } else {
-      EVENTS.push({ id: 'E'+Date.now(), ...payload, created_by:'owner', created_at: new Date().toISOString() });
+      EVENTS.push({ id: 'E'+Date.now(), ...payload, created_by: null, created_at: new Date().toISOString() });
     }
     showToast(`✦ ${name} added`, 'gold');
   }
