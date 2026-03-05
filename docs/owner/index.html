@@ -300,6 +300,15 @@
     .members-table tr:hover td { background:rgba(218,165,32,0.03); }
     .members-table .td-name { font-family:var(--font-display); font-size:16px; font-weight:300; color:var(--ivory); }
     .members-table .td-pts { font-family:var(--font-display); font-size:18px; font-weight:300; color:var(--gold-warm); }
+    .enrolled-by-chip {
+      display:inline-flex; align-items:center; gap:5px;
+      background:rgba(74,127,193,0.10); border:1px solid rgba(74,127,193,0.25);
+      border-radius:999px; padding:3px 10px;
+      font-size:10px; font-weight:400; letter-spacing:0.08em; color:var(--staff-light);
+      white-space:nowrap;
+    }
+    .enrolled-by-chip .chip-dot { width:5px; height:5px; border-radius:50%; background:var(--staff-light); flex-shrink:0; }
+    .enrolled-by-none { font-size:11px; color:rgba(136,136,136,0.35); }
 
     .tier-badge {
       display:inline-flex; align-items:center; gap:6px;
@@ -869,6 +878,7 @@
               <th>Points</th>
               <th>Visits</th>
               <th>Since</th>
+              <th>Enrolled By</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -1458,6 +1468,28 @@ async function loadOwnerData() {
     console.error('Members fetch error:', e);
   }
 
+  // ── Enrollment attribution ──
+  try {
+    const { data: enData } = await supabaseClient
+      .from('employee_enrollments')
+      .select('member_id, staff_id, enrolled_at, enrolled_via, staff:staff_id(first_name, last_name)');
+    if (enData) {
+      ENROLLMENTS = {};
+      enData.forEach(e => {
+        const name = e.staff
+          ? `${e.staff.first_name || ''} ${e.staff.last_name || ''}`.trim()
+          : null;
+        ENROLLMENTS[e.member_id] = {
+          staff_name:  name || 'Staff',
+          enrolled_at: e.enrolled_at,
+          enrolled_via: e.enrolled_via || 'qr',
+        };
+      });
+    }
+  } catch(e) {
+    console.warn('Enrollment attribution fetch failed (non-blocking):', e);
+  }
+
   // ── Reservations ──
   try {
     const today = new Date().toISOString().slice(0,10);
@@ -1745,6 +1777,12 @@ function renderAnalytics() {
 /* ═══ MEMBERS TABLE ═══ */
 let editingMemberId = null;
 
+function enrolledByHTML(memberId) {
+  const e = ENROLLMENTS[memberId];
+  if (!e) return '<span class="enrolled-by-none">—</span>';
+  return `<span class="enrolled-by-chip"><span class="chip-dot"></span>${e.staff_name}</span>`;
+}
+
 function renderMembersTable(query='') {
   const q = query.toLowerCase();
   const filtered = q ? MEMBERS.filter(m=>`${m.first_name} ${m.last_name} ${m.id} ${m.phone}`.toLowerCase().includes(q)) : MEMBERS;
@@ -1759,6 +1797,7 @@ function renderMembersTable(query='') {
         <td class="td-pts">${m.total_points.toLocaleString()}</td>
         <td>${m.total_visits}</td>
         <td>${new Date(m.created_at).toLocaleDateString('en-US',{month:'short',year:'numeric'})}</td>
+        <td>${enrolledByHTML(m.id)}</td>
         <td>
           <button class="table-action-btn" onclick="openEditModal('${m.id}')">Edit Points</button>
         </td>

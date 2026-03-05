@@ -4,7 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RIDDIM — Staff Portal</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=Manrope:wght@200;300;400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
@@ -874,33 +876,116 @@
       line-height:1.6; margin-top:8px;
     }
 
-    /* ── STAFF QR DISPLAY ── */
-    .staff-qr-section {
+    /* ── STAFF ENROLLMENT SECTION ── */
+    .staff-enroll-section {
       background:var(--carbon); border:1px solid var(--graphite);
-      border-radius:8px; padding:28px; max-width:420px; margin-top:32px;
-      text-align:center;
+      border-radius:12px; padding:32px 28px; max-width:460px; margin-top:32px;
     }
-    .staff-qr-eyebrow {
+    .staff-enroll-header { text-align:center; margin-bottom:28px; }
+    .staff-enroll-eyebrow {
       font-family:var(--font-label); font-size:10px;
-      letter-spacing:0.3em; color:var(--staff-light); margin-bottom:4px;
+      letter-spacing:0.3em; color:var(--staff-light); margin-bottom:6px;
     }
-    .staff-qr-title {
-      font-family:var(--font-display); font-size:20px;
+    .staff-enroll-title {
+      font-family:var(--font-display); font-size:22px;
       font-weight:300; color:var(--ivory); margin-bottom:6px;
     }
-    .staff-qr-hint { font-size:12px; color:var(--ash); margin-bottom:24px; }
-    .staff-qr-canvas-wrap {
-      width:180px; height:180px; margin:0 auto 20px;
-      background:#fff; border-radius:8px; padding:10px;
+    .staff-enroll-hint { font-size:12px; color:var(--ash); line-height:1.6; }
+
+    /* QR frame — RIDDIM branded */
+    .staff-enroll-qr-wrap {
+      position:relative; width:200px; height:200px;
+      margin:0 auto 24px;
       display:flex; align-items:center; justify-content:center;
     }
-    .staff-qr-canvas-wrap canvas { display:block; }
-    .staff-qr-url {
-      font-family:var(--font-label); font-size:9px; letter-spacing:0.15em;
-      color:var(--ash); word-break:break-all; padding:8px 12px;
-      background:var(--void); border-radius:4px; display:block;
+    .staff-enroll-qr-glow {
+      position:absolute; inset:-16px;
+      background:radial-gradient(ellipse at center, rgba(201,168,76,0.10) 0%, transparent 70%);
+      pointer-events:none;
     }
-    .staff-qr-loading { color:var(--ash); font-size:13px; padding:40px; }
+    .staff-enroll-qr-inner {
+      width:188px; height:188px;
+      background:var(--obsidian);
+      padding:10px;
+      position:relative; z-index:2;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .staff-enroll-qr-inner canvas,
+    .staff-enroll-qr-inner img { display:block; }
+    .staff-enroll-qr-border {
+      position:absolute; inset:-2px;
+      border:1px solid rgba(201,168,76,0.45); z-index:3;
+    }
+    .staff-enroll-qr-tick {
+      position:absolute; width:10px; height:10px; z-index:4;
+    }
+    .staff-enroll-qr-tick.tl { top:-5px; left:-5px; border-top:2px solid var(--gold-warm); border-left:2px solid var(--gold-warm); }
+    .staff-enroll-qr-tick.tr { top:-5px; right:-5px; border-top:2px solid var(--gold-warm); border-right:2px solid var(--gold-warm); }
+    .staff-enroll-qr-tick.bl { bottom:-5px; left:-5px; border-bottom:2px solid var(--gold-warm); border-left:2px solid var(--gold-warm); }
+    .staff-enroll-qr-tick.br { bottom:-5px; right:-5px; border-bottom:2px solid var(--gold-warm); border-right:2px solid var(--gold-warm); }
+    .staff-enroll-qr-loading { color:var(--ash); font-size:13px; padding:40px; text-align:center; }
+
+    /* Divider */
+    .staff-enroll-divider {
+      width:100%; height:1px;
+      background:linear-gradient(to right, transparent, var(--graphite), transparent);
+      margin:24px 0;
+    }
+
+    /* SMS block */
+    .staff-enroll-sms-label {
+      font-family:var(--font-label); font-size:9px;
+      letter-spacing:0.28em; color:var(--staff-light);
+      margin-bottom:10px; text-align:center;
+    }
+    .staff-enroll-sms-row {
+      display:flex; gap:8px; align-items:center;
+    }
+    .staff-enroll-sms-row input {
+      flex:1; background:var(--void); border:1px solid var(--graphite);
+      border-radius:6px; padding:10px 14px;
+      font-family:var(--font-body); font-size:13px; font-weight:300;
+      color:var(--ivory); outline:none;
+      transition:border-color 0.2s;
+    }
+    .staff-enroll-sms-row input:focus { border-color:var(--staff-accent); }
+    .staff-enroll-sms-row input::placeholder { color:var(--ash); }
+    .btn-sms-send {
+      flex-shrink:0;
+      background:rgba(74,127,193,0.15);
+      border:1px solid rgba(74,127,193,0.4);
+      border-radius:6px; padding:10px 18px;
+      font-family:var(--font-label); font-size:10px;
+      letter-spacing:0.2em; color:var(--staff-light);
+      cursor:pointer; transition:all 0.2s; white-space:nowrap;
+    }
+    .btn-sms-send:hover { background:rgba(74,127,193,0.28); color:var(--ivory); }
+
+    /* Download block */
+    .staff-enroll-dl-label {
+      font-family:var(--font-label); font-size:9px;
+      letter-spacing:0.28em; color:var(--ash);
+      margin:20px 0 10px; text-align:center;
+    }
+    .staff-enroll-dl-row {
+      display:flex; gap:8px;
+    }
+    .btn-dl {
+      flex:1; background:var(--void);
+      border:1px solid var(--graphite); border-radius:6px;
+      padding:10px 8px; text-align:center;
+      font-family:var(--font-label); font-size:9px;
+      letter-spacing:0.18em; color:var(--ash);
+      cursor:pointer; transition:all 0.2s;
+    }
+    .btn-dl:hover { border-color:rgba(201,168,76,0.4); color:var(--gold-warm); }
+    .btn-dl span { display:block; font-size:15px; margin-bottom:3px; }
+
+    /* Hidden render canvases for download */
+    #enrollDlPostWrap, #enrollDlStoryWrap {
+      position:fixed; left:-9999px; top:-9999px;
+      pointer-events:none; z-index:-1;
+    }
 
 
   </style>
@@ -999,6 +1084,7 @@
         <button class="portal-tab" data-tab="members">◉ Members</button>
         <button class="portal-tab" data-tab="guests">✦ Guests</button>
         <button class="portal-tab" data-tab="schedule">⊞ My Schedule</button>
+        <button class="portal-tab" data-tab="referrals">★ Referrals</button>
       </nav>
 
       <div class="portal-user">
@@ -1353,17 +1439,6 @@
         </div>
       </div>
 
-      <!-- Staff QR code -->
-      <div class="staff-qr-section" id="staffQrSection">
-        <p class="staff-qr-eyebrow">Member Enrollment</p>
-        <p class="staff-qr-title">Your QR Code</p>
-        <p class="staff-qr-hint">Members scan this to join — you get credit for every enrollment.</p>
-        <div class="staff-qr-canvas-wrap">
-          <div id="staffQrCanvas" class="staff-qr-loading"><div class="spinner-sm"></div></div>
-        </div>
-        <span class="staff-qr-url" id="staffQrUrl">Loading…</span>
-      </div>
-
       <!-- Time-off request -->
       <div class="panel" style="max-width:560px;">
         <div class="panel-eyebrow">Availability</div>
@@ -1398,6 +1473,59 @@
       </div>
     </div>
 
+    <div class="tab-panel" id="tab-referrals">
+      <div class="page-header">
+        <p class="page-eyebrow">Member Enrollment</p>
+        <h1 class="page-title">Your Referrals</h1>
+        <p class="page-sub" id="referralStaffName">—</p>
+      </div>
+
+      <div class="staff-enroll-section" id="staffQrSection">
+        <div class="staff-enroll-header">
+          <p class="staff-enroll-eyebrow">Member Enrollment</p>
+          <p class="staff-enroll-title">Your Referral Code</p>
+          <p class="staff-enroll-hint">Guests scan to join — every signup is credited to you.</p>
+        </div>
+
+        <!-- QR Code -->
+        <div class="staff-enroll-qr-wrap">
+          <div class="staff-enroll-qr-glow"></div>
+          <div class="staff-enroll-qr-inner" id="staffQrCanvas">
+            <div class="staff-enroll-qr-loading"><div class="spinner-sm"></div></div>
+          </div>
+          <div class="staff-enroll-qr-border"></div>
+          <div class="staff-enroll-qr-tick tl"></div>
+          <div class="staff-enroll-qr-tick tr"></div>
+          <div class="staff-enroll-qr-tick bl"></div>
+          <div class="staff-enroll-qr-tick br"></div>
+        </div>
+
+        <div class="staff-enroll-divider"></div>
+
+        <!-- SMS block -->
+        <p class="staff-enroll-sms-label">Send via Text</p>
+        <div class="staff-enroll-sms-row">
+          <input type="tel" id="enrollSmsPhone" placeholder="(404) 555-0100" inputmode="tel" maxlength="14" autocomplete="off" />
+          <button class="btn-sms-send" onclick="sendEnrollSms()">Send ↗</button>
+        </div>
+
+        <!-- Download block -->
+        <p class="staff-enroll-dl-label">Download for Instagram</p>
+        <div class="staff-enroll-dl-row">
+          <div class="btn-dl" onclick="downloadEnrollJpeg('post')">
+            <span>⬛</span>Post
+          </div>
+          <div class="btn-dl" onclick="downloadEnrollJpeg('story')">
+            <span>▬</span>Story
+          </div>
+        </div>
+      </div>
+
+      <!-- Hidden off-screen wrappers for download rendering -->
+      <div id="enrollDlPostWrap"></div>
+      <div id="enrollDlStoryWrap"></div>
+    </div>
+
   </main>
 
   <!-- Mobile nav -->
@@ -1422,6 +1550,10 @@
       <button class="mobile-tab" data-tab="schedule">
         <span class="mobile-tab-icon">⊞</span>
         <span class="mobile-tab-label">Schedule</span>
+      </button>
+      <button class="mobile-tab" data-tab="referrals">
+        <span class="mobile-tab-icon">★</span>
+        <span class="mobile-tab-label">Referrals</span>
       </button>
     </div>
   </div>
@@ -2508,7 +2640,7 @@ function showNonMemberCard() {
   // Build join URL with staff ref + tonight's event
   const staffId  = currentStaff?.supabaseId || '';
   const eventId  = todayEvent?.id || '';
-  const joinUrl  = `https://ctrlmanagement.github.io/RiddimSupperClub/join.html?ref=${staffId}&event=${eventId}`;
+  const joinUrl  = `https://ctrlmanagement.github.io/RiddimSupperClub/join.html#register?ref=${staffId}&event=${eventId}`;
 
   // Store on button for SMS use
   document.getElementById('btnTextJoinLink').dataset.url = joinUrl;
@@ -2749,7 +2881,7 @@ function showAddGuestNonMember(hint, query) {
   // Build SMS link — pre-fill body, staff manually types/pastes the phone number
   const staffId = currentStaff?.supabaseId || '';
   const eventId = todayEvent?.id || '';
-  const joinUrl = `https://ctrlmanagement.github.io/RiddimSupperClub/join.html?ref=${staffId}&event=${eventId}`;
+  const joinUrl = `https://ctrlmanagement.github.io/RiddimSupperClub/join.html#register?ref=${staffId}&event=${eventId}`;
   document.getElementById('btnAddGuestSendLink').dataset.url  = joinUrl;
   // If search was by phone, pre-fill the sms: recipient
   document.getElementById('btnAddGuestSendLink').dataset.phone =
@@ -2866,12 +2998,24 @@ async function processAddGuestQR(decoded) {
 
 
 let staffQrGenerated = false;
+let enrollQrUrl = '';
+let enrollStaffName = '';
 
 document.querySelectorAll('.portal-tab,.mobile-tab').forEach(btn => {
   if (btn.dataset.tab === 'schedule') {
     btn.addEventListener('click', () => {
-      // Generate staff QR on first schedule tab visit (after supabaseId is resolved)
-      setTimeout(generateStaffQR, 500);
+      // populate staff name on schedule tab
+      if (currentStaff?.name) {
+        const el = document.getElementById('schedStaffName');
+        if (el) el.textContent = currentStaff.name;
+      }
+    });
+  }
+  if (btn.dataset.tab === 'referrals') {
+    btn.addEventListener('click', () => {
+      setTimeout(generateStaffQR, 300);
+      const el = document.getElementById('referralStaffName');
+      if (el && currentStaff?.name) el.textContent = currentStaff.name;
     });
   }
 });
@@ -2880,14 +3024,17 @@ async function generateStaffQR() {
   if (staffQrGenerated) return;
 
   const canvasWrap = document.getElementById('staffQrCanvas');
-  const urlEl      = document.getElementById('staffQrUrl');
 
   // Resolve staff UUID if not yet available
   if (!currentStaff?.supabaseId && LIVE_DATA && supabaseClient) {
     try {
       const { data } = await supabaseClient
-        .from('staff').select('id').eq('phone', currentStaff.phone).single();
-      if (data) currentStaff.supabaseId = data.id;
+        .from('staff').select('id, first_name, last_name').eq('phone', currentStaff.phone).single();
+      if (data) {
+        currentStaff.supabaseId = data.id;
+        currentStaff.firstName  = data.first_name;
+        currentStaff.lastName   = data.last_name;
+      }
     } catch(e) {}
   }
 
@@ -2897,23 +3044,265 @@ async function generateStaffQR() {
     return;
   }
 
-  const qrUrl = `https://ctrlmanagement.github.io/RiddimSupperClub/join.html?ref=${staffId}`;
-  urlEl.textContent = qrUrl;
-  canvasWrap.innerHTML = ''; // Clear spinner
+  enrollQrUrl  = `https://ctrlmanagement.github.io/RiddimSupperClub/join.html#register?ref=${staffId}`;
+  enrollStaffName = [currentStaff.firstName, currentStaff.lastName].filter(Boolean).join(' ')
+                  || currentStaff?.name || 'Staff';
+
+  canvasWrap.innerHTML = '';
 
   try {
     new QRCode(canvasWrap, {
-      text:         qrUrl,
-      width:        160,
-      height:       160,
-      colorDark:    '#000000',
-      colorLight:   '#ffffff',
-      correctLevel: QRCode.CorrectLevel.M,
+      text:         enrollQrUrl,
+      width:        168,
+      height:       168,
+      colorDark:    '#C9A84C',
+      colorLight:   '#0A0A0A',
+      correctLevel: QRCode.CorrectLevel.H,
     });
     staffQrGenerated = true;
   } catch(e) {
     canvasWrap.innerHTML = '<span style="font-size:12px;color:var(--ash);">QR unavailable</span>';
   }
+}
+
+/* ── SMS send — renders post preview, opens Messages pre-filled ── */
+async function sendEnrollSms() {
+  const raw = document.getElementById('enrollSmsPhone').value.replace(/\D/g,'');
+  if (raw.length < 10) {
+    document.getElementById('enrollSmsPhone').focus();
+    return;
+  }
+
+  const btn = document.querySelector('.btn-sms-send');
+  const origText = btn.textContent;
+  btn.textContent = 'Generating…';
+  btn.disabled = true;
+
+  try {
+    const imgDataUrl = await renderEnrollCanvas('post', 1080, 1080, 380);
+
+    let preview = document.getElementById('enrollSmsPreview');
+    if (!preview) {
+      preview = document.createElement('div');
+      preview.id = 'enrollSmsPreview';
+      preview.style.cssText = 'margin-top:14px;text-align:center;';
+      document.querySelector('.staff-enroll-sms-row').after(preview);
+    }
+    preview.innerHTML = `
+      <p style="font-family:var(--font-label);font-size:8px;letter-spacing:0.25em;color:var(--ash);margin-bottom:8px;text-align:center;">SMS PREVIEW</p>
+      <img src="${imgDataUrl}" style="width:180px;height:180px;object-fit:cover;border:1px solid rgba(201,168,76,0.3);display:block;margin:0 auto 10px;" />
+      <p style="font-size:11px;color:var(--ash);line-height:1.5;max-width:260px;margin:0 auto;">
+        Hey! You're invited to join the Riddim Members Club — exclusive perks, priority booking, and more.
+      </p>`;
+
+    const phone = raw.length === 10 ? '1' + raw : raw;
+    const msg = encodeURIComponent(
+      `Hey! You're invited to join the Riddim Members Club — exclusive perks, priority booking, and more. Join here: ${enrollQrUrl}`
+    );
+    setTimeout(() => { window.location.href = `sms:+${phone}&body=${msg}`; }, 500);
+
+  } catch(e) {
+    console.error('SMS preview error', e);
+    const phone = raw.length === 10 ? '1' + raw : raw;
+    const msg = encodeURIComponent(
+      `Hey! You're invited to join the Riddim Members Club — exclusive perks, priority booking, and more. Join here: ${enrollQrUrl}`
+    );
+    window.location.href = `sms:+${phone}&body=${msg}`;
+  }
+
+  btn.textContent = origText;
+  btn.disabled = false;
+}
+
+/* phone input formatter */
+document.getElementById('enrollSmsPhone')?.addEventListener('input', function() {
+  let v = this.value.replace(/\D/g,'').slice(0,10);
+  if (v.length >= 7)      v = `(${v.slice(0,3)}) ${v.slice(3,6)}-${v.slice(6)}`;
+  else if (v.length >= 4) v = `(${v.slice(0,3)}) ${v.slice(3)}`;
+  else if (v.length > 0)  v = `(${v}`;
+  this.value = v;
+});
+
+/* ── Shared canvas renderer — builds graphic at true native px, no upscaling ── */
+async function renderEnrollCanvas(format, nativeW, nativeH, qrSize) {
+  const isPost    = format === 'post';
+  const wrapperId = isPost ? 'enrollDlPostWrap' : 'enrollDlStoryWrap';
+  const qrElId    = isPost ? 'dlQrPost' : 'dlQrStory';
+
+  const wrapper = document.getElementById(wrapperId);
+  wrapper.innerHTML = isPost ? buildPostHtml(nativeW, nativeH, qrSize) : buildStoryHtml(nativeW, nativeH, qrSize);
+
+  await new Promise(res => setTimeout(res, 80));
+  const qrEl = document.getElementById(qrElId);
+  if (qrEl) {
+    new QRCode(qrEl, {
+      text: enrollQrUrl,
+      width: qrSize, height: qrSize,
+      colorDark: '#C9A84C', colorLight: '#0A0A0A',
+      correctLevel: QRCode.CorrectLevel.H,
+    });
+  }
+  await new Promise(res => setTimeout(res, 400));
+
+  const el = wrapper.firstElementChild;
+  const canvas = await html2canvas(el, {
+    width: nativeW, height: nativeH,
+    scale: 1,           // element IS already native size — no scaling needed
+    useCORS: true, allowTaint: true,
+    backgroundColor: '#0A0A0A', logging: false,
+    windowWidth: nativeW, windowHeight: nativeH,
+  });
+  wrapper.innerHTML = '';
+  return canvas.toDataURL('image/jpeg', 0.97);
+}
+
+/* ── Download JPEG at true native dimensions ── */
+async function downloadEnrollJpeg(format) {
+  if (!enrollQrUrl) return;
+
+  const btn = format === 'post'
+    ? document.querySelectorAll('.btn-dl')[0]
+    : document.querySelectorAll('.btn-dl')[1];
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<span>⏳</span>Building…';
+  btn.style.pointerEvents = 'none';
+
+  try {
+    const isPost  = format === 'post';
+    const nativeW = 1080;
+    const nativeH = isPost ? 1080 : 1920;
+    const qrSize  = isPost ? 380  : 400;
+
+    const dataUrl = await renderEnrollCanvas(format, nativeW, nativeH, qrSize);
+    const link = document.createElement('a');
+    link.download = `riddim-referral-${format}-${Date.now()}.jpg`;
+    link.href = dataUrl;
+    link.click();
+  } catch(e) {
+    console.error('Download failed', e);
+  }
+
+  btn.innerHTML = orig;
+  btn.style.pointerEvents = '';
+}
+
+function buildPostHtml(w, h, qrSize=380) {
+  const name = enrollStaffName;
+  const qrWrap = qrSize + 20;
+  return `<div style="
+    width:${w}px;height:${h}px;position:relative;
+    background:#0A0A0A;overflow:hidden;font-family:'Manrope',sans-serif;">
+    <!-- grain -->
+    <div style="position:absolute;inset:0;background-image:url('data:image/svg+xml,%3Csvg viewBox=\\'0 0 200 200\\' xmlns=\\'http://www.w3.org/2000/svg\\'%3E%3Cfilter id=\\'n\\'%3E%3CfeTurbulence type=\\'fractalNoise\\' baseFrequency=\\'0.85\\' numOctaves=\\'4\\' stitchTiles=\\'stitch\\'/%3E%3C/filter%3E%3Crect width=\\'100%25\\' height=\\'100%25\\' filter=\\'url(%23n)\\' opacity=\\'0.07\\'/%3E%3C/svg%3E');opacity:0.4;z-index:10;pointer-events:none;"></div>
+    <!-- vignette -->
+    <div style="position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 38%,rgba(0,0,0,0.82) 100%);z-index:5;pointer-events:none;"></div>
+    <!-- brackets -->
+    <div style="position:absolute;top:18px;left:18px;width:28px;height:28px;border-top:1px solid #C9A84C;border-left:1px solid #C9A84C;z-index:20;"></div>
+    <div style="position:absolute;top:18px;right:18px;width:28px;height:28px;border-top:1px solid #C9A84C;border-right:1px solid #C9A84C;z-index:20;"></div>
+    <div style="position:absolute;bottom:18px;left:18px;width:28px;height:28px;border-bottom:1px solid #C9A84C;border-left:1px solid #C9A84C;z-index:20;"></div>
+    <div style="position:absolute;bottom:18px;right:18px;width:28px;height:28px;border-bottom:1px solid #C9A84C;border-right:1px solid #C9A84C;z-index:20;"></div>
+    <!-- accent lines -->
+    <div style="position:absolute;left:50px;right:50px;top:55px;height:1px;background:linear-gradient(to right,transparent,rgba(201,168,76,0.15),transparent);z-index:20;"></div>
+    <div style="position:absolute;left:50px;right:50px;bottom:55px;height:1px;background:linear-gradient(to right,transparent,rgba(201,168,76,0.15),transparent);z-index:20;"></div>
+    <!-- top label -->
+    <div style="position:absolute;top:56px;left:0;right:0;text-align:center;font-size:18px;font-weight:300;letter-spacing:0.38em;color:#C9A84C;text-transform:uppercase;z-index:20;">Atlanta's Premier Supper Club</div>
+    <!-- content -->
+    <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:15;">
+      <!-- QR -->
+      <div style="position:relative;margin-bottom:20px;">
+        <div style="width:${qrWrap}px;height:${qrWrap}px;position:relative;display:flex;align-items:center;justify-content:center;">
+          <div style="position:absolute;inset:-15px;background:radial-gradient(ellipse at center,rgba(201,168,76,0.13) 0%,transparent 70%);"></div>
+          <div style="width:${qrWrap}px;height:${qrWrap}px;background:#0A0A0A;padding:10px;position:relative;z-index:2;display:flex;align-items:center;justify-content:center;">
+            <div id="dlQrPost"></div>
+          </div>
+          <div style="position:absolute;inset:-3px;border:1px solid rgba(201,168,76,0.5);z-index:3;"></div>
+        </div>
+      </div>
+      <!-- headline -->
+      <div style="text-align:center;">
+        <span style="font-family:'Cormorant Garamond',serif;font-size:76px;font-weight:300;color:#F5F0E8;letter-spacing:0.04em;display:block;line-height:1.1;">Let Riddim</span>
+        <span style="font-family:'Cormorant Garamond',serif;font-size:104px;font-weight:400;font-style:italic;color:#C9A84C;letter-spacing:0.02em;display:block;line-height:1.05;margin-top:4px;">Hit You.</span>
+      </div>
+      <div style="width:240px;height:1px;background:linear-gradient(to right,transparent,#C9A84C,transparent);margin:28px auto 20px;"></div>
+      <div style="font-size:15px;font-weight:300;letter-spacing:0.4em;color:rgba(201,168,76,0.7);text-transform:uppercase;">Scan to Reserve &middot; Dining &middot; Hookah &middot; Nightlife</div>
+    </div>
+    <!-- staff badge -->
+    <div style="position:absolute;bottom:34px;left:0;right:0;text-align:center;z-index:20;">
+      <span style="font-size:14px;font-weight:300;letter-spacing:0.35em;color:rgba(245,240,232,0.25);text-transform:uppercase;display:block;">Referred by</span>
+      <span style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;font-style:italic;color:rgba(201,168,76,0.65);letter-spacing:0.12em;display:block;margin-top:4px;">${name}</span>
+    </div>
+  </div>`;
+}
+
+function buildStoryHtml(w, h, qrSize=400) {
+  const name = enrollStaffName;
+  const qrWrap = qrSize + 24;
+  return `<div style="
+    width:${w}px;height:${h}px;position:relative;
+    background:#0A0A0A;overflow:hidden;font-family:'Manrope',sans-serif;
+    display:flex;flex-direction:column;align-items:center;">
+    <!-- grain -->
+    <div style="position:absolute;inset:0;background-image:url('data:image/svg+xml,%3Csvg viewBox=\\'0 0 200 200\\' xmlns=\\'http://www.w3.org/2000/svg\\'%3E%3Cfilter id=\\'n\\'%3E%3CfeTurbulence type=\\'fractalNoise\\' baseFrequency=\\'0.85\\' numOctaves=\\'4\\' stitchTiles=\\'stitch\\'/%3E%3C/filter%3E%3Crect width=\\'100%25\\' height=\\'100%25\\' filter=\\'url(%23n)\\' opacity=\\'0.07\\'/%3E%3C/svg%3E');opacity:0.45;z-index:10;pointer-events:none;"></div>
+    <!-- glows -->
+    <div style="position:absolute;top:-60px;left:50%;transform:translateX(-50%);width:500px;height:300px;background:radial-gradient(ellipse at center,rgba(201,168,76,0.10) 0%,transparent 70%);z-index:2;pointer-events:none;"></div>
+    <div style="position:absolute;bottom:-60px;left:50%;transform:translateX(-50%);width:500px;height:300px;background:radial-gradient(ellipse at center,rgba(201,168,76,0.08) 0%,transparent 70%);z-index:2;pointer-events:none;"></div>
+    <!-- vignette -->
+    <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,transparent 35%,rgba(0,0,0,0.78) 100%);z-index:3;pointer-events:none;"></div>
+    <!-- brackets -->
+    <div style="position:absolute;top:20px;left:20px;width:24px;height:24px;border-top:1px solid #C9A84C;border-left:1px solid #C9A84C;z-index:20;"></div>
+    <div style="position:absolute;top:20px;right:20px;width:24px;height:24px;border-top:1px solid #C9A84C;border-right:1px solid #C9A84C;z-index:20;"></div>
+    <div style="position:absolute;bottom:20px;left:20px;width:24px;height:24px;border-bottom:1px solid #C9A84C;border-left:1px solid #C9A84C;z-index:20;"></div>
+    <div style="position:absolute;bottom:20px;right:20px;width:24px;height:24px;border-bottom:1px solid #C9A84C;border-right:1px solid #C9A84C;z-index:20;"></div>
+    <!-- h-lines -->
+    <div style="position:absolute;left:40px;right:40px;top:52px;height:1px;background:linear-gradient(to right,transparent,rgba(201,168,76,0.18),transparent);z-index:20;"></div>
+    <div style="position:absolute;left:40px;right:40px;bottom:52px;height:1px;background:linear-gradient(to right,transparent,rgba(201,168,76,0.18),transparent);z-index:20;"></div>
+    <!-- v-lines -->
+    <div style="position:absolute;top:80px;bottom:80px;left:28px;width:1px;background:linear-gradient(to bottom,transparent,rgba(201,168,76,0.08),transparent);z-index:4;"></div>
+    <div style="position:absolute;top:80px;bottom:80px;right:28px;width:1px;background:linear-gradient(to bottom,transparent,rgba(201,168,76,0.08),transparent);z-index:4;"></div>
+    <!-- content fills full height via flex -->
+    <div style="position:relative;z-index:15;flex:1;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:space-evenly;padding:100px 40px 90px;">
+      <!-- top: eyebrow + headline -->
+      <div style="text-align:center;">
+        <div style="font-size:16px;font-weight:300;letter-spacing:0.42em;color:#C9A84C;text-transform:uppercase;margin-bottom:24px;">Atlanta's Premier Supper Club</div>
+        <span style="font-family:'Cormorant Garamond',serif;font-size:130px;font-weight:300;color:#F5F0E8;letter-spacing:0.02em;line-height:1;display:block;">Let Riddim</span>
+        <span style="font-family:'Cormorant Garamond',serif;font-size:156px;font-weight:400;font-style:italic;color:#C9A84C;letter-spacing:0.01em;line-height:0.95;display:block;margin-top:8px;">Hit You.</span>
+      </div>
+      <!-- mid divider -->
+      <div style="display:flex;align-items:center;gap:14px;width:80%;margin:0 auto;">
+        <div style="flex:1;height:1px;background:linear-gradient(to right,transparent,rgba(201,168,76,0.4));"></div>
+        <div style="width:8px;height:8px;background:#C9A84C;transform:rotate(45deg);flex-shrink:0;"></div>
+        <div style="flex:1;height:1px;background:linear-gradient(to left,transparent,rgba(201,168,76,0.4));"></div>
+      </div>
+      <!-- QR block -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:24px;">
+        <div style="position:relative;width:${qrWrap}px;height:${qrWrap}px;display:flex;align-items:center;justify-content:center;">
+        <div style="position:absolute;inset:-20px;background:radial-gradient(ellipse at center,rgba(201,168,76,0.16) 0%,transparent 68%);"></div>
+        <div style="width:${qrWrap}px;height:${qrWrap}px;background:#0A0A0A;padding:12px;position:relative;z-index:2;display:flex;align-items:center;justify-content:center;">
+          <div id="dlQrStory"></div>
+        </div>
+        <div style="position:absolute;inset:-3px;border:1px solid rgba(201,168,76,0.55);z-index:3;"></div>
+        <div style="position:absolute;top:-6px;left:-6px;width:10px;height:10px;border-top:2px solid #C9A84C;border-left:2px solid #C9A84C;z-index:4;"></div>
+        <div style="position:absolute;top:-6px;right:-6px;width:10px;height:10px;border-top:2px solid #C9A84C;border-right:2px solid #C9A84C;z-index:4;"></div>
+        <div style="position:absolute;bottom:-6px;left:-6px;width:10px;height:10px;border-bottom:2px solid #C9A84C;border-left:2px solid #C9A84C;z-index:4;"></div>
+        <div style="position:absolute;bottom:-6px;right:-6px;width:10px;height:10px;border-bottom:2px solid #C9A84C;border-right:2px solid #C9A84C;z-index:4;"></div>
+      </div>
+        <div style="font-size:16px;font-weight:300;letter-spacing:0.45em;color:rgba(201,168,76,0.6);text-transform:uppercase;">Scan to Reserve Your Seat</div>
+        <!-- tags -->
+        <div style="display:flex;gap:28px;align-items:center;">
+          <span style="font-size:15px;font-weight:300;letter-spacing:0.3em;color:rgba(245,240,232,0.45);text-transform:uppercase;">Dining</span>
+          <div style="width:6px;height:6px;border-radius:50%;background:rgba(201,168,76,0.6);flex-shrink:0;"></div>
+          <span style="font-size:15px;font-weight:300;letter-spacing:0.3em;color:rgba(245,240,232,0.45);text-transform:uppercase;">Hookah</span>
+          <div style="width:6px;height:6px;border-radius:50%;background:rgba(201,168,76,0.6);flex-shrink:0;"></div>
+          <span style="font-size:15px;font-weight:300;letter-spacing:0.3em;color:rgba(245,240,232,0.45);text-transform:uppercase;">Nightlife</span>
+        </div>
+        <!-- staff badge -->
+        <div style="text-align:center;">
+          <span style="font-size:14px;font-weight:300;letter-spacing:0.35em;color:rgba(245,240,232,0.22);text-transform:uppercase;display:block;">Referred by</span>
+          <span style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;font-style:italic;color:rgba(201,168,76,0.6);letter-spacing:0.12em;display:block;margin-top:8px;">${name}</span>
+        </div>
+      </div><!-- end QR block -->
+    </div><!-- end full-height flex -->
+  </div>`;
 }
 
 

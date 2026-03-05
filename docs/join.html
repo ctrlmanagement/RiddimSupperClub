@@ -1203,6 +1203,24 @@ const reveals = document.querySelectorAll('.reveal');
 const obs = new IntersectionObserver(e => e.forEach(r => { if (r.isIntersecting) r.target.classList.add('in'); }), { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
 reveals.forEach(el => obs.observe(el));
 
+/* ── Read referral staff ID from URL ──────────────────────────────────────
+   Referral links use the pattern: join.html#register?ref=<staffUUID>
+   The hash fragment is not sent to the server — we parse it client-side.
+   Also supports plain query string (?ref=) for any links built that way.
+──────────────────────────────────────────────────────────────────────── */
+function getReferralStaffId() {
+  // Try hash fragment first: #register?ref=UUID
+  const hash = window.location.hash; // e.g. "#register?ref=abc-123"
+  if (hash.includes('?')) {
+    const hashParams = new URLSearchParams(hash.split('?')[1]);
+    const ref = hashParams.get('ref');
+    if (ref) return ref;
+  }
+  // Fallback: plain query string ?ref=UUID
+  const params = new URLSearchParams(window.location.search);
+  return params.get('ref') || null;
+}
+
 async function submitJoin() {
   const first = document.getElementById('jFirst').value.trim();
   const last  = document.getElementById('jLast').value.trim();
@@ -1253,6 +1271,37 @@ async function submitJoin() {
     });
 
     if (error) throw error;
+
+    // ── Enrollment attribution ───────────────────────────────────────────
+    // If a staff referral ref= param is present, record it in employee_enrollments.
+    // This is fire-and-forget — a failure here must never block the member registration.
+    const referralStaffId = getReferralStaffId();
+    if (referralStaffId) {
+      try {
+        // Verify the staff UUID exists before inserting
+        const { data: staffRow } = await sb
+          .from('staff')
+          .select('id')
+          .eq('id', referralStaffId)
+          .single();
+
+        if (staffRow) {
+          const { error: enrollErr } = await sb.from('employee_enrollments').insert({
+            staff_id:    referralStaffId,
+            member_id:   memberId,
+            enrolled_at: new Date().toISOString(),
+            enrolled_via: 'qr',  // All web referrals via join.html are QR or SMS link — treated as 'qr'
+          });
+          if (enrollErr) console.warn('Enrollment attribution failed (non-blocking):', enrollErr);
+        } else {
+          console.warn('Referral ref= param did not match any staff record — attribution skipped.');
+        }
+      } catch(enrollEx) {
+        // Silently swallow — membership was already created successfully
+        console.warn('Enrollment attribution exception (non-blocking):', enrollEx);
+      }
+    }
+    // ── End enrollment attribution ───────────────────────────────────────
 
     document.getElementById('joinForm').style.display = 'none';
     document.getElementById('joinSuccess').classList.add('show');
