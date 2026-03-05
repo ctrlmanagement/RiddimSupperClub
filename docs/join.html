@@ -1208,6 +1208,14 @@ reveals.forEach(el => obs.observe(el));
    The ref is captured IMMEDIATELY on page load into REFERRAL_STAFF_ID
    before any hash changes (e.g. clicking #register anchors) can overwrite it.
 ──────────────────────────────────────────────────────────────────────── */
+// Auto-scroll to registration form if URL contains #register
+window.addEventListener('load', function() {
+  if (window.location.hash.startsWith('#register')) {
+    const el = document.getElementById('register');
+    if (el) setTimeout(function() { el.scrollIntoView({ behavior: 'smooth' }); }, 100);
+  }
+});
+
 let REFERRAL_STAFF_ID = null;
 (function captureRef() {
   // Try hash fragment first: #register?ref=UUID
