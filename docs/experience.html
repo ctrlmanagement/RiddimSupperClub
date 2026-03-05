@@ -947,8 +947,7 @@ body::before {
       <h2 class="space-name">The <em>Patio</em></h2>
       <p class="space-desc">Atlanta's most coveted outdoor lounge experience. Covered, ventilated, and charged with the energy of the night — the Patio is where the evening opens up. Hookah coils, cocktails arrive, conversations deepen. The city hums around you but you're somewhere apart.</p>
       <div class="space-details">
-        <div class="space-detail">
-          <div class="space-detail-icon">💨</div>
+        <div class="space-detail" id="hookah-service-detail">
           <div>
             <div class="space-detail-label">Hookah Service</div>
             <div class="space-detail-text">Premium hookah available all evening — full flavor selection, dedicated attendants.</div>
@@ -1168,7 +1167,7 @@ const observer = new IntersectionObserver(entries => {
 reveals.forEach(el => observer.observe(el));
 </script>
 
-<!-- SECRET PORTAL ACCESS: triple-tap experience banner = Staff -->
+<!-- SECRET PORTAL ACCESS: triple-tap hookah service = Staff -->
 <script>
 (function secretPortalAccess() {
   var STAFF_URL = "staff/index.html";
@@ -1190,10 +1189,10 @@ reveals.forEach(el => observer.observe(el));
     tapTimer = setTimeout(function(){ tapCount = 0; }, TAP_WINDOW);
   }
 
-  var banner = document.getElementById("experience-banner");
-  if (banner) {
-    banner.addEventListener("touchend", function(e){ handleTap(e); }, { passive: false });
-    banner.addEventListener("click", function(e){
+  var trigger = document.getElementById("hookah-service-detail");
+  if (trigger) {
+    trigger.addEventListener("touchend", function(e){ handleTap(e); }, { passive: false });
+    trigger.addEventListener("click", function(e){
       if (window.matchMedia("(pointer: coarse)").matches) return;
       handleTap(e);
     });
