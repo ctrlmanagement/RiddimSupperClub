@@ -2059,7 +2059,7 @@ function renderReservations() {
         ${r.tier ? `<br>${tierBadgeHTML(r.tier)}` : ''}
       </div>
       <div class="res-actions">
-        ${r.status==='pending'  ? `<button class="res-btn confirm" onclick="updateRes('${r.id}','confirmed')">Confirm</button>` : ''}
+
         ${r.status==='confirmed'? `<button class="res-btn seat"    onclick="updateRes('${r.id}','seated')">Seat</button>` : ''}
         ${r.status!=='seated'   ? `<button class="res-btn cancel"  onclick="updateRes('${r.id}','cancelled')">Cancel</button>` : ''}
         ${r.status==='seated'   ? `<span style="font-size:12px;color:#81C784;">✓ Seated</span>` : ''}
