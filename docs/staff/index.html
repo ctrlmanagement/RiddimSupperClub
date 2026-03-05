@@ -725,6 +725,86 @@
     }
     .btn-guest-scan-again:hover { border-color:var(--staff-accent); color:var(--mist); }
 
+    /* ── ADD GUEST SEARCH ── */
+    .add-guest-btn {
+      width:100%; padding:12px 16px; border-radius:8px; cursor:pointer;
+      background:rgba(74,127,193,0.12); border:1px solid rgba(74,127,193,0.35);
+      color:var(--staff-light); font-family:var(--font-label); font-size:11px;
+      letter-spacing:0.2em; text-align:center; transition:all 150ms; margin-top:4px;
+    }
+    .add-guest-btn:hover { background:rgba(74,127,193,0.22); border-color:var(--staff-accent); }
+
+    .add-guest-panel {
+      display:none; margin-top:16px;
+      background:var(--deep,#111); border:1px solid var(--graphite);
+      border-radius:10px; padding:18px 16px; animation:fadeUp 0.2s ease forwards;
+    }
+    .add-guest-panel.open { display:block; }
+    .add-guest-panel-title {
+      font-family:var(--font-label); font-size:11px; letter-spacing:0.2em;
+      color:var(--staff-accent); margin-bottom:14px;
+    }
+    .search-mode-tabs {
+      display:flex; gap:6px; margin-bottom:14px;
+    }
+    .search-mode-tab {
+      flex:1; padding:7px 4px; border-radius:6px; cursor:pointer; text-align:center;
+      font-family:var(--font-label); font-size:10px; letter-spacing:0.15em;
+      border:1px solid var(--graphite); background:none; color:var(--ash);
+      transition:all 120ms;
+    }
+    .search-mode-tab.active {
+      background:rgba(74,127,193,0.15); border-color:var(--staff-accent); color:var(--staff-light);
+    }
+    .search-input-wrap { position:relative; margin-bottom:12px; }
+    .search-input-wrap input {
+      width:100%; padding:10px 40px 10px 14px;
+      background:var(--void,#111); border:1px solid var(--graphite);
+      border-radius:8px; color:var(--ivory); font-family:var(--font-body); font-size:14px;
+    }
+    .search-input-wrap input:focus { outline:none; border-color:var(--staff-accent); }
+    .search-input-wrap input::placeholder { color:var(--ash); }
+    .search-clear-btn {
+      position:absolute; right:10px; top:50%; transform:translateY(-50%);
+      background:none; border:none; color:var(--ash); cursor:pointer; font-size:16px; padding:4px;
+    }
+    .search-results-list { display:flex; flex-direction:column; gap:8px; margin-top:4px; }
+    .search-result-item {
+      display:flex; align-items:center; gap:12px;
+      padding:10px 12px; border-radius:8px; cursor:pointer;
+      background:var(--carbon); border:1px solid var(--graphite);
+      transition:border-color 120ms;
+    }
+    .search-result-item:hover { border-color:var(--staff-accent); }
+    .search-result-avatar {
+      width:36px; height:36px; border-radius:50%; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+      font-size:13px; font-weight:500; color:var(--obsidian);
+      background:linear-gradient(135deg,var(--staff-blue),var(--staff-accent));
+    }
+    .search-result-name { font-size:14px; color:var(--ivory); }
+    .search-result-meta { font-size:11px; color:var(--ash); margin-top:2px; }
+    .search-status-msg {
+      text-align:center; padding:14px 0; font-size:13px; color:var(--ash); font-style:italic;
+    }
+    .search-nonmember-result {
+      padding:14px 12px; border-radius:8px;
+      background:rgba(192,57,43,0.06); border:1px solid rgba(192,57,43,0.2);
+      text-align:center;
+    }
+    .search-nonmember-label {
+      font-family:var(--font-label); font-size:11px; letter-spacing:0.15em;
+      color:#E57373; margin-bottom:6px;
+    }
+    .search-nonmember-hint { font-size:12px; color:var(--ash); margin-bottom:12px; }
+    .btn-send-link {
+      width:100%; padding:10px; border-radius:7px; cursor:pointer;
+      background:rgba(74,127,193,0.15); border:1px solid rgba(74,127,193,0.4);
+      color:var(--staff-light); font-family:var(--font-label); font-size:11px;
+      letter-spacing:0.15em; transition:all 150ms;
+    }
+    .btn-send-link:hover { background:rgba(74,127,193,0.25); }
+
     /* Guest list */
     .guest-list-wrap { display:flex; flex-direction:column; gap:10px; }
     .guest-list-item {
@@ -1165,7 +1245,73 @@
             <div class="panel">
               <p class="panel-eyebrow">Tonight's List</p>
               <p class="panel-title">Guest List <span id="guestCount" style="font-size:14px;color:var(--ash);font-family:var(--font-body);font-weight:300;"></span></p>
-              <div class="guest-list-wrap" id="guestListWrap">
+
+              <!-- Add Guest button -->
+              <button class="add-guest-btn" id="btnOpenAddGuest" onclick="toggleAddGuestPanel()">+ Add Guest to List</button>
+
+              <!-- Search panel — only visible when adding -->
+              <div class="add-guest-panel" id="addGuestPanel">
+                <div class="add-guest-panel-title">FIND MEMBER</div>
+
+                <!-- Search mode tabs -->
+                <div class="search-mode-tabs">
+                  <button class="search-mode-tab active" id="modeTabName"  onclick="setSearchMode('name')">By Name</button>
+                  <button class="search-mode-tab"        id="modeTabPhone" onclick="setSearchMode('phone')">By Phone</button>
+                  <button class="search-mode-tab"        id="modeTabQr"    onclick="setSearchMode('qr')">QR Scan</button>
+                </div>
+
+                <!-- Name / Phone input -->
+                <div id="searchInputSection">
+                  <div class="search-input-wrap">
+                    <input type="text" id="guestSearchInput" placeholder="Search by name…" autocomplete="off"
+                      oninput="onGuestSearchInput()" />
+                    <button class="search-clear-btn" onclick="clearGuestSearch()">✕</button>
+                  </div>
+                  <div id="guestSearchResults"></div>
+                </div>
+
+                <!-- QR scan section (reuses existing scanner) -->
+                <div id="searchQrSection" style="display:none;">
+                  <div class="guest-scanner-idle" id="addGuestScanIdle" onclick="startAddGuestScanner()" style="margin-bottom:10px;">
+                    <div class="guest-scanner-idle-icon">▣</div>
+                    <div class="guest-scanner-idle-label">Tap to Scan QR</div>
+                  </div>
+                  <div class="guest-scanner-frame" id="addGuestScanFrame" style="display:none;">
+                    <div id="addGuestQrReader"></div>
+                  </div>
+                  <button class="btn-ghost" id="btnStopAddGuestScan" style="display:none;margin-bottom:10px;" onclick="stopAddGuestScanner()">✕ Stop Scanner</button>
+                  <div class="guest-scan-status" id="addGuestScanStatus" style="display:none;"></div>
+                </div>
+
+                <!-- Selected member confirm area -->
+                <div id="addGuestConfirmArea" style="display:none;margin-top:12px;">
+                  <div class="guest-action-card visible" style="margin:0;">
+                    <div class="member-result-header" style="margin-bottom:12px;">
+                      <div class="member-avatar-lg" id="addGuestAvatar">—</div>
+                      <div>
+                        <div class="guest-action-member-name" id="addGuestName">—</div>
+                        <div class="guest-action-meta" id="addGuestMeta">—</div>
+                      </div>
+                    </div>
+                    <div id="addGuestActions"></div>
+                    <button class="btn-guest-scan-again" onclick="resetAddGuestPanel()" style="margin-top:8px;">↺ Search Again</button>
+                  </div>
+                </div>
+
+                <!-- Non-member result -->
+                <div id="addGuestNonMember" style="display:none;margin-top:12px;">
+                  <div class="search-nonmember-result">
+                    <div class="search-nonmember-label">NOT A MEMBER YET</div>
+                    <div class="search-nonmember-hint" id="addGuestNonMemberHint">No RIDDIM account found.</div>
+                    <button class="btn-send-link" id="btnAddGuestSendLink" onclick="sendAddGuestLink()">✉ Send Registration Link</button>
+                  </div>
+                  <button class="btn-guest-scan-again" onclick="resetAddGuestPanel()" style="margin-top:10px;">↺ Try Again</button>
+                </div>
+
+                <button class="btn-ghost" onclick="toggleAddGuestPanel()" style="width:100%;margin-top:12px;font-size:11px;">Cancel</button>
+              </div>
+
+              <div class="guest-list-wrap" id="guestListWrap" style="margin-top:16px;">
                 <div class="guest-list-empty">No guests added yet.</div>
               </div>
             </div>
@@ -2331,8 +2477,320 @@ function textJoinLink() {
 }
 
 /* ═══════════════════════════════════════════════════
-   STAFF QR CODE GENERATION
+   ADD GUEST SEARCH PANEL
 ═══════════════════════════════════════════════════ */
+let addGuestSearchMode  = 'name';
+let addGuestFoundMember = null;
+let addGuestQrScanner   = null;
+let addGuestScannerActive = false;
+let guestSearchTimer    = null;
+
+function toggleAddGuestPanel() {
+  const panel = document.getElementById('addGuestPanel');
+  const isOpen = panel.classList.contains('open');
+  if (isOpen) {
+    panel.classList.remove('open');
+    resetAddGuestPanel();
+    stopAddGuestScanner();
+  } else {
+    if (!todayEvent) { showToast('No event tonight — guest list unavailable.'); return; }
+    panel.classList.add('open');
+    setSearchMode('name');
+    setTimeout(() => document.getElementById('guestSearchInput').focus(), 150);
+  }
+}
+
+function setSearchMode(mode) {
+  addGuestSearchMode = mode;
+  document.getElementById('modeTabName').classList.toggle('active',  mode === 'name');
+  document.getElementById('modeTabPhone').classList.toggle('active', mode === 'phone');
+  document.getElementById('modeTabQr').classList.toggle('active',    mode === 'qr');
+
+  document.getElementById('searchInputSection').style.display = mode !== 'qr' ? 'block' : 'none';
+  document.getElementById('searchQrSection').style.display    = mode === 'qr' ? 'block' : 'none';
+  document.getElementById('addGuestConfirmArea').style.display = 'none';
+  document.getElementById('addGuestNonMember').style.display   = 'none';
+  document.getElementById('guestSearchResults').innerHTML = '';
+  addGuestFoundMember = null;
+
+  const input = document.getElementById('guestSearchInput');
+  if (mode === 'name') {
+    input.placeholder = 'Search by name…';
+    input.type = 'text';
+    input.value = '';
+  } else if (mode === 'phone') {
+    input.placeholder = 'Search by phone number…';
+    input.type = 'tel';
+    input.value = '';
+  }
+  if (mode === 'qr') stopAddGuestScanner();
+}
+
+function clearGuestSearch() {
+  document.getElementById('guestSearchInput').value = '';
+  document.getElementById('guestSearchResults').innerHTML = '';
+  document.getElementById('addGuestConfirmArea').style.display = 'none';
+  document.getElementById('addGuestNonMember').style.display = 'none';
+  addGuestFoundMember = null;
+}
+
+function onGuestSearchInput() {
+  clearTimeout(guestSearchTimer);
+  const val = document.getElementById('guestSearchInput').value.trim();
+  if (val.length < 2) {
+    document.getElementById('guestSearchResults').innerHTML = '';
+    return;
+  }
+  document.getElementById('guestSearchResults').innerHTML = '<div class="search-status-msg">Searching…</div>';
+  guestSearchTimer = setTimeout(() => runGuestSearch(val), 350);
+}
+
+async function runGuestSearch(query) {
+  const resultsEl = document.getElementById('guestSearchResults');
+  let results = [];
+
+  if (LIVE_DATA && supabaseClient) {
+    try {
+      let q = supabaseClient.from('members').select('id,first_name,last_name,phone,total_points');
+      if (addGuestSearchMode === 'phone') {
+        const digits = query.replace(/\D/g,'');
+        q = q.ilike('phone', `%${digits}%`);
+      } else {
+        // Search first name or last name
+        q = q.or(`first_name.ilike.%${query}%,last_name.ilike.%${query}%`);
+      }
+      const { data } = await q.limit(8);
+      results = data || [];
+    } catch(e) { results = []; }
+  } else {
+    // Mock search
+    const q = query.toLowerCase();
+    results = (window.MOCK_MEMBERS || []).filter(m =>
+      addGuestSearchMode === 'phone'
+        ? m.phone.includes(query.replace(/\D/g,''))
+        : `${m.first_name} ${m.last_name}`.toLowerCase().includes(q)
+    ).slice(0,8);
+  }
+
+  if (!results.length) {
+    const hint = addGuestSearchMode === 'phone'
+      ? `No member found with that phone number.`
+      : `No member found matching "${query}".`;
+    showAddGuestNonMember(hint, query);
+    return;
+  }
+
+  resultsEl.innerHTML = `<div class="search-results-list">${results.map(m => {
+    const initials = (m.first_name[0] + (m.last_name?.[0]||'')).toUpperCase();
+    const tier = getTier(m.total_points || 0);
+    const phone = m.phone ? m.phone.replace('+1','').replace(/(\d{3})(\d{3})(\d{4})/,'($1) $2-$3') : '';
+    return `<div class="search-result-item" onclick="selectAddGuestMember('${m.id}')">
+      <div class="search-result-avatar">${initials}</div>
+      <div>
+        <div class="search-result-name">${m.first_name} ${m.last_name}</div>
+        <div class="search-result-meta">${phone} · ${tierBadgeHTML(tier)}</div>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+async function selectAddGuestMember(memberId) {
+  // Full member fetch if needed
+  let member = null;
+  if (LIVE_DATA && supabaseClient) {
+    try {
+      const { data } = await supabaseClient.from('members').select('*').eq('id', memberId).maybeSingle();
+      member = data;
+    } catch(e) {}
+  } else {
+    member = (window.MOCK_MEMBERS || []).find(m => m.id === memberId) || null;
+  }
+  if (!member) return;
+
+  addGuestFoundMember = member;
+  document.getElementById('guestSearchResults').innerHTML = '';
+  document.getElementById('addGuestNonMember').style.display = 'none';
+
+  const tier = getTier(member.total_points || 0);
+  const initials = (member.first_name[0] + (member.last_name?.[0]||'')).toUpperCase();
+  document.getElementById('addGuestAvatar').textContent = initials;
+  document.getElementById('addGuestName').textContent   = `${member.first_name} ${member.last_name}`;
+  document.getElementById('addGuestMeta').innerHTML     = `${member.id} · ${tierBadgeHTML(tier)}`;
+
+  // Check if already on list
+  const onList = guestList.find(g => g.member_id === member.id);
+  const actionsEl = document.getElementById('addGuestActions');
+
+  if (onList && onList.status === 'confirmed') {
+    actionsEl.innerHTML = `<div style="font-size:13px;color:#81C784;padding:8px 0;">✓ Already confirmed tonight</div>`;
+  } else if (onList) {
+    actionsEl.innerHTML = `<div style="font-size:13px;color:var(--gold-warm);padding:8px 0;">✓ Already on tonight's list (Expected)</div>`;
+  } else {
+    actionsEl.innerHTML = `<button class="btn-guest-add" onclick="addSearchedGuestToList()">+ Add to Tonight's Guest List</button>`;
+  }
+
+  document.getElementById('addGuestConfirmArea').style.display = 'block';
+  document.getElementById('searchInputSection').style.display = 'none';
+}
+
+async function addSearchedGuestToList() {
+  if (!addGuestFoundMember || !todayEvent) return;
+  const btn = document.querySelector('#addGuestActions .btn-guest-add');
+  if (btn) { btn.disabled = true; btn.textContent = 'Adding…'; }
+
+  const now = new Date().toISOString();
+  const payload = {
+    event_id:            todayEvent.id,
+    member_id:           addGuestFoundMember.id,
+    guest_name:          `${addGuestFoundMember.first_name} ${addGuestFoundMember.last_name}`,
+    guest_phone:         addGuestFoundMember.phone,
+    status:              'pending',
+    submitted_by:        currentStaff?.supabaseId || null,
+    confirmation_method: 'manual',
+    submitted_at:        now,
+  };
+
+  if (LIVE_DATA && supabaseClient) {
+    const { data, error } = await supabaseClient.from('guest_lists').insert(payload).select().single();
+    if (error) {
+      document.getElementById('addGuestActions').innerHTML =
+        `<div style="font-size:12px;color:#E57373;padding:8px 0;">✕ Could not add. Try again.</div>`;
+      return;
+    }
+    guestList.unshift(data);
+  } else {
+    guestList.unshift({ id: 'local-' + Date.now(), ...payload });
+  }
+
+  renderGuestList();
+  showToast(`✦ ${addGuestFoundMember.first_name} added to guest list`, 'blue');
+  document.getElementById('addGuestActions').innerHTML =
+    `<div style="font-size:13px;color:var(--staff-light);padding:8px 0;">✓ Added to tonight's list</div>`;
+}
+
+function showAddGuestNonMember(hint, query) {
+  document.getElementById('guestSearchResults').innerHTML = '';
+  document.getElementById('addGuestNonMemberHint').textContent = hint;
+
+  // Build SMS link — pre-fill body, staff manually types/pastes the phone number
+  const staffId = currentStaff?.supabaseId || '';
+  const eventId = todayEvent?.id || '';
+  const joinUrl = `https://ctrlmanagement.github.io/RiddimSupperClub/join/?ref=${staffId}&event=${eventId}`;
+  document.getElementById('btnAddGuestSendLink').dataset.url  = joinUrl;
+  // If search was by phone, pre-fill the sms: recipient
+  document.getElementById('btnAddGuestSendLink').dataset.phone =
+    addGuestSearchMode === 'phone' ? query.replace(/\D/g,'') : '';
+
+  document.getElementById('addGuestNonMember').style.display = 'block';
+}
+
+function sendAddGuestLink() {
+  const btn   = document.getElementById('btnAddGuestSendLink');
+  const url   = btn.dataset.url || '';
+  const phone = btn.dataset.phone || '';
+  const msg   = encodeURIComponent(`Join the RIDDIM Members Club — exclusive access, points & perks:\n${url}`);
+  // If we have a phone number from search, pre-fill the recipient
+  window.open(`sms:${phone}?body=${msg}`, '_blank');
+}
+
+function resetAddGuestPanel() {
+  addGuestFoundMember = null;
+  document.getElementById('guestSearchInput').value = '';
+  document.getElementById('guestSearchResults').innerHTML = '';
+  document.getElementById('addGuestConfirmArea').style.display = 'none';
+  document.getElementById('addGuestNonMember').style.display   = 'none';
+  document.getElementById('searchInputSection').style.display  = 'block';
+  stopAddGuestScanner();
+  setSearchMode(addGuestSearchMode);
+}
+
+/* ── QR scan within Add Guest panel ── */
+function startAddGuestScanner() {
+  document.getElementById('addGuestScanIdle').style.display  = 'none';
+  document.getElementById('addGuestScanFrame').style.display = 'block';
+  document.getElementById('btnStopAddGuestScan').style.display = 'block';
+  setAddGuestScanStatus('scanning', '⬡ Scanner active — point at member QR code');
+
+  addGuestQrScanner = new Html5Qrcode('addGuestQrReader');
+  addGuestScannerActive = true;
+
+  addGuestQrScanner.start(
+    { facingMode: 'environment' },
+    { fps: 10, qrbox: { width: 200, height: 200 } },
+    (decoded) => {
+      if (!addGuestScannerActive) return;
+      addGuestScannerActive = false;
+      addGuestQrScanner.stop().catch(() => {});
+      document.getElementById('addGuestScanFrame').style.display = 'none';
+      document.getElementById('btnStopAddGuestScan').style.display = 'none';
+      processAddGuestQR(decoded);
+    },
+    () => {}
+  ).catch(err => {
+    setAddGuestScanStatus('error', 'Camera access denied.');
+    document.getElementById('addGuestScanFrame').style.display = 'none';
+    document.getElementById('btnStopAddGuestScan').style.display = 'none';
+    document.getElementById('addGuestScanIdle').style.display = 'block';
+  });
+}
+
+function stopAddGuestScanner() {
+  addGuestScannerActive = false;
+  if (addGuestQrScanner) addGuestQrScanner.stop().catch(() => {});
+  const frame = document.getElementById('addGuestScanFrame');
+  const btn   = document.getElementById('btnStopAddGuestScan');
+  const idle  = document.getElementById('addGuestScanIdle');
+  if (frame) frame.style.display = 'none';
+  if (btn)   btn.style.display   = 'none';
+  if (idle)  idle.style.display  = 'block';
+  setAddGuestScanStatus('', '');
+}
+
+function setAddGuestScanStatus(type, msg) {
+  const el = document.getElementById('addGuestScanStatus');
+  if (!el) return;
+  el.className = `guest-scan-status${type ? ' '+type : ''}`;
+  el.textContent = msg;
+  el.style.display = type ? 'block' : 'none';
+}
+
+async function processAddGuestQR(decoded) {
+  setAddGuestScanStatus('scanning', '⬡ Looking up member…');
+
+  let memberId = null;
+  try {
+    const url = new URL(decoded);
+    memberId = url.searchParams.get('id') || null;
+  } catch {
+    if (/^RDM-/i.test(decoded)) memberId = decoded.toUpperCase();
+  }
+
+  if (!memberId) {
+    setAddGuestScanStatus('error', '✕ Unrecognised QR code.');
+    return;
+  }
+
+  let member = null;
+  if (LIVE_DATA && supabaseClient) {
+    try {
+      const { data } = await supabaseClient.from('members').select('*').eq('id', memberId).maybeSingle();
+      member = data;
+    } catch(e) {}
+  } else {
+    member = (window.MOCK_MEMBERS || []).find(m => m.id === memberId) || null;
+  }
+
+  if (!member) {
+    setAddGuestScanStatus('error', '✕ Not a RIDDIM member yet.');
+    showAddGuestNonMember('No RIDDIM account found for this QR code.', '');
+    return;
+  }
+
+  setAddGuestScanStatus('found', `✓ Member found`);
+  selectAddGuestMember(member.id);
+}
+
+
 let staffQrGenerated = false;
 
 document.querySelectorAll('.portal-tab,.mobile-tab').forEach(btn => {
