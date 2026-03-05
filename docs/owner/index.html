@@ -945,8 +945,14 @@
           <div id="calMonthLabel" style="font-family:var(--font-label);font-size:20px;letter-spacing:0.2em;color:var(--ivory);"></div>
           <button onclick="changeCalMonth(1)"  style="background:none;border:1px solid var(--graphite);color:var(--mist);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:16px;">›</button>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;">
-          ${['SUN','MON','TUE','WED','THU','FRI','SAT'].map(d=>`<div style="text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:var(--ash);padding:6px 0;">${d}</div>`).join('')}
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;" id="calDayHeaders">
+          <div style="text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:var(--ash);padding:6px 0;">SUN</div>
+          <div style="text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:var(--ash);padding:6px 0;">MON</div>
+          <div style="text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:var(--ash);padding:6px 0;">TUE</div>
+          <div style="text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:var(--ash);padding:6px 0;">WED</div>
+          <div style="text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:var(--ash);padding:6px 0;">THU</div>
+          <div style="text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:var(--ash);padding:6px 0;">FRI</div>
+          <div style="text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:var(--ash);padding:6px 0;">SAT</div>
         </div>
         <div id="calGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;"></div>
         <div style="display:flex;gap:16px;margin-top:12px;flex-wrap:wrap;">
@@ -2199,10 +2205,10 @@ function renderCalendar() {
 
 function calDayClick(dateStr) {
   const today = new Date().toISOString().slice(0,10);
-  if (dateStr < today) return; // don't open modal for past days with no events
+  if (dateStr < today) return;
   openAddEventModal();
-  // Pre-fill the date
-  document.getElementById('eventDate').value = dateStr;
+  // Set date after modal opens (openAddEventModal clears it first)
+  setTimeout(() => { document.getElementById('eventDate').value = dateStr; }, 0);
 }
 
 async function deleteEvent(id) {
