@@ -1205,20 +1205,26 @@ reveals.forEach(el => obs.observe(el));
 
 /* ── Read referral staff ID from URL ──────────────────────────────────────
    Referral links use the pattern: join.html#register?ref=<staffUUID>
-   The hash fragment is not sent to the server — we parse it client-side.
-   Also supports plain query string (?ref=) for any links built that way.
+   The ref is captured IMMEDIATELY on page load into REFERRAL_STAFF_ID
+   before any hash changes (e.g. clicking #register anchors) can overwrite it.
 ──────────────────────────────────────────────────────────────────────── */
-function getReferralStaffId() {
+let REFERRAL_STAFF_ID = null;
+(function captureRef() {
   // Try hash fragment first: #register?ref=UUID
-  const hash = window.location.hash; // e.g. "#register?ref=abc-123"
+  const hash = window.location.hash;
   if (hash.includes('?')) {
     const hashParams = new URLSearchParams(hash.split('?')[1]);
     const ref = hashParams.get('ref');
-    if (ref) return ref;
+    if (ref) { REFERRAL_STAFF_ID = ref; return; }
   }
   // Fallback: plain query string ?ref=UUID
   const params = new URLSearchParams(window.location.search);
-  return params.get('ref') || null;
+  const ref = params.get('ref');
+  if (ref) REFERRAL_STAFF_ID = ref;
+})();
+
+function getReferralStaffId() {
+  return REFERRAL_STAFF_ID;
 }
 
 async function submitJoin() {
