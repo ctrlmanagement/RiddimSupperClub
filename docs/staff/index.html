@@ -2402,6 +2402,12 @@ async function addToGuestList() {
   const btn = document.getElementById('btnAddToGuestList');
   btn.disabled = true; btn.textContent = 'Adding…';
 
+  // Ensure we have the staff UUID before inserting
+  if (!currentStaff?.supabaseId && LIVE_DATA && supabaseClient) {
+    const { data } = await supabaseClient.from('staff').select('id').eq('phone', currentStaff.phone).single();
+    if (data) currentStaff.supabaseId = data.id;
+  }
+
   // Hard duplicate guard
   const existing = guestList.find(g => g.member_id === foundGuestMember.id);
   if (existing) {
@@ -2692,6 +2698,18 @@ async function addSearchedGuestToList() {
   if (!addGuestFoundMember || !todayEvent) return;
   const btn = document.querySelector('#addGuestActions .btn-guest-add');
   if (btn) { btn.disabled = true; btn.textContent = 'Adding…'; }
+
+  // Ensure we have the staff UUID before inserting
+  if (!currentStaff?.supabaseId && LIVE_DATA && supabaseClient) {
+    const { data } = await supabaseClient.from('staff').select('id').eq('phone', currentStaff.phone).single();
+    if (data) currentStaff.supabaseId = data.id;
+  }
+
+  if (!currentStaff?.supabaseId) {
+    document.getElementById('addGuestActions').innerHTML =
+      `<div style="font-size:12px;color:#E57373;padding:8px 0;">✕ Could not identify staff — please log out and back in.</div>`;
+    return;
+  }
 
   const now = new Date().toISOString();
   const payload = {
