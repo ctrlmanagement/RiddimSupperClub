@@ -2053,6 +2053,9 @@ async function loadMember(phone) {
   goScreen('screenPortal');
   hideDevBanner();
 
+  // Handle staff QR ref + event attribution (enrollment credit + guest list)
+  handleStaffRefAndEvent(member);
+
   // Stagger entrance
   setTimeout(() => document.getElementById('recognitionBanner').classList.add('visible'), 80);
   setTimeout(() => {
@@ -2529,12 +2532,115 @@ function hideDevBanner() {
           document.getElementById('portalMain').classList.add('visible');
           animatePoints(member.total_points);
         }, 380);
+        // Still process ref/event even on auto-login
+        handleStaffRefAndEvent(member);
         return;
       }
     } catch(e) {}
     localStorage.removeItem('riddim_member');
   }
 })();
+
+/* ─── Staff QR ref + event attribution ─── */
+// Capture URL params on page load — persisted for the session
+const _urlParams  = new URLSearchParams(window.location.search);
+const _staffRef   = _urlParams.get('ref')   || null;  // staff UUID
+const _eventRef   = _urlParams.get('event') || null;  // event ID
+
+async function handleStaffRefAndEvent(member) {
+  if (!LIVE_DATA || !supabaseClient) return;
+  if (!_staffRef && !_eventRef) return;
+
+  const now = new Date().toISOString();
+
+  // 1. Write employee_enrollments if staff ref present
+  if (_staffRef) {
+    try {
+      // Duplicate guard: only one enrollment record per staff+member pair
+      const { data: existing } = await supabaseClient
+        .from('employee_enrollments')
+        .select('id')
+        .eq('staff_id', _staffRef)
+        .eq('member_id', member.id)
+        .maybeSingle();
+
+      if (!existing) {
+        await supabaseClient.from('employee_enrollments').insert({
+          staff_id:      _staffRef,
+          member_id:     member.id,
+          enrolled_via:  'qr',
+          enrolled_at:   now,
+        });
+      }
+    } catch(e) { console.warn('Enrollment write error:', e); }
+  }
+
+  // 2. Write guest_lists if event ref present
+  if (_eventRef) {
+    try {
+      // Duplicate guard: one entry per member per event
+      const { data: existing } = await supabaseClient
+        .from('guest_lists')
+        .select('id, status')
+        .eq('event_id', _eventRef)
+        .eq('member_id', member.id)
+        .maybeSingle();
+
+      if (!existing) {
+        await supabaseClient.from('guest_lists').insert({
+          event_id:            _eventRef,
+          member_id:           member.id,
+          guest_name:          `${member.first_name} ${member.last_name}`,
+          guest_phone:         member.phone,
+          status:              'pending',
+          submitted_by:        _staffRef || null,
+          confirmation_method: 'qr',
+          submitted_at:        now,
+        });
+
+        // Show guest list confirmation banner to member
+        showGuestListBanner();
+
+      } else if (existing.status !== 'confirmed') {
+        // Already on list but not confirmed — just show the banner
+        showGuestListBanner();
+      }
+    } catch(e) { console.warn('Guest list write error:', e); }
+  }
+}
+
+function showGuestListBanner() {
+  // Insert a one-time banner at the top of the tonight tab
+  const existing = document.getElementById('guestListConfirmBanner');
+  if (existing) return;
+
+  const banner = document.createElement('div');
+  banner.id = 'guestListConfirmBanner';
+  banner.style.cssText = `
+    background: rgba(76,175,80,0.1);
+    border: 1px solid rgba(76,175,80,0.35);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    color: #81C784;
+    animation: fadeUp var(--dur-slow) var(--ease-cinematic) forwards;
+  `;
+  banner.innerHTML = `
+    <span style="font-size:18px;">✦</span>
+    <div>
+      <strong style="font-family:var(--font-label);letter-spacing:0.1em;display:block;margin-bottom:2px;">You're on tonight's guest list</strong>
+      <span style="color:rgba(129,199,132,0.7);font-size:12px;">Show your QR at the door for express entry.</span>
+    </div>
+  `;
+
+  const tonightTab = document.getElementById('tab-tonight');
+  if (tonightTab) tonightTab.insertBefore(banner, tonightTab.firstChild);
+}
+
 
 // Navigation back to main site — resolves correctly from any subdirectory depth
 function returnToMainSite() {
