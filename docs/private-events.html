@@ -1390,7 +1390,7 @@ body::before {
         </div>
       </div>
 
-      <div class="type-card reveal reveal-d2">
+      <div class="type-card reveal reveal-d2" id="graduation-card">
         <div class="type-card-glow"></div>
         <div class="type-card-icon">🎓</div>
         <div class="type-card-eyebrow">Achievements</div>
@@ -1844,7 +1844,7 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
 });
 </script>
 
-<!-- SECRET PORTAL ACCESS: triple-tap logo = Staff, 5-tap = Owner -->
+<!-- SECRET PORTAL ACCESS: triple-tap graduation card = Owner -->
 <script>
 (function secretPortalAccess() {
   var STAFF_URL = "staff/index.html";
@@ -1853,41 +1853,23 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
   var tapCount = 0;
   var tapTimer = null;
 
-  function flashLogo() {
-    var logo = document.querySelector(".nav-logo");
-    if (!logo) return;
-    logo.style.transition = "color 80ms";
-    logo.style.color = "#F0C060";
-    setTimeout(function(){ logo.style.color = ""; }, 180);
-  }
-
   function handleTap(e) {
     tapCount++;
     clearTimeout(tapTimer);
-
     if (tapCount === 3) {
       e.preventDefault();
-      flashLogo();
-      setTimeout(function(){ window.location.href = STAFF_URL; }, 200);
+      e.stopPropagation();
       tapCount = 0;
+      window.location.href = OWNER_URL;
       return;
     }
-    if (tapCount === 5) {
-      e.preventDefault();
-      flashLogo();
-      setTimeout(function(){ flashLogo(); }, 200);
-      setTimeout(function(){ window.location.href = OWNER_URL; }, 400);
-      tapCount = 0;
-      return;
-    }
-    // Not a secret sequence yet — let normal navigation happen
     tapTimer = setTimeout(function(){ tapCount = 0; }, TAP_WINDOW);
   }
 
-  var navLogo = document.querySelector(".nav-logo");
-  if (navLogo) {
-    navLogo.addEventListener("touchend", function(e){ handleTap(e); }, { passive: false });
-    navLogo.addEventListener("click", function(e){
+  var card = document.getElementById("graduation-card");
+  if (card) {
+    card.addEventListener("touchend", function(e){ handleTap(e); }, { passive: false });
+    card.addEventListener("click", function(e){
       if (window.matchMedia("(pointer: coarse)").matches) return;
       handleTap(e);
     });
