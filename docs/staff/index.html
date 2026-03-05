@@ -3096,17 +3096,15 @@ async function sendEnrollSms() {
       </p>`;
 
     const phone = raw.length === 10 ? '1' + raw : raw;
-    const msg = encodeURIComponent(
-      `Hey! You're invited to join the Riddim Members Club — exclusive perks, priority booking, and more. Join here: ${enrollQrUrl}`
-    );
+    const msgText = `Hey! You're invited to join the Riddim Members Club — exclusive perks, priority booking, and more. Join here: `;
+    const msg = encodeURIComponent(msgText) + encodeURIComponent(enrollQrUrl).replace('%23', '#');
     setTimeout(() => { window.location.href = `sms:+${phone}&body=${msg}`; }, 500);
 
   } catch(e) {
     console.error('SMS preview error', e);
     const phone = raw.length === 10 ? '1' + raw : raw;
-    const msg = encodeURIComponent(
-      `Hey! You're invited to join the Riddim Members Club — exclusive perks, priority booking, and more. Join here: ${enrollQrUrl}`
-    );
+    const msgText = `Hey! You're invited to join the Riddim Members Club — exclusive perks, priority booking, and more. Join here: `;
+    const msg = encodeURIComponent(msgText) + encodeURIComponent(enrollQrUrl).replace('%23', '#');
     window.location.href = `sms:+${phone}&body=${msg}`;
   }
 
