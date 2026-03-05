@@ -1287,33 +1287,26 @@ async function submitJoin() {
     if (error) throw error;
 
     // ── Enrollment attribution ───────────────────────────────────────────
-    // If a staff referral ref= param is present, record it in employee_enrollments.
-    // This is fire-and-forget — a failure here must never block the member registration.
     const referralStaffId = getReferralStaffId();
+    console.log('[Referral] staffId from URL:', referralStaffId);
     if (referralStaffId) {
       try {
-        // Verify the staff UUID exists before inserting
-        const { data: staffRow } = await sb
-          .from('staff')
-          .select('id')
-          .eq('id', referralStaffId)
-          .single();
-
-        if (staffRow) {
-          const { error: enrollErr } = await sb.from('employee_enrollments').insert({
-            staff_id:    referralStaffId,
-            member_id:   memberId,
-            enrolled_at: new Date().toISOString(),
-            enrolled_via: 'qr',  // All web referrals via join.html are QR or SMS link — treated as 'qr'
-          });
-          if (enrollErr) console.warn('Enrollment attribution failed (non-blocking):', enrollErr);
+        const { error: enrollErr } = await sb.from('employee_enrollments').insert({
+          staff_id:     referralStaffId,
+          member_id:    memberId,
+          enrolled_at:  new Date().toISOString(),
+          enrolled_via: 'qr',
+        });
+        if (enrollErr) {
+          console.warn('[Referral] Enrollment insert failed:', enrollErr);
         } else {
-          console.warn('Referral ref= param did not match any staff record — attribution skipped.');
+          console.log('[Referral] Enrollment recorded — staff:', referralStaffId, 'member:', memberId);
         }
       } catch(enrollEx) {
-        // Silently swallow — membership was already created successfully
-        console.warn('Enrollment attribution exception (non-blocking):', enrollEx);
+        console.warn('[Referral] Enrollment exception:', enrollEx);
       }
+    } else {
+      console.log('[Referral] No ref param — direct registration.');
     }
     // ── End enrollment attribution ───────────────────────────────────────
 
