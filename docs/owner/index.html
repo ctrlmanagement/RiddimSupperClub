@@ -686,6 +686,68 @@
     .field-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
     @media(max-width:480px){ .field-row{ grid-template-columns:1fr; } }
 
+    /* ── REPORTING TAB ── */
+    .reporting-section { margin-bottom:32px; }
+    .reporting-section-title {
+      font-family:var(--font-label); font-size:11px; letter-spacing:0.3em;
+      color:var(--owner-gold); text-transform:uppercase; margin-bottom:16px;
+      padding-bottom:8px; border-bottom:1px solid rgba(218,165,32,0.15);
+    }
+    .report-search-bar { display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
+    .report-input {
+      flex:1; min-width:180px; background:var(--void);
+      border:1px solid var(--graphite); border-radius:6px;
+      padding:10px 14px; color:var(--ivory); font-family:var(--font-body);
+      font-size:14px; outline:none; transition:border-color 150ms;
+    }
+    .report-input:focus { border-color:var(--owner-gold); }
+    .report-input::placeholder { color:var(--ash); }
+    .report-date-range { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .report-date-range input[type="date"] {
+      background:var(--void); border:1px solid var(--graphite);
+      border-radius:6px; padding:9px 12px; color:var(--mist);
+      font-family:var(--font-body); font-size:13px; cursor:pointer;
+    }
+    .btn-report-search {
+      padding:10px 20px; border-radius:6px;
+      background:linear-gradient(135deg,var(--owner-accent),var(--owner-gold));
+      border:none; color:var(--ivory); font-family:var(--font-label);
+      font-size:12px; letter-spacing:0.15em; cursor:pointer; transition:opacity 150ms;
+      white-space:nowrap;
+    }
+    .btn-report-search:hover { opacity:0.85; }
+    .report-results-table { width:100%; border-collapse:collapse; font-size:13px; }
+    .report-results-table th {
+      text-align:left; padding:10px 14px;
+      font-family:var(--font-label); font-size:10px; letter-spacing:0.2em;
+      color:var(--owner-gold); border-bottom:1px solid var(--graphite); font-weight:400;
+    }
+    .report-results-table td { padding:12px 14px; border-bottom:1px solid rgba(42,42,42,0.4); color:var(--mist); }
+    .report-results-table tr:hover td { background:rgba(218,165,32,0.02); }
+    .report-placeholder {
+      text-align:center; padding:48px 20px;
+      font-size:13px; color:var(--ash); font-style:italic;
+    }
+    .report-stat-row { display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap; }
+    .report-stat {
+      flex:1; min-width:120px; text-align:center;
+      background:var(--carbon); border:1px solid var(--graphite);
+      border-radius:8px; padding:16px;
+    }
+    .report-stat-val { font-family:var(--font-display); font-size:32px; font-weight:300; color:var(--ivory); }
+    .report-stat-lbl { font-size:11px; color:var(--ash); margin-top:4px; letter-spacing:0.05em; }
+
+    /* ── STAFF MODAL (performance) ── */
+    .staff-modal-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:16px 0; }
+    .staff-modal-stat {
+      text-align:center; padding:14px 10px;
+      background:var(--void); border:1px solid var(--graphite); border-radius:6px;
+    }
+    .staff-modal-stat-val { font-family:var(--font-display); font-size:26px; font-weight:300; color:var(--ivory); }
+    .staff-modal-stat-lbl { font-size:10px; color:var(--ash); margin-top:3px; }
+
+    .field select { transition:border-color 150ms; }
+
   </style>
 </head>
 <body>
@@ -750,6 +812,7 @@
         <button class="portal-tab" data-tab="analytics">▣ Analytics</button>
         <button class="portal-tab" data-tab="scheduling">⊞ Scheduling</button>
         <button class="portal-tab" data-tab="employees">◎ Employees</button>
+        <button class="portal-tab" data-tab="reporting">◑ Reporting</button>
         <button class="portal-tab staff-view-tab" data-tab="staffview">⬡ Staff View</button>
       </nav>
 
@@ -1228,6 +1291,90 @@
       <div class="emp-grid" id="empGrid"><!-- Rendered by JS --></div>
     </div>
 
+    <!-- ── TAB: REPORTING ── -->
+    <div class="tab-panel" id="tab-reporting">
+      <div class="page-header">
+        <p class="page-eyebrow">Business Intelligence</p>
+        <h1 class="page-title">Reporting</h1>
+        <p class="page-sub">Search staff performance, member activity, guest list history, and reservation records.</p>
+      </div>
+
+      <!-- ── Staff Performance ── -->
+      <div class="reporting-section">
+        <div class="reporting-section-title">Staff Performance</div>
+        <div class="report-search-bar">
+          <select class="report-input" id="reportStaffSelect" style="max-width:280px;">
+            <option value="">All Staff</option>
+          </select>
+          <div class="report-date-range">
+            <input type="date" id="reportStaffFrom" placeholder="From" />
+            <span style="color:var(--ash);font-size:13px;">to</span>
+            <input type="date" id="reportStaffTo" placeholder="To" />
+          </div>
+          <button class="btn-report-search" onclick="runStaffReport()">Search</button>
+        </div>
+        <div class="report-stat-row" id="staffReportStats" style="display:none;">
+          <div class="report-stat"><div class="report-stat-val" id="srEnrollments">—</div><div class="report-stat-lbl">Enrollments</div></div>
+          <div class="report-stat"><div class="report-stat-val" id="srCheckins">—</div><div class="report-stat-lbl">Check-Ins</div></div>
+          <div class="report-stat"><div class="report-stat-val" id="srReservations">—</div><div class="report-stat-lbl">Reservations</div></div>
+        </div>
+        <div class="panel" style="padding:0;overflow:hidden;" id="staffReportPanel">
+          <div class="report-placeholder">Select a staff member and date range to view performance.</div>
+        </div>
+      </div>
+
+      <!-- ── Member Activity ── -->
+      <div class="reporting-section">
+        <div class="reporting-section-title">Member Activity</div>
+        <div class="report-search-bar">
+          <input type="text" class="report-input" id="reportMemberQuery" placeholder="Name, phone, or member ID…" style="max-width:300px;" />
+          <div class="report-date-range">
+            <input type="date" id="reportMemberFrom" />
+            <span style="color:var(--ash);font-size:13px;">to</span>
+            <input type="date" id="reportMemberTo" />
+          </div>
+          <button class="btn-report-search" onclick="runMemberReport()">Search</button>
+        </div>
+        <div class="panel" style="padding:0;overflow:hidden;" id="memberReportPanel">
+          <div class="report-placeholder">Search a member to view their visit history and point activity.</div>
+        </div>
+      </div>
+
+      <!-- ── Guest List History ── -->
+      <div class="reporting-section">
+        <div class="reporting-section-title">Guest List History</div>
+        <div class="report-search-bar">
+          <input type="text" class="report-input" id="reportGuestQuery" placeholder="Guest name or phone…" style="max-width:260px;" />
+          <div class="report-date-range">
+            <input type="date" id="reportGuestFrom" />
+            <span style="color:var(--ash);font-size:13px;">to</span>
+            <input type="date" id="reportGuestTo" />
+          </div>
+          <button class="btn-report-search" onclick="runGuestReport()">Search</button>
+        </div>
+        <div class="panel" style="padding:0;overflow:hidden;" id="guestReportPanel">
+          <div class="report-placeholder">Search guest history across all events.</div>
+        </div>
+      </div>
+
+      <!-- ── Reservation History ── -->
+      <div class="reporting-section">
+        <div class="reporting-section-title">Reservation History</div>
+        <div class="report-search-bar">
+          <input type="text" class="report-input" id="reportResQuery" placeholder="Guest name or phone…" style="max-width:260px;" />
+          <div class="report-date-range">
+            <input type="date" id="reportResFrom" />
+            <span style="color:var(--ash);font-size:13px;">to</span>
+            <input type="date" id="reportResTo" />
+          </div>
+          <button class="btn-report-search" onclick="runResReport()">Search</button>
+        </div>
+        <div class="panel" style="padding:0;overflow:hidden;" id="resReportPanel">
+          <div class="report-placeholder">Search reservation records by guest or date range.</div>
+        </div>
+      </div>
+    </div>
+
   </main>
 
   <!-- Mobile nav -->
@@ -1240,6 +1387,7 @@
       <button class="mobile-tab" data-tab="analytics"><span class="mobile-tab-icon">▣</span><span class="mobile-tab-label">Analytics</span></button>
       <button class="mobile-tab" data-tab="scheduling"><span class="mobile-tab-icon">⊞</span><span class="mobile-tab-label">Schedule</span></button>
       <button class="mobile-tab" data-tab="employees"><span class="mobile-tab-icon">◎</span><span class="mobile-tab-label">Employees</span></button>
+      <button class="mobile-tab" data-tab="reporting"><span class="mobile-tab-icon">◑</span><span class="mobile-tab-label">Reporting</span></button>
       <button class="mobile-tab staff-view-tab" data-tab="staffview"><span class="mobile-tab-icon">⬡</span><span class="mobile-tab-label">Staff</span></button>
     </div>
   </div>
@@ -2550,6 +2698,26 @@ function showToast(msg,type=''){
       <label for="eventDesc">Description <span style="font-size:10px;color:var(--ash);font-weight:300;">(optional)</span></label>
       <textarea id="eventDesc" rows="3" placeholder="Featured performer, dress code, cover charge…" style="width:100%;background:var(--void);border:1px solid var(--graphite);color:var(--ivory);padding:10px 12px;border-radius:6px;font-family:var(--font-body);font-size:14px;resize:vertical;"></textarea>
     </div>
+    <div class="field">
+      <label for="eventFlyer">Event Flyer <span style="font-size:10px;color:var(--ash);font-weight:300;">(optional · JPG/PNG/WebP)</span></label>
+      <div id="eventFlyerWrap" style="border:1px dashed var(--graphite);border-radius:6px;padding:16px;text-align:center;cursor:pointer;transition:border-color 150ms;position:relative;"
+        onclick="document.getElementById('eventFlyer').click()"
+        ondragover="event.preventDefault();this.style.borderColor='var(--owner-gold)'"
+        ondragleave="this.style.borderColor='var(--graphite)'"
+        ondrop="handleFlyerDrop(event)">
+        <input type="file" id="eventFlyer" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="onFlyerSelected(this)" />
+        <div id="eventFlyerPrompt" style="font-size:13px;color:var(--ash);">
+          <span style="font-size:20px;display:block;margin-bottom:6px;opacity:0.4;">⬆</span>
+          Tap to upload or drag &amp; drop
+        </div>
+        <div id="eventFlyerPreview" style="display:none;">
+          <img id="eventFlyerImg" style="max-height:120px;max-width:100%;border-radius:4px;object-fit:contain;" />
+          <div id="eventFlyerName" style="font-size:11px;color:var(--ash);margin-top:6px;"></div>
+          <button onclick="clearFlyer(event)" style="font-size:11px;color:var(--ember);background:none;border:none;cursor:pointer;margin-top:4px;padding:0;">✕ Remove</button>
+        </div>
+      </div>
+      <div id="eventFlyerProgress" style="display:none;margin-top:8px;font-size:12px;color:var(--staff-light);">Uploading…</div>
+    </div>
     <div class="auth-error" id="eventError" style="text-align:left;margin-bottom:8px;"></div>
     <div class="modal-actions">
       <button class="btn-primary" onclick="saveEvent()">Save Event</button>
@@ -2558,7 +2726,46 @@ function showToast(msg,type=''){
   </div>
 </div>
 
-<!-- Add Shift Modal -->
+<!-- Staff Performance Modal -->
+<div class="modal-overlay" id="staffPerfModal">
+  <div class="modal-card" style="max-width:480px;">
+    <div class="modal-title" id="perfModalName">Staff Performance</div>
+    <div class="modal-sub" id="perfModalRole">Role</div>
+
+    <div class="staff-modal-stats">
+      <div class="staff-modal-stat">
+        <div class="staff-modal-stat-val" id="perfEnrollments">—</div>
+        <div class="staff-modal-stat-lbl">Enrollments</div>
+      </div>
+      <div class="staff-modal-stat">
+        <div class="staff-modal-stat-val" id="perfCheckins">—</div>
+        <div class="staff-modal-stat-lbl">Check-Ins</div>
+      </div>
+      <div class="staff-modal-stat">
+        <div class="staff-modal-stat-val" id="perfReservations">—</div>
+        <div class="staff-modal-stat-lbl">Reservations</div>
+      </div>
+    </div>
+
+    <div class="field" style="margin-top:8px;">
+      <label for="perfRoleSelect">Change Role</label>
+      <select id="perfRoleSelect">
+        <option value="manager">Manager</option>
+        <option value="host">VIP Host</option>
+        <option value="server">Server / Waitress</option>
+        <option value="bartender">Bartender</option>
+        <option value="security">Security</option>
+        <option value="barback">Barback</option>
+        <option value="promoter">Promoter</option>
+      </select>
+    </div>
+
+    <div class="modal-actions" style="margin-top:20px;">
+      <button class="btn-primary" onclick="saveStaffRole()">Save Role</button>
+      <button class="btn-ghost" onclick="closePerfModal()">Close</button>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay" id="shiftModal">
   <div class="modal-card" style="max-width:480px;">
     <div class="modal-title">Add Shift</div>
@@ -2995,7 +3202,8 @@ function renderEmployees() {
           ${emp.active ? 'Active — can log into Staff Portal' : 'Inactive — Staff Portal access revoked'}
         </div>
         <div class="emp-actions">
-          <button class="emp-btn edit" onclick="openEditEmpModal('${emp.id}')">Edit</button>
+          <button class="emp-btn edit" onclick="openPerfModal('${emp.id}')">Performance</button>
+          <button class="emp-btn edit" style="border-color:rgba(74,127,193,0.35);color:var(--staff-light);" onclick="openEditEmpModal('${emp.id}')">Edit</button>
           ${emp.active
             ? `<button class="emp-btn deactivate" onclick="toggleEmpStatus('${emp.id}', false)">Deactivate</button>`
             : `<button class="emp-btn reactivate" onclick="toggleEmpStatus('${emp.id}', true)">Reactivate</button>`
@@ -3112,6 +3320,483 @@ async function toggleEmpStatus(id, active) {
   emp.active = active;
   renderEmployees();
   showToast(active ? `${emp.first_name} reactivated` : `${emp.first_name} deactivated`);
+}
+
+/* ═══════════════════════════════════════════════════
+   STAFF PERFORMANCE MODAL
+═══════════════════════════════════════════════════ */
+let perfStaffId = null;
+
+async function openPerfModal(id) {
+  const emp = EMPLOYEES.find(e => e.id === id);
+  if (!emp) return;
+  perfStaffId = id;
+
+  document.getElementById('perfModalName').textContent = `${emp.first_name} ${emp.last_name}`;
+  document.getElementById('perfModalRole').textContent = ROLE_LABELS[emp.role] || emp.role;
+  document.getElementById('perfRoleSelect').value = emp.role;
+  document.getElementById('perfEnrollments').textContent  = '…';
+  document.getElementById('perfCheckins').textContent     = '…';
+  document.getElementById('perfReservations').textContent = '…';
+  document.getElementById('staffPerfModal').classList.add('open');
+
+  if (!LIVE_DATA || !supabaseClient) {
+    document.getElementById('perfEnrollments').textContent  = '—';
+    document.getElementById('perfCheckins').textContent     = '—';
+    document.getElementById('perfReservations').textContent = '—';
+    return;
+  }
+
+  try {
+    const [enRes, resRes] = await Promise.all([
+      supabaseClient.from('employee_enrollments').select('id', { count:'exact' }).eq('staff_id', id),
+      supabaseClient.from('reservations').select('id', { count:'exact' }).eq('handled_by', id),
+    ]);
+    document.getElementById('perfEnrollments').textContent  = enRes.count  ?? '—';
+    document.getElementById('perfReservations').textContent = resRes.count ?? '—';
+  } catch(e) {
+    console.warn('Perf modal fetch error:', e);
+  }
+
+  // Check-ins: count points_ledger rows where note says staff or submitted_by matches
+  try {
+    const { count } = await supabaseClient
+      .from('guest_lists')
+      .select('id', { count:'exact' })
+      .eq('confirmed_by', id)
+      .eq('status', 'confirmed');
+    document.getElementById('perfCheckins').textContent = count ?? '—';
+  } catch(e) {
+    document.getElementById('perfCheckins').textContent = '—';
+  }
+}
+
+function closePerfModal() {
+  document.getElementById('staffPerfModal').classList.remove('open');
+  perfStaffId = null;
+}
+
+async function saveStaffRole() {
+  if (!perfStaffId) return;
+  const newRole = document.getElementById('perfRoleSelect').value;
+  if (LIVE_DATA) {
+    const { error } = await supabaseClient.from('staff').update({ role: newRole }).eq('id', perfStaffId);
+    if (error) { showToast('Could not update role.'); return; }
+  }
+  const emp = EMPLOYEES.find(e => e.id === perfStaffId);
+  if (emp) emp.role = newRole;
+  renderEmployees();
+  closePerfModal();
+  showToast(`Role updated to ${ROLE_LABELS[newRole] || newRole}`, 'gold');
+}
+
+/* ═══════════════════════════════════════════════════
+   EVENT FLYER UPLOAD — Supabase Storage
+═══════════════════════════════════════════════════ */
+let flyerFile     = null;
+let flyerPreviewUrl = null;
+let existingFlyerUrl = null;
+
+function onFlyerSelected(input) {
+  if (!input.files || !input.files[0]) return;
+  setFlyerFile(input.files[0]);
+}
+
+function handleFlyerDrop(e) {
+  e.preventDefault();
+  document.getElementById('eventFlyerWrap').style.borderColor = 'var(--graphite)';
+  const file = e.dataTransfer?.files[0];
+  if (file && file.type.startsWith('image/')) setFlyerFile(file);
+}
+
+function setFlyerFile(file) {
+  flyerFile = file;
+  flyerPreviewUrl = URL.createObjectURL(file);
+  document.getElementById('eventFlyerImg').src   = flyerPreviewUrl;
+  document.getElementById('eventFlyerName').textContent = file.name;
+  document.getElementById('eventFlyerPrompt').style.display  = 'none';
+  document.getElementById('eventFlyerPreview').style.display = 'block';
+}
+
+function clearFlyer(e) {
+  e.stopPropagation();
+  flyerFile = null;
+  flyerPreviewUrl = null;
+  existingFlyerUrl = null;
+  document.getElementById('eventFlyer').value = '';
+  document.getElementById('eventFlyerImg').src = '';
+  document.getElementById('eventFlyerName').textContent = '';
+  document.getElementById('eventFlyerPrompt').style.display  = 'block';
+  document.getElementById('eventFlyerPreview').style.display = 'none';
+  document.getElementById('eventFlyerProgress').style.display = 'none';
+}
+
+function resetFlyerField() {
+  flyerFile = null; flyerPreviewUrl = null; existingFlyerUrl = null;
+  document.getElementById('eventFlyer').value = '';
+  document.getElementById('eventFlyerPrompt').style.display  = 'block';
+  document.getElementById('eventFlyerPreview').style.display = 'none';
+  document.getElementById('eventFlyerProgress').style.display = 'none';
+  document.getElementById('eventFlyerImg').src = '';
+  document.getElementById('eventFlyerName').textContent = '';
+}
+
+async function uploadFlyer(eventId) {
+  if (!flyerFile || !LIVE_DATA || !supabaseClient) return existingFlyerUrl || null;
+  try {
+    document.getElementById('eventFlyerProgress').style.display = 'block';
+    const ext  = flyerFile.name.split('.').pop().toLowerCase();
+    const path = `events/${eventId}/flyer_${Date.now()}.${ext}`;
+    const { error } = await supabaseClient.storage
+      .from('event-flyers')
+      .upload(path, flyerFile, { upsert: true, contentType: flyerFile.type });
+    if (error) { console.error('Flyer upload error:', error); return existingFlyerUrl || null; }
+    const { data } = supabaseClient.storage.from('event-flyers').getPublicUrl(path);
+    document.getElementById('eventFlyerProgress').style.display = 'none';
+    return data.publicUrl;
+  } catch(e) {
+    document.getElementById('eventFlyerProgress').style.display = 'none';
+    console.error('Flyer upload exception:', e);
+    return existingFlyerUrl || null;
+  }
+}
+
+// Patch openAddEventModal and openEditEventModal to handle flyer field
+const _origOpenAddEvent = openAddEventModal;
+openAddEventModal = function() {
+  _origOpenAddEvent();
+  resetFlyerField();
+  existingFlyerUrl = null;
+};
+
+const _origOpenEditEvent = openEditEventModal;
+openEditEventModal = function(id) {
+  _origOpenEditEvent(id);
+  const e = EVENTS.find(ev => ev.id === id);
+  resetFlyerField();
+  existingFlyerUrl = e?.flyer_url || null;
+  if (existingFlyerUrl) {
+    document.getElementById('eventFlyerImg').src = existingFlyerUrl;
+    document.getElementById('eventFlyerName').textContent = 'Current flyer';
+    document.getElementById('eventFlyerPrompt').style.display  = 'none';
+    document.getElementById('eventFlyerPreview').style.display = 'block';
+  }
+};
+
+// Patch saveEvent to upload flyer before/after saving
+const _origSaveEvent = saveEvent;
+saveEvent = async function() {
+  // We intercept: gather payload, upload flyer, write flyer_url
+  const name     = document.getElementById('eventName').value.trim();
+  const date     = document.getElementById('eventDate').value;
+  const start    = document.getElementById('eventStart').value;
+  const end      = document.getElementById('eventEnd').value;
+  const capacity = document.getElementById('eventCapacity').value;
+  const status   = document.getElementById('eventStatus').value.trim().toLowerCase();
+  const desc     = document.getElementById('eventDesc').value.trim();
+  const errEl    = document.getElementById('eventError');
+
+  if (!name) { errEl.textContent = 'Event name is required.'; return; }
+  if (!date) { errEl.textContent = 'Date is required.'; return; }
+  errEl.textContent = '';
+
+  const payload = {
+    name, event_date: date,
+    start_time: start || null, end_time: end || null,
+    capacity: capacity ? parseInt(capacity) : null,
+    status, description: desc || null,
+  };
+
+  if (editingEventId) {
+    const flyerUrl = await uploadFlyer(editingEventId);
+    if (flyerUrl !== undefined) payload.flyer_url = flyerUrl;
+
+    if (LIVE_DATA) {
+      const { error } = await supabaseClient.from('events').update(payload).eq('id', editingEventId);
+      if (error) { errEl.textContent = 'Could not save: ' + (error.message || 'Try again.'); return; }
+    }
+    const idx = EVENTS.findIndex(e => e.id === editingEventId);
+    if (idx > -1) EVENTS[idx] = { ...EVENTS[idx], ...payload };
+    showToast(`✦ ${name} updated`, 'gold');
+  } else {
+    if (LIVE_DATA) {
+      const { data, error } = await supabaseClient.from('events').insert(payload).select().single();
+      if (error) { errEl.textContent = 'Could not save: ' + (error.message || 'Try again.'); return; }
+      // Upload flyer using the new event's real UUID
+      if (flyerFile) {
+        const flyerUrl = await uploadFlyer(data.id);
+        if (flyerUrl) {
+          await supabaseClient.from('events').update({ flyer_url: flyerUrl }).eq('id', data.id);
+          data.flyer_url = flyerUrl;
+        }
+      }
+      EVENTS.push(data);
+    } else {
+      EVENTS.push({ id: 'E'+Date.now(), ...payload, created_at: new Date().toISOString() });
+    }
+    showToast(`✦ ${name} added`, 'gold');
+  }
+
+  renderEventsTab();
+  renderCalendar();
+  closeEventModal();
+};
+
+/* ═══════════════════════════════════════════════════
+   REPORTING TAB — FOUR SEARCH FUNCTIONS
+═══════════════════════════════════════════════════ */
+
+// Populate staff dropdown on Reporting tab load
+function populateReportStaffSelect() {
+  const sel = document.getElementById('reportStaffSelect');
+  if (!sel) return;
+  const existing = sel.querySelectorAll('option:not([value=""])');
+  if (existing.length) return; // already populated
+  EMPLOYEES.forEach(emp => {
+    const opt = document.createElement('option');
+    opt.value = emp.id;
+    opt.textContent = `${emp.first_name} ${emp.last_name} — ${ROLE_LABELS[emp.role]||emp.role}`;
+    sel.appendChild(opt);
+  });
+}
+
+// Wire reporting tab click
+document.querySelectorAll('.portal-tab,.mobile-tab').forEach(btn => {
+  if (btn.dataset.tab === 'reporting') {
+    btn.addEventListener('click', () => setTimeout(populateReportStaffSelect, 100));
+  }
+});
+
+async function runStaffReport() {
+  const staffId = document.getElementById('reportStaffSelect').value;
+  const from    = document.getElementById('reportStaffFrom').value;
+  const to      = document.getElementById('reportStaffTo').value;
+  const panel   = document.getElementById('staffReportPanel');
+  const statsEl = document.getElementById('staffReportStats');
+
+  panel.innerHTML = '<div class="report-placeholder">Loading…</div>';
+  statsEl.style.display = 'none';
+
+  if (!LIVE_DATA || !supabaseClient) {
+    panel.innerHTML = '<div class="report-placeholder">Live data required for reporting.</div>'; return;
+  }
+
+  try {
+    // Enrollments
+    let enQ = supabaseClient.from('employee_enrollments').select('*, members(first_name,last_name)');
+    if (staffId) enQ = enQ.eq('staff_id', staffId);
+    if (from)    enQ = enQ.gte('enrolled_at', from);
+    if (to)      enQ = enQ.lte('enrolled_at', to + 'T23:59:59');
+    const { data: enData } = await enQ.order('enrolled_at', { ascending: false });
+
+    // Reservations
+    let resQ = supabaseClient.from('reservations').select('member_name,member_phone,party_size,event_date,status,handled_at');
+    if (staffId) resQ = resQ.eq('handled_by', staffId);
+    if (from)    resQ = resQ.gte('event_date', from);
+    if (to)      resQ = resQ.lte('event_date', to);
+    const { data: resData } = await resQ.order('event_date', { ascending: false });
+
+    // Check-ins (guest list confirmations)
+    let ciQ = supabaseClient.from('guest_lists').select('guest_name,confirmed_at,events(name,event_date)').eq('status','confirmed');
+    if (staffId) ciQ = ciQ.eq('confirmed_by', staffId);
+    if (from)    ciQ = ciQ.gte('confirmed_at', from);
+    if (to)      ciQ = ciQ.lte('confirmed_at', to + 'T23:59:59');
+    const { data: ciData } = await ciQ.order('confirmed_at', { ascending: false });
+
+    // Summary stats
+    document.getElementById('srEnrollments').textContent  = (enData||[]).length;
+    document.getElementById('srCheckins').textContent     = (ciData||[]).length;
+    document.getElementById('srReservations').textContent = (resData||[]).length;
+    statsEl.style.display = 'flex';
+
+    let html = '';
+
+    if ((enData||[]).length) {
+      html += `<div style="padding:16px 20px;border-bottom:1px solid var(--graphite);font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--owner-gold);">ENROLLMENTS</div>
+      <table class="report-results-table"><thead><tr><th>Member</th><th>Via</th><th>Date</th></tr></thead><tbody>
+      ${enData.map(r => {
+        const m = r.members ? `${r.members.first_name} ${r.members.last_name}` : r.member_id;
+        const d = new Date(r.enrolled_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+        return `<tr><td>${m}</td><td style="text-transform:capitalize;">${r.enrolled_via||'qr'}</td><td>${d}</td></tr>`;
+      }).join('')}</tbody></table>`;
+    }
+
+    if ((resData||[]).length) {
+      html += `<div style="padding:16px 20px;border-bottom:1px solid var(--graphite);font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--owner-gold);margin-top:${(enData||[]).length?'16px':'0'};">RESERVATIONS</div>
+      <table class="report-results-table"><thead><tr><th>Guest</th><th>Date</th><th>Party</th><th>Status</th></tr></thead><tbody>
+      ${resData.map(r => {
+        const d = r.event_date ? new Date(r.event_date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—';
+        return `<tr><td>${r.member_name||'—'}</td><td>${d}</td><td>${r.party_size||'—'}</td><td style="text-transform:capitalize;">${r.status}</td></tr>`;
+      }).join('')}</tbody></table>`;
+    }
+
+    if (!html) html = '<div class="report-placeholder">No results for this staff member and date range.</div>';
+    panel.innerHTML = html;
+
+  } catch(e) {
+    console.error('Staff report error:', e);
+    panel.innerHTML = '<div class="report-placeholder">Could not load report. Try again.</div>';
+  }
+}
+
+async function runMemberReport() {
+  const q     = document.getElementById('reportMemberQuery').value.trim();
+  const from  = document.getElementById('reportMemberFrom').value;
+  const to    = document.getElementById('reportMemberTo').value;
+  const panel = document.getElementById('memberReportPanel');
+
+  if (!q && !from) { panel.innerHTML = '<div class="report-placeholder">Enter a name, phone, or date range.</div>'; return; }
+  panel.innerHTML = '<div class="report-placeholder">Loading…</div>';
+
+  if (!LIVE_DATA || !supabaseClient) {
+    panel.innerHTML = '<div class="report-placeholder">Live data required.</div>'; return;
+  }
+
+  try {
+    // Find member
+    let member = null;
+    if (q) {
+      const phone = '+1' + q.replace(/\D/g,'');
+      let mQ = supabaseClient.from('members').select('*');
+      if (q.startsWith('RDM-')) {
+        mQ = mQ.eq('id', q.toUpperCase());
+      } else if (/^\d{10}$/.test(q.replace(/\D/g,''))) {
+        mQ = mQ.eq('phone', phone);
+      } else {
+        mQ = mQ.or(`first_name.ilike.%${q}%,last_name.ilike.%${q}%`);
+      }
+      const { data: mData } = await mQ.limit(1).single();
+      member = mData;
+    }
+
+    if (!member && q) {
+      panel.innerHTML = '<div class="report-placeholder">No member found.</div>'; return;
+    }
+
+    // Points ledger
+    let ledQ = supabaseClient.from('points_ledger').select('amount,type,note,balance_after,created_at');
+    if (member) ledQ = ledQ.eq('member_id', member.id);
+    if (from)   ledQ = ledQ.gte('created_at', from);
+    if (to)     ledQ = ledQ.lte('created_at', to + 'T23:59:59');
+    const { data: ledger } = await ledQ.order('created_at', { ascending: false }).limit(50);
+
+    let html = member ? `
+      <div style="padding:16px 20px;display:flex;align-items:center;gap:16px;border-bottom:1px solid var(--graphite);">
+        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--gold-deep),var(--gold-bright));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;color:#000;">${member.first_name[0]}${(member.last_name||'')[0]||''}</div>
+        <div>
+          <div style="font-family:var(--font-display);font-size:18px;color:var(--ivory);">${member.first_name} ${member.last_name}</div>
+          <div style="font-size:12px;color:var(--ash);">${member.id} · ${member.total_points?.toLocaleString() || 0} pts · ${member.total_visits || 0} visits</div>
+        </div>
+      </div>` : '';
+
+    if ((ledger||[]).length) {
+      html += `<table class="report-results-table"><thead><tr><th>Date</th><th>Type</th><th>Points</th><th>Balance</th><th>Note</th></tr></thead><tbody>
+      ${ledger.map(r => {
+        const d = new Date(r.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+        const color = r.amount >= 0 ? '#81C784' : 'var(--ember)';
+        return `<tr>
+          <td>${d}</td>
+          <td style="text-transform:capitalize;">${r.type}</td>
+          <td style="color:${color};">${r.amount >= 0 ? '+' : ''}${r.amount}</td>
+          <td>${r.balance_after?.toLocaleString() || '—'}</td>
+          <td style="color:var(--ash);">${r.note || '—'}</td>
+        </tr>`;
+      }).join('')}</tbody></table>`;
+    } else {
+      html += '<div class="report-placeholder">No activity records found.</div>';
+    }
+
+    panel.innerHTML = html;
+  } catch(e) {
+    console.error('Member report error:', e);
+    panel.innerHTML = '<div class="report-placeholder">Could not load report.</div>';
+  }
+}
+
+async function runGuestReport() {
+  const q     = document.getElementById('reportGuestQuery').value.trim();
+  const from  = document.getElementById('reportGuestFrom').value;
+  const to    = document.getElementById('reportGuestTo').value;
+  const panel = document.getElementById('guestReportPanel');
+
+  panel.innerHTML = '<div class="report-placeholder">Loading…</div>';
+
+  if (!LIVE_DATA || !supabaseClient) {
+    panel.innerHTML = '<div class="report-placeholder">Live data required.</div>'; return;
+  }
+
+  try {
+    let gQ = supabaseClient.from('guest_lists')
+      .select('guest_name,guest_phone,status,submitted_at,confirmed_at,events(name,event_date)');
+    if (q) gQ = gQ.or(`guest_name.ilike.%${q}%,guest_phone.ilike.%${q.replace(/\D/g,'')}%`);
+    if (from) gQ = gQ.gte('submitted_at', from);
+    if (to)   gQ = gQ.lte('submitted_at', to + 'T23:59:59');
+    const { data } = await gQ.order('submitted_at', { ascending: false }).limit(100);
+
+    if (!(data||[]).length) {
+      panel.innerHTML = '<div class="report-placeholder">No guest list records found.</div>'; return;
+    }
+
+    panel.innerHTML = `<table class="report-results-table"><thead><tr><th>Guest</th><th>Phone</th><th>Event</th><th>Date</th><th>Status</th></tr></thead><tbody>
+    ${data.map(r => {
+      const evName = r.events?.name || '—';
+      const evDate = r.events?.event_date ? new Date(r.events.event_date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—';
+      const statusColor = r.status === 'confirmed' ? '#81C784' : r.status === 'no_show' ? 'var(--ember)' : 'var(--gold-warm)';
+      return `<tr>
+        <td>${r.guest_name||'—'}</td>
+        <td>${r.guest_phone||'—'}</td>
+        <td>${evName}</td>
+        <td>${evDate}</td>
+        <td style="color:${statusColor};text-transform:capitalize;">${r.status}</td>
+      </tr>`;
+    }).join('')}</tbody></table>`;
+  } catch(e) {
+    console.error('Guest report error:', e);
+    panel.innerHTML = '<div class="report-placeholder">Could not load report.</div>';
+  }
+}
+
+async function runResReport() {
+  const q     = document.getElementById('reportResQuery').value.trim();
+  const from  = document.getElementById('reportResFrom').value;
+  const to    = document.getElementById('reportResTo').value;
+  const panel = document.getElementById('resReportPanel');
+
+  panel.innerHTML = '<div class="report-placeholder">Loading…</div>';
+
+  if (!LIVE_DATA || !supabaseClient) {
+    panel.innerHTML = '<div class="report-placeholder">Live data required.</div>'; return;
+  }
+
+  try {
+    let rQ = supabaseClient.from('reservations')
+      .select('member_name,member_phone,party_size,occasion,event_date,status,requested_at,handled_by');
+    if (q)    rQ = rQ.or(`member_name.ilike.%${q}%,member_phone.ilike.%${q.replace(/\D/g,'')}%`);
+    if (from) rQ = rQ.gte('event_date', from);
+    if (to)   rQ = rQ.lte('event_date', to);
+    const { data } = await rQ.order('event_date', { ascending: false }).limit(100);
+
+    if (!(data||[]).length) {
+      panel.innerHTML = '<div class="report-placeholder">No reservations found.</div>'; return;
+    }
+
+    panel.innerHTML = `<table class="report-results-table"><thead><tr><th>Guest</th><th>Phone</th><th>Date</th><th>Party</th><th>Occasion</th><th>Status</th></tr></thead><tbody>
+    ${data.map(r => {
+      const d = r.event_date ? new Date(r.event_date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
+      const statusColor = r.status === 'seated' ? 'var(--staff-light)' : r.status === 'confirmed' ? '#81C784' : r.status === 'cancelled' ? 'var(--ember)' : 'var(--gold-warm)';
+      return `<tr>
+        <td>${r.member_name||'—'}</td>
+        <td>${r.member_phone||'—'}</td>
+        <td>${d}</td>
+        <td>${r.party_size||'—'}</td>
+        <td>${r.occasion||'—'}</td>
+        <td style="color:${statusColor};text-transform:capitalize;">${r.status}</td>
+      </tr>`;
+    }).join('')}</tbody></table>`;
+  } catch(e) {
+    console.error('Res report error:', e);
+    panel.innerHTML = '<div class="report-placeholder">Could not load report.</div>';
+  }
 }
 
 /* ═══ NAVIGATION FIX ═══ */

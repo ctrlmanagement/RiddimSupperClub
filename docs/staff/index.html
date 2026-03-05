@@ -1206,6 +1206,51 @@
         <h1 class="page-title">Reservations</h1>
       </div>
 
+      <!-- Reservation referral section -->
+      <div class="staff-enroll-section" id="resReferralSection" style="margin-bottom:32px;max-width:460px;">
+        <div class="staff-enroll-header">
+          <p class="staff-enroll-eyebrow">Table Reservations</p>
+          <p class="staff-enroll-title">Your Booking Link</p>
+          <p class="staff-enroll-hint">Share this QR or send via text — guests book directly and you get credited.</p>
+        </div>
+
+        <!-- Credit count -->
+        <div style="display:flex;gap:12px;margin-bottom:20px;">
+          <div class="member-stat" style="flex:1;">
+            <div class="member-stat-val" id="resReferralCount" style="color:var(--staff-light);">—</div>
+            <div class="member-stat-lbl">Reservations Credited</div>
+          </div>
+          <div class="member-stat" style="flex:1;">
+            <div class="member-stat-val" id="resReferralSeated">—</div>
+            <div class="member-stat-lbl">Seated</div>
+          </div>
+        </div>
+
+        <!-- QR Code -->
+        <div class="staff-enroll-qr-wrap">
+          <div class="staff-enroll-qr-glow"></div>
+          <div class="staff-enroll-qr-inner" id="resQrCanvas">
+            <div class="staff-enroll-qr-loading"><div class="spinner-sm"></div></div>
+          </div>
+          <div class="staff-enroll-qr-border"></div>
+          <div class="staff-enroll-qr-tick tl"></div>
+          <div class="staff-enroll-qr-tick tr"></div>
+          <div class="staff-enroll-qr-tick bl"></div>
+          <div class="staff-enroll-qr-tick br"></div>
+        </div>
+
+        <div class="staff-enroll-divider"></div>
+
+        <!-- SMS block -->
+        <p class="staff-enroll-sms-label">Send via Text</p>
+        <div class="staff-enroll-sms-row">
+          <input type="tel" id="resSmsPhone" placeholder="(404) 555-0100" inputmode="tel" maxlength="14" autocomplete="off" />
+          <button class="btn-sms-send" onclick="sendResSms()">Send ↗</button>
+        </div>
+      </div>
+
+      <div style="height:1px;background:var(--graphite);margin-bottom:28px;max-width:1136px;"></div>
+
       <div class="res-filters">
         <button class="res-filter active" onclick="filterRes(this,'all')">All</button>
         <button class="res-filter" onclick="filterRes(this,'pending')">Pending</button>
@@ -1478,6 +1523,22 @@
         <p class="page-eyebrow">Member Enrollment</p>
         <h1 class="page-title">Your Referrals</h1>
         <p class="page-sub" id="referralStaffName">—</p>
+      </div>
+
+      <!-- Referral stats row -->
+      <div id="referralStatsRow" style="display:flex;gap:12px;margin-bottom:28px;max-width:460px;">
+        <div class="member-stat" style="flex:1;">
+          <div class="member-stat-val" id="referralCountTotal" style="color:var(--gold-warm);">—</div>
+          <div class="member-stat-lbl">Members Enrolled</div>
+        </div>
+        <div class="member-stat" style="flex:1;">
+          <div class="member-stat-val" id="referralCountQr">—</div>
+          <div class="member-stat-lbl">Via QR</div>
+        </div>
+        <div class="member-stat" style="flex:1;">
+          <div class="member-stat-val" id="referralCountSms">—</div>
+          <div class="member-stat-lbl">Via SMS</div>
+        </div>
       </div>
 
       <div class="staff-enroll-section" id="staffQrSection">
@@ -1822,7 +1883,41 @@ document.querySelectorAll('.portal-tab,.mobile-tab').forEach(btn=>{ if(btn.datas
 document.getElementById('navAvatar').addEventListener('click',e=>{ e.stopPropagation(); document.getElementById('avatarMenu').classList.toggle('open'); });
 document.addEventListener('click',()=>document.getElementById('avatarMenu').classList.remove('open'));
 
-function logout() { currentStaff=null; phoneInput.value=''; clearOtp(); document.getElementById('portalMain').classList.remove('visible'); goScreen('screenLogin'); showToast('Signed out'); }
+function logout() {
+  currentStaff = null;
+  phoneInput.value = '';
+  clearOtp();
+  // Clear all search state — prevents member data bleeding to next staff session
+  liveMembers = [];
+  foundMember = null;
+  addGuestFoundMember = null;
+  foundGuestMember = null;
+  guestList = [];
+  todayEvent = null;
+  staffQrGenerated = false;
+  resQrGenerated   = false;
+  resBookingUrl    = '';
+  document.getElementById('resReferralCount').textContent  = '—';
+  document.getElementById('resReferralSeated').textContent = '—';
+  const resWrap = document.getElementById('resQrCanvas');
+  if (resWrap) resWrap.innerHTML = '<div class="spinner-sm"></div>';
+  clearTimeout(guestSearchTimer);
+  clearTimeout(guestSearchClearTimer);
+  document.getElementById('memberSearch').value = '';
+  document.getElementById('membersSearch').value = '';
+  document.getElementById('memberResult').classList.remove('visible');
+  document.getElementById('membersList').innerHTML = '';
+  document.getElementById('guestSearchInput').value = '';
+  document.getElementById('guestSearchResults').innerHTML = '';
+  document.getElementById('addGuestConfirmArea').style.display = 'none';
+  document.getElementById('addGuestNonMember').style.display   = 'none';
+  document.getElementById('referralCountTotal').textContent = '—';
+  document.getElementById('referralCountQr').textContent    = '—';
+  document.getElementById('referralCountSms').textContent   = '—';
+  document.getElementById('portalMain').classList.remove('visible');
+  goScreen('screenLogin');
+  showToast('Signed out');
+}
 
 /* ═══ MEMBER LOOKUP (CHECK-IN TAB) ═══ */
 let foundMember = null;
@@ -2586,6 +2681,16 @@ async function confirmGuestArrival() {
   const btn = document.getElementById('btnConfirmArrival');
   btn.disabled = true; btn.textContent = 'Confirming…';
 
+  // Ensure staff UUID is resolved before writing credit — defensive fetch
+  if (!currentStaff?.supabaseId && LIVE_DATA && supabaseClient) {
+    const { data } = await supabaseClient
+      .from('staff').select('id, first_name, last_name, role').eq('phone', currentStaff.phone).single();
+    if (data) {
+      currentStaff.supabaseId = data.id;
+      if (!currentStaff.role) currentStaff.role = data.role;
+    }
+  }
+
   const now = new Date().toISOString();
   const update = {
     status:               'confirmed',
@@ -2677,6 +2782,19 @@ let addGuestFoundMember = null;
 let addGuestQrScanner   = null;
 let addGuestScannerActive = false;
 let guestSearchTimer    = null;
+let guestSearchClearTimer = null;   // 10s auto-clear timer
+
+function scheduleGuestSearchClear() {
+  clearTimeout(guestSearchClearTimer);
+  guestSearchClearTimer = setTimeout(() => {
+    // Auto-clear after 10s whether or not a guest was added
+    document.getElementById('guestSearchInput').value = '';
+    document.getElementById('guestSearchResults').innerHTML = '';
+    document.getElementById('addGuestConfirmArea').style.display = 'none';
+    document.getElementById('addGuestNonMember').style.display   = 'none';
+    addGuestFoundMember = null;
+  }, 10000);
+}
 
 function toggleAddGuestPanel() {
   const panel = document.getElementById('addGuestPanel');
@@ -2785,6 +2903,7 @@ async function runGuestSearch(query) {
       </div>
     </div>`;
   }).join('')}</div>`;
+  scheduleGuestSearchClear();
 }
 
 async function selectAddGuestMember(memberId) {
@@ -2872,6 +2991,7 @@ async function addSearchedGuestToList() {
   showToast(`✦ ${addGuestFoundMember.first_name} added to guest list`, 'blue');
   document.getElementById('addGuestActions').innerHTML =
     `<div style="font-size:13px;color:var(--staff-light);padding:8px 0;">✓ Added to tonight's list</div>`;
+  scheduleGuestSearchClear();
 }
 
 function showAddGuestNonMember(hint, query) {
@@ -2997,7 +3117,99 @@ async function processAddGuestQR(decoded) {
 }
 
 
-let staffQrGenerated = false;
+/* ═══════════════════════════════════════════════════
+   RESERVATIONS TAB — BOOKING LINK QR + SMS
+═══════════════════════════════════════════════════ */
+let resQrGenerated = false;
+let resBookingUrl  = '';
+
+// Generate QR when Reservations tab is clicked
+document.querySelectorAll('.portal-tab,.mobile-tab').forEach(btn => {
+  if (btn.dataset.tab === 'reservations') {
+    btn.addEventListener('click', () => {
+      setTimeout(generateResQR, 300);
+      setTimeout(loadResReferralCount, 400);
+    });
+  }
+});
+
+async function generateResQR() {
+  if (resQrGenerated) return;
+  const wrap = document.getElementById('resQrCanvas');
+  if (!wrap) return;
+
+  // Resolve staff UUID if needed
+  if (!currentStaff?.supabaseId && LIVE_DATA && supabaseClient) {
+    try {
+      const { data } = await supabaseClient
+        .from('staff').select('id').eq('phone', currentStaff.phone).single();
+      if (data) currentStaff.supabaseId = data.id;
+    } catch(e) {}
+  }
+
+  const staffId = currentStaff?.supabaseId;
+  if (!staffId) {
+    wrap.innerHTML = '<span style="font-size:12px;color:var(--ash);">Sign in to generate QR</span>';
+    return;
+  }
+
+  resBookingUrl = `https://ctrlmanagement.github.io/RiddimSupperClub/reserve.html?ref=${staffId}`;
+  wrap.innerHTML = '';
+
+  try {
+    new QRCode(wrap, {
+      text:         resBookingUrl,
+      width:        168,
+      height:       168,
+      colorDark:    '#6B9FE4',
+      colorLight:   '#0A0A0A',
+      correctLevel: QRCode.CorrectLevel.H,
+    });
+    resQrGenerated = true;
+  } catch(e) {
+    wrap.innerHTML = '<span style="font-size:12px;color:var(--ash);">QR unavailable</span>';
+  }
+}
+
+async function loadResReferralCount() {
+  if (!currentStaff?.supabaseId) return;
+  if (!LIVE_DATA || !supabaseClient) return;
+
+  try {
+    const { data } = await supabaseClient
+      .from('reservations')
+      .select('status')
+      .eq('handled_by', currentStaff.supabaseId);
+
+    if (!data) return;
+    document.getElementById('resReferralCount').textContent  = data.length;
+    document.getElementById('resReferralSeated').textContent = data.filter(r => r.status === 'seated').length;
+  } catch(e) {
+    console.warn('Res referral count error:', e);
+  }
+}
+
+function sendResSms() {
+  const raw = document.getElementById('resSmsPhone').value.replace(/\D/g,'');
+  if (raw.length < 10) { document.getElementById('resSmsPhone').focus(); return; }
+  const phone = raw.length === 10 ? '1' + raw : raw;
+  const msg = encodeURIComponent(
+    `Hey! Reserve your table at Riddim Supper Club — exclusive dining, hookah & nightlife.\nBook here: ${resBookingUrl}`
+  );
+  window.location.href = `sms:+${phone}&body=${msg}`;
+}
+
+// Phone input formatter for reservation SMS field
+document.getElementById('resSmsPhone')?.addEventListener('input', function() {
+  let v = this.value.replace(/\D/g,'').slice(0,10);
+  if (v.length >= 7)      v = `(${v.slice(0,3)}) ${v.slice(3,6)}-${v.slice(6)}`;
+  else if (v.length >= 4) v = `(${v.slice(0,3)}) ${v.slice(3)}`;
+  else if (v.length > 0)  v = `(${v}`;
+  this.value = v;
+});
+
+
+
 let enrollQrUrl = '';
 let enrollStaffName = '';
 
@@ -3014,11 +3226,36 @@ document.querySelectorAll('.portal-tab,.mobile-tab').forEach(btn => {
   if (btn.dataset.tab === 'referrals') {
     btn.addEventListener('click', () => {
       setTimeout(generateStaffQR, 300);
+      setTimeout(loadReferralCount, 400);
       const el = document.getElementById('referralStaffName');
       if (el && currentStaff?.name) el.textContent = currentStaff.name;
     });
   }
 });
+
+async function loadReferralCount() {
+  if (!currentStaff?.supabaseId) return;
+  if (!LIVE_DATA || !supabaseClient) return;
+
+  try {
+    const { data, error } = await supabaseClient
+      .from('employee_enrollments')
+      .select('enrolled_via')
+      .eq('staff_id', currentStaff.supabaseId);
+
+    if (error || !data) return;
+
+    const total = data.length;
+    const qr    = data.filter(r => r.enrolled_via === 'qr').length;
+    const sms   = data.filter(r => r.enrolled_via === 'sms').length;
+
+    document.getElementById('referralCountTotal').textContent = total;
+    document.getElementById('referralCountQr').textContent    = qr;
+    document.getElementById('referralCountSms').textContent   = sms;
+  } catch(e) {
+    console.warn('Referral count fetch error:', e);
+  }
+}
 
 async function generateStaffQR() {
   if (staffQrGenerated) return;
