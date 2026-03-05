@@ -1322,55 +1322,11 @@ async function submitJoin() {
 }
 </script>
 
-<!-- SECRET PORTAL ACCESS: triple-tap logo = Staff, 5-tap = Owner -->
+<!-- SECRET PORTAL ACCESS — Shift+S: Staff · Shift+O: Owner -->
 <script>
 (function secretPortalAccess() {
   var STAFF_URL = "staff/index.html";
   var OWNER_URL = "owner/index.html";
-  var TAP_WINDOW = 600;
-  var tapCount = 0;
-  var tapTimer = null;
-
-  function flashLogo() {
-    var logo = document.querySelector(".nav-logo");
-    if (!logo) return;
-    logo.style.transition = "color 80ms";
-    logo.style.color = "#F0C060";
-    setTimeout(function(){ logo.style.color = ""; }, 180);
-  }
-
-  function handleTap(e) {
-    tapCount++;
-    clearTimeout(tapTimer);
-
-    if (tapCount === 3) {
-      e.preventDefault();
-      flashLogo();
-      setTimeout(function(){ window.location.href = STAFF_URL; }, 200);
-      tapCount = 0;
-      return;
-    }
-    if (tapCount === 5) {
-      e.preventDefault();
-      flashLogo();
-      setTimeout(function(){ flashLogo(); }, 200);
-      setTimeout(function(){ window.location.href = OWNER_URL; }, 400);
-      tapCount = 0;
-      return;
-    }
-    // Not a secret sequence yet — let normal navigation happen
-    tapTimer = setTimeout(function(){ tapCount = 0; }, TAP_WINDOW);
-  }
-
-  var navLogo = document.querySelector(".nav-logo");
-  if (navLogo) {
-    navLogo.addEventListener("touchend", function(e){ handleTap(e); }, { passive: false });
-    navLogo.addEventListener("click", function(e){
-      if (window.matchMedia("(pointer: coarse)").matches) return;
-      handleTap(e);
-    });
-  }
-
   document.addEventListener("keydown", function(e){
     if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
     if (e.shiftKey && e.key === "S") window.location.href = STAFF_URL;

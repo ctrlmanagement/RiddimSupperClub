@@ -1442,58 +1442,10 @@ const observer = new IntersectionObserver((entries) => {
 }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
 reveals.forEach(el => observer.observe(el));
 
-// ══════════════════════════════════════════════
-//  SECRET PORTAL ACCESS
-//  Mobile : Triple-tap logo  → Staff Portal
-//           5-tap logo       → Owner Portal
-//  Desktop: Shift+S          → Staff Portal
-//           Shift+O          → Owner Portal
-// ══════════════════════════════════════════════
+// SECRET PORTAL ACCESS — Shift+S: Staff · Shift+O: Owner
 (function secretPortalAccess() {
   const STAFF_URL = 'staff/index.html';
   const OWNER_URL = 'owner/index.html';
-  const TAP_WINDOW = 600;
-  let tapCount = 0;
-  let tapTimer = null;
-
-  function flashLogo() {
-    const logo = document.querySelector('.nav-logo');
-    if (!logo) return;
-    logo.style.transition = 'color 80ms';
-    logo.style.color = '#F0C060';
-    setTimeout(() => { logo.style.color = ''; }, 180);
-  }
-
-  function handleTap(e) {
-    tapCount++;
-    clearTimeout(tapTimer);
-
-    if (tapCount === 3) {
-      e.preventDefault();
-      flashLogo();
-      setTimeout(() => { window.location.href = STAFF_URL; }, 200);
-      tapCount = 0; return;
-    }
-    if (tapCount === 5) {
-      e.preventDefault();
-      flashLogo();
-      setTimeout(() => { flashLogo(); }, 200);
-      setTimeout(() => { window.location.href = OWNER_URL; }, 400);
-      tapCount = 0; return;
-    }
-    // Not a secret sequence — let normal nav happen
-    tapTimer = setTimeout(() => { tapCount = 0; }, TAP_WINDOW);
-  }
-
-  const navLogo = document.querySelector('.nav-logo');
-  if (navLogo) {
-    navLogo.addEventListener('touchend', (e) => { handleTap(e); }, { passive: false });
-    navLogo.addEventListener('click', (e) => {
-      if (window.matchMedia('(pointer: coarse)').matches) return;
-      handleTap(e);
-    });
-  }
-
   document.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
     if (e.shiftKey && e.key === 'S') { window.location.href = STAFF_URL; }
