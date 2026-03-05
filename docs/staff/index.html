@@ -1247,7 +1247,7 @@
       <!-- Role lock: only manager, host, doorman, security can use this tab -->
       <div id="guestsRoleLocked" class="role-locked" style="display:none;">
         <div class="role-locked-icon">⊘</div>
-        <p class="role-locked-msg">Guest list access is restricted to<br>Manager, VIP Host, Doorman, and Security roles.</p>
+        <p class="role-locked-msg">Guest list access is available to all staff roles.</p>
       </div>
 
       <div id="guestsTabContent" style="display:none;">
@@ -2108,7 +2108,7 @@ async function loadStaffSchedule() {
 
 const ROLE_LABELS_STAFF = {
   manager:'Manager', host:'VIP Host', server:'Server',
-  security:'Security', barback:'Barback', promoter:'Promoter', doorman:'Doorman'
+  security:'Security', barback:'Barback', bartender:'Bartender', promoter:'Promoter', doorman:'Doorman'
 };
 
 function renderStaffSchedule() {
@@ -2234,7 +2234,7 @@ document.querySelectorAll('.portal-tab,.mobile-tab').forEach(btn => {
 /* ═══════════════════════════════════════════════════
    GUESTS TAB
 ═══════════════════════════════════════════════════ */
-const GUEST_SCANNER_ROLES = ['manager', 'host', 'doorman', 'security'];
+const GUEST_SCANNER_ROLES = ['manager', 'host', 'doorman', 'security', 'server', 'barback', 'bartender', 'promoter'];
 
 let todayEvent       = null;   // event record for today
 let guestList        = [];     // guest_list records for today's event
@@ -3096,15 +3096,17 @@ async function sendEnrollSms() {
       </p>`;
 
     const phone = raw.length === 10 ? '1' + raw : raw;
-    const msgText = `Hey! You're invited to join the Riddim Members Club — exclusive perks, priority booking, and more. Join here: `;
-    const msg = encodeURIComponent(msgText) + encodeURIComponent(enrollQrUrl).replace('%23', '#');
+    const msg = encodeURIComponent(
+      `Hey! You're invited to join the Riddim Members Club — exclusive perks, priority booking, and more. Join here: ${enrollQrUrl}`
+    );
     setTimeout(() => { window.location.href = `sms:+${phone}&body=${msg}`; }, 500);
 
   } catch(e) {
     console.error('SMS preview error', e);
     const phone = raw.length === 10 ? '1' + raw : raw;
-    const msgText = `Hey! You're invited to join the Riddim Members Club — exclusive perks, priority booking, and more. Join here: `;
-    const msg = encodeURIComponent(msgText) + encodeURIComponent(enrollQrUrl).replace('%23', '#');
+    const msg = encodeURIComponent(
+      `Hey! You're invited to join the Riddim Members Club — exclusive perks, priority booking, and more. Join here: ${enrollQrUrl}`
+    );
     window.location.href = `sms:+${phone}&body=${msg}`;
   }
 
