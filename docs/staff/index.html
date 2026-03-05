@@ -2708,8 +2708,9 @@ async function addSearchedGuestToList() {
   if (LIVE_DATA && supabaseClient) {
     const { data, error } = await supabaseClient.from('guest_lists').insert(payload).select().single();
     if (error) {
+      console.error('guest_lists insert error:', JSON.stringify(error));
       document.getElementById('addGuestActions').innerHTML =
-        `<div style="font-size:12px;color:#E57373;padding:8px 0;">✕ Could not add. Try again.</div>`;
+        `<div style="font-size:12px;color:#E57373;padding:8px 0;">✕ ${error.message || error.code || 'Could not add. Try again.'}</div>`;
       return;
     }
     guestList.unshift(data);
