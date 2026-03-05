@@ -929,17 +929,55 @@
           <p class="page-eyebrow">Calendar</p>
           <h1 class="page-title">Events</h1>
         </div>
-        <button class="btn-add-emp" onclick="openAddEventModal()" style="margin-top:8px;">+ Add Event</button>
+        <div style="display:flex;gap:10px;align-items:center;margin-top:8px;">
+          <div style="display:flex;border:1px solid var(--graphite);border-radius:6px;overflow:hidden;">
+            <button id="eventsViewCal"  onclick="setEventsView('calendar')" style="padding:6px 14px;font-family:var(--font-body);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;background:rgba(218,165,32,0.12);color:var(--owner-gold);border:none;cursor:pointer;">Calendar</button>
+            <button id="eventsViewList" onclick="setEventsView('list')"     style="padding:6px 14px;font-family:var(--font-body);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;background:none;color:var(--ash);border:none;cursor:pointer;">List</button>
+          </div>
+          <button class="btn-add-emp" onclick="openAddEventModal()">+ Add Event</button>
+        </div>
       </div>
 
-      <div class="res-filters" style="margin-bottom:20px;">
-        <button class="res-filter active" onclick="eventsTabFilter(this,'upcoming')">Upcoming</button>
-        <button class="res-filter" onclick="eventsTabFilter(this,'past')">Past</button>
-        <button class="res-filter" onclick="eventsTabFilter(this,'all')">All</button>
+      <!-- CALENDAR VIEW -->
+      <div id="eventsCalendarView">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <button onclick="changeCalMonth(-1)" style="background:none;border:1px solid var(--graphite);color:var(--mist);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:16px;">‹</button>
+          <div id="calMonthLabel" style="font-family:var(--font-label);font-size:20px;letter-spacing:0.2em;color:var(--ivory);"></div>
+          <button onclick="changeCalMonth(1)"  style="background:none;border:1px solid var(--graphite);color:var(--mist);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:16px;">›</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;" id="calDayHeaders">
+          <div style="text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:var(--ash);padding:6px 0;">SUN</div>
+          <div style="text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:var(--ash);padding:6px 0;">MON</div>
+          <div style="text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:var(--ash);padding:6px 0;">TUE</div>
+          <div style="text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:var(--ash);padding:6px 0;">WED</div>
+          <div style="text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:var(--ash);padding:6px 0;">THU</div>
+          <div style="text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:var(--ash);padding:6px 0;">FRI</div>
+          <div style="text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:var(--ash);padding:6px 0;">SAT</div>
+        </div>
+        <div id="calGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;"></div>
+        <div style="display:flex;gap:16px;margin-top:12px;flex-wrap:wrap;">
+          <span style="font-size:11px;color:var(--ash);display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:#81C784;display:inline-block;"></span>Scheduled</span>
+          <span style="font-size:11px;color:var(--ash);display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:#4A7FC1;display:inline-block;"></span>Live</span>
+          <span style="font-size:11px;color:var(--ash);display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:var(--gold-warm);display:inline-block;"></span>Sold Out</span>
+          <span style="font-size:11px;color:var(--ash);display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:#E57373;display:inline-block;"></span>Cancelled</span>
+          <span style="font-size:11px;color:var(--ash);display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:var(--graphite);display:inline-block;"></span>Completed</span>
+          <span style="font-size:11px;color:var(--gold-warm);margin-left:auto;">Click any day to add an event</span>
+        </div>
       </div>
 
-      <div id="eventsGrid" style="display:flex;flex-direction:column;gap:12px;">
-        <div style="text-align:center;padding:40px;color:var(--ash);">Loading events…</div>
+      <!-- LIST VIEW -->
+      <div id="eventsListView" style="display:none;">
+        <div class="res-filters" style="margin-bottom:20px;">
+          <button class="res-filter active" onclick="eventsTabFilter(this,'all')">All</button>
+          <button class="res-filter" onclick="eventsTabFilter(this,'scheduled')">Scheduled</button>
+          <button class="res-filter" onclick="eventsTabFilter(this,'live')">Live</button>
+          <button class="res-filter" onclick="eventsTabFilter(this,'sold_out')">Sold Out</button>
+          <button class="res-filter" onclick="eventsTabFilter(this,'completed')">Completed</button>
+          <button class="res-filter" onclick="eventsTabFilter(this,'cancelled')">Cancelled</button>
+        </div>
+        <div id="eventsGrid" style="display:flex;flex-direction:column;gap:12px;">
+          <div style="text-align:center;padding:40px;color:var(--ash);">Loading events…</div>
+        </div>
       </div>
     </div>
 
@@ -1513,6 +1551,7 @@ function goToTab(tabId) {
     schedBaseDate = getMonday(new Date());
     loadScheduleWeek();
   }
+  if (tabId === 'events') { renderCalendar(); }
 }
 document.querySelectorAll('.portal-tab,.mobile-tab').forEach(btn=>{
   if(btn.dataset.tab) btn.addEventListener('click',()=>goToTab(btn.dataset.tab));
@@ -1930,7 +1969,7 @@ async function ownerResTabUpdate(id, status) {
 
 /* ═══ EVENTS TAB ═══ */
 let EVENTS = [];
-let eventsFilter = 'upcoming';
+let eventsFilter = 'all';
 let editingEventId = null;
 
 function eventsTabFilter(btn, filter) {
@@ -1940,7 +1979,7 @@ function eventsTabFilter(btn, filter) {
 }
 
 async function loadEvents() {
-  if (!LIVE_DATA || !supabaseClient) { renderEventsTab(); return; }
+  if (!LIVE_DATA || !supabaseClient) { renderEventsTab(); renderCalendar(); return; }
   try {
     const { data, error } = await supabaseClient.from('events').select('*').order('event_date');
     if (error) throw error;
@@ -1951,24 +1990,60 @@ async function loadEvents() {
       `<div class="error-banner"><span class="error-banner-icon">⚠</span><span>Could not load events. <a onclick="loadEvents()">Retry</a></span></div>`;
   }
   renderEventsTab();
+  renderCalendar();
+  scheduleAutoComplete();
+}
+
+/* ── Auto-mark events as completed at 3:00 AM ── */
+function scheduleAutoComplete() {
+  const now   = new Date();
+  const next3 = new Date(now);
+  next3.setHours(3, 0, 0, 0);
+  if (next3 <= now) next3.setDate(next3.getDate() + 1); // already past 3AM today → schedule for tomorrow
+  const msUntil3 = next3 - now;
+
+  setTimeout(async () => {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().slice(0,10);
+
+    // Find events from yesterday that are still scheduled or live — auto-complete them
+    const toComplete = EVENTS.filter(e =>
+      e.event_date === yesterdayStr && (e.status === 'scheduled' || e.status === 'live')
+    );
+
+    for (const e of toComplete) {
+      if (LIVE_DATA && supabaseClient) {
+        await supabaseClient.from('events').update({ status: 'completed' }).eq('id', e.id);
+      }
+      e.status = 'completed';
+    }
+
+    if (toComplete.length) {
+      renderEventsTab();
+      renderCalendar();
+      showToast(`${toComplete.length} event${toComplete.length > 1 ? 's' : ''} marked completed`, 'gold');
+    }
+
+    scheduleAutoComplete(); // reschedule for next night
+  }, msUntil3);
 }
 
 function renderEventsTab() {
-  const today = new Date().toISOString().slice(0,10);
   let data = [...EVENTS];
-  if (eventsFilter === 'upcoming') data = data.filter(e => e.event_date >= today);
-  if (eventsFilter === 'past')     data = data.filter(e => e.event_date < today);
+  // Status-based filter — owner controls status manually; programme never filters by date
+  if (eventsFilter !== 'all') data = data.filter(e => e.status === eventsFilter);
 
   if (!data.length) {
     document.getElementById('eventsGrid').innerHTML =
       `<div style="text-align:center;padding:60px;color:var(--ash);">
         <div style="font-size:32px;margin-bottom:12px;opacity:0.3;">◆</div>
-        No ${eventsFilter === 'upcoming' ? 'upcoming' : eventsFilter === 'past' ? 'past' : ''} events.
+        No ${eventsFilter === 'all' ? '' : eventsFilter.replace('_',' ')} events.
       </div>`;
     return;
   }
 
-  const STATUS_COLORS = { scheduled:'#81C784', cancelled:'#E57373', sold_out:'var(--gold-warm)', completed:'var(--ash)' };
+  const STATUS_COLORS = { scheduled:'#81C784', live:'#4A7FC1', cancelled:'#E57373', sold_out:'var(--gold-warm)', completed:'var(--ash)' };
 
   document.getElementById('eventsGrid').innerHTML = data.map(e => {
     const d = new Date(e.event_date + 'T12:00:00');
@@ -2041,7 +2116,8 @@ async function saveEvent() {
   const start    = document.getElementById('eventStart').value;
   const end      = document.getElementById('eventEnd').value;
   const capacity = document.getElementById('eventCapacity').value;
-  const status   = document.getElementById('eventStatus').value;
+  // Always lowercase + trim — prevents events_status_check constraint violation
+  const status   = document.getElementById('eventStatus').value.trim().toLowerCase();
   const desc     = document.getElementById('eventDesc').value.trim();
   const errEl    = document.getElementById('eventError');
 
@@ -2050,8 +2126,13 @@ async function saveEvent() {
   errEl.textContent = '';
 
   const payload = {
-    name, event_date: date, start_time: start || null, end_time: end || null,
-    capacity: capacity ? parseInt(capacity) : null, status, description: desc || null,
+    name,
+    event_date:  date,
+    start_time:  start || null,
+    end_time:    end   || null,
+    capacity:    capacity ? parseInt(capacity) : null,
+    status,
+    description: desc || null,
   };
 
   if (editingEventId) {
@@ -2064,19 +2145,109 @@ async function saveEvent() {
     showToast(`✦ ${name} updated`, 'gold');
   } else {
     if (LIVE_DATA) {
-      const { data, error } = await supabaseClient.from('events').insert({
-        ...payload, created_by: null
-      }).select().single();
+      // created_by omitted — avoids NOT NULL constraint issues if column requires a UUID
+      const { data, error } = await supabaseClient.from('events').insert(payload).select().single();
       if (error) { console.error('Event insert error:', error); errEl.textContent = 'Could not save: ' + (error.message || 'Try again.'); return; }
       EVENTS.push(data);
     } else {
-      EVENTS.push({ id: 'E'+Date.now(), ...payload, created_by: null, created_at: new Date().toISOString() });
+      EVENTS.push({ id: 'E'+Date.now(), ...payload, created_at: new Date().toISOString() });
     }
     showToast(`✦ ${name} added`, 'gold');
   }
 
   renderEventsTab();
+  renderCalendar();
   closeEventModal();
+}
+
+/* ═══ CALENDAR VIEW ═══ */
+let calYear  = new Date().getFullYear();
+let calMonth = new Date().getMonth(); // 0-indexed
+let eventsView = 'calendar';
+
+function setEventsView(view) {
+  eventsView = view;
+  document.getElementById('eventsCalendarView').style.display = view === 'calendar' ? 'block' : 'none';
+  document.getElementById('eventsListView').style.display     = view === 'list'     ? 'block' : 'none';
+  document.getElementById('eventsViewCal').style.background   = view === 'calendar' ? 'rgba(218,165,32,0.12)' : 'none';
+  document.getElementById('eventsViewCal').style.color        = view === 'calendar' ? 'var(--owner-gold)' : 'var(--ash)';
+  document.getElementById('eventsViewList').style.background  = view === 'list'     ? 'rgba(218,165,32,0.12)' : 'none';
+  document.getElementById('eventsViewList').style.color       = view === 'list'     ? 'var(--owner-gold)' : 'var(--ash)';
+  if (view === 'calendar') renderCalendar();
+  if (view === 'list')     renderEventsTab();
+}
+
+function changeCalMonth(dir) {
+  calMonth += dir;
+  if (calMonth > 11) { calMonth = 0;  calYear++; }
+  if (calMonth < 0)  { calMonth = 11; calYear--; }
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const STATUS_COLORS = {
+    scheduled: '#81C784', live: '#4A7FC1', sold_out: 'var(--gold-warm)',
+    cancelled: '#E57373', completed: 'var(--graphite)'
+  };
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('calMonthLabel').textContent = `${monthNames[calMonth]} ${calYear}`;
+
+  const firstDay  = new Date(calYear, calMonth, 1).getDay(); // 0=Sun
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const today     = new Date().toISOString().slice(0,10);
+
+  // Build a map: date string → array of events
+  const eventMap = {};
+  EVENTS.forEach(e => {
+    const d = (e.event_date || '').slice(0,10);
+    if (!eventMap[d]) eventMap[d] = [];
+    eventMap[d].push(e);
+  });
+
+  let cells = '';
+  // Empty cells before first day
+  for (let i = 0; i < firstDay; i++) {
+    cells += `<div style="min-height:80px;background:rgba(255,255,255,0.01);border-radius:6px;"></div>`;
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const isToday = dateStr === today;
+    const dayEvents = eventMap[dateStr] || [];
+    const isFuture  = dateStr >= today;
+
+    const chips = dayEvents.map(e => {
+      const color = STATUS_COLORS[e.status] || 'var(--ash)';
+      return `<div onclick="event.stopPropagation();openEditEventModal('${e.id}')"
+        title="${e.name} — ${e.status}"
+        style="font-size:10px;padding:2px 5px;border-radius:3px;background:${color};color:#000;
+               white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;
+               max-width:100%;margin-top:2px;font-weight:500;">${e.name}</div>`;
+    }).join('');
+
+    cells += `
+      <div onclick="calDayClick('${dateStr}')"
+        style="min-height:80px;background:${isToday ? 'rgba(218,165,32,0.08)' : 'var(--carbon)'};
+               border:1px solid ${isToday ? 'var(--owner-gold)' : 'var(--graphite)'};
+               border-radius:6px;padding:6px 7px;cursor:${isFuture ? 'pointer' : 'default'};
+               transition:background 120ms;overflow:hidden;position:relative;"
+        onmouseover="if('${isFuture}'==='true')this.style.background='rgba(218,165,32,0.05)'"
+        onmouseout="this.style.background='${isToday ? 'rgba(218,165,32,0.08)' : 'var(--carbon)'}'">
+        <div style="font-family:var(--font-label);font-size:13px;color:${isToday ? 'var(--owner-gold)' : 'var(--mist)'};">${day}</div>
+        ${chips}
+        ${isFuture && !dayEvents.length ? `<div style="position:absolute;bottom:5px;right:5px;font-size:16px;color:rgba(218,165,32,0.15);line-height:1;">+</div>` : ''}
+      </div>`;
+  }
+
+  document.getElementById('calGrid').innerHTML = cells;
+}
+
+function calDayClick(dateStr) {
+  const today = new Date().toISOString().slice(0,10);
+  if (dateStr < today) return;
+  openAddEventModal();
+  // Set date after modal opens (openAddEventModal clears it first)
+  setTimeout(() => { document.getElementById('eventDate').value = dateStr; }, 0);
 }
 
 async function deleteEvent(id) {
@@ -2120,8 +2291,9 @@ function showToast(msg,type=''){
         <label for="eventStatus">Status</label>
         <select id="eventStatus">
           <option value="scheduled">Scheduled</option>
-          <option value="cancelled">Cancelled</option>
+          <option value="live">Live Now</option>
           <option value="sold_out">Sold Out</option>
+          <option value="cancelled">Cancelled</option>
           <option value="completed">Completed</option>
         </select>
       </div>

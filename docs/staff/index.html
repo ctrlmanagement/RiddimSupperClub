@@ -1166,9 +1166,16 @@
 
       <div id="guestsTabContent" style="display:none;">
 
-        <!-- Today's event banner -->
+        <!-- Event selector -->
         <div id="todayEventBanner">
-          <div class="event-banner-none"><div class="spinner-sm"></div>&nbsp; Loading tonight's event…</div>
+          <div class="event-banner-none"><div class="spinner-sm"></div>&nbsp; Loading events…</div>
+        </div>
+        <div id="eventSelectorWrap" style="display:none;margin-bottom:20px;">
+          <label style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--staff-accent);display:block;margin-bottom:8px;">SELECT EVENT</label>
+          <select id="eventSelector" onchange="onEventSelectorChange()"
+            style="width:100%;padding:10px 14px;background:var(--void,#111);border:1px solid var(--graphite);
+                   border-radius:8px;color:var(--ivory);font-family:var(--font-body);font-size:14px;cursor:pointer;">
+          </select>
         </div>
 
         <div class="guests-layout">
@@ -1243,8 +1250,8 @@
           <!-- Right: Tonight's full guest list -->
           <div>
             <div class="panel">
-              <p class="panel-eyebrow">Tonight's List</p>
-              <p class="panel-title">Guest List <span id="guestCount" style="font-size:14px;color:var(--ash);font-family:var(--font-body);font-weight:300;"></span></p>
+              <p class="panel-eyebrow">Guest List</p>
+              <p class="panel-title" id="guestListTitle">Select an Event <span id="guestCount" style="font-size:13px;color:var(--ash);font-family:var(--font-body);font-weight:300;"></span></p>
 
               <!-- Add Guest button -->
               <button class="add-guest-btn" id="btnOpenAddGuest" onclick="toggleAddGuestPanel()">+ Add Guest to List</button>
@@ -2127,47 +2134,93 @@ async function initGuestsTab() {
   document.getElementById('guestsTonightDate').textContent =
     new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
 
-  await loadTodayEvent();
-  await loadGuestList();
+  await loadAvailableEvents();
 }
 
-async function loadTodayEvent() {
-  const banner = document.getElementById('todayEventBanner');
-  const today  = isoDate(new Date());
+async function loadAvailableEvents() {
+  const banner      = document.getElementById('todayEventBanner');
+  const selectorWrap = document.getElementById('eventSelectorWrap');
+  const selector    = document.getElementById('eventSelector');
+  const today       = isoDate(new Date());
+  let events        = [];
 
   if (LIVE_DATA && supabaseClient) {
     try {
+      // Fetch all non-cancelled events — owner manages status manually
       const { data, error } = await supabaseClient
         .from('events')
         .select('*')
-        .eq('event_date', today)
-        .order('start_time')
-        .limit(1)
-        .maybeSingle();
-
+        .not('status', 'eq', 'cancelled')
+        .order('event_date', { ascending: false })
+        .limit(30);
       if (error) throw error;
-      todayEvent = data;
+      events = data || [];
     } catch(e) {
-      console.warn('Event fetch error:', e);
-      todayEvent = null;
+      console.warn('Events fetch error:', e);
+      events = [];
     }
   } else {
-    // Dev fallback
-    todayEvent = { id: 'dev-event-1', name: 'Friday Night Live', event_date: today, start_time: '21:00:00' };
+    events = [{ id: 'dev-event-1', name: 'Friday Night Live', event_date: today, start_time: '21:00:00', status: 'scheduled' }];
   }
 
-  if (todayEvent) {
-    banner.innerHTML = `
-      <div class="event-banner">
-        <div class="event-banner-icon">◈</div>
-        <div>
-          <div class="event-banner-name">${todayEvent.name}</div>
-          <div class="event-banner-date">${new Date(todayEvent.event_date + 'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}${todayEvent.start_time ? ' · ' + fmtTime12(todayEvent.start_time) : ''}</div>
-        </div>
-      </div>`;
-  } else {
-    banner.innerHTML = `<p class="event-banner-none">No event scheduled for tonight. Guest list is unavailable.</p>`;
+  banner.innerHTML = '';
+
+  if (!events.length) {
+    banner.innerHTML = `<p class="event-banner-none">No events found. Owner must create an event first.</p>`;
+    todayEvent = null;
+    renderGuestList();
+    return;
   }
+
+  // Build selector options — prefer today's event as default
+  const todayEvents   = events.filter(e => e.event_date === today);
+  const defaultEvent  = todayEvents[0] || events[0];
+  todayEvent          = defaultEvent;
+
+  selector.innerHTML = events.map(e => {
+    const d       = new Date(e.event_date + 'T12:00:00');
+    const dateStr = d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
+    const isToday = e.event_date === today;
+    const label   = `${isToday ? '★ ' : ''}${e.name} — ${dateStr}${e.start_time ? ' · ' + fmtTime12(e.start_time) : ''} [${e.status.replace('_',' ')}]`;
+    return `<option value="${e.id}" ${e.id === defaultEvent.id ? 'selected' : ''}>${label}</option>`;
+  }).join('');
+
+  selectorWrap.style.display = 'block';
+  await loadGuestList();
+}
+
+async function onEventSelectorChange() {
+  const selector = document.getElementById('eventSelector');
+  const id       = selector.value;
+  // Re-fetch full event record for selected id
+  if (LIVE_DATA && supabaseClient) {
+    try {
+      const { data } = await supabaseClient.from('events').select('*').eq('id', id).maybeSingle();
+      todayEvent = data || null;
+    } catch(e) { todayEvent = null; }
+  }
+  resetGuestScanner();
+  resetAddGuestPanel();
+  stopAddGuestScanner();
+  await loadGuestList();
+  // Update right-column title
+  updateGuestListTitle();
+}
+
+function updateGuestListTitle() {
+  const titleEl = document.getElementById('guestListTitle');
+  const countEl = document.getElementById('guestCount');
+  if (!todayEvent) {
+    titleEl.textContent = 'Select an Event';
+    if (countEl) countEl.textContent = '';
+    return;
+  }
+  const today   = isoDate(new Date());
+  const isToday = todayEvent.event_date === today;
+  const d       = new Date(todayEvent.event_date + 'T12:00:00');
+  const dateStr = d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
+  titleEl.innerHTML = `${todayEvent.name} <span style="font-size:13px;color:var(--ash);font-family:var(--font-body);font-weight:300;">${isToday ? '· Tonight' : '· ' + dateStr}</span>`;
+  // guestCount gets updated by renderGuestList
 }
 
 async function loadGuestList() {
@@ -2192,10 +2245,12 @@ async function loadGuestList() {
 }
 
 function renderGuestList() {
-  const wrap = document.getElementById('guestListWrap');
-  const countEl = document.getElementById('guestCount');
+  const wrap      = document.getElementById('guestListWrap');
   const confirmed = guestList.filter(g => g.status === 'confirmed').length;
-  countEl.textContent = guestList.length ? `(${confirmed}/${guestList.length} confirmed)` : '';
+  // Inject count into title
+  const countEl = document.getElementById('guestCount');
+  if (countEl) countEl.textContent = guestList.length ? ` (${confirmed}/${guestList.length} confirmed)` : '';
+  updateGuestListTitle();
 
   if (!guestList.length) {
     wrap.innerHTML = '<div class="guest-list-empty">No guests added yet.</div>';
@@ -2223,7 +2278,7 @@ function renderGuestList() {
 
 /* ── QR Scanner ── */
 function startGuestScanner() {
-  if (!todayEvent) { showToast('No event tonight — scanner unavailable.'); return; }
+  if (!todayEvent) { showToast('Select an event above first.'); return; }
   document.getElementById('guestScannerIdle').style.display  = 'none';
   document.getElementById('guestScannerFrame').style.display = 'block';
   document.getElementById('btnStopGuestScan').style.display  = 'block';
@@ -2493,7 +2548,7 @@ function toggleAddGuestPanel() {
     resetAddGuestPanel();
     stopAddGuestScanner();
   } else {
-    if (!todayEvent) { showToast('No event tonight — guest list unavailable.'); return; }
+    if (!todayEvent) { showToast('Select an event above first.'); return; }
     panel.classList.add('open');
     setSearchMode('name');
     setTimeout(() => document.getElementById('guestSearchInput').focus(), 150);
