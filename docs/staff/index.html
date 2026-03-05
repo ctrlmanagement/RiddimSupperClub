@@ -2502,7 +2502,7 @@ function showNonMemberCard() {
   // Build join URL with staff ref + tonight's event
   const staffId  = currentStaff?.supabaseId || '';
   const eventId  = todayEvent?.id || '';
-  const joinUrl  = `https://ctrlmanagement.github.io/RiddimSupperClub/join/?ref=${staffId}&event=${eventId}`;
+  const joinUrl  = `https://ctrlmanagement.github.io/RiddimSupperClub/join.html?ref=${staffId}&event=${eventId}`;
 
   // Store on button for SMS use
   document.getElementById('btnTextJoinLink').dataset.url = joinUrl;
@@ -2730,7 +2730,7 @@ function showAddGuestNonMember(hint, query) {
   // Build SMS link — pre-fill body, staff manually types/pastes the phone number
   const staffId = currentStaff?.supabaseId || '';
   const eventId = todayEvent?.id || '';
-  const joinUrl = `https://ctrlmanagement.github.io/RiddimSupperClub/join/?ref=${staffId}&event=${eventId}`;
+  const joinUrl = `https://ctrlmanagement.github.io/RiddimSupperClub/join.html?ref=${staffId}&event=${eventId}`;
   document.getElementById('btnAddGuestSendLink').dataset.url  = joinUrl;
   // If search was by phone, pre-fill the sms: recipient
   document.getElementById('btnAddGuestSendLink').dataset.phone =
@@ -2878,7 +2878,7 @@ async function generateStaffQR() {
     return;
   }
 
-  const qrUrl = `https://ctrlmanagement.github.io/RiddimSupperClub/join/?ref=${staffId}`;
+  const qrUrl = `https://ctrlmanagement.github.io/RiddimSupperClub/join.html?ref=${staffId}`;
   urlEl.textContent = qrUrl;
   canvasWrap.innerHTML = ''; // Clear spinner
 
