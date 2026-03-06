@@ -1245,9 +1245,15 @@ async function submitJoin() {
   const last  = document.getElementById('jLast').value.trim();
   const rawPhone = document.getElementById('jPhone').value.trim();
   const dob   = document.getElementById('jDOB').value;
-  const email = document.getElementById('jEmail').value.trim();
+  const email     = document.getElementById('jEmail').value.trim();
+  const instagram = document.getElementById('jInstagram').value.trim().replace(/^@/, '');
 
   if (!first || !last || !rawPhone || !dob) { alert('Please fill in all required fields.'); return; }
+
+  // Age verification — must be 21+
+  const dobDate = new Date(dob);
+  const age = Math.floor((Date.now() - dobDate) / (365.25 * 24 * 60 * 60 * 1000));
+  if (age < 21) { alert('You must be 21 or older to join the RIDDIM Members Club.'); return; }
 
   // Normalize phone to E.164
   const digits = rawPhone.replace(/\D/g, '');
@@ -1283,6 +1289,8 @@ async function submitJoin() {
       phone:        phone,
       email:        email || null,
       date_of_birth: dob,
+      birthday:      dob,
+      instagram:     instagram || null,
       status:       'active',
       total_points: 0,
       total_visits: 0,
