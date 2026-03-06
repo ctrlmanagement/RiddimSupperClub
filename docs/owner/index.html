@@ -1472,7 +1472,6 @@ let MONTHS        = [];
 
 /* ═══ GOOGLE OAUTH ═══ */
 const GOOGLE_CLIENT_ID = '46572233442-7ppaitpmvnm0vvmj6uqk0683rsocka9a.apps.googleusercontent.com';
-const ALLOWED_EMAIL    = 'inquiry@ctrlmanagement.com';
 
 function startGoogleLogin() {
   const btn = document.getElementById('googleBtn');
@@ -1537,30 +1536,36 @@ function handleGoogleResponse(response) {
   handleIdToken(response.credential);
 }
 
-function handleIdToken(idToken) {
+async function handleIdToken(idToken) {
   try {
-    // Decode JWT payload (middle segment) — we trust Google signed it
-    const payload = JSON.parse(atob(idToken.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
-    const email = (payload.email || '').toLowerCase().trim();
-    const emailVerified = payload.email_verified;
+    // Sign into Supabase using the Google ID token
+    // Supabase verifies the token and checks the email server-side
+    const { data, error } = await supabaseClient.auth.signInWithIdToken({
+      provider: 'google',
+      token: idToken,
+    });
 
-    if (!emailVerified) {
-      showLoginError('Google account email is not verified.');
+    if (error || !data?.session) {
+      showLoginError('Access denied. This portal is restricted to the AG Entertainment owner account.');
       resetGoogleBtn();
       return;
     }
 
-    if (email !== ALLOWED_EMAIL) {
-      showLoginError(`Access denied. This portal is restricted to the AG Entertainment owner account.`);
+    // Verify the signed-in email is an authorized owner account
+    const email = (data.session.user?.email || '').toLowerCase().trim();
+    const OWNER_EMAILS = ['inquiry@ctrlmanagement.com', 'gebriel@ctrlmanagement.com'];
+    if (!OWNER_EMAILS.includes(email)) {
+      await supabaseClient.auth.signOut();
+      showLoginError('Access denied. This portal is restricted to the AG Entertainment owner account.');
       resetGoogleBtn();
       return;
     }
 
-    // Valid owner — enter portal
+    // Valid owner session established — enter portal
     enterPortal();
 
   } catch(e) {
-    console.error('Token parse error:', e);
+    console.error('Auth error:', e);
     showLoginError('Authentication error. Please try again.');
     resetGoogleBtn();
   }
