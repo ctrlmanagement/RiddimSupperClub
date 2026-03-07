@@ -1682,7 +1682,7 @@
     <button class="staff-lightbox-next" onclick="staffLightboxNav(1)">›</button>
     <div class="staff-lightbox-toolbar">
       <button class="staff-lightbox-dl-btn instagram" onclick="downloadInstagramCrop()">📸 Instagram (1080×1080)</button>
-      <a class="staff-lightbox-dl-btn original" id="staffLightboxOriginalDl" download="riddim-photo.jpg">↓ Original</a>
+      <button class="staff-lightbox-dl-btn original" id="staffLightboxOriginalDl" onclick="downloadOriginalPhoto()">↓ Original</button>
       <span class="staff-lightbox-counter-txt" id="staffLightboxCounter"></span>
     </div>
   </div>
@@ -3728,18 +3728,54 @@ async function openStaffGallery(galleryId, title) {
   document.getElementById('staffPhotoGrid').innerHTML = '<div style="color:rgba(245,240,232,0.3);font-size:13px;">Loading photos...</div>';
   document.getElementById('staffPhotoEmpty').style.display = 'none';
   try {
-    const { data: photos, error } = await supabaseClient.from('gallery_photos').select('*').eq('gallery_id', galleryId).order('display_order', { ascending: true });
+    const { data: photos, error } = await supabaseClient.from('gallery_photos')
+      .select('id, gallery_id, storage_path, display_order, original_filename')
+      .eq('gallery_id', galleryId).order('display_order', { ascending: true });
     if (error) throw error;
-    if (!photos || photos.length === 0) { document.getElementById('staffPhotoGrid').innerHTML = ''; document.getElementById('staffPhotoEmpty').style.display = 'block'; staffGalleryPhotos = []; return; }
-    const photosWithUrls = await Promise.all(photos.map(async (p) => {
-      const { data: su } = await supabaseClient.storage.from('gallery-photos').createSignedUrl(p.storage_path, 7200);
-      return { ...p, signedUrl: su?.signedUrl || '' };
-    }));
-    staffGalleryPhotos = photosWithUrls;
-    document.getElementById('staffPhotoGrid').innerHTML = photosWithUrls.map((p, i) => `
-      <div class="staff-photo-thumb" onclick="openStaffLightbox(${i})">
-        <img src="${p.signedUrl}" alt="" loading="lazy">
+    if (!photos || photos.length === 0) {
+      document.getElementById('staffPhotoGrid').innerHTML = '';
+      document.getElementById('staffPhotoEmpty').style.display = 'block';
+      staffGalleryPhotos = [];
+      return;
+    }
+    // Store photos without signed URLs — fetched lazily on scroll
+    staffGalleryPhotos = photos.map(p => ({ ...p, signedUrl: null }));
+
+    // Render thumbnails immediately with placeholders
+    document.getElementById('staffPhotoGrid').innerHTML = photos.map((p, i) => `
+      <div class="staff-photo-thumb"
+           data-photo-index="${i}"
+           data-storage-path="${p.storage_path.replace(/"/g,'&quot;')}"
+           onclick="openStaffLightbox(${i})">
+        <img data-lazy-thumb
+             style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .25s;"
+             alt="">
       </div>`).join('');
+
+    // IntersectionObserver: fetch signed URL only when thumbnail scrolls into view
+    const thumbObserver = new IntersectionObserver((entries) => {
+      entries.forEach(async entry => {
+        if (!entry.isIntersecting) return;
+        const tile = entry.target;
+        thumbObserver.unobserve(tile);
+        const idx = parseInt(tile.dataset.photoIndex);
+        const path = tile.dataset.storagePath;
+        const img = tile.querySelector('[data-lazy-thumb]');
+        if (!img || !path) return;
+        try {
+          const { data: su } = await supabaseClient.storage.from('gallery-photos')
+            .createSignedUrl(path, 7200);
+          if (su?.signedUrl) {
+            staffGalleryPhotos[idx].signedUrl = su.signedUrl;
+            img.onload = () => { img.style.opacity = '1'; };
+            img.src = su.signedUrl;
+          }
+        } catch(err) { console.error('staff lazy thumb:', err); }
+      });
+    }, { rootMargin: '200px' });
+
+    document.querySelectorAll('#staffPhotoGrid [data-photo-index]').forEach(el => thumbObserver.observe(el));
+
   } catch (err) {
     console.error('openStaffGallery error:', err);
     document.getElementById('staffPhotoGrid').innerHTML = '<div style="color:#e07070;font-size:13px;">Could not load photos.</div>';
@@ -3752,23 +3788,69 @@ function showStaffGalleryList() {
   document.getElementById('staffGalleryList').style.display = 'block';
 }
 
-function openStaffLightbox(index) {
+async function openStaffLightbox(index) {
   staffLightboxIndex = index;
-  renderStaffLightbox();
   document.getElementById('staffLightbox').classList.add('active');
   document.addEventListener('keydown', staffLightboxKeyHandler);
+  await staffEnsureSignedUrl(index);
+  renderStaffLightbox();
+  // Pre-fetch adjacent
+  staffEnsureSignedUrl(index + 1);
+  staffEnsureSignedUrl(index - 1);
+}
+
+async function staffEnsureSignedUrl(i) {
+  if (i < 0 || i >= staffGalleryPhotos.length) return;
+  const p = staffGalleryPhotos[i];
+  if (p.signedUrl) return;
+  try {
+    const { data: su } = await supabaseClient.storage.from('gallery-photos')
+      .createSignedUrl(p.storage_path, 7200);
+    if (su?.signedUrl) staffGalleryPhotos[i].signedUrl = su.signedUrl;
+  } catch(err) { console.error('staffEnsureSignedUrl:', err); }
 }
 
 function renderStaffLightbox() {
   const photo = staffGalleryPhotos[staffLightboxIndex];
-  document.getElementById('staffLightboxImg').src = photo.signedUrl;
-  document.getElementById('staffLightboxOriginalDl').href = photo.signedUrl;
+  document.getElementById('staffLightboxImg').src = photo.signedUrl || '';
   document.getElementById('staffLightboxCounter').textContent = `${staffLightboxIndex + 1} / ${staffGalleryPhotos.length}`;
 }
 
-function staffLightboxNav(dir) {
+async function staffLightboxNav(dir) {
   staffLightboxIndex = (staffLightboxIndex + dir + staffGalleryPhotos.length) % staffGalleryPhotos.length;
+  await staffEnsureSignedUrl(staffLightboxIndex);
   renderStaffLightbox();
+  staffEnsureSignedUrl(staffLightboxIndex + dir);
+}
+
+async function downloadOriginalPhoto() {
+  const photo = staffGalleryPhotos[staffLightboxIndex];
+  if (!photo) return;
+  const btn = document.getElementById('staffLightboxOriginalDl');
+  const origText = btn.textContent;
+  btn.textContent = 'Downloading...';
+  btn.style.opacity = '0.6';
+  try {
+    await staffEnsureSignedUrl(staffLightboxIndex);
+    const response = await fetch(photo.signedUrl);
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    // Use original filename if available, fallback to storage path filename
+    const fallback = photo.storage_path.split('/').pop() || 'riddim-photo.jpg';
+    a.download = photo.original_filename || fallback;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch(err) {
+    console.error('Original download error:', err);
+    alert('Could not download photo. Please try again.');
+  } finally {
+    btn.textContent = origText;
+    btn.style.opacity = '';
+  }
 }
 
 function closeStaffLightbox() {
