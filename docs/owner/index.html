@@ -339,6 +339,10 @@
     .modal-overlay {
       position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:1000;
       display:none; align-items:center; justify-content:center; padding:16px;
+      overflow-y:auto;
+    }
+    @media (max-height: 700px) {
+      .modal-overlay { align-items:flex-start; padding-top:16px; }
     }
     .modal-overlay.open { display:flex; }
     .modal-card {
@@ -346,6 +350,7 @@
       border-radius:12px; padding:32px; max-width:400px; width:100%;
       box-shadow:0 8px 40px rgba(0,0,0,0.7);
       animation:fadeUp 0.3s var(--ease-cinema);
+      max-height:90vh; overflow-y:auto; overscroll-behavior:contain;
     }
     .modal-title { font-family:var(--font-display); font-size:24px; font-weight:300; font-style:italic; color:var(--ivory); margin-bottom:6px; }
     .modal-sub { font-size:13px; color:var(--ash); margin-bottom:24px; }
@@ -358,6 +363,12 @@
     }
     .field input:focus { border-color:var(--owner-gold); box-shadow:0 0 0 3px rgba(218,165,32,0.1); }
     .modal-actions { display:flex; gap:10px; margin-top:20px; }
+    @media (max-width: 480px) {
+      .modal-card { padding:20px; }
+      .time-cap-grid { grid-template-columns:1fr 1fr !important; }
+      .modal-actions { flex-direction:column; }
+      .modal-actions .btn-primary, .modal-actions .btn-ghost { width:100%; }
+    }
     .btn-primary {
       flex:1; padding:14px; border-radius:6px;
       background:linear-gradient(135deg,var(--owner-accent),var(--owner-gold));
@@ -3265,7 +3276,7 @@ function showToast(msg,type=''){
         </select>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;flex-wrap:wrap;" class="time-cap-grid">
       <div class="field">
         <label for="eventStart">Start Time</label>
         <input type="time" id="eventStart" value="20:00" />
