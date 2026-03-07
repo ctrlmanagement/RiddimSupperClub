@@ -862,14 +862,14 @@ body::before {
   position: fixed; top: 20px; right: 24px;
   background: none; border: none;
   color: rgba(245,240,232,0.5); font-size: 28px;
-  cursor: pointer; z-index: 1001; line-height: 1;
+  cursor: pointer; z-index: 1010; line-height: 1;
   transition: color var(--duration-fast);
 }
 .pub-lightbox-close:hover { color: var(--color-ivory); }
-/* Invisible tap zones — left 40% prev, right 40% next */
+/* Invisible tap zones — left 40% prev, right 40% next — start below the close button */
 .pub-lightbox-prev-zone,
 .pub-lightbox-next-zone {
-  position: fixed; top: 0; bottom: 0;
+  position: fixed; top: 64px; bottom: 0;
   width: 40%; z-index: 1001; cursor: pointer;
 }
 .pub-lightbox-prev-zone { left: 0; }
@@ -1055,7 +1055,7 @@ body::before {
       <div class="gallery-list-header reveal">
         <div class="section-eyebrow">The Gallery</div>
         <h1 class="gallery-list-title">Nights worth<br><em>remembering.</em></h1>
-        <p class="gallery-list-desc">A preview of what we've captured. Members get full-resolution access and downloads — every gallery, every night.</p>
+        <p class="gallery-list-desc">A preview of what we've captured.</p>
       </div>
 
       <!-- Skeleton placeholders while loading -->
@@ -1164,6 +1164,8 @@ body::before {
         <li><a href="events.html">Events</a></li>
         <li><a href="gallery.html">Gallery</a></li>
         <li><a href="private-events.html">Private Events</a></li>
+        <li><a href="join.html">Join the Club</a></li>
+        <li><a href="members/index.html">Members</a></li>
       </ul>
     </div>
     <div>
