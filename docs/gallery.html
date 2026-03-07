@@ -866,20 +866,58 @@ body::before {
   transition: color var(--duration-fast);
 }
 .pub-lightbox-close:hover { color: var(--color-ivory); }
-.pub-lightbox-prev,
-.pub-lightbox-next {
-  position: fixed; top: 50%; transform: translateY(-50%);
-  background: rgba(0,0,0,0.5);
-  border: 1px solid rgba(212,168,67,0.25);
-  border-radius: 50%; width: 48px; height: 48px;
-  color: var(--color-gold-warm); font-size: 20px;
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
-  z-index: 1001; transition: all var(--duration-fast);
+/* Invisible tap zones — left 40% prev, right 40% next */
+.pub-lightbox-prev-zone,
+.pub-lightbox-next-zone {
+  position: fixed; top: 0; bottom: 0;
+  width: 40%; z-index: 1001; cursor: pointer;
 }
-.pub-lightbox-prev { left: 16px; }
-.pub-lightbox-next { right: 16px; }
-.pub-lightbox-prev:hover,
-.pub-lightbox-next:hover { background: rgba(212,168,67,0.15); border-color: var(--color-gold-warm); }
+.pub-lightbox-prev-zone { left: 0; }
+.pub-lightbox-next-zone { right: 0; }
+/* Gated 10th slide inside lightbox */
+.pub-lightbox-gate {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 10px; text-align: center;
+  padding: 40px 32px;
+  z-index: 1002; position: relative;
+}
+.pub-lightbox-gate .photo-gate-label {
+  font-family: var(--font-label);
+  font-size: 11px; letter-spacing: 0.3em;
+  color: var(--color-gold-warm);
+}
+.pub-lightbox-gate .photo-gate-title {
+  font-family: var(--font-display);
+  font-weight: 300; font-style: italic;
+  color: var(--color-ivory); line-height: 1.15;
+}
+.pub-lightbox-gate .photo-gate-sub {
+  font-size: 12px; color: rgba(245,240,232,0.45);
+  letter-spacing: 0.04em;
+}
+/* Dot indicators */
+.pub-lightbox-dots {
+  position: fixed; bottom: 52px;
+  left: 50%; transform: translateX(-50%);
+  display: flex; gap: 7px; align-items: center;
+  z-index: 1002;
+}
+.pub-lightbox-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: rgba(245,240,232,0.25);
+  transition: background var(--duration-fast), transform var(--duration-fast);
+  cursor: pointer;
+}
+.pub-lightbox-dot.active {
+  background: var(--color-gold-warm);
+  transform: scale(1.3);
+}
+.pub-lightbox-dot.gate-dot {
+  background: rgba(212,168,67,0.35);
+  border: 1px solid rgba(212,168,67,0.5);
+}
 .pub-lightbox-counter {
   position: fixed; bottom: 20px;
   left: 50%; transform: translateX(-50%);
@@ -1078,15 +1116,27 @@ body::before {
 <!-- ── LIGHTBOX ───────────────────────────────────────────────── -->
 <div class="pub-lightbox" id="pubLightbox" oncontextmenu="return false;">
   <button class="pub-lightbox-close" onclick="closeLightbox()">✕</button>
-  <button class="pub-lightbox-prev" onclick="lightboxNav(-1)">‹</button>
+  <!-- Swipe hint arrows (tap-only, no click nav) -->
+  <div class="pub-lightbox-prev-zone" onclick="lightboxNav(-1)"></div>
+  <div class="pub-lightbox-next-zone" onclick="lightboxNav(1)"></div>
+  <!-- Regular photo slide -->
   <img class="pub-lightbox-img" id="pubLightboxImg" src="" alt=""
        oncontextmenu="return false;" draggable="false">
-  <button class="pub-lightbox-next" onclick="lightboxNav(1)">›</button>
+  <!-- Gated slide (10th photo) -->
+  <div class="pub-lightbox-gate" id="pubLightboxGate" style="display:none;">
+    <div class="photo-gate-icon">🔒</div>
+    <div class="photo-gate-label">Members Only</div>
+    <div class="photo-gate-title" style="font-size:clamp(18px,3vw,28px);">More photos<br>inside</div>
+    <div class="photo-gate-sub" style="font-size:12px;margin-bottom:12px;">Full albums · Full res · Downloads included</div>
+    <a href="join.html" class="btn btn-primary" style="font-size:11px;padding:10px 24px;">Join Now — Free</a>
+  </div>
   <div class="pub-lightbox-counter" id="pubLightboxCounter"></div>
-  <div class="pub-lightbox-join">
+  <div class="pub-lightbox-join" id="pubLightboxJoin">
     <span class="pub-lightbox-join-text">Want full-res downloads?</span>
     <a href="join.html" class="pub-lightbox-join-cta">Join the Club →</a>
   </div>
+  <!-- Swipe hint dots -->
+  <div class="pub-lightbox-dots" id="pubLightboxDots"></div>
 </div>
 
 <!-- ── RESERVE BANNER ────────────────────────────────────────── -->
@@ -1392,7 +1442,7 @@ async function openGallery(galleryId, title) {
           <div class="photo-thumb photo-thumb--gated"
                data-photo-index="${i}"
                data-storage-path="${p.storage_path.replace(/"/g,'&quot;')}"
-               onclick="window.location.href='join.html'">
+               onclick="openLightbox(${i})">
             <div class="photo-thumb-placeholder">🖼</div>
             <img data-lazy-thumb alt="">
             <div class="photo-gate">
@@ -1499,37 +1549,74 @@ async function ensureSignedUrl(i) {
 }
 
 async function openLightbox(index) {
-  /* Gate: clicking the 10th photo redirects to join */
-  if (index >= GATE_INDEX) { window.location.href = 'join.html'; return; }
+  if (index >= PHOTO_LIMIT) return; /* out of range */
   lightboxIndex = index;
-  await ensureSignedUrl(index);
+  const isGate = (index === GATE_INDEX);
+  if (!isGate) await ensureSignedUrl(index);
   renderLightbox();
   document.getElementById('pubLightbox').classList.add('active');
   document.body.style.overflow = 'hidden';
   document.addEventListener('keydown', lightboxKeyHandler);
-  ensureSignedUrl(index + 1);
-  ensureSignedUrl(index - 1);
+  if (!isGate) { ensureSignedUrl(index + 1); ensureSignedUrl(index - 1); }
 }
 
 function renderLightbox() {
-  const photo = galleryPhotos[lightboxIndex];
-  document.getElementById('pubLightboxImg').src = photo?.signedUrl || '';
-  const viewableMax = Math.min(galleryPhotos.length, GATE_INDEX);
+  const total    = Math.min(galleryPhotos.length, PHOTO_LIMIT);
+  const isGate   = (lightboxIndex === GATE_INDEX && galleryPhotos.length >= PHOTO_LIMIT);
+  const imgEl    = document.getElementById('pubLightboxImg');
+  const gateEl   = document.getElementById('pubLightboxGate');
+  const joinEl   = document.getElementById('pubLightboxJoin');
+
+  if (isGate) {
+    imgEl.style.display  = 'none';
+    gateEl.style.display = 'flex';
+    joinEl.style.display = 'none';
+  } else {
+    const photo = galleryPhotos[lightboxIndex];
+    imgEl.src            = photo?.signedUrl || '';
+    imgEl.style.display  = 'block';
+    gateEl.style.display = 'none';
+    joinEl.style.display = 'flex';
+  }
+
+  /* Counter */
   document.getElementById('pubLightboxCounter').textContent =
-    `${lightboxIndex + 1} / ${viewableMax}`;
+    `${lightboxIndex + 1} / ${total}`;
+
+  /* Dots */
+  const dotsEl = document.getElementById('pubLightboxDots');
+  dotsEl.innerHTML = Array.from({ length: total }, (_, i) => {
+    const isG = (i === GATE_INDEX && galleryPhotos.length >= PHOTO_LIMIT);
+    const cls = [
+      'pub-lightbox-dot',
+      i === lightboxIndex ? 'active' : '',
+      isG ? 'gate-dot' : ''
+    ].filter(Boolean).join(' ');
+    return `<div class="${cls}" onclick="lightboxGoTo(${i})"></div>`;
+  }).join('');
 }
 
 async function lightboxNav(dir) {
-  const viewableMax = Math.min(galleryPhotos.length, GATE_INDEX);
-  const next = ((lightboxIndex + dir) % viewableMax + viewableMax) % viewableMax;
+  const total = Math.min(galleryPhotos.length, PHOTO_LIMIT);
+  const next  = ((lightboxIndex + dir) % total + total) % total;
   lightboxIndex = next;
-  await ensureSignedUrl(lightboxIndex);
+  const isGate = (lightboxIndex === GATE_INDEX && galleryPhotos.length >= PHOTO_LIMIT);
+  if (!isGate) await ensureSignedUrl(lightboxIndex);
   renderLightbox();
-  ensureSignedUrl(lightboxIndex + dir);
+  if (!isGate) ensureSignedUrl(lightboxIndex + dir);
+}
+
+async function lightboxGoTo(index) {
+  lightboxIndex = index;
+  const isGate = (index === GATE_INDEX && galleryPhotos.length >= PHOTO_LIMIT);
+  if (!isGate) await ensureSignedUrl(index);
+  renderLightbox();
 }
 
 function closeLightbox() {
   document.getElementById('pubLightbox').classList.remove('active');
+  document.getElementById('pubLightboxImg').src = '';
+  document.getElementById('pubLightboxGate').style.display = 'none';
   document.body.style.overflow = '';
   document.removeEventListener('keydown', lightboxKeyHandler);
 }
@@ -1540,7 +1627,25 @@ function lightboxKeyHandler(e) {
   if (e.key === 'Escape')     closeLightbox();
 }
 
+/* ── Touch swipe ─────────────────────────────────────────────── */
+(function() {
+  let touchStartX = 0;
+  let touchStartY = 0;
+  const lb = document.getElementById('pubLightbox');
+  lb.addEventListener('touchstart', (e) => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+  lb.addEventListener('touchend', (e) => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(dx) < 40 || Math.abs(dy) > Math.abs(dx)) return;
+    lightboxNav(dx < 0 ? 1 : -1);
+  }, { passive: true });
+})();
+
 document.getElementById('pubLightbox').addEventListener('click', function(e) {
+  /* Close only if clicking the true backdrop (not image, gate, dots, close btn) */
   if (e.target === this) closeLightbox();
 });
 
