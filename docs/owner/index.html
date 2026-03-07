@@ -4094,50 +4094,86 @@ async function loadGalleries() {
       return;
     }
     empty.style.display = 'none';
-    const enriched = await Promise.all(galleries.map(async (g) => {
-      const { count } = await supabaseClient.from('gallery_photos')
-        .select('*', { count: 'exact', head: true }).eq('gallery_id', g.id);
-      let coverUrl = null;
-      const photoId = g.cover_photo_id;
-      const queryId = photoId || null;
-      let firstPath = null;
-      if (photoId) {
+
+    // Fetch all photo counts + cover paths in two batched queries — no signed URLs yet
+    const galleryIds = galleries.map(g => g.id);
+
+    // Batch: one count query per gallery (still individual but no storage calls)
+    const countResults = await Promise.all(galleryIds.map(id =>
+      supabaseClient.from('gallery_photos')
+        .select('*', { count: 'exact', head: true }).eq('gallery_id', id)
+        .then(({ count }) => ({ id, count: count || 0 }))
+    ));
+    const countMap = Object.fromEntries(countResults.map(r => [r.id, r.count]));
+
+    // Batch: fetch cover storage_path for each gallery (cover_photo_id first, else first photo)
+    const coverPaths = await Promise.all(galleries.map(async g => {
+      let path = null;
+      if (g.cover_photo_id) {
         const { data: cp } = await supabaseClient.from('gallery_photos')
-          .select('storage_path').eq('id', photoId).single();
-        if (cp) firstPath = cp.storage_path;
+          .select('storage_path').eq('id', g.cover_photo_id).single();
+        if (cp) path = cp.storage_path;
       }
-      if (!firstPath) {
+      if (!path) {
         const { data: fp } = await supabaseClient.from('gallery_photos')
           .select('storage_path').eq('gallery_id', g.id)
           .order('display_order', { ascending: true }).limit(1).single();
-        if (fp) firstPath = fp.storage_path;
+        if (fp) path = fp.storage_path;
       }
-      if (firstPath) {
-        const { data: su } = await supabaseClient.storage.from('gallery-photos')
-          .createSignedUrl(firstPath, 3600);
-        coverUrl = su?.signedUrl || null;
-      }
-      return { ...g, photoCount: count || 0, coverUrl };
+      return { id: g.id, path };
     }));
-    grid.innerHTML = enriched.map(g => `
-      <div class="gallery-card">
-        <div class="gallery-card-cover">
-          ${g.coverUrl ? '<img src="'+g.coverUrl+'" alt="'+g.title+'" loading="lazy">' : '&#x1F4F7;'}
-        </div>
-        <div class="gallery-card-body">
-          <div class="gallery-card-title">${g.title}</div>
-          <div class="gallery-card-meta">${galleryFormatDate(g.gallery_date)}${g.events ? ' &middot; '+g.events.title : ''}</div>
-          <div class="gallery-card-footer">
-            <span class="${g.is_private ? 'gallery-private-badge' : 'gallery-public-badge'}">${g.is_private ? '&#x1F512; Private' : '&#x2713; Public'}</span>
-            <span class="gallery-photo-count">${g.photoCount} photo${g.photoCount !== 1 ? 's' : ''}</span>
+    const pathMap = Object.fromEntries(coverPaths.map(r => [r.id, r.path]));
+
+    // Render cards immediately — covers show a placeholder, signed URLs fetched lazily on scroll
+    grid.innerHTML = galleries.map(g => {
+      const photoCount = countMap[g.id] || 0;
+      const hasCover = !!pathMap[g.id];
+      return `
+        <div class="gallery-card">
+          <div class="gallery-card-cover" ${hasCover ? `data-gallery-cover="${g.id}" data-cover-path="${galleryEscAttr(pathMap[g.id])}"` : ''}>
+            ${hasCover
+              ? '<img data-lazy-cover style="width:100%;height:155px;object-fit:cover;display:block;opacity:0;transition:opacity .3s;" alt="">'
+              : '&#x1F4F7;'}
           </div>
-          <div class="gallery-card-actions">
-            <button class="gallery-card-btn" onclick="openGalleryManager('${g.id}','${galleryEscAttr(g.title)}')">Manage</button>
-            <button class="gallery-card-btn" onclick="editGallery('${g.id}')">Edit</button>
-            <button class="gallery-card-btn danger" onclick="deleteGallery('${g.id}','${galleryEscAttr(g.title)}')">Delete</button>
+          <div class="gallery-card-body">
+            <div class="gallery-card-title">${g.title}</div>
+            <div class="gallery-card-meta">${galleryFormatDate(g.gallery_date)}${g.events ? ' &middot; '+g.events.title : ''}</div>
+            <div class="gallery-card-footer">
+              <span class="${g.is_private ? 'gallery-private-badge' : 'gallery-public-badge'}">${g.is_private ? '&#x1F512; Private' : '&#x2713; Public'}</span>
+              <span class="gallery-photo-count">${photoCount} photo${photoCount !== 1 ? 's' : ''}</span>
+            </div>
+            <div class="gallery-card-actions">
+              <button class="gallery-card-btn" onclick="openGalleryManager('${g.id}','${galleryEscAttr(g.title)}')">Manage</button>
+              <button class="gallery-card-btn" onclick="editGallery('${g.id}')">Edit</button>
+              <button class="gallery-card-btn danger" onclick="deleteGallery('${g.id}','${galleryEscAttr(g.title)}')">Delete</button>
+            </div>
           </div>
-        </div>
-      </div>`).join('');
+        </div>`;
+    }).join('');
+
+    // IntersectionObserver: generate signed URL only when cover scrolls into view
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(async entry => {
+        if (!entry.isIntersecting) return;
+        const coverEl = entry.target;
+        observer.unobserve(coverEl);
+        const path = coverEl.dataset.coverPath;
+        if (!path) return;
+        const img = coverEl.querySelector('[data-lazy-cover]');
+        if (!img) return;
+        try {
+          const { data: su } = await supabaseClient.storage.from('gallery-photos')
+            .createSignedUrl(path, 3600);
+          if (su?.signedUrl) {
+            img.onload = () => { img.style.opacity = '1'; };
+            img.src = su.signedUrl;
+          }
+        } catch(err) { console.error('lazy cover:', err); }
+      });
+    }, { rootMargin: '150px' }); // start fetching 150px before card enters viewport
+
+    grid.querySelectorAll('[data-gallery-cover]').forEach(el => observer.observe(el));
+
   } catch(err) {
     console.error('loadGalleries:', err);
     grid.innerHTML = '<div style="color:#e07070;font-size:13px;">Failed to load galleries.</div>';
@@ -4375,20 +4411,52 @@ async function loadGalleryPhotos(galleryId) {
     const coverId = gal?.cover_photo_id;
     if (!photos || !photos.length) { c.innerHTML=''; empty.style.display='block'; galleryCurrentPhotos=[]; return; }
     empty.style.display = 'none';
-    const withUrls = await Promise.all(photos.map(async p => {
-      const { data: su } = await supabaseClient.storage.from('gallery-photos').createSignedUrl(p.storage_path, 3600);
-      return { ...p, signedUrl: su?.signedUrl || '' };
-    }));
-    galleryCurrentPhotos = withUrls;
-    c.innerHTML = withUrls.map((p,i) => `
-      <div class="gallery-mgr-photo" onclick="openLightbox(${i})">
+
+    // Store photos without signed URLs — URLs are fetched lazily per thumbnail
+    // signedUrl starts null; populated on scroll into view or on lightbox open
+    galleryCurrentPhotos = photos.map(p => ({ ...p, signedUrl: null }));
+
+    // Render thumbnails immediately with placeholder backgrounds, no signed URLs yet
+    c.innerHTML = photos.map((p,i) => `
+      <div class="gallery-mgr-photo"
+           data-photo-index="${i}"
+           data-storage-path="${galleryEscAttr(p.storage_path)}"
+           onclick="openLightbox(${i})">
         ${p.id===coverId ? '<div class="gallery-cover-badge">Cover</div>' : ''}
-        <img src="${p.signedUrl}" loading="lazy">
+        <img data-lazy-thumb
+             style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .3s;"
+             alt="">
         <div class="gallery-mgr-photo-actions">
           <button class="gallery-mgr-action-btn" title="Set cover" onclick="event.stopPropagation();setCoverPhoto('${galleryId}','${p.id}')">&#x2B50;</button>
-          <button class="gallery-mgr-action-btn delete" title="Delete" onclick="event.stopPropagation();deletePhoto('${p.id}','${p.storage_path}','${galleryId}')">&#x1F5D1;</button>
+          <button class="gallery-mgr-action-btn delete" title="Delete" onclick="event.stopPropagation();deletePhoto('${p.id}','${galleryEscAttr(p.storage_path)}','${galleryId}')">&#x1F5D1;</button>
         </div>
       </div>`).join('');
+
+    // IntersectionObserver: generate signed URL only when thumbnail scrolls into view
+    const thumbObserver = new IntersectionObserver((entries) => {
+      entries.forEach(async entry => {
+        if (!entry.isIntersecting) return;
+        const tile = entry.target;
+        thumbObserver.unobserve(tile);
+        const idx = parseInt(tile.dataset.photoIndex);
+        const path = tile.dataset.storagePath;
+        const img = tile.querySelector('[data-lazy-thumb]');
+        if (!img || !path) return;
+        try {
+          const { data: su } = await supabaseClient.storage.from('gallery-photos')
+            .createSignedUrl(path, 3600);
+          if (su?.signedUrl) {
+            // Cache on the photo object so lightbox can use it without re-fetching
+            galleryCurrentPhotos[idx].signedUrl = su.signedUrl;
+            img.onload = () => { img.style.opacity = '1'; };
+            img.src = su.signedUrl;
+          }
+        } catch(err) { console.error('lazy thumb:', err); }
+      });
+    }, { rootMargin: '200px' });
+
+    c.querySelectorAll('[data-photo-index]').forEach(el => thumbObserver.observe(el));
+
   } catch(err) { console.error('loadGalleryPhotos:', err); c.innerHTML='<div style="color:#e07070;font-size:13px;">Failed to load photos.</div>'; }
 }
 
@@ -4411,22 +4479,42 @@ async function deletePhoto(photoId, path, galleryId) {
 // ============================================
 // LIGHTBOX
 // ============================================
-function openLightbox(i) {
-  galleryLightboxPhotos = galleryCurrentPhotos.map(p=>p.signedUrl);
+async function openLightbox(i) {
   galleryLightboxIndex = i;
-  renderLightbox();
   document.getElementById('galleryLightbox').classList.add('active');
   document.addEventListener('keydown', galleryLightboxKey);
+  // Ensure clicked photo has a signed URL (may not have scrolled into view yet)
+  await galleryEnsureSignedUrl(i);
+  renderLightbox();
+  // Pre-fetch adjacent photos in background
+  galleryEnsureSignedUrl(i + 1);
+  galleryEnsureSignedUrl(i - 1);
+}
+
+async function galleryEnsureSignedUrl(i) {
+  if (i < 0 || i >= galleryCurrentPhotos.length) return;
+  const p = galleryCurrentPhotos[i];
+  if (p.signedUrl) return; // already fetched
+  try {
+    const { data: su } = await supabaseClient.storage.from('gallery-photos')
+      .createSignedUrl(p.storage_path, 3600);
+    if (su?.signedUrl) galleryCurrentPhotos[i].signedUrl = su.signedUrl;
+  } catch(err) { console.error('ensureSignedUrl:', err); }
 }
 
 function renderLightbox() {
-  document.getElementById('galleryLightboxImg').src = galleryLightboxPhotos[galleryLightboxIndex];
-  document.getElementById('galleryLightboxCounter').textContent = (galleryLightboxIndex+1)+' / '+galleryLightboxPhotos.length;
+  const p = galleryCurrentPhotos[galleryLightboxIndex];
+  document.getElementById('galleryLightboxImg').src = p?.signedUrl || '';
+  document.getElementById('galleryLightboxCounter').textContent = (galleryLightboxIndex+1)+' / '+galleryCurrentPhotos.length;
 }
 
-function lightboxNav(d) {
-  galleryLightboxIndex = (galleryLightboxIndex+d+galleryLightboxPhotos.length)%galleryLightboxPhotos.length;
+async function lightboxNav(d) {
+  galleryLightboxIndex = (galleryLightboxIndex+d+galleryCurrentPhotos.length)%galleryCurrentPhotos.length;
+  // Ensure this photo has a signed URL, then render
+  await galleryEnsureSignedUrl(galleryLightboxIndex);
   renderLightbox();
+  // Pre-fetch next in direction
+  galleryEnsureSignedUrl(galleryLightboxIndex + d);
 }
 
 function closeLightbox() {
