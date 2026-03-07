@@ -1226,6 +1226,53 @@
     }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     .toast.gold { border-color: rgba(184,134,11,0.4); color: var(--color-gold-bright); }
+
+    /* ============================================
+       MEMBER GALLERY TAB
+       ============================================ */
+    .member-gallery-wrap { padding: 0; }
+    .member-gallery-header { margin-bottom: 24px; }
+    .member-gallery-title { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 300; color: var(--color-ivory, #F5F0E8); letter-spacing: 0.04em; margin-bottom: 4px; }
+    .member-gallery-title span { color: var(--color-gold-warm, #D4A843); }
+    .member-gallery-sub { font-size: 13px; color: rgba(245,240,232,0.4); }
+    .member-galleries-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; margin-bottom: 32px; }
+    .member-gallery-card { background: rgba(255,255,255,0.025); border: 1px solid rgba(212,168,67,0.12); border-radius: 10px; overflow: hidden; cursor: pointer; transition: border-color 0.2s, transform 0.2s; }
+    .member-gallery-card:hover { border-color: rgba(212,168,67,0.4); transform: translateY(-2px); }
+    .member-gallery-cover { width: 100%; height: 150px; object-fit: cover; background: rgba(212,168,67,0.05); display: flex; align-items: center; justify-content: center; color: rgba(212,168,67,0.25); font-size: 32px; }
+    .member-gallery-cover img { width: 100%; height: 150px; object-fit: cover; display: block; }
+    .member-gallery-card-body { padding: 12px 14px; }
+    .member-gallery-card-title { font-family: 'Cormorant Garamond', serif; font-size: 16px; font-weight: 600; color: var(--color-ivory, #F5F0E8); margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .member-gallery-card-meta { font-size: 11px; color: rgba(245,240,232,0.38); margin-bottom: 8px; }
+    .member-gallery-card-footer { display: flex; align-items: center; justify-content: space-between; }
+    .member-gallery-count { font-size: 11px; color: rgba(245,240,232,0.35); }
+    .member-gallery-view-btn { font-size: 11px; color: var(--color-gold-warm, #D4A843); background: none; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; padding: 0; letter-spacing: 0.04em; }
+    .member-gallery-viewer { display: none; }
+    .member-gallery-viewer.active { display: block; }
+    .member-gallery-viewer-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+    .member-gallery-back-btn { background: none; border: 1px solid rgba(212,168,67,0.2); border-radius: 6px; color: rgba(245,240,232,0.6); padding: 6px 14px; font-size: 12px; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.15s; }
+    .member-gallery-back-btn:hover { border-color: rgba(212,168,67,0.5); color: var(--color-gold-warm, #D4A843); }
+    .member-gallery-viewer-title { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 600; color: var(--color-ivory, #F5F0E8); }
+    .member-photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+    .member-photo-thumb { aspect-ratio: 1; border-radius: 6px; overflow: hidden; cursor: pointer; border: 1px solid rgba(212,168,67,0.08); transition: border-color 0.15s, transform 0.15s; position: relative; }
+    .member-photo-thumb:hover { border-color: rgba(212,168,67,0.4); transform: scale(1.02); }
+    .member-photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .member-lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.97); z-index: 2000; align-items: center; justify-content: center; flex-direction: column; }
+    .member-lightbox.active { display: flex; }
+    .member-lightbox-img { max-width: 90vw; max-height: 80vh; object-fit: contain; border-radius: 4px; display: block; }
+    .member-lightbox-toolbar { display: flex; align-items: center; gap: 16px; margin-top: 16px; z-index: 2001; }
+    .member-lightbox-download { display: flex; align-items: center; gap: 6px; padding: 9px 20px; background: var(--color-gold-warm, #D4A843); border: none; border-radius: 6px; color: #000; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; text-decoration: none; }
+    .member-lightbox-download:hover { opacity: 0.85; }
+    .member-lightbox-counter-txt { font-size: 12px; color: rgba(245,240,232,0.4); }
+    .member-lightbox-close { position: fixed; top: 18px; right: 22px; background: none; border: none; color: rgba(245,240,232,0.6); font-size: 26px; cursor: pointer; z-index: 2001; transition: color 0.15s; line-height: 1; }
+    .member-lightbox-close:hover { color: var(--color-ivory, #F5F0E8); }
+    .member-lightbox-prev, .member-lightbox-next { position: fixed; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); border: 1px solid rgba(212,168,67,0.28); border-radius: 50%; width: 48px; height: 48px; color: var(--color-gold-warm, #D4A843); font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 2001; transition: all 0.15s; }
+    .member-lightbox-prev { left: 20px; }
+    .member-lightbox-next { right: 20px; }
+    .member-lightbox-prev:hover, .member-lightbox-next:hover { background: rgba(212,168,67,0.18); border-color: var(--color-gold-warm, #D4A843); }
+    .member-gallery-empty { text-align: center; padding: 50px 20px; color: rgba(245,240,232,0.3); }
+    .member-gallery-empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.4; }
+    .member-gallery-empty-text { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 300; color: rgba(245,240,232,0.45); }
+    @media (max-width: 480px) { .member-galleries-grid { grid-template-columns: 1fr 1fr; gap: 10px; } .member-photo-grid { grid-template-columns: repeat(3, 1fr); gap: 5px; } }
   </style>
 </head>
 <body>
@@ -1347,6 +1394,9 @@
         </button>
         <button class="portal-tab" data-tab="history">
           <span class="tab-icon">◎</span> History
+        </button>
+        <button class="portal-tab" data-tab="gallery">
+          <span class="tab-icon">📷</span> Gallery
         </button>
       </nav>
 
@@ -1670,7 +1720,47 @@
       </div><!-- /max-width wrapper -->
     </div>
 
-  </main>
+    <!-- Gallery Tab -->
+    <div class="tab-panel" id="tab-gallery">
+      <div class="member-gallery-wrap">
+        <div id="memberGalleryList">
+          <div class="member-gallery-header">
+            <div class="member-gallery-title">Our <span>Gallery</span></div>
+            <div class="member-gallery-sub">Members-only photos from RIDDIM events</div>
+          </div>
+          <div class="member-galleries-grid" id="memberGalleriesGrid">
+            <div style="color:rgba(245,240,232,0.3);font-size:13px;">Loading...</div>
+          </div>
+          <div class="member-gallery-empty" id="memberGalleryEmpty" style="display:none;">
+            <div class="member-gallery-empty-icon">📷</div>
+            <div class="member-gallery-empty-text">No galleries yet — check back after your next visit</div>
+          </div>
+        </div>
+        <div id="memberGalleryViewer" class="member-gallery-viewer">
+          <div class="member-gallery-viewer-header">
+            <button class="member-gallery-back-btn" onclick="showMemberGalleryList()">← Back</button>
+            <div class="member-gallery-viewer-title" id="memberViewerTitle"></div>
+          </div>
+          <div class="member-photo-grid" id="memberPhotoGrid"></div>
+          <div class="member-gallery-empty" id="memberPhotoEmpty" style="display:none;">
+            <div class="member-gallery-empty-icon">🖼️</div>
+            <div class="member-gallery-empty-text">No photos in this gallery yet</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  <!-- Member Gallery Lightbox -->
+  <div class="member-lightbox" id="memberLightbox">
+    <button class="member-lightbox-close" onclick="closeMemberLightbox()">✕</button>
+    <button class="member-lightbox-prev" onclick="memberLightboxNav(-1)">‹</button>
+    <img class="member-lightbox-img" id="memberLightboxImg" src="" alt="">
+    <button class="member-lightbox-next" onclick="memberLightboxNav(1)">›</button>
+    <div class="member-lightbox-toolbar">
+      <a class="member-lightbox-download" id="memberLightboxDownload" download="riddim-photo.jpg">↓ Download</a>
+      <span class="member-lightbox-counter-txt" id="memberLightboxCounter"></span>
+    </div>
+  </div>
 
   <!-- Mobile tab bar -->
   <div class="mobile-tab-bar">
@@ -1690,6 +1780,10 @@
       <button class="mobile-tab" data-tab="history">
         <span class="mobile-tab-icon">◎</span>
         <span class="mobile-tab-label">History</span>
+      </button>
+      <button class="mobile-tab" data-tab="gallery">
+        <span class="mobile-tab-icon">📷</span>
+        <span class="mobile-tab-label">Gallery</span>
       </button>
     </div>
   </div>
@@ -2374,6 +2468,7 @@ function goToTab(tabId) {
   document.querySelectorAll('.portal-tab, .mobile-tab').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.tab === tabId);
   });
+  if (tabId === 'gallery') loadMemberGalleries();
 }
 
 document.querySelectorAll('.portal-tab, .mobile-tab').forEach(btn => {
@@ -2704,6 +2799,129 @@ function showGuestListBanner() {
 // Navigation back to main site — resolves correctly from any subdirectory depth
 function returnToMainSite() {
   window.open('../index.html', '_blank');
+}
+
+// ============================================
+// MEMBER GALLERY
+// ============================================
+let memberGalleryPhotos = [];
+let memberLightboxIndex = 0;
+
+async function loadMemberGalleries() {
+  const grid = document.getElementById('memberGalleriesGrid');
+  const empty = document.getElementById('memberGalleryEmpty');
+  if (!grid) return;
+  grid.innerHTML = '<div style="color:rgba(245,240,232,0.3);font-size:13px;">Loading...</div>';
+  try {
+    const { data: galleries, error } = await supabaseClient
+      .from('galleries').select('*, events(title)')
+      .eq('is_private', false).order('gallery_date', { ascending: false });
+    if (error) throw error;
+    if (!galleries || galleries.length === 0) { grid.innerHTML = ''; empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+    const galleriesEnriched = await Promise.all(galleries.map(async (g) => {
+      const { count } = await supabaseClient.from('gallery_photos')
+        .select('*', { count: 'exact', head: true }).eq('gallery_id', g.id);
+      let coverUrl = null;
+      if (g.cover_photo_id) {
+        const { data: cp } = await supabaseClient.from('gallery_photos')
+          .select('storage_path').eq('id', g.cover_photo_id).single();
+        if (cp) { const { data: su } = await supabaseClient.storage.from('gallery-photos').createSignedUrl(cp.storage_path, 3600); coverUrl = su?.signedUrl || null; }
+      }
+      if (!coverUrl) {
+        const { data: fp } = await supabaseClient.from('gallery_photos')
+          .select('storage_path').eq('gallery_id', g.id).order('display_order', { ascending: true }).limit(1).single();
+        if (fp) { const { data: su } = await supabaseClient.storage.from('gallery-photos').createSignedUrl(fp.storage_path, 3600); coverUrl = su?.signedUrl || null; }
+      }
+      return { ...g, photoCount: count || 0, coverUrl };
+    }));
+    grid.innerHTML = galleriesEnriched.map(g => `
+      <div class="member-gallery-card" onclick="openMemberGallery('${g.id}', '${(g.title || '').replace(/'/g, "\\'")}')">
+        <div class="member-gallery-cover">${g.coverUrl ? `<img src="${g.coverUrl}" alt="${g.title}" loading="lazy">` : '📷'}</div>
+        <div class="member-gallery-card-body">
+          <div class="member-gallery-card-title">${g.title}</div>
+          <div class="member-gallery-card-meta">${formatMemberGalleryDate(g.gallery_date)}${g.events ? ' · ' + g.events.title : ''}</div>
+          <div class="member-gallery-card-footer">
+            <span class="member-gallery-count">${g.photoCount} photo${g.photoCount !== 1 ? 's' : ''}</span>
+            <button class="member-gallery-view-btn">View →</button>
+          </div>
+        </div>
+      </div>`).join('');
+  } catch (err) {
+    console.error('loadMemberGalleries error:', err);
+    grid.innerHTML = '<div style="color:#e07070;font-size:13px;">Could not load galleries.</div>';
+  }
+}
+
+async function openMemberGallery(galleryId, title) {
+  document.getElementById('memberViewerTitle').textContent = title;
+  document.getElementById('memberGalleryList').style.display = 'none';
+  document.getElementById('memberGalleryViewer').classList.add('active');
+  document.getElementById('memberPhotoGrid').innerHTML = '<div style="color:rgba(245,240,232,0.3);font-size:13px;">Loading photos...</div>';
+  document.getElementById('memberPhotoEmpty').style.display = 'none';
+  try {
+    const { data: photos, error } = await supabaseClient.from('gallery_photos')
+      .select('*').eq('gallery_id', galleryId).order('display_order', { ascending: true });
+    if (error) throw error;
+    if (!photos || photos.length === 0) { document.getElementById('memberPhotoGrid').innerHTML = ''; document.getElementById('memberPhotoEmpty').style.display = 'block'; memberGalleryPhotos = []; return; }
+    const photosWithUrls = await Promise.all(photos.map(async (p) => {
+      const { data: su } = await supabaseClient.storage.from('gallery-photos').createSignedUrl(p.storage_path, 7200);
+      return { ...p, signedUrl: su?.signedUrl || '' };
+    }));
+    memberGalleryPhotos = photosWithUrls;
+    document.getElementById('memberPhotoGrid').innerHTML = photosWithUrls.map((p, i) => `
+      <div class="member-photo-thumb" onclick="openMemberLightbox(${i})">
+        <img src="${p.signedUrl}" alt="" loading="lazy">
+      </div>`).join('');
+  } catch (err) {
+    console.error('openMemberGallery error:', err);
+    document.getElementById('memberPhotoGrid').innerHTML = '<div style="color:#e07070;font-size:13px;">Could not load photos.</div>';
+  }
+}
+
+function showMemberGalleryList() {
+  memberGalleryPhotos = [];
+  document.getElementById('memberGalleryViewer').classList.remove('active');
+  document.getElementById('memberGalleryList').style.display = 'block';
+}
+
+function openMemberLightbox(index) {
+  memberLightboxIndex = index;
+  renderMemberLightbox();
+  document.getElementById('memberLightbox').classList.add('active');
+  document.addEventListener('keydown', memberLightboxKeyHandler);
+}
+
+function renderMemberLightbox() {
+  const photo = memberGalleryPhotos[memberLightboxIndex];
+  document.getElementById('memberLightboxImg').src = photo.signedUrl;
+  document.getElementById('memberLightboxDownload').href = photo.signedUrl;
+  document.getElementById('memberLightboxCounter').textContent = `${memberLightboxIndex + 1} / ${memberGalleryPhotos.length}`;
+}
+
+function memberLightboxNav(dir) {
+  memberLightboxIndex = (memberLightboxIndex + dir + memberGalleryPhotos.length) % memberGalleryPhotos.length;
+  renderMemberLightbox();
+}
+
+function closeMemberLightbox() {
+  document.getElementById('memberLightbox').classList.remove('active');
+  document.removeEventListener('keydown', memberLightboxKeyHandler);
+}
+
+function memberLightboxKeyHandler(e) {
+  if (e.key === 'ArrowLeft') memberLightboxNav(-1);
+  if (e.key === 'ArrowRight') memberLightboxNav(1);
+  if (e.key === 'Escape') closeMemberLightbox();
+}
+
+document.getElementById('memberLightbox')?.addEventListener('click', function(e) {
+  if (e.target === this) closeMemberLightbox();
+});
+
+function formatMemberGalleryDate(dateStr) {
+  if (!dateStr) return '';
+  return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 </script>
 </body>
