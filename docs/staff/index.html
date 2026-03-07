@@ -1138,6 +1138,7 @@
         <button class="portal-tab" data-tab="schedule">⊞ My Schedule</button>
         <button class="portal-tab" data-tab="referrals">★ Referrals</button>
         <button class="portal-tab" data-tab="gallery">📷 Gallery</button>
+        <button class="portal-tab" data-tab="events">📅 Events</button>
       </nav>
 
       <div class="portal-user">
@@ -1727,8 +1728,45 @@
         <span class="mobile-tab-icon">📷</span>
         <span class="mobile-tab-label">Gallery</span>
       </button>
+      <button class="mobile-tab" data-tab="events">
+        <span class="mobile-tab-icon">📅</span>
+        <span class="mobile-tab-label">Events</span>
+      </button>
     </div>
   </div>
+</div>
+
+<!-- ── TAB: EVENTS ── -->
+<div class="tab-panel" id="tab-events" style="padding:24px 20px;">
+  <div style="margin-bottom:20px;">
+    <p style="font-family:var(--font-label);font-size:10px;letter-spacing:0.12em;color:var(--gold-warm);margin-bottom:6px;">EVENTS</p>
+    <h2 style="font-family:var(--font-display);font-size:28px;font-weight:300;font-style:italic;color:var(--ivory);">This Month</h2>
+  </div>
+
+  <!-- Calendar -->
+  <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:16px;margin-bottom:24px;max-width:600px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <button onclick="staffEvtCalNav(-1)" style="background:none;border:1px solid rgba(255,255,255,0.12);color:#f5f0e8;width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:15px;">&#x2039;</button>
+      <div id="staffEvtCalLabel" style="font-family:var(--font-label);font-size:12px;letter-spacing:0.12em;color:#f5f0e8;"></div>
+      <button onclick="staffEvtCalNav(1)" style="background:none;border:1px solid rgba(255,255,255,0.12);color:#f5f0e8;width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:15px;">&#x203A;</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;">
+      <div style="text-align:center;font-size:10px;color:rgba(245,240,232,0.3);padding-bottom:3px;">Su</div>
+      <div style="text-align:center;font-size:10px;color:rgba(245,240,232,0.3);padding-bottom:3px;">Mo</div>
+      <div style="text-align:center;font-size:10px;color:rgba(245,240,232,0.3);padding-bottom:3px;">Tu</div>
+      <div style="text-align:center;font-size:10px;color:rgba(245,240,232,0.3);padding-bottom:3px;">We</div>
+      <div style="text-align:center;font-size:10px;color:rgba(245,240,232,0.3);padding-bottom:3px;">Th</div>
+      <div style="text-align:center;font-size:10px;color:rgba(245,240,232,0.3);padding-bottom:3px;">Fr</div>
+      <div style="text-align:center;font-size:10px;color:rgba(245,240,232,0.3);padding-bottom:3px;">Sa</div>
+    </div>
+    <div id="staffEvtCalGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;"></div>
+    <div id="staffEvtCalClearWrap" style="display:none;text-align:right;margin-top:8px;">
+      <button onclick="staffEvtCalClear()" style="font-size:11px;color:var(--gold-warm);background:none;border:none;cursor:pointer;">&#x2715; CLEAR</button>
+    </div>
+  </div>
+
+  <!-- Weekend list -->
+  <div id="staffEvtWeekendList" style="max-width:600px;display:flex;flex-direction:column;gap:10px;"></div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -1992,6 +2030,7 @@ function goToTab(tabId) {
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id===`tab-${tabId}`));
   document.querySelectorAll('.portal-tab,.mobile-tab').forEach(btn=>btn.classList.toggle('active',btn.dataset.tab===tabId));
   if (tabId === 'gallery') loadStaffGalleries();
+  if (tabId === 'events') { loadStaffEvents().then(() => { staffEvtRenderCalendar(); staffEvtRenderWeekendList(); }); }
 }
 document.querySelectorAll('.portal-tab,.mobile-tab').forEach(btn=>{ if(btn.dataset.tab) btn.addEventListener('click',()=>goToTab(btn.dataset.tab)); });
 
@@ -2531,7 +2570,7 @@ async function loadAvailableEvents() {
     const d       = new Date(e.event_date + 'T12:00:00');
     const dateStr = d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
     const isToday = e.event_date === today;
-    const label   = `${isToday ? '★ ' : ''}${e.name} — ${dateStr}${e.start_time ? ' · ' + fmtTime12(e.start_time) : ''} [${e.status.replace('_',' ')}]`;
+    const label   = `${isToday ? '★ ' : ''}${e.title||e.name||'Event'} — ${dateStr}${e.start_time ? ' · ' + fmtTime12(e.start_time) : ''} [${e.status.replace('_',' ')}]`;
     return `<option value="${e.id}" ${e.id === defaultEvent.id ? 'selected' : ''}>${label}</option>`;
   }).join('');
 
@@ -3954,6 +3993,140 @@ async function downloadInstagramCrop() {
 function formatStaffGalleryDate(dateStr) {
   if (!dateStr) return '';
   return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+/* ═══ STAFF EVENTS TAB ═══ */
+let staffEvtYear   = new Date().getFullYear();
+let staffEvtMonth  = new Date().getMonth();
+let staffEvtFilter = null;
+let STAFF_EVENTS   = []; // populated from Supabase on tab open
+
+async function loadStaffEvents() {
+  if (!LIVE_DATA || !supabaseClient) return;
+  try {
+    const { data } = await supabaseClient.from('events')
+      .select('id, title, event_date, start_time, end_time, status, description, flyer_url, capacity')
+      .not('status', 'eq', 'cancelled')
+      .order('event_date', { ascending: true });
+    STAFF_EVENTS = data || [];
+  } catch(e) { console.warn('Staff events fetch:', e); STAFF_EVENTS = []; }
+}
+
+function staffEvtCalNav(dir) {
+  staffEvtMonth += dir;
+  if (staffEvtMonth > 11) { staffEvtMonth = 0; staffEvtYear++; }
+  if (staffEvtMonth < 0)  { staffEvtMonth = 11; staffEvtYear--; }
+  staffEvtRenderCalendar();
+  staffEvtRenderWeekendList();
+}
+
+function staffEvtCalClear() {
+  staffEvtFilter = null;
+  document.getElementById('staffEvtCalClearWrap').style.display = 'none';
+  staffEvtRenderCalendar();
+  staffEvtRenderWeekendList();
+}
+
+function staffEvtCalSelectDate(iso) {
+  staffEvtFilter = (staffEvtFilter === iso) ? null : iso;
+  document.getElementById('staffEvtCalClearWrap').style.display = staffEvtFilter ? 'block' : 'none';
+  staffEvtRenderCalendar();
+  staffEvtRenderWeekendList();
+}
+
+function staffEvtRenderCalendar() {
+  const label = document.getElementById('staffEvtCalLabel');
+  const grid  = document.getElementById('staffEvtCalGrid');
+  if (!label || !grid) return;
+  const months = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+  label.textContent = months[staffEvtMonth] + ' ' + staffEvtYear;
+  const eventDates = new Set(STAFF_EVENTS.map(e => e.event_date));
+  const today = new Date().toISOString().slice(0,10);
+  const firstDay = new Date(staffEvtYear, staffEvtMonth, 1).getDay();
+  const daysInMonth = new Date(staffEvtYear, staffEvtMonth+1, 0).getDate();
+  let cells = '';
+  for (let i = 0; i < firstDay; i++) cells += '<div></div>';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const mm  = String(staffEvtMonth+1).padStart(2,'0');
+    const dd  = String(d).padStart(2,'0');
+    const iso = `${staffEvtYear}-${mm}-${dd}`;
+    const dow = new Date(staffEvtYear, staffEvtMonth, d).getDay();
+    const isWeekend = dow === 0 || dow === 5 || dow === 6;
+    const hasEvent  = eventDates.has(iso);
+    const isToday   = iso === today;
+    const isSelected = iso === staffEvtFilter;
+    const isPast    = iso < today;
+    let bg = 'transparent', border = 'none';
+    let color = isPast ? 'rgba(245,240,232,0.2)' : isWeekend ? 'rgba(245,240,232,0.7)' : 'rgba(245,240,232,0.35)';
+    if (isSelected) { bg = 'var(--gold-warm)'; color = '#000'; }
+    else if (isToday) border = '1px solid var(--gold-warm)';
+    else if (isWeekend && !isPast) border = '1px solid rgba(212,168,67,0.2)';
+    const dot = hasEvent && !isSelected ? `<div style="width:4px;height:4px;border-radius:50%;background:${isSelected?'#000':'var(--gold-warm)'};margin:1px auto 0;"></div>` : '';
+    const click = isWeekend ? `onclick="staffEvtCalSelectDate('${iso}')"` : '';
+    cells += `<div ${click} style="text-align:center;padding:5px 2px;border-radius:5px;background:${bg};border:${border};color:${color};font-size:12px;cursor:${isWeekend?'pointer':'default'};user-select:none;">${d}${dot}</div>`;
+  }
+  grid.innerHTML = cells;
+}
+
+function staffEvtRenderWeekendList() {
+  const el = document.getElementById('staffEvtWeekendList');
+  if (!el) return;
+  const today = new Date().toISOString().slice(0,10);
+  const eventMap = {};
+  STAFF_EVENTS.forEach(e => { eventMap[e.event_date] = e; });
+  const daysInMonth = new Date(staffEvtYear, staffEvtMonth+1, 0).getDate();
+  const rows = [];
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dow = new Date(staffEvtYear, staffEvtMonth, d).getDay();
+    if (dow !== 0 && dow !== 5 && dow !== 6) continue;
+    const mm  = String(staffEvtMonth+1).padStart(2,'0');
+    const dd  = String(d).padStart(2,'0');
+    const iso = `${staffEvtYear}-${mm}-${dd}`;
+    if (staffEvtFilter && iso !== staffEvtFilter) continue;
+    rows.push(iso);
+  }
+  if (!rows.length) { el.innerHTML = '<p style="color:rgba(245,240,232,0.3);font-size:13px;">No weekend dates.</p>'; return; }
+  const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  el.innerHTML = rows.map(iso => {
+    const ev  = eventMap[iso];
+    const d   = new Date(iso + 'T00:00:00');
+    const dow = d.getDay();
+    const dayLabel  = dayNames[dow].toUpperCase();
+    const dateLabel = d.toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' }).toUpperCase();
+    const isPast    = iso < today;
+    if (ev) {
+      const isLive = ev.status === 'live';
+      const isSoldOut = ev.status === 'sold_out';
+      const badge = isLive
+        ? '<span style="font-size:9px;background:rgba(129,199,132,0.15);color:#81C784;border:1px solid rgba(129,199,132,0.3);padding:2px 8px;border-radius:10px;">● LIVE</span>'
+        : isSoldOut
+        ? '<span style="font-size:9px;background:rgba(192,57,43,0.15);color:#E57373;border:1px solid rgba(192,57,43,0.3);padding:2px 8px;border-radius:10px;">SOLD OUT</span>'
+        : `<span style="font-size:9px;background:rgba(212,168,67,0.12);color:var(--gold-warm);border:1px solid rgba(212,168,67,0.25);padding:2px 8px;border-radius:10px;">${ev.status.replace('_',' ').toUpperCase()}</span>`;
+      const flyer = ev.flyer_url
+        ? `<img src="${ev.flyer_url}" style="width:60px;height:60px;object-fit:cover;border-radius:6px;flex-shrink:0;" loading="lazy">`
+        : `<div style="width:60px;height:60px;border-radius:6px;background:rgba(212,168,67,0.08);border:1px solid rgba(212,168,67,0.2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;color:rgba(212,168,67,0.4);">✦</div>`;
+      return `<div style="display:flex;gap:12px;align-items:flex-start;background:rgba(212,168,67,0.05);border:1px solid rgba(212,168,67,0.2);border-radius:10px;padding:12px 14px;">
+        ${flyer}
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+            <span style="font-size:10px;letter-spacing:0.1em;color:var(--gold-warm);">${dayLabel} · ${dateLabel}</span>${badge}
+          </div>
+          <div style="font-family:var(--font-display);font-size:18px;font-weight:300;color:#f5f0e8;">${ev.title||'—'}</div>
+          ${ev.description ? `<div style="font-size:11px;color:rgba(245,240,232,0.45);margin-top:2px;">${ev.description}</div>` : ''}
+          ${ev.start_time ? `<div style="font-size:11px;color:rgba(245,240,232,0.35);margin-top:2px;">Doors ${ev.start_time.slice(0,5)} ${ev.end_time ? '— '+ev.end_time.slice(0,5) : ''}</div>` : ''}
+          ${ev.capacity ? `<div style="font-size:10px;color:rgba(245,240,232,0.3);margin-top:2px;">Capacity: ${ev.capacity}</div>` : ''}
+        </div>
+      </div>`;
+    } else {
+      return `<div style="display:flex;gap:12px;align-items:center;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:10px;padding:12px 14px;opacity:${isPast?'0.25':'0.5'};">
+        <div style="width:60px;height:60px;border-radius:6px;background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;color:rgba(245,240,232,0.15);">○</div>
+        <div>
+          <div style="font-size:10px;letter-spacing:0.1em;color:rgba(245,240,232,0.25);margin-bottom:3px;">${dayLabel} · ${dateLabel}</div>
+          <div style="font-family:var(--font-display);font-size:16px;font-weight:300;color:rgba(245,240,232,0.3);">No Event Scheduled</div>
+        </div>
+      </div>`;
+    }
+  }).join('');
 }
 
 </script>
