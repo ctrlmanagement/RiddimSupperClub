@@ -3,22 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="robots" content="noindex, nofollow">
 <title>Gallery — RIDDIM Supper Club Atlanta</title>
-<meta name="description" content="Photos from RIDDIM Supper Club Atlanta — nights worth remembering.">
+<meta name="description" content="Photos from RIDDIM Supper Club Atlanta — nights worth remembering. Join the Members Club for full-resolution access to every gallery.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,600&family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="_shared.css">
 <style>
 
+/* ── SKELETON ANIMATION ──────────────────────────────────────── */
+@keyframes gallerySkeleton {
+  0%, 100% { opacity: 0.35; }
+  50%       { opacity: 0.6; }
+}
+
 /* ── PAGE LAYOUT ─────────────────────────────────────────────── */
-.gallery-page { padding: var(--space-32) var(--space-12) var(--space-24); }
+.gallery-page       { padding: var(--space-32) var(--space-12) var(--space-24); }
 .gallery-page-inner { max-width: 1100px; margin: 0 auto; }
 
 /* ── GALLERY LIST VIEW ───────────────────────────────────────── */
-.gallery-list-header {
-  margin-bottom: var(--space-12);
-}
+.gallery-list-header { margin-bottom: var(--space-12); }
 .gallery-list-title {
   font-family: var(--font-display);
   font-size: var(--t-display);
@@ -31,9 +34,10 @@
 .gallery-list-desc {
   font-size: var(--t-body);
   color: var(--color-ash);
-  max-width: 480px;
+  max-width: 500px;
   line-height: 1.7;
 }
+
 .gallery-cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -45,73 +49,59 @@
   border-radius: var(--radius-md);
   overflow: hidden;
   cursor: pointer;
-  transition: border-color 0.2s var(--ease-standard), transform 0.2s var(--ease-standard);
+  transition: border-color var(--duration-base) var(--ease-standard),
+              transform var(--duration-base) var(--ease-standard),
+              box-shadow var(--duration-base) var(--ease-standard);
 }
 .gallery-card:hover {
-  border-color: rgba(212,168,67,0.4);
-  transform: translateY(-2px);
+  border-color: rgba(212,168,67,0.45);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-gold);
 }
 .gallery-card-cover {
-  width: 100%;
-  height: 200px;
+  width: 100%; height: 200px;
   background: var(--color-void);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: rgba(212,168,67,0.2);
-  font-size: 36px;
-  overflow: hidden;
-  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; position: relative;
 }
 .gallery-card-cover img {
   width: 100%; height: 100%;
-  object-fit: cover;
-  display: block;
+  object-fit: cover; display: block;
   opacity: 0;
-  transition: opacity 0.4s var(--ease-cinematic);
+  transition: opacity 0.4s var(--ease-cinematic), transform var(--duration-slow) var(--ease-cinematic);
+  pointer-events: none;
+  -webkit-user-drag: none;
+  user-select: none;
 }
+.gallery-card:hover .gallery-card-cover img { transform: scale(1.04); }
 .gallery-card-cover img.loaded { opacity: 1; }
 .gallery-card-cover-placeholder {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
   font-size: 36px;
-  color: rgba(212,168,67,0.15);
+  color: rgba(212,168,67,0.12);
 }
-.gallery-card-body { padding: var(--space-4) var(--space-6); }
+.gallery-card-body  { padding: var(--space-4) var(--space-6); }
 .gallery-card-title {
   font-family: var(--font-display);
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 18px; font-weight: 600;
   color: var(--color-ivory);
   margin-bottom: var(--space-1);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .gallery-card-meta {
-  font-size: 12px;
-  color: var(--color-ash);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  font-size: 12px; color: var(--color-ash);
+  display: flex; align-items: center; justify-content: space-between;
 }
-.gallery-card-count {
-  font-size: 11px;
-  color: rgba(245,240,232,0.35);
-}
+.gallery-card-count           { font-size: 11px; color: rgba(245,240,232,0.35); }
+.gallery-card-count.partial   { color: var(--color-gold-deep); font-size: 10px; letter-spacing: 0.04em; }
 
 /* ── PHOTO GRID VIEW ─────────────────────────────────────────── */
 .photo-view { display: none; }
 .photo-view.active { display: block; }
 .photo-view-header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  margin-bottom: var(--space-8);
-  flex-wrap: wrap;
+  display: flex; align-items: center; gap: var(--space-4);
+  margin-bottom: var(--space-8); flex-wrap: wrap;
 }
 .photo-view-back {
   background: none;
@@ -119,20 +109,23 @@
   border-radius: var(--radius-sm);
   color: var(--color-ash);
   padding: 7px 16px;
-  font-size: 12px;
-  font-family: var(--font-body);
-  letter-spacing: 0.1em;
+  font-size: 12px; font-family: var(--font-body); letter-spacing: 0.1em;
   cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
+  transition: border-color var(--duration-fast), color var(--duration-fast);
   white-space: nowrap;
 }
 .photo-view-back:hover { border-color: var(--color-gold-warm); color: var(--color-gold-warm); }
 .photo-view-title {
   font-family: var(--font-display);
   font-size: clamp(22px, 3vw, 34px);
-  font-weight: 300;
-  color: var(--color-ivory);
+  font-weight: 300; color: var(--color-ivory);
 }
+.photo-view-count {
+  margin-left: auto;
+  font-size: 11px; color: var(--color-ash); letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
 .photo-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -142,131 +135,140 @@
   aspect-ratio: 1;
   overflow: hidden;
   background: var(--color-carbon);
-  cursor: pointer;
-  position: relative;
+  cursor: pointer; position: relative;
 }
 .photo-thumb img {
   width: 100%; height: 100%;
-  object-fit: cover;
-  display: block;
+  object-fit: cover; display: block;
   opacity: 0;
   transition: opacity 0.3s var(--ease-cinematic), transform 0.4s var(--ease-cinematic);
+  pointer-events: none;
+  -webkit-user-drag: none;
+  user-select: none;
 }
-.photo-thumb img.loaded { opacity: 1; }
-.photo-thumb:hover img { transform: scale(1.05); }
+.photo-thumb img.loaded   { opacity: 1; }
+.photo-thumb:not(.photo-thumb--gated):hover img { transform: scale(1.05); }
 .photo-thumb-placeholder {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: rgba(212,168,67,0.1);
-  font-size: 24px;
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: rgba(212,168,67,0.1); font-size: 24px;
+}
+
+/* ── PHOTO GATE — 10th image CTA overlay ────────────────────── */
+.photo-thumb--gated { cursor: pointer; }
+.photo-thumb--gated img {
+  filter: blur(3px) brightness(0.4);
+  opacity: 1 !important;
+  transform: scale(1.06);
+}
+.photo-gate {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 7px; padding: 20px 14px;
+  text-align: center; z-index: 2;
+  background: rgba(10,10,10,0.6);
+  backdrop-filter: blur(1px);
+}
+.photo-gate-icon  { font-size: 22px; margin-bottom: 2px; }
+.photo-gate-label {
+  font-family: var(--font-label);
+  font-size: 10px; letter-spacing: 0.3em;
+  color: var(--color-gold-warm);
+}
+.photo-gate-title {
+  font-family: var(--font-display);
+  font-size: clamp(13px,2vw,17px);
+  font-weight: 300; font-style: italic;
+  color: var(--color-ivory); line-height: 1.2;
+}
+.photo-gate-sub {
+  font-size: 10px;
+  color: rgba(245,240,232,0.45);
+  letter-spacing: 0.05em; line-height: 1.4;
+  margin-bottom: 4px;
+}
+/* Inline size override for the btn-primary inside the gate */
+.photo-gate .btn-primary {
+  padding: 8px 18px;
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  pointer-events: auto;
+  text-decoration: none;
+  display: inline-block;
 }
 
 /* ── LIGHTBOX ────────────────────────────────────────────────── */
 .pub-lightbox {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.97);
-  z-index: 1000;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  transform: none;
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.97); z-index: 1000;
+  flex-direction: column; align-items: center; justify-content: center;
 }
 .pub-lightbox.active { display: flex; }
 .pub-lightbox-img {
   max-width: calc(100vw - 120px);
   max-height: calc(100vh - 100px);
-  width: auto;
-  height: auto;
+  width: auto; height: auto;
   object-fit: contain;
   border-radius: var(--radius-sm);
-  display: block;
-  flex-shrink: 0;
+  display: block; flex-shrink: 0;
+  pointer-events: none;
+  -webkit-user-drag: none;
+  user-select: none;
 }
 .pub-lightbox-close {
-  position: fixed;
-  top: 20px; right: 24px;
+  position: fixed; top: 20px; right: 24px;
   background: none; border: none;
-  color: rgba(245,240,232,0.5);
-  font-size: 28px;
-  cursor: pointer;
-  z-index: 1001;
-  line-height: 1;
-  transition: color 0.15s;
+  color: rgba(245,240,232,0.5); font-size: 28px;
+  cursor: pointer; z-index: 1001; line-height: 1;
+  transition: color var(--duration-fast);
 }
 .pub-lightbox-close:hover { color: var(--color-ivory); }
 .pub-lightbox-prev,
 .pub-lightbox-next {
-  position: fixed;
-  top: 50%; transform: translateY(-50%);
+  position: fixed; top: 50%; transform: translateY(-50%);
   background: rgba(0,0,0,0.5);
   border: 1px solid rgba(212,168,67,0.25);
-  border-radius: 50%;
-  width: 48px; height: 48px;
-  color: var(--color-gold-warm);
-  font-size: 20px;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  z-index: 1001;
-  transition: all 0.15s;
+  border-radius: 50%; width: 48px; height: 48px;
+  color: var(--color-gold-warm); font-size: 20px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  z-index: 1001; transition: all var(--duration-fast);
 }
 .pub-lightbox-prev { left: 16px; }
 .pub-lightbox-next { right: 16px; }
 .pub-lightbox-prev:hover,
 .pub-lightbox-next:hover { background: rgba(212,168,67,0.15); border-color: var(--color-gold-warm); }
 .pub-lightbox-counter {
-  position: fixed;
-  bottom: 20px;
+  position: fixed; bottom: 20px;
   left: 50%; transform: translateX(-50%);
-  font-size: 12px;
-  color: rgba(245,240,232,0.3);
-  letter-spacing: 0.1em;
+  font-size: 12px; color: rgba(245,240,232,0.3); letter-spacing: 0.1em;
 }
 .pub-lightbox-join {
-  position: fixed;
-  bottom: 48px;
+  position: fixed; bottom: 48px;
   left: 50%; transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  background: rgba(10,10,10,0.85);
+  display: flex; align-items: center; gap: var(--space-3);
+  background: rgba(10,10,10,0.88);
   border: 1px solid rgba(212,168,67,0.2);
   border-radius: var(--radius-sm);
   padding: var(--space-3) var(--space-6);
-  white-space: nowrap;
-  backdrop-filter: blur(8px);
+  white-space: nowrap; backdrop-filter: blur(8px);
 }
-.pub-lightbox-join-text {
-  font-size: 12px;
-  color: var(--color-ash);
-  letter-spacing: 0.04em;
-}
+.pub-lightbox-join-text { font-size: 12px; color: var(--color-ash); letter-spacing: 0.04em; }
 .pub-lightbox-join-cta {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.14em; text-transform: uppercase;
   color: var(--color-gold-warm);
-  transition: color 0.15s;
+  transition: color var(--duration-fast);
 }
 .pub-lightbox-join-cta:hover { color: var(--color-gold-bright); }
 
 /* ── EMPTY / LOADING ─────────────────────────────────────────── */
 .gallery-empty {
-  text-align: center;
-  padding: 80px 20px;
+  text-align: center; padding: 80px 20px;
   color: rgba(245,240,232,0.25);
 }
-.gallery-empty-icon { font-size: 44px; margin-bottom: var(--space-4); opacity: 0.35; }
-.gallery-empty-text {
-  font-family: var(--font-display);
-  font-size: 20px;
-  font-weight: 300;
-}
+.gallery-empty-icon  { font-size: 44px; margin-bottom: var(--space-4); opacity: 0.35; }
+.gallery-empty-text  { font-family: var(--font-display); font-size: 20px; font-weight: 300; }
 .gallery-skeleton-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -279,18 +281,58 @@
   animation: gallerySkeleton 1.4s ease-in-out infinite;
 }
 
+/* ── PHOTO VIEW JOIN CTA ─────────────────────────────────────── */
+.photo-join-cta {
+  margin-top: var(--space-12);
+  padding: var(--space-8);
+  background: var(--color-carbon);
+  border: 1px solid var(--color-graphite);
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+.photo-join-cta-icon  { font-size: 28px; margin-bottom: var(--space-3); }
+.photo-join-cta-title {
+  font-family: var(--font-display);
+  font-size: clamp(18px, 2.5vw, 26px);
+  font-weight: 300; color: var(--color-ivory);
+  margin-bottom: var(--space-2);
+}
+.photo-join-cta-title em { color: var(--color-gold-warm); font-style: italic; }
+.photo-join-cta-body {
+  font-size: 13px; color: var(--color-ash);
+  max-width: 380px; margin: 0 auto var(--space-6);
+  line-height: 1.75;
+}
+
+/* ── FOOTER CTA ──────────────────────────────────────────────── */
+.gallery-footer-cta {
+  text-align: center;
+  margin-top: var(--space-16);
+  padding-top: var(--space-12);
+  border-top: 1px solid var(--color-graphite);
+}
+.gallery-footer-cta-title {
+  font-family: var(--font-display);
+  font-size: clamp(18px, 2vw, 26px);
+  font-weight: 300; color: var(--color-ash);
+  margin-bottom: var(--space-6);
+}
+.gallery-footer-cta-title em { color: var(--color-ivory); font-style: normal; }
+
 /* ── RESPONSIVE ──────────────────────────────────────────────── */
 @media (max-width: 900px) {
   .gallery-page { padding: var(--space-24) var(--space-6) var(--space-16); }
-  .photo-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
-}
-@media (max-width: 520px) {
-  .gallery-cards-grid { grid-template-columns: 1fr 1fr; gap: var(--space-4); }
-  .gallery-card-cover { height: 140px; }
-  .photo-grid { grid-template-columns: repeat(3, 1fr); gap: 3px; }
-  .pub-lightbox-img { max-width: calc(100vw - 80px); max-height: calc(100svh - 120px); }
+  .photo-grid   { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
   .pub-lightbox-join { display: none; }
 }
+@media (max-width: 520px) {
+  .gallery-cards-grid    { grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+  .gallery-card-cover    { height: 140px; }
+  .photo-grid            { grid-template-columns: repeat(3, 1fr); gap: 3px; }
+  .pub-lightbox-img      { max-width: calc(100vw - 80px); max-height: calc(100svh - 120px); }
+  .photo-view-count      { display: none; }
+}
+
 </style>
 </head>
 <body>
@@ -314,21 +356,21 @@
 </nav>
 
 <div class="mobile-menu" id="mobileMenu">
-  <a href="experience.html" onclick="closeMobile()">Experience</a>
-  <a href="menu.html" onclick="closeMobile()">Menu</a>
-  <a href="events.html" onclick="closeMobile()">Events</a>
+  <a href="experience.html"    onclick="closeMobile()">Experience</a>
+  <a href="menu.html"          onclick="closeMobile()">Menu</a>
+  <a href="events.html"        onclick="closeMobile()">Events</a>
   <a href="private-events.html" onclick="closeMobile()">Private Events</a>
-  <a href="gallery.html" onclick="closeMobile()">Gallery</a>
-  <a href="join.html" onclick="closeMobile()">Join the Club</a>
+  <a href="gallery.html"       onclick="closeMobile()">Gallery</a>
+  <a href="join.html"          onclick="closeMobile()">Join the Club</a>
   <a href="members/index.html" onclick="closeMobile()">Members</a>
-  <a href="reserve.html" onclick="closeMobile()" class="m-cta">Reserve a Table</a>
+  <a href="reserve.html"       onclick="closeMobile()" class="m-cta">Reserve a Table</a>
 </div>
 
 <!-- ── MAIN ──────────────────────────────────────────────────── -->
 <main class="gallery-page">
   <div class="gallery-page-inner">
 
-    <!-- Gallery list view -->
+    <!-- ── GALLERY LIST VIEW ── -->
     <div id="galleryListView">
       <div class="gallery-list-header reveal">
         <div class="section-eyebrow">The Gallery</div>
@@ -336,7 +378,7 @@
         <p class="gallery-list-desc">A preview of what we've captured. Members get full-resolution access and downloads — every gallery, every night.</p>
       </div>
 
-      <!-- Skeleton -->
+      <!-- Skeleton placeholders while loading -->
       <div class="gallery-skeleton-grid" id="gallerySkeleton">
         <div class="gallery-skeleton-card"></div>
         <div class="gallery-skeleton-card"></div>
@@ -346,34 +388,45 @@
         <div class="gallery-skeleton-card"></div>
       </div>
 
-      <!-- Cards -->
+      <!-- Gallery cards grid -->
       <div class="gallery-cards-grid" id="galleryCardsGrid" style="display:none;"></div>
 
-      <!-- Empty -->
+      <!-- Empty state -->
       <div class="gallery-empty" id="galleryEmpty" style="display:none;">
         <div class="gallery-empty-icon">📷</div>
         <div class="gallery-empty-text">No galleries yet — check back after the next night out</div>
       </div>
 
-      <!-- Footer CTA -->
-      <div style="text-align:center; margin-top:64px; padding-top:48px; border-top:1px solid var(--color-graphite);">
-        <p style="font-family:var(--font-display);font-size:clamp(18px,2vw,24px);font-weight:300;color:var(--color-ash);font-style:italic;margin-bottom:24px;">
-          Members see everything. <em style="color:var(--color-ivory);font-style:normal;">Every photo. Every night.</em>
+      <!-- Footer join CTA -->
+      <div class="gallery-footer-cta">
+        <p class="gallery-footer-cta-title">
+          Members see everything. <em>Every photo. Every night.</em>
         </p>
         <a href="join.html" class="btn btn-primary">Join the Club — It's Free</a>
       </div>
     </div>
 
-    <!-- Photo grid view (shown after clicking a gallery) -->
+    <!-- ── PHOTO GRID VIEW ── -->
     <div class="photo-view" id="photoView">
       <div class="photo-view-header">
         <button class="photo-view-back" onclick="showGalleryList()">← All Galleries</button>
         <div class="photo-view-title" id="photoViewTitle"></div>
+        <div class="photo-view-count" id="photoViewCount"></div>
       </div>
+
       <div class="photo-grid" id="photoGrid"></div>
+
       <div class="gallery-empty" id="photoEmpty" style="display:none;">
         <div class="gallery-empty-icon">🖼️</div>
         <div class="gallery-empty-text">No photos in this gallery yet</div>
+      </div>
+
+      <!-- Join CTA shown below grid when total > 10 -->
+      <div class="photo-join-cta" id="photoViewJoinCta" style="display:none;">
+        <div class="photo-join-cta-icon">✦</div>
+        <p class="photo-join-cta-title"><em>More photos await.</em></p>
+        <p class="photo-join-cta-body">Join the Members Club for full-res access to every gallery — download, share, and relive every night.</p>
+        <a href="join.html" class="btn btn-primary">Join the Club — It's Free</a>
       </div>
     </div>
 
@@ -381,16 +434,23 @@
 </main>
 
 <!-- ── LIGHTBOX ───────────────────────────────────────────────── -->
-<div class="pub-lightbox" id="pubLightbox">
+<div class="pub-lightbox" id="pubLightbox" oncontextmenu="return false;">
   <button class="pub-lightbox-close" onclick="closeLightbox()">✕</button>
   <button class="pub-lightbox-prev" onclick="lightboxNav(-1)">‹</button>
-  <img class="pub-lightbox-img" id="pubLightboxImg" src="" alt="">
+  <img class="pub-lightbox-img" id="pubLightboxImg" src="" alt=""
+       oncontextmenu="return false;" draggable="false">
   <button class="pub-lightbox-next" onclick="lightboxNav(1)">›</button>
   <div class="pub-lightbox-counter" id="pubLightboxCounter"></div>
   <div class="pub-lightbox-join">
     <span class="pub-lightbox-join-text">Want full-res downloads?</span>
     <a href="join.html" class="pub-lightbox-join-cta">Join the Club →</a>
   </div>
+</div>
+
+<!-- ── RESERVE BANNER ────────────────────────────────────────── -->
+<div class="reserve-banner">
+  <div class="reserve-banner-text">Ready to make your own memories? <em>Reserve your table.</em></div>
+  <a href="reserve.html" class="reserve-banner-cta">Reserve a Table</a>
 </div>
 
 <!-- ── FOOTER ─────────────────────────────────────────────────── -->
@@ -438,12 +498,25 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
+/* =================================================================
+   RIDDIM Supper Club — gallery.html
+   Rule of 10: last 10 galleries (FIFO) · first 10 photos per gallery
+   10th photo (index 9) is gated with a "Join Now" overlay.
+   Lazy load: IntersectionObserver for all signed URLs.
+   Security: right-click + drag blocked on all gallery images.
+   ================================================================= */
+
 const SUPABASE_URL = 'https://cbvryfgrqzdvbqigyrgh.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_fQlHFhC7tPkZNRl1djnvcA_68LpKQpv';
 const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let galleryPhotos = [];
-let lightboxIndex = 0;
+const GALLERY_LIMIT = 10;   /* max galleries shown on the page  */
+const PHOTO_LIMIT   = 10;   /* max photos per gallery (public)  */
+const GATE_INDEX    = 9;    /* 0-based index of the gated photo */
+
+let galleryPhotos            = [];
+let lightboxIndex            = 0;
+let currentGalleryTotalCount = 0;
 
 /* ── NAV ──────────────────────────────────────────────────────── */
 const hamburger = document.getElementById('hamburger');
@@ -472,22 +545,47 @@ document.addEventListener('keydown', (e) => {
   if (e.shiftKey && e.key === 'O') window.location.href = 'owner/index.html';
 });
 
-/* ── GALLERY LIST ─────────────────────────────────────────────── */
+/* ── SECURITY: block right-click and drag on gallery images ────── */
+document.addEventListener('contextmenu', (e) => {
+  if (
+    e.target.tagName === 'IMG' ||
+    e.target.closest('.gallery-card-cover, .photo-thumb, .pub-lightbox, .photo-grid')
+  ) {
+    e.preventDefault();
+    return false;
+  }
+});
+document.addEventListener('dragstart', (e) => {
+  if (e.target.tagName === 'IMG') { e.preventDefault(); return false; }
+});
+
+/* =================================================================
+   GALLERY LIST — loadGalleries()
+   Fetches the most recent GALLERY_LIMIT non-private galleries.
+   Cover images and photo counts lazy-load per card via
+   IntersectionObserver (rootMargin: 150px).
+   ================================================================= */
 async function loadGalleries() {
-  const skeleton = document.getElementById('gallerySkeleton');
+  const skeleton  = document.getElementById('gallerySkeleton');
   const cardsGrid = document.getElementById('galleryCardsGrid');
-  const empty = document.getElementById('galleryEmpty');
+  const empty     = document.getElementById('galleryEmpty');
+
   try {
+    /* ── Rule of 10: only the 10 most recent galleries ── */
     const { data: galleries, error } = await client
       .from('galleries')
       .select('id, title, gallery_date, cover_photo_id, event_id')
       .eq('is_private', false)
-      .order('gallery_date', { ascending: false });
+      .order('gallery_date', { ascending: false })
+      .limit(GALLERY_LIMIT);
 
     skeleton.style.display = 'none';
+
     if (error || !galleries || galleries.length === 0) {
-      empty.style.display = 'block'; return;
+      empty.style.display = 'block';
+      return;
     }
+
     cardsGrid.style.display = 'grid';
 
     cardsGrid.innerHTML = galleries.map(g => `
@@ -508,97 +606,28 @@ async function loadGalleries() {
         </div>
       </div>`).join('');
 
-    // Re-observe new reveal elements
     cardsGrid.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
 
-    // Lazy load cover + count per card
+    /* ── IntersectionObserver: lazy count + cover per card ── */
     const cardObserver = new IntersectionObserver(async (entries) => {
       for (const entry of entries) {
         if (!entry.isIntersecting) continue;
-        const card = entry.target;
+        const card       = entry.target;
         cardObserver.unobserve(card);
-        const galleryId = card.dataset.galleryId;
-        const coverId   = card.dataset.coverId;
-        const img       = card.querySelector('img[data-lazy]');
-        const placeholder = card.querySelector('.gallery-card-cover-placeholder');
-        const countEl   = card.querySelector('[data-count-id]');
-
-        // Photo count
-        try {
-          const { count } = await client.from('gallery_photos')
-            .select('*', { count: 'exact', head: true }).eq('gallery_id', galleryId);
-          if (countEl) countEl.textContent = (count || 0) + ' photo' + (count !== 1 ? 's' : '');
-        } catch(e) {}
-
-        // Cover signed URL
-        try {
-          let path = null;
-          if (coverId) {
-            const { data: cp } = await client.from('gallery_photos')
-              .select('storage_path').eq('id', coverId).single();
-            if (cp) path = cp.storage_path;
-          }
-          if (!path) {
-            const { data: fp } = await client.from('gallery_photos')
-              .select('storage_path').eq('gallery_id', galleryId)
-              .order('display_order', { ascending: true }).limit(1).single();
-            if (fp) path = fp.storage_path;
-          }
-          if (path && img) {
-            const { data: su } = await client.storage.from('gallery-photos')
-              .createSignedUrl(path, 3600);
-            if (su?.signedUrl) {
-              img.onload = () => { img.classList.add('loaded'); if (placeholder) placeholder.style.display = 'none'; };
-              img.src = su.signedUrl;
-              img.removeAttribute('data-lazy');
-            }
-          }
-        } catch(e) {}
+        await hydrateCard(card);
       }
     }, { rootMargin: '150px' });
 
     cardsGrid.querySelectorAll('[data-gallery-id]').forEach(el => cardObserver.observe(el));
 
-    // Mobile fallback
+    /* iOS/mobile fallback for above-the-fold cards */
     setTimeout(() => {
       cardsGrid.querySelectorAll('[data-gallery-id]').forEach(async card => {
-        const img = card.querySelector('img[data-lazy]');
-        if (!img) return;
+        if (!card.querySelector('img[data-lazy]')) return;
         const rect = card.getBoundingClientRect();
         if (rect.top < window.innerHeight + 200) {
           cardObserver.unobserve(card);
-          const galleryId = card.dataset.galleryId;
-          const coverId   = card.dataset.coverId;
-          const placeholder = card.querySelector('.gallery-card-cover-placeholder');
-          const countEl = card.querySelector('[data-count-id]');
-          try {
-            const { count } = await client.from('gallery_photos')
-              .select('*', { count: 'exact', head: true }).eq('gallery_id', galleryId);
-            if (countEl) countEl.textContent = (count || 0) + ' photo' + (count !== 1 ? 's' : '');
-          } catch(e) {}
-          try {
-            let path = null;
-            if (coverId) {
-              const { data: cp } = await client.from('gallery_photos')
-                .select('storage_path').eq('id', coverId).single();
-              if (cp) path = cp.storage_path;
-            }
-            if (!path) {
-              const { data: fp } = await client.from('gallery_photos')
-                .select('storage_path').eq('gallery_id', galleryId)
-                .order('display_order', { ascending: true }).limit(1).single();
-              if (fp) path = fp.storage_path;
-            }
-            if (path && img) {
-              const { data: su } = await client.storage.from('gallery-photos')
-                .createSignedUrl(path, 3600);
-              if (su?.signedUrl) {
-                img.onload = () => { img.classList.add('loaded'); if (placeholder) placeholder.style.display = 'none'; };
-                img.src = su.signedUrl;
-                img.removeAttribute('data-lazy');
-              }
-            }
-          } catch(e) {}
+          await hydrateCard(card);
         }
       });
     }, 120);
@@ -610,22 +639,90 @@ async function loadGalleries() {
   }
 }
 
-/* ── OPEN GALLERY → PHOTO GRID ────────────────────────────────── */
+/* Hydrate one gallery card: fetch count + cover signed URL */
+async function hydrateCard(card) {
+  const galleryId   = card.dataset.galleryId;
+  const coverId     = card.dataset.coverId;
+  const img         = card.querySelector('img[data-lazy]');
+  const placeholder = card.querySelector('.gallery-card-cover-placeholder');
+  const countEl     = card.querySelector('[data-count-id]');
+
+  /* Photo count — shows "Showing 10 of X" when the album is larger */
+  try {
+    const { count } = await client.from('gallery_photos')
+      .select('*', { count: 'exact', head: true })
+      .eq('gallery_id', galleryId);
+    if (countEl) {
+      const total = count || 0;
+      if (total > PHOTO_LIMIT) {
+        countEl.textContent = `Showing ${PHOTO_LIMIT} of ${total}`;
+        countEl.classList.add('partial');
+      } else {
+        countEl.textContent = total + ' photo' + (total !== 1 ? 's' : '');
+      }
+    }
+  } catch(e) {}
+
+  /* Cover signed URL */
+  try {
+    let path = null;
+    if (coverId) {
+      const { data: cp } = await client.from('gallery_photos')
+        .select('storage_path').eq('id', coverId).single();
+      if (cp) path = cp.storage_path;
+    }
+    if (!path) {
+      const { data: fp } = await client.from('gallery_photos')
+        .select('storage_path').eq('gallery_id', galleryId)
+        .order('display_order', { ascending: true }).limit(1).single();
+      if (fp) path = fp.storage_path;
+    }
+    if (path && img) {
+      const { data: su } = await client.storage.from('gallery-photos')
+        .createSignedUrl(path, 3600);
+      if (su?.signedUrl) {
+        img.onload = () => {
+          img.classList.add('loaded');
+          if (placeholder) placeholder.style.display = 'none';
+        };
+        img.src = su.signedUrl;
+        img.removeAttribute('data-lazy');
+      }
+    }
+  } catch(e) {}
+}
+
+/* =================================================================
+   OPEN GALLERY → PHOTO GRID
+   Fetches first PHOTO_LIMIT photos ordered by display_order.
+   The GATE_INDEX (10th, index 9) is rendered with the join overlay.
+   ================================================================= */
 async function openGallery(galleryId, title) {
   document.getElementById('galleryListView').style.display = 'none';
   const photoView = document.getElementById('photoView');
   photoView.classList.add('active');
   document.getElementById('photoViewTitle').textContent = title;
+  document.getElementById('photoViewCount').textContent = '';
+  document.getElementById('photoViewJoinCta').style.display = 'none';
   document.getElementById('photoGrid').innerHTML =
-    '<div style="color:rgba(245,240,232,0.3);font-size:13px;padding:40px 0;">Loading photos...</div>';
+    '<div style="color:rgba(245,240,232,0.3);font-size:13px;padding:40px 0;text-align:center;">Loading photos…</div>';
   document.getElementById('photoEmpty').style.display = 'none';
   galleryPhotos = [];
+  currentGalleryTotalCount = 0;
 
   try {
+    /* Get the real total count so we can display "X of Y" */
+    const { count: total } = await client.from('gallery_photos')
+      .select('*', { count: 'exact', head: true })
+      .eq('gallery_id', galleryId);
+    currentGalleryTotalCount = total || 0;
+
+    /* ── Rule of 10: only the first 10 photos ── */
     const { data: photos, error } = await client.from('gallery_photos')
       .select('id, storage_path, display_order, original_filename')
       .eq('gallery_id', galleryId)
-      .order('display_order', { ascending: true });
+      .order('display_order', { ascending: true })
+      .limit(PHOTO_LIMIT);
 
     if (error || !photos || photos.length === 0) {
       document.getElementById('photoGrid').innerHTML = '';
@@ -635,16 +732,53 @@ async function openGallery(galleryId, title) {
 
     galleryPhotos = photos.map(p => ({ ...p, signedUrl: null }));
 
-    document.getElementById('photoGrid').innerHTML = photos.map((p, i) => `
-      <div class="photo-thumb"
-           data-photo-index="${i}"
-           data-storage-path="${p.storage_path.replace(/"/g, '&quot;')}"
-           onclick="openLightbox(${i})">
-        <div class="photo-thumb-placeholder">🖼</div>
-        <img data-lazy-thumb alt="">
-      </div>`).join('');
+    /* Count label in the header */
+    if (currentGalleryTotalCount > PHOTO_LIMIT) {
+      document.getElementById('photoViewCount').textContent =
+        `Showing ${photos.length} of ${currentGalleryTotalCount} photos`;
+    } else {
+      document.getElementById('photoViewCount').textContent =
+        `${photos.length} photo${photos.length !== 1 ? 's' : ''}`;
+    }
 
-    // Lazy load thumbnails
+    /* Render grid — 10th tile (index 9) is the gate tile */
+    document.getElementById('photoGrid').innerHTML = photos.map((p, i) => {
+      const isGated = (i === GATE_INDEX);
+
+      if (isGated) {
+        return `
+          <div class="photo-thumb photo-thumb--gated"
+               data-photo-index="${i}"
+               data-storage-path="${p.storage_path.replace(/"/g,'&quot;')}"
+               onclick="window.location.href='join.html'">
+            <div class="photo-thumb-placeholder">🖼</div>
+            <img data-lazy-thumb alt="">
+            <div class="photo-gate">
+              <div class="photo-gate-icon">🔒</div>
+              <div class="photo-gate-label">Members Only</div>
+              <div class="photo-gate-title">More photos<br>inside</div>
+              <div class="photo-gate-sub">Full albums · Full res<br>Downloads included</div>
+              <a href="join.html" class="btn btn-primary">Join Now — Free</a>
+            </div>
+          </div>`;
+      }
+
+      return `
+        <div class="photo-thumb"
+             data-photo-index="${i}"
+             data-storage-path="${p.storage_path.replace(/"/g,'&quot;')}"
+             onclick="openLightbox(${i})">
+          <div class="photo-thumb-placeholder">🖼</div>
+          <img data-lazy-thumb alt="">
+        </div>`;
+    }).join('');
+
+    /* Show below-grid join CTA when the album has more photos */
+    if (currentGalleryTotalCount > PHOTO_LIMIT) {
+      document.getElementById('photoViewJoinCta').style.display = 'block';
+    }
+
+    /* ── IntersectionObserver: lazy thumbnails ── */
     const thumbObs = new IntersectionObserver(async (entries) => {
       for (const entry of entries) {
         if (!entry.isIntersecting) continue;
@@ -656,13 +790,16 @@ async function openGallery(galleryId, title) {
 
     document.querySelectorAll('#photoGrid [data-photo-index]').forEach(el => thumbObs.observe(el));
 
-    // Mobile fallback
+    /* iOS/mobile fallback for above-the-fold tiles */
     setTimeout(() => {
       document.querySelectorAll('#photoGrid [data-photo-index]').forEach(async tile => {
         const img = tile.querySelector('img[data-lazy-thumb]');
         if (!img || img.src) return;
         const rect = tile.getBoundingClientRect();
-        if (rect.top < window.innerHeight + 250) { thumbObs.unobserve(tile); await loadThumb(tile); }
+        if (rect.top < window.innerHeight + 250) {
+          thumbObs.unobserve(tile);
+          await loadThumb(tile);
+        }
       });
     }, 120);
 
@@ -671,10 +808,11 @@ async function openGallery(galleryId, title) {
   } catch(err) {
     console.error('openGallery:', err);
     document.getElementById('photoGrid').innerHTML =
-      '<div style="color:#e07070;font-size:13px;">Could not load photos.</div>';
+      '<div style="color:#e07070;font-size:13px;padding:40px 0;text-align:center;">Could not load photos.</div>';
   }
 }
 
+/* Load a single thumbnail signed URL */
 async function loadThumb(tile) {
   const idx  = parseInt(tile.dataset.photoIndex);
   const path = tile.dataset.storagePath;
@@ -685,7 +823,7 @@ async function loadThumb(tile) {
     const { data: su } = await client.storage.from('gallery-photos')
       .createSignedUrl(path, 7200);
     if (su?.signedUrl) {
-      galleryPhotos[idx].signedUrl = su.signedUrl;
+      if (galleryPhotos[idx]) galleryPhotos[idx].signedUrl = su.signedUrl;
       img.onload = () => { img.classList.add('loaded'); if (ph) ph.style.display = 'none'; };
       img.src = su.signedUrl;
       img.removeAttribute('data-lazy-thumb');
@@ -695,12 +833,19 @@ async function loadThumb(tile) {
 
 function showGalleryList() {
   galleryPhotos = [];
+  currentGalleryTotalCount = 0;
   document.getElementById('photoView').classList.remove('active');
   document.getElementById('photoGrid').innerHTML = '';
+  document.getElementById('photoViewJoinCta').style.display = 'none';
   document.getElementById('galleryListView').style.display = 'block';
 }
 
-/* ── LIGHTBOX ─────────────────────────────────────────────────── */
+/* =================================================================
+   LIGHTBOX
+   Photos 0–8 (first 9) open in lightbox.
+   Attempting to reach index 9 redirects to join.html.
+   Navigation wraps within the allowed range.
+   ================================================================= */
 async function ensureSignedUrl(i) {
   if (i < 0 || i >= galleryPhotos.length) return;
   if (galleryPhotos[i].signedUrl) return;
@@ -712,10 +857,13 @@ async function ensureSignedUrl(i) {
 }
 
 async function openLightbox(index) {
+  /* Gate: clicking the 10th photo redirects to join */
+  if (index >= GATE_INDEX) { window.location.href = 'join.html'; return; }
   lightboxIndex = index;
   await ensureSignedUrl(index);
   renderLightbox();
   document.getElementById('pubLightbox').classList.add('active');
+  document.body.style.overflow = 'hidden';
   document.addEventListener('keydown', lightboxKeyHandler);
   ensureSignedUrl(index + 1);
   ensureSignedUrl(index - 1);
@@ -723,13 +871,16 @@ async function openLightbox(index) {
 
 function renderLightbox() {
   const photo = galleryPhotos[lightboxIndex];
-  document.getElementById('pubLightboxImg').src = photo.signedUrl || '';
+  document.getElementById('pubLightboxImg').src = photo?.signedUrl || '';
+  const viewableMax = Math.min(galleryPhotos.length, GATE_INDEX);
   document.getElementById('pubLightboxCounter').textContent =
-    `${lightboxIndex + 1} / ${galleryPhotos.length}`;
+    `${lightboxIndex + 1} / ${viewableMax}`;
 }
 
 async function lightboxNav(dir) {
-  lightboxIndex = (lightboxIndex + dir + galleryPhotos.length) % galleryPhotos.length;
+  const viewableMax = Math.min(galleryPhotos.length, GATE_INDEX);
+  const next = ((lightboxIndex + dir) % viewableMax + viewableMax) % viewableMax;
+  lightboxIndex = next;
   await ensureSignedUrl(lightboxIndex);
   renderLightbox();
   ensureSignedUrl(lightboxIndex + dir);
@@ -737,6 +888,7 @@ async function lightboxNav(dir) {
 
 function closeLightbox() {
   document.getElementById('pubLightbox').classList.remove('active');
+  document.body.style.overflow = '';
   document.removeEventListener('keydown', lightboxKeyHandler);
 }
 
