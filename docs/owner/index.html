@@ -5109,7 +5109,7 @@ function exportInquiries() {
   a.click();
 }
 
-
+function inquiriesFilter(btn, status) {
   inquiriesStatusFilter = status;
   document.querySelectorAll('#tab-inquiries .res-filter').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
