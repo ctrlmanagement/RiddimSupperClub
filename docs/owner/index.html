@@ -137,7 +137,8 @@
       border-radius:999px; padding:3px 12px;
     }
 
-    .portal-tabs { display:flex; align-items:center; gap:4px; }
+    .portal-tabs { display:flex; align-items:center; gap:4px; overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none; flex:1; }
+    .portal-tabs::-webkit-scrollbar { display:none; }
     .portal-tab {
       display:flex; align-items:center; gap:8px;
       padding:6px 16px; border-radius:6px;
@@ -1578,7 +1579,7 @@
         <button class="res-filter" onclick="inquiriesFilter(this,'booked')">Booked</button>
         <button class="res-filter" onclick="inquiriesFilter(this,'declined')">Declined</button>
         <select id="inquiryTypeFilter" onchange="renderInquiriesTable()"
-          style="margin-left:auto;background:var(--void);border:1px solid var(--graphite);color:var(--mist);padding:6px 10px;border-radius:6px;font-family:var(--font-body);font-size:13px;">
+          style="background:var(--void);border:1px solid var(--graphite);color:var(--mist);padding:6px 10px;border-radius:6px;font-family:var(--font-body);font-size:13px;">
           <option value="all">All Types</option>
           <option value="celebration">Celebration</option>
           <option value="corporate">Corporate</option>
@@ -1589,6 +1590,7 @@
           <option value="talent">Talent</option>
           <option value="employment">Employment</option>
         </select>
+        <button onclick="exportInquiries()" style="margin-left:auto;padding:6px 14px;font-family:var(--font-body);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;background:rgba(76,175,80,0.12);color:#81C784;border:1px solid rgba(76,175,80,0.3);border-radius:6px;cursor:pointer;">⬇ Export</button>
       </div>
 
       <!-- Table -->
@@ -5048,6 +5050,7 @@ async function runSchedExport() {
 // INQUIRIES TAB
 // ============================================
 let allInquiries = [];
+let filteredInquiries = [];
 let inquiriesStatusFilter = 'all';
 let currentInquiryId = null;
 
@@ -5082,7 +5085,31 @@ function updateInquiriesBadge() {
   }
 }
 
-function inquiriesFilter(btn, status) {
+function exportInquiries() {
+  const rows = filteredInquiries || allInquiries;
+  if (!rows || !rows.length) { showToast('No inquiries to export'); return; }
+
+  // CSV export
+  const headers = ['Date','Name','Type','Phone','Email','Status','Message','Notes'];
+  const csv = [headers.join(','), ...rows.map(i => [
+    `"${(i.created_at||'').slice(0,10)}"`,
+    `"${i.first_name||''} ${i.last_name||''}"`,
+    `"${i.inquiry_type||''}"`,
+    `"${i.phone||''}"`,
+    `"${i.email||''}"`,
+    `"${i.status||''}"`,
+    `"${(i.message||'').replace(/"/g,"'")}"`,
+    `"${(i.owner_notes||'').replace(/"/g,"'")}"`
+  ].join(','))].join('\n');
+
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `riddim_inquiries_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+
   inquiriesStatusFilter = status;
   document.querySelectorAll('#tab-inquiries .res-filter').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
@@ -5096,6 +5123,7 @@ function renderInquiriesTable() {
     const typeOk   = typeFilter === 'all' || i.inquiry_type === typeFilter;
     return statusOk && typeOk;
   });
+  filteredInquiries = rows;
 
   const tbody = document.getElementById('inquiriesTableBody');
   const empty = document.getElementById('inquiriesEmpty');
