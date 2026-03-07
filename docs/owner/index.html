@@ -4084,8 +4084,9 @@ async function loadGalleries() {
   if (!grid) return;
   grid.innerHTML = '<div style="color:rgba(245,240,232,0.3);font-size:13px;padding:20px 0;">Loading galleries...</div>';
   try {
+    // Single query only — render cards immediately, everything else deferred to scroll
     const { data: galleries, error } = await supabaseClient
-      .from('galleries').select('*, events(title)')
+      .from('galleries').select('id, title, gallery_date, is_private, cover_photo_id, event_id, events(title)')
       .order('gallery_date', { ascending: false });
     if (error) throw error;
     if (!galleries || galleries.length === 0) {
@@ -4095,84 +4096,89 @@ async function loadGalleries() {
     }
     empty.style.display = 'none';
 
-    // Fetch all photo counts + cover paths in two batched queries — no signed URLs yet
-    const galleryIds = galleries.map(g => g.id);
-
-    // Batch: one count query per gallery (still individual but no storage calls)
-    const countResults = await Promise.all(galleryIds.map(id =>
-      supabaseClient.from('gallery_photos')
-        .select('*', { count: 'exact', head: true }).eq('gallery_id', id)
-        .then(({ count }) => ({ id, count: count || 0 }))
-    ));
-    const countMap = Object.fromEntries(countResults.map(r => [r.id, r.count]));
-
-    // Batch: fetch cover storage_path for each gallery (cover_photo_id first, else first photo)
-    const coverPaths = await Promise.all(galleries.map(async g => {
-      let path = null;
-      if (g.cover_photo_id) {
-        const { data: cp } = await supabaseClient.from('gallery_photos')
-          .select('storage_path').eq('id', g.cover_photo_id).single();
-        if (cp) path = cp.storage_path;
-      }
-      if (!path) {
-        const { data: fp } = await supabaseClient.from('gallery_photos')
-          .select('storage_path').eq('gallery_id', g.id)
-          .order('display_order', { ascending: true }).limit(1).single();
-        if (fp) path = fp.storage_path;
-      }
-      return { id: g.id, path };
-    }));
-    const pathMap = Object.fromEntries(coverPaths.map(r => [r.id, r.path]));
-
-    // Render cards immediately — covers show a placeholder, signed URLs fetched lazily on scroll
-    grid.innerHTML = galleries.map(g => {
-      const photoCount = countMap[g.id] || 0;
-      const hasCover = !!pathMap[g.id];
-      return `
-        <div class="gallery-card">
-          <div class="gallery-card-cover" ${hasCover ? `data-gallery-cover="${g.id}" data-cover-path="${galleryEscAttr(pathMap[g.id])}"` : ''}>
-            ${hasCover
-              ? '<img data-lazy-cover style="width:100%;height:155px;object-fit:cover;display:block;opacity:0;transition:opacity .3s;" alt="">'
-              : '&#x1F4F7;'}
+    // Render all cards instantly — no counts, no cover paths, no storage calls yet
+    grid.innerHTML = galleries.map(g => `
+      <div class="gallery-card"
+           data-gallery-id="${g.id}"
+           data-cover-photo-id="${g.cover_photo_id || ''}">
+        <div class="gallery-card-cover" data-lazy-cover-target>
+          <span class="gallery-card-cover-placeholder" style="font-size:32px;color:rgba(218,165,32,.25);">&#x1F4F7;</span>
+          <img data-lazy-cover
+               style="width:100%;height:155px;object-fit:cover;display:none;opacity:0;transition:opacity .3s;position:absolute;inset:0;"
+               alt="">
+        </div>
+        <div class="gallery-card-body">
+          <div class="gallery-card-title">${g.title}</div>
+          <div class="gallery-card-meta">${galleryFormatDate(g.gallery_date)}${g.events ? ' &middot; '+g.events.title : ''}</div>
+          <div class="gallery-card-footer">
+            <span class="${g.is_private ? 'gallery-private-badge' : 'gallery-public-badge'}">${g.is_private ? '&#x1F512; Private' : '&#x2713; Public'}</span>
+            <span class="gallery-photo-count" data-lazy-count>— photos</span>
           </div>
-          <div class="gallery-card-body">
-            <div class="gallery-card-title">${g.title}</div>
-            <div class="gallery-card-meta">${galleryFormatDate(g.gallery_date)}${g.events ? ' &middot; '+g.events.title : ''}</div>
-            <div class="gallery-card-footer">
-              <span class="${g.is_private ? 'gallery-private-badge' : 'gallery-public-badge'}">${g.is_private ? '&#x1F512; Private' : '&#x2713; Public'}</span>
-              <span class="gallery-photo-count">${photoCount} photo${photoCount !== 1 ? 's' : ''}</span>
-            </div>
-            <div class="gallery-card-actions">
-              <button class="gallery-card-btn" onclick="openGalleryManager('${g.id}','${galleryEscAttr(g.title)}')">Manage</button>
-              <button class="gallery-card-btn" onclick="editGallery('${g.id}')">Edit</button>
-              <button class="gallery-card-btn danger" onclick="deleteGallery('${g.id}','${galleryEscAttr(g.title)}')">Delete</button>
-            </div>
+          <div class="gallery-card-actions">
+            <button class="gallery-card-btn" onclick="openGalleryManager('${g.id}','${galleryEscAttr(g.title)}')">Manage</button>
+            <button class="gallery-card-btn" onclick="editGallery('${g.id}')">Edit</button>
+            <button class="gallery-card-btn danger" onclick="deleteGallery('${g.id}','${galleryEscAttr(g.title)}')">Delete</button>
           </div>
-        </div>`;
-    }).join('');
+        </div>
+      </div>`).join('');
 
-    // IntersectionObserver: generate signed URL only when cover scrolls into view
-    const observer = new IntersectionObserver((entries) => {
+    // Make cover areas relative so absolute img overlays placeholder correctly
+    grid.querySelectorAll('[data-lazy-cover-target]').forEach(el => {
+      el.style.position = 'relative';
+      el.style.display = 'flex';
+      el.style.alignItems = 'center';
+      el.style.justifyContent = 'center';
+    });
+
+    // IntersectionObserver: fetch count + cover path + signed URL only when card scrolls into view
+    const cardObserver = new IntersectionObserver((entries) => {
       entries.forEach(async entry => {
         if (!entry.isIntersecting) return;
-        const coverEl = entry.target;
-        observer.unobserve(coverEl);
-        const path = coverEl.dataset.coverPath;
-        if (!path) return;
-        const img = coverEl.querySelector('[data-lazy-cover]');
-        if (!img) return;
-        try {
-          const { data: su } = await supabaseClient.storage.from('gallery-photos')
-            .createSignedUrl(path, 3600);
-          if (su?.signedUrl) {
-            img.onload = () => { img.style.opacity = '1'; };
-            img.src = su.signedUrl;
-          }
-        } catch(err) { console.error('lazy cover:', err); }
-      });
-    }, { rootMargin: '150px' }); // start fetching 150px before card enters viewport
+        const card = entry.target;
+        cardObserver.unobserve(card);
+        const galleryId = card.dataset.galleryId;
+        const coverPhotoId = card.dataset.coverPhotoId;
+        const img = card.querySelector('[data-lazy-cover]');
+        const countEl = card.querySelector('[data-lazy-count]');
 
-    grid.querySelectorAll('[data-gallery-cover]').forEach(el => observer.observe(el));
+        // Fetch count
+        try {
+          const { count } = await supabaseClient.from('gallery_photos')
+            .select('*', { count: 'exact', head: true }).eq('gallery_id', galleryId);
+          if (countEl) countEl.textContent = (count || 0) + ' photo' + (count !== 1 ? 's' : '');
+        } catch(e) { console.error('lazy count:', e); }
+
+        // Fetch cover path then signed URL
+        try {
+          let path = null;
+          if (coverPhotoId) {
+            const { data: cp } = await supabaseClient.from('gallery_photos')
+              .select('storage_path').eq('id', coverPhotoId).single();
+            if (cp) path = cp.storage_path;
+          }
+          if (!path) {
+            const { data: fp } = await supabaseClient.from('gallery_photos')
+              .select('storage_path').eq('gallery_id', galleryId)
+              .order('display_order', { ascending: true }).limit(1).single();
+            if (fp) path = fp.storage_path;
+          }
+          if (path && img) {
+            const { data: su } = await supabaseClient.storage.from('gallery-photos')
+              .createSignedUrl(path, 3600);
+            if (su?.signedUrl) {
+              img.onload = () => {
+                card.querySelector('.gallery-card-cover-placeholder').style.display = 'none';
+                img.style.display = 'block';
+                img.style.opacity = '1';
+              };
+              img.src = su.signedUrl;
+            }
+          }
+        } catch(e) { console.error('lazy cover:', e); }
+      });
+    }, { rootMargin: '150px' });
+
+    grid.querySelectorAll('[data-gallery-id]').forEach(el => cardObserver.observe(el));
 
   } catch(err) {
     console.error('loadGalleries:', err);
@@ -4333,7 +4339,7 @@ async function uploadPhotosToGallery(galleryId, files) {
       const ext = (f.name.split('.').pop() || 'jpg').toLowerCase();
       const path = 'galleries/'+galleryId+'/'+Date.now()+'_'+Math.random().toString(36).substr(2,6)+'.'+ext;
       const { error: ue } = await supabaseClient.storage.from('gallery-photos').upload(path, f, { contentType: f.type, upsert: false });
-      if (!ue) await supabaseClient.from('gallery_photos').insert({ gallery_id: galleryId, storage_path: path, display_order: orderStart+i });
+      if (!ue) await supabaseClient.from('gallery_photos').insert({ gallery_id: galleryId, storage_path: path, display_order: orderStart+i, original_filename: f.name });
     } catch(err) { console.error('upload error:', err); }
     done++;
     fill.style.width = Math.round((done/files.length)*100)+'%';
@@ -4404,7 +4410,7 @@ async function loadGalleryPhotos(galleryId) {
   const empty = document.getElementById('galleryManagerEmpty');
   c.innerHTML = '<div style="color:rgba(245,240,232,0.3);font-size:13px;">Loading...</div>';
   try {
-    const { data: photos, error } = await supabaseClient.from('gallery_photos').select('*')
+    const { data: photos, error } = await supabaseClient.from('gallery_photos').select('id, gallery_id, storage_path, display_order, original_filename')
       .eq('gallery_id', galleryId).order('display_order', { ascending: true });
     if (error) throw error;
     const { data: gal } = await supabaseClient.from('galleries').select('cover_photo_id').eq('id', galleryId).single();
