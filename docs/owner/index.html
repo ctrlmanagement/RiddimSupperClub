@@ -913,6 +913,7 @@
         <button class="portal-tab" data-tab="reporting">◑ Reporting</button>
         <button class="portal-tab staff-view-tab" data-tab="staffview">⬡ Staff View</button>
         <button class="portal-tab" data-tab="gallery">◻ Gallery</button>
+        <button class="portal-tab" data-tab="inquiries">✉ Inquiries <span id="inquiriesNewBadge" style="display:none;background:var(--gold-warm);color:#000;font-family:var(--font-label);font-size:10px;letter-spacing:0.1em;padding:2px 6px;border-radius:10px;margin-left:4px;"></span></button>
       </nav>
 
       <div class="portal-user">
@@ -1533,6 +1534,60 @@
       </div>
     </div>
 
+    <!-- ── TAB: INQUIRIES ── -->
+    <div class="tab-panel" id="tab-inquiries">
+      <div class="page-header">
+        <p class="page-eyebrow">Incoming Requests</p>
+        <h1 class="page-title">Inquiries</h1>
+      </div>
+
+      <!-- Filter bar -->
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:24px;">
+        <button class="res-filter active" onclick="inquiriesFilter(this,'all')">All</button>
+        <button class="res-filter" onclick="inquiriesFilter(this,'new')">New</button>
+        <button class="res-filter" onclick="inquiriesFilter(this,'reviewed')">Reviewed</button>
+        <button class="res-filter" onclick="inquiriesFilter(this,'quoted')">Quoted</button>
+        <button class="res-filter" onclick="inquiriesFilter(this,'booked')">Booked</button>
+        <button class="res-filter" onclick="inquiriesFilter(this,'declined')">Declined</button>
+        <select id="inquiryTypeFilter" onchange="renderInquiriesTable()"
+          style="margin-left:auto;background:var(--void);border:1px solid var(--graphite);color:var(--mist);padding:6px 10px;border-radius:6px;font-family:var(--font-body);font-size:13px;">
+          <option value="all">All Types</option>
+          <option value="celebration">Celebration</option>
+          <option value="corporate">Corporate</option>
+          <option value="production">Production</option>
+          <option value="fundraiser">Fundraiser</option>
+          <option value="political">Political</option>
+          <option value="buyout">Buyout</option>
+          <option value="talent">Talent</option>
+          <option value="employment">Employment</option>
+        </select>
+      </div>
+
+      <!-- Table -->
+      <div style="overflow-x:auto;">
+        <table class="members-table" id="inquiriesTable">
+          <thead>
+            <tr>
+              <th style="width:130px;">Date</th>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Contact</th>
+              <th>Status</th>
+              <th style="width:80px;"></th>
+            </tr>
+          </thead>
+          <tbody id="inquiriesTableBody">
+            <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--ash);">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="inquiriesEmpty" style="display:none;text-align:center;padding:60px 20px;color:var(--ash);">
+        <div style="font-size:32px;margin-bottom:12px;">✉</div>
+        <div style="font-family:var(--font-display);font-size:22px;font-weight:300;color:var(--ivory);margin-bottom:6px;">No inquiries found</div>
+        <div style="font-size:13px;">Adjust your filters or check back later.</div>
+      </div>
+    </div>
+
   </main>
 
   <!-- Mobile nav -->
@@ -1548,6 +1603,7 @@
       <button class="mobile-tab" data-tab="reporting"><span class="mobile-tab-icon">◑</span><span class="mobile-tab-label">Reporting</span></button>
       <button class="mobile-tab staff-view-tab" data-tab="staffview"><span class="mobile-tab-icon">⬡</span><span class="mobile-tab-label">Staff</span></button>
       <button class="mobile-tab" data-tab="gallery"><span class="mobile-tab-icon">◻</span><span class="mobile-tab-label">Gallery</span></button>
+      <button class="mobile-tab" data-tab="inquiries"><span class="mobile-tab-icon">✉</span><span class="mobile-tab-label">Inquiries</span></button>
     </div>
   </div>
 </div>
@@ -1640,6 +1696,69 @@
     </div>
   </div>
 </div>
+
+<!-- Inquiry Detail Modal -->
+<div class="modal-overlay" id="inquiryDetailModal" style="display:none;align-items:flex-start;padding-top:60px;">
+  <div class="modal-card" style="max-width:560px;width:100%;max-height:80vh;overflow-y:auto;position:relative;">
+    <button onclick="closeInquiryModal()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:var(--ash);font-size:18px;cursor:pointer;line-height:1;">&#x2715;</button>
+    <div class="modal-title" id="inquiryModalTitle">Inquiry</div>
+    <div id="inquiryModalMeta" style="font-size:12px;color:var(--ash);margin-bottom:20px;display:flex;gap:16px;flex-wrap:wrap;"></div>
+
+    <!-- Status changer -->
+    <div style="margin-bottom:24px;">
+      <div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:8px;">STATUS</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;" id="inquiryStatusBtns"></div>
+    </div>
+
+    <!-- Detail rows -->
+    <div id="inquiryDetailRows" style="display:grid;gap:12px;"></div>
+
+    <!-- Owner notes -->
+    <div style="margin-top:24px;">
+      <div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:8px;">OWNER NOTES</div>
+      <textarea id="inquiryNotesInput" rows="4" placeholder="Add internal notes…"
+        style="width:100%;background:var(--void);border:1px solid var(--graphite);color:var(--ivory);padding:10px 12px;border-radius:6px;font-family:var(--font-body);font-size:13px;resize:vertical;line-height:1.5;"></textarea>
+      <button onclick="saveInquiryNotes()" style="margin-top:8px;padding:8px 20px;background:var(--owner-gold);color:#000;border:none;border-radius:6px;font-family:var(--font-label);font-size:11px;letter-spacing:0.15em;cursor:pointer;">Save Notes</button>
+      <span id="inquiryNotesSaved" style="margin-left:10px;font-size:12px;color:var(--green);display:none;">Saved ✓</span>
+    </div>
+  </div>
+</div>
+
+<style>
+/* ── INQUIRY STATUS CHIPS ── */
+.inq-status {
+  display:inline-flex; align-items:center; gap:5px;
+  font-family:var(--font-label); font-size:10px; letter-spacing:0.18em;
+  padding:3px 10px; border-radius:999px; border:1px solid;
+}
+.inq-status.new      { color:#60a5fa; border-color:rgba(96,165,250,0.4); background:rgba(96,165,250,0.08); }
+.inq-status.reviewed { color:var(--gold-warm); border-color:rgba(212,168,67,0.4); background:rgba(212,168,67,0.08); }
+.inq-status.quoted   { color:#a78bfa; border-color:rgba(167,139,250,0.4); background:rgba(167,139,250,0.08); }
+.inq-status.booked   { color:var(--green); border-color:rgba(76,175,80,0.4); background:rgba(76,175,80,0.08); }
+.inq-status.declined { color:var(--ember); border-color:rgba(192,57,43,0.4); background:rgba(192,57,43,0.08); }
+
+.inq-type-chip {
+  display:inline-block; font-family:var(--font-label); font-size:10px;
+  letter-spacing:0.18em; padding:3px 10px; border-radius:999px;
+  background:rgba(218,165,32,0.1); border:1px solid rgba(218,165,32,0.25); color:var(--owner-gold);
+}
+
+.inq-status-btn {
+  padding:5px 14px; border-radius:999px; border:1px solid var(--graphite);
+  background:none; color:var(--ash); font-family:var(--font-label);
+  font-size:10px; letter-spacing:0.15em; cursor:pointer; transition:all 150ms;
+}
+.inq-status-btn:hover { border-color:var(--owner-gold); color:var(--owner-gold); }
+.inq-status-btn.active-new      { border-color:#60a5fa; color:#60a5fa; background:rgba(96,165,250,0.1); }
+.inq-status-btn.active-reviewed { border-color:var(--gold-warm); color:var(--gold-warm); background:rgba(212,168,67,0.1); }
+.inq-status-btn.active-quoted   { border-color:#a78bfa; color:#a78bfa; background:rgba(167,139,250,0.1); }
+.inq-status-btn.active-booked   { border-color:var(--green); color:var(--green); background:rgba(76,175,80,0.1); }
+.inq-status-btn.active-declined { border-color:var(--ember); color:var(--ember); background:rgba(192,57,43,0.1); }
+
+.inq-detail-row { display:grid; grid-template-columns:140px 1fr; gap:8px; padding:10px 0; border-bottom:1px solid rgba(42,42,42,0.5); font-size:13px; }
+.inq-detail-label { font-family:var(--font-label); font-size:10px; letter-spacing:0.18em; color:var(--ash); padding-top:2px; }
+.inq-detail-value { color:var(--mist); line-height:1.5; }
+</style>
 
 <div class="toast" id="toast"></div>
 
@@ -2005,6 +2124,7 @@ function goToTab(tabId) {
   }
   if (tabId === 'events') { renderCalendar(); }
   if (tabId === 'gallery') { loadGalleries(); initGalleryDropZone(); }
+  if (tabId === 'inquiries') { loadInquiries(); }
 }
 document.querySelectorAll('.portal-tab,.mobile-tab').forEach(btn=>{
   if(btn.dataset.tab) btn.addEventListener('click',()=>goToTab(btn.dataset.tab));
@@ -4616,6 +4736,203 @@ function galleryFormatDate(d) {
   return new Date(d+'T12:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
 }
 function galleryEscAttr(s) { return (s||'').replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
+
+// ============================================
+// INQUIRIES TAB
+// ============================================
+let allInquiries = [];
+let inquiriesStatusFilter = 'all';
+let currentInquiryId = null;
+
+async function loadInquiries() {
+  if (!supabaseClient) return;
+  const tbody = document.getElementById('inquiriesTableBody');
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--ash);">Loading…</td></tr>';
+
+  const { data, error } = await supabaseClient
+    .from('inquiries')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--ember);">Failed to load inquiries.</td></tr>`;
+    return;
+  }
+
+  allInquiries = data || [];
+  updateInquiriesBadge();
+  renderInquiriesTable();
+}
+
+function updateInquiriesBadge() {
+  const newCount = allInquiries.filter(i => i.status === 'new').length;
+  const badge = document.getElementById('inquiriesNewBadge');
+  if (newCount > 0) {
+    badge.textContent = newCount;
+    badge.style.display = 'inline';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function inquiriesFilter(btn, status) {
+  inquiriesStatusFilter = status;
+  document.querySelectorAll('#tab-inquiries .res-filter').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderInquiriesTable();
+}
+
+function renderInquiriesTable() {
+  const typeFilter = document.getElementById('inquiryTypeFilter').value;
+  let rows = allInquiries.filter(i => {
+    const statusOk = inquiriesStatusFilter === 'all' || i.status === inquiriesStatusFilter;
+    const typeOk   = typeFilter === 'all' || i.inquiry_type === typeFilter;
+    return statusOk && typeOk;
+  });
+
+  const tbody = document.getElementById('inquiriesTableBody');
+  const empty = document.getElementById('inquiriesEmpty');
+
+  if (!rows.length) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = rows.map(inq => {
+    const date = new Date(inq.created_at).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+    const name = [inq.first_name, inq.last_name].filter(Boolean).join(' ');
+    const contact = inq.phone || inq.email || '—';
+    return `<tr style="cursor:pointer;" onclick="openInquiryModal('${inq.id}')">
+      <td style="color:var(--ash);font-size:12px;">${date}</td>
+      <td class="td-name">${esc(name)}</td>
+      <td><span class="inq-type-chip">${esc(inq.inquiry_type)}</span></td>
+      <td style="font-size:12px;color:var(--ash);">${esc(contact)}</td>
+      <td><span class="inq-status ${inq.status}">${inq.status}</span></td>
+      <td><button class="table-action-btn" onclick="event.stopPropagation();openInquiryModal('${inq.id}')">View</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function openInquiryModal(id) {
+  const inq = allInquiries.find(i => i.id === id);
+  if (!inq) return;
+  currentInquiryId = id;
+
+  const date = new Date(inq.created_at).toLocaleDateString('en-US', { weekday:'short', month:'long', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit' });
+  document.getElementById('inquiryModalTitle').textContent = [inq.first_name, inq.last_name].filter(Boolean).join(' ') || 'Inquiry';
+  document.getElementById('inquiryModalMeta').innerHTML =
+    `<span>${date}</span><span class="inq-type-chip">${esc(inq.inquiry_type)}</span>`;
+
+  // Status buttons
+  const statuses = ['new','reviewed','quoted','booked','declined'];
+  document.getElementById('inquiryStatusBtns').innerHTML = statuses.map(s =>
+    `<button class="inq-status-btn${inq.status===s?' active-'+s:''}" onclick="setInquiryStatus('${id}','${s}',this)">${s}</button>`
+  ).join('');
+
+  // Detail rows — always shown
+  const always = [
+    ['Phone',    inq.phone],
+    ['Email',    inq.email],
+    ['Message',  inq.message],
+  ];
+
+  // Type-specific fields
+  const specific = [
+    ['Occasion / Type',    inq.occasion || inq.event_subtype],
+    ['Organization',       inq.organization],
+    ['Preferred Date',     inq.preferred_date],
+    ['Guest Count',        inq.guest_count],
+    ['Budget Range',       inq.budget_range],
+    ['AV Needs',           inq.av_needs],
+    ['Production Type',    inq.production_type],
+    ['Crew Size',          inq.crew_size],
+    ['Usage / Distribution', inq.usage_type],
+    ['Artist Name',        inq.artist_name],
+    ['Agent Contact',      inq.agent_contact],
+    ['Role Interest',      inq.role_interest],
+    ['Availability',       inq.availability],
+    ['Experience Level',   inq.experience_level],
+    ['Currently Employed', inq.currently_employed],
+    ['Resume',             inq.resume_filename],
+  ].filter(([,v]) => v);
+
+  const allRows = [...always, ...specific].filter(([,v]) => v);
+  document.getElementById('inquiryDetailRows').innerHTML = allRows.map(([label, val]) =>
+    `<div class="inq-detail-row">
+      <div class="inq-detail-label">${label}</div>
+      <div class="inq-detail-value">${esc(String(val))}</div>
+    </div>`
+  ).join('');
+
+  document.getElementById('inquiryNotesInput').value = inq.owner_notes || '';
+  document.getElementById('inquiryNotesSaved').style.display = 'none';
+
+  const modal = document.getElementById('inquiryDetailModal');
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeInquiryModal() {
+  document.getElementById('inquiryDetailModal').style.display = 'none';
+  document.body.style.overflow = '';
+  currentInquiryId = null;
+}
+document.getElementById('inquiryDetailModal').addEventListener('click', function(e) {
+  if (e.target === this) closeInquiryModal();
+});
+
+async function setInquiryStatus(id, newStatus, clickedBtn) {
+  if (!supabaseClient) return;
+  const updatePayload = { status: newStatus };
+  if (newStatus === 'reviewed') updatePayload.reviewed_at = new Date().toISOString();
+
+  const { error } = await supabaseClient
+    .from('inquiries')
+    .update(updatePayload)
+    .eq('id', id);
+
+  if (error) { showToast('Failed to update status'); return; }
+
+  // Update local data
+  const inq = allInquiries.find(i => i.id === id);
+  if (inq) { inq.status = newStatus; if (newStatus === 'reviewed') inq.reviewed_at = updatePayload.reviewed_at; }
+
+  // Update status buttons in modal
+  document.querySelectorAll('#inquiryStatusBtns .inq-status-btn').forEach(btn => {
+    btn.className = 'inq-status-btn';
+  });
+  clickedBtn.classList.add('active-' + newStatus);
+
+  updateInquiriesBadge();
+  renderInquiriesTable();
+  showToast('Status updated → ' + newStatus);
+}
+
+async function saveInquiryNotes() {
+  if (!supabaseClient || !currentInquiryId) return;
+  const notes = document.getElementById('inquiryNotesInput').value.trim();
+
+  const { error } = await supabaseClient
+    .from('inquiries')
+    .update({ owner_notes: notes || null })
+    .eq('id', currentInquiryId);
+
+  if (error) { showToast('Failed to save notes'); return; }
+
+  const inq = allInquiries.find(i => i.id === currentInquiryId);
+  if (inq) inq.owner_notes = notes || null;
+
+  const saved = document.getElementById('inquiryNotesSaved');
+  saved.style.display = 'inline';
+  setTimeout(() => { saved.style.display = 'none'; }, 2500);
+}
+
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 </script>
 
 </body>
