@@ -988,6 +988,57 @@
       pointer-events:none; z-index:-1;
     }
 
+    /* ============================================
+       STAFF GALLERY TAB
+       ============================================ */
+    .staff-gallery-wrap { padding: 0; }
+    .staff-gallery-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 10px; }
+    .staff-gallery-title { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 300; color: var(--ivory, #F5F0E8); letter-spacing: 0.04em; }
+    .staff-gallery-title span { color: #D4A843; }
+    .staff-gallery-sub { font-size: 12px; color: rgba(245,240,232,0.38); margin-top: 2px; }
+    .staff-galleries-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; margin-bottom: 28px; }
+    .staff-gallery-card { background: rgba(255,255,255,0.025); border: 1px solid rgba(100,140,200,0.15); border-radius: 8px; overflow: hidden; cursor: pointer; transition: border-color 0.2s, transform 0.15s; }
+    .staff-gallery-card:hover { border-color: rgba(100,140,200,0.4); transform: translateY(-1px); }
+    .staff-gallery-cover { width: 100%; height: 140px; background: rgba(100,140,200,0.05); display: flex; align-items: center; justify-content: center; color: rgba(100,140,200,0.25); font-size: 28px; }
+    .staff-gallery-cover img { width: 100%; height: 140px; object-fit: cover; display: block; }
+    .staff-gallery-card-body { padding: 10px 12px; }
+    .staff-gallery-card-title { font-family: 'Cormorant Garamond', serif; font-size: 15px; font-weight: 600; color: var(--ivory, #F5F0E8); margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .staff-gallery-card-meta { font-size: 11px; color: rgba(245,240,232,0.35); margin-bottom: 8px; }
+    .staff-gallery-card-footer { display: flex; align-items: center; justify-content: space-between; }
+    .staff-private-chip { font-size: 9px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; padding: 2px 7px; border-radius: 20px; background: rgba(180,50,50,0.12); border: 1px solid rgba(180,50,50,0.25); color: #e07070; }
+    .staff-photo-count { font-size: 11px; color: rgba(245,240,232,0.32); }
+    .staff-gallery-viewer { display: none; }
+    .staff-gallery-viewer.active { display: block; }
+    .staff-gallery-viewer-header { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+    .staff-gallery-back-btn { background: none; border: 1px solid rgba(100,140,200,0.2); border-radius: 5px; color: rgba(245,240,232,0.55); padding: 5px 12px; font-size: 12px; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.15s; }
+    .staff-gallery-back-btn:hover { border-color: rgba(100,140,200,0.5); color: #8ab4f8; }
+    .staff-gallery-viewer-title { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 600; color: var(--ivory, #F5F0E8); flex: 1; }
+    .staff-photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+    .staff-photo-thumb { aspect-ratio: 1; border-radius: 5px; overflow: hidden; cursor: pointer; border: 1px solid rgba(100,140,200,0.08); transition: border-color 0.15s, transform 0.15s; position: relative; }
+    .staff-photo-thumb:hover { border-color: rgba(212,168,67,0.45); transform: scale(1.02); }
+    .staff-photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .staff-lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.97); z-index: 2000; align-items: center; justify-content: center; flex-direction: column; }
+    .staff-lightbox.active { display: flex; }
+    .staff-lightbox-img { max-width: 88vw; max-height: 78vh; object-fit: contain; border-radius: 4px; display: block; }
+    .staff-lightbox-toolbar { display: flex; align-items: center; gap: 10px; margin-top: 16px; z-index: 2001; flex-wrap: wrap; justify-content: center; }
+    .staff-lightbox-dl-btn { display: flex; align-items: center; gap: 6px; padding: 8px 18px; border-radius: 6px; border: none; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; text-decoration: none; }
+    .staff-lightbox-dl-btn.instagram { background: linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); color: white; }
+    .staff-lightbox-dl-btn.original { background: rgba(212,168,67,0.15); border: 1px solid rgba(212,168,67,0.35); color: #D4A843; }
+    .staff-lightbox-dl-btn:hover { opacity: 0.82; }
+    .staff-lightbox-counter-txt { font-size: 11px; color: rgba(245,240,232,0.35); }
+    .staff-lightbox-close { position: fixed; top: 18px; right: 22px; background: none; border: none; color: rgba(245,240,232,0.55); font-size: 26px; cursor: pointer; z-index: 2001; transition: color 0.15s; line-height: 1; }
+    .staff-lightbox-close:hover { color: var(--ivory, #F5F0E8); }
+    .staff-lightbox-prev, .staff-lightbox-next { position: fixed; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); border: 1px solid rgba(212,168,67,0.25); border-radius: 50%; width: 42px; height: 42px; color: #D4A843; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 2001; transition: all 0.15s; }
+    .staff-lightbox-prev { left: 14px; }
+    .staff-lightbox-next { right: 14px; }
+    .staff-lightbox-prev:hover, .staff-lightbox-next:hover { background: rgba(212,168,67,0.15); border-color: #D4A843; }
+    .staff-gallery-empty { text-align: center; padding: 48px 20px; color: rgba(245,240,232,0.28); }
+    .staff-gallery-empty-icon { font-size: 36px; margin-bottom: 10px; opacity: 0.35; }
+    .staff-gallery-empty-text { font-family: 'Cormorant Garamond', serif; font-size: 16px; font-weight: 300; }
+    .staff-ig-processing { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 3000; align-items: center; justify-content: center; flex-direction: column; gap: 12px; }
+    .staff-ig-processing.active { display: flex; }
+    .staff-ig-processing-text { color: rgba(245,240,232,0.7); font-size: 14px; font-family: 'DM Sans', sans-serif; }
+    @media (max-width: 480px) { .staff-galleries-grid { grid-template-columns: 1fr 1fr; gap: 10px; } .staff-photo-grid { grid-template-columns: repeat(3, 1fr); gap: 5px; } .staff-lightbox-toolbar { gap: 8px; } }
 
   </style>
 </head>
@@ -1086,6 +1137,7 @@
         <button class="portal-tab" data-tab="guests">✦ Guests</button>
         <button class="portal-tab" data-tab="schedule">⊞ My Schedule</button>
         <button class="portal-tab" data-tab="referrals">★ Referrals</button>
+        <button class="portal-tab" data-tab="gallery">📷 Gallery</button>
       </nav>
 
       <div class="portal-user">
@@ -1588,7 +1640,61 @@
       <div id="enrollDlStoryWrap"></div>
     </div>
 
+    <!-- Gallery Tab -->
+    <div class="tab-panel" id="tab-gallery">
+      <div class="staff-gallery-wrap">
+        <div id="staffGalleryList">
+          <div class="staff-gallery-header">
+            <div>
+              <div class="staff-gallery-title">Photo <span>Gallery</span></div>
+              <div class="staff-gallery-sub">All galleries · Instagram downloads available</div>
+            </div>
+          </div>
+          <div class="staff-galleries-grid" id="staffGalleriesGrid">
+            <div style="color:rgba(245,240,232,0.3);font-size:13px;">Loading...</div>
+          </div>
+          <div class="staff-gallery-empty" id="staffGalleryEmpty" style="display:none;">
+            <div class="staff-gallery-empty-icon">📷</div>
+            <div class="staff-gallery-empty-text">No galleries yet</div>
+          </div>
+        </div>
+        <div id="staffGalleryViewer" class="staff-gallery-viewer">
+          <div class="staff-gallery-viewer-header">
+            <button class="staff-gallery-back-btn" onclick="showStaffGalleryList()">← Back</button>
+            <div class="staff-gallery-viewer-title" id="staffViewerTitle"></div>
+          </div>
+          <div class="staff-photo-grid" id="staffPhotoGrid"></div>
+          <div class="staff-gallery-empty" id="staffPhotoEmpty" style="display:none;">
+            <div class="staff-gallery-empty-icon">🖼️</div>
+            <div class="staff-gallery-empty-text">No photos in this gallery</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </main>
+
+  <!-- Staff Lightbox -->
+  <div class="staff-lightbox" id="staffLightbox">
+    <button class="staff-lightbox-close" onclick="closeStaffLightbox()">✕</button>
+    <button class="staff-lightbox-prev" onclick="staffLightboxNav(-1)">‹</button>
+    <img class="staff-lightbox-img" id="staffLightboxImg" src="" alt="">
+    <button class="staff-lightbox-next" onclick="staffLightboxNav(1)">›</button>
+    <div class="staff-lightbox-toolbar">
+      <button class="staff-lightbox-dl-btn instagram" onclick="downloadInstagramCrop()">📸 Instagram (1080×1080)</button>
+      <a class="staff-lightbox-dl-btn original" id="staffLightboxOriginalDl" download="riddim-photo.jpg">↓ Original</a>
+      <span class="staff-lightbox-counter-txt" id="staffLightboxCounter"></span>
+    </div>
+  </div>
+
+  <!-- Instagram processing overlay -->
+  <div class="staff-ig-processing" id="staffIgProcessing">
+    <div style="font-size:32px;">📸</div>
+    <div class="staff-ig-processing-text">Preparing Instagram photo...</div>
+  </div>
+
+  <!-- Hidden canvas for Instagram crop -->
+  <canvas id="staffIgCanvas" style="display:none;" width="1080" height="1080"></canvas>
 
   <!-- Mobile nav -->
   <div class="mobile-tab-bar">
@@ -1616,6 +1722,10 @@
       <button class="mobile-tab" data-tab="referrals">
         <span class="mobile-tab-icon">★</span>
         <span class="mobile-tab-label">Referrals</span>
+      </button>
+      <button class="mobile-tab" data-tab="gallery">
+        <span class="mobile-tab-icon">📷</span>
+        <span class="mobile-tab-label">Gallery</span>
       </button>
     </div>
   </div>
@@ -1881,6 +1991,7 @@ async function loadLiveData() {
 function goToTab(tabId) {
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id===`tab-${tabId}`));
   document.querySelectorAll('.portal-tab,.mobile-tab').forEach(btn=>btn.classList.toggle('active',btn.dataset.tab===tabId));
+  if (tabId === 'gallery') loadStaffGalleries();
 }
 document.querySelectorAll('.portal-tab,.mobile-tab').forEach(btn=>{ if(btn.dataset.tab) btn.addEventListener('click',()=>goToTab(btn.dataset.tab)); });
 
@@ -3562,7 +3673,159 @@ function buildStoryHtml(w, h, qrSize=400) {
     </div><!-- end full-height flex -->
   </div>`;
 }
+// ============================================
+// STAFF GALLERY
+// ============================================
+let staffGalleryPhotos = [];
+let staffLightboxIndex = 0;
 
+async function loadStaffGalleries() {
+  const grid = document.getElementById('staffGalleriesGrid');
+  const empty = document.getElementById('staffGalleryEmpty');
+  if (!grid) return;
+  grid.innerHTML = '<div style="color:rgba(245,240,232,0.3);font-size:13px;">Loading...</div>';
+  try {
+    const { data: galleries, error } = await supabaseClient
+      .from('galleries').select('*, events(title)').order('gallery_date', { ascending: false });
+    if (error) throw error;
+    if (!galleries || galleries.length === 0) { grid.innerHTML = ''; empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+    const galleriesEnriched = await Promise.all(galleries.map(async (g) => {
+      const { count } = await supabaseClient.from('gallery_photos').select('*', { count: 'exact', head: true }).eq('gallery_id', g.id);
+      let coverUrl = null;
+      if (g.cover_photo_id) {
+        const { data: cp } = await supabaseClient.from('gallery_photos').select('storage_path').eq('id', g.cover_photo_id).single();
+        if (cp) { const { data: su } = await supabaseClient.storage.from('gallery-photos').createSignedUrl(cp.storage_path, 3600); coverUrl = su?.signedUrl || null; }
+      }
+      if (!coverUrl) {
+        const { data: fp } = await supabaseClient.from('gallery_photos').select('storage_path').eq('gallery_id', g.id).order('display_order', { ascending: true }).limit(1).single();
+        if (fp) { const { data: su } = await supabaseClient.storage.from('gallery-photos').createSignedUrl(fp.storage_path, 3600); coverUrl = su?.signedUrl || null; }
+      }
+      return { ...g, photoCount: count || 0, coverUrl };
+    }));
+    grid.innerHTML = galleriesEnriched.map(g => `
+      <div class="staff-gallery-card" onclick="openStaffGallery('${g.id}', '${(g.title || '').replace(/'/g, "\\'")}')">
+        <div class="staff-gallery-cover">${g.coverUrl ? `<img src="${g.coverUrl}" alt="${g.title}" loading="lazy">` : '📷'}</div>
+        <div class="staff-gallery-card-body">
+          <div class="staff-gallery-card-title">${g.title}</div>
+          <div class="staff-gallery-card-meta">${formatStaffGalleryDate(g.gallery_date)}${g.events ? ' · ' + g.events.title : ''}</div>
+          <div class="staff-gallery-card-footer">
+            ${g.is_private ? '<span class="staff-private-chip">Private</span>' : '<span></span>'}
+            <span class="staff-photo-count">${g.photoCount} photo${g.photoCount !== 1 ? 's' : ''}</span>
+          </div>
+        </div>
+      </div>`).join('');
+  } catch (err) {
+    console.error('loadStaffGalleries error:', err);
+    grid.innerHTML = '<div style="color:#e07070;font-size:13px;">Could not load galleries.</div>';
+  }
+}
+
+async function openStaffGallery(galleryId, title) {
+  document.getElementById('staffViewerTitle').textContent = title;
+  document.getElementById('staffGalleryList').style.display = 'none';
+  document.getElementById('staffGalleryViewer').classList.add('active');
+  document.getElementById('staffPhotoGrid').innerHTML = '<div style="color:rgba(245,240,232,0.3);font-size:13px;">Loading photos...</div>';
+  document.getElementById('staffPhotoEmpty').style.display = 'none';
+  try {
+    const { data: photos, error } = await supabaseClient.from('gallery_photos').select('*').eq('gallery_id', galleryId).order('display_order', { ascending: true });
+    if (error) throw error;
+    if (!photos || photos.length === 0) { document.getElementById('staffPhotoGrid').innerHTML = ''; document.getElementById('staffPhotoEmpty').style.display = 'block'; staffGalleryPhotos = []; return; }
+    const photosWithUrls = await Promise.all(photos.map(async (p) => {
+      const { data: su } = await supabaseClient.storage.from('gallery-photos').createSignedUrl(p.storage_path, 7200);
+      return { ...p, signedUrl: su?.signedUrl || '' };
+    }));
+    staffGalleryPhotos = photosWithUrls;
+    document.getElementById('staffPhotoGrid').innerHTML = photosWithUrls.map((p, i) => `
+      <div class="staff-photo-thumb" onclick="openStaffLightbox(${i})">
+        <img src="${p.signedUrl}" alt="" loading="lazy">
+      </div>`).join('');
+  } catch (err) {
+    console.error('openStaffGallery error:', err);
+    document.getElementById('staffPhotoGrid').innerHTML = '<div style="color:#e07070;font-size:13px;">Could not load photos.</div>';
+  }
+}
+
+function showStaffGalleryList() {
+  staffGalleryPhotos = [];
+  document.getElementById('staffGalleryViewer').classList.remove('active');
+  document.getElementById('staffGalleryList').style.display = 'block';
+}
+
+function openStaffLightbox(index) {
+  staffLightboxIndex = index;
+  renderStaffLightbox();
+  document.getElementById('staffLightbox').classList.add('active');
+  document.addEventListener('keydown', staffLightboxKeyHandler);
+}
+
+function renderStaffLightbox() {
+  const photo = staffGalleryPhotos[staffLightboxIndex];
+  document.getElementById('staffLightboxImg').src = photo.signedUrl;
+  document.getElementById('staffLightboxOriginalDl').href = photo.signedUrl;
+  document.getElementById('staffLightboxCounter').textContent = `${staffLightboxIndex + 1} / ${staffGalleryPhotos.length}`;
+}
+
+function staffLightboxNav(dir) {
+  staffLightboxIndex = (staffLightboxIndex + dir + staffGalleryPhotos.length) % staffGalleryPhotos.length;
+  renderStaffLightbox();
+}
+
+function closeStaffLightbox() {
+  document.getElementById('staffLightbox').classList.remove('active');
+  document.removeEventListener('keydown', staffLightboxKeyHandler);
+}
+
+function staffLightboxKeyHandler(e) {
+  if (e.key === 'ArrowLeft') staffLightboxNav(-1);
+  if (e.key === 'ArrowRight') staffLightboxNav(1);
+  if (e.key === 'Escape') closeStaffLightbox();
+}
+
+document.getElementById('staffLightbox')?.addEventListener('click', function(e) { if (e.target === this) closeStaffLightbox(); });
+
+async function downloadInstagramCrop() {
+  const photo = staffGalleryPhotos[staffLightboxIndex];
+  if (!photo) return;
+  const processing = document.getElementById('staffIgProcessing');
+  processing.classList.add('active');
+  try {
+    const canvas = document.getElementById('staffIgCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 1080; canvas.height = 1080;
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = reject; img.src = photo.signedUrl; });
+    const size = Math.min(img.naturalWidth, img.naturalHeight);
+    const sx = (img.naturalWidth - size) / 2;
+    const sy = (img.naturalHeight - size) / 2;
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, 1080, 1080);
+    ctx.drawImage(img, sx, sy, size, size, 0, 0, 1080, 1080);
+    ctx.font = '500 18px DM Sans, sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.textAlign = 'right';
+    ctx.fillText('RIDDIM SUPPER CLUB', 1060, 1060);
+    const filename = `riddim_instagram_${Date.now()}.jpg`;
+    canvas.toBlob((blob) => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click();
+      document.body.removeChild(a); URL.revokeObjectURL(url);
+    }, 'image/jpeg', 0.92);
+  } catch (err) {
+    console.error('Instagram crop error:', err);
+    alert('Could not process photo for Instagram. Try the Original download instead.');
+  } finally {
+    processing.classList.remove('active');
+  }
+}
+
+function formatStaffGalleryDate(dateStr) {
+  if (!dateStr) return '';
+  return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
 
 </script>
 </body>
