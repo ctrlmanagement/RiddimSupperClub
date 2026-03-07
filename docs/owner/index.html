@@ -533,6 +533,9 @@
     .role-security { color:var(--ember); border-color:rgba(192,57,43,0.4); background:rgba(192,57,43,0.08); }
     .role-barback  { color:#E67E22; border-color:rgba(230,126,34,0.4); background:rgba(230,126,34,0.08); }
     .role-bartender { color:#E67E22; border-color:rgba(230,126,34,0.4); background:rgba(230,126,34,0.08); }
+    .role-kitchen  { color:#26C6DA; border-color:rgba(38,198,218,0.4); background:rgba(38,198,218,0.08); }
+    .role-chef     { color:#FF7043; border-color:rgba(255,112,67,0.4); background:rgba(255,112,67,0.08); }
+    .role-host_floor { color:#66BB6A; border-color:rgba(102,187,106,0.4); background:rgba(102,187,106,0.08); }
     .role-promoter { color:var(--gold-warm); border-color:rgba(212,168,67,0.4); background:rgba(212,168,67,0.08); }
 
     .emp-status { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--ash); margin-bottom:14px; }
@@ -758,7 +761,7 @@
     .gallery-card{background:rgba(255,255,255,.03);border:1px solid rgba(218,165,32,.15);border-radius:8px;overflow:hidden;transition:border-color .2s,transform .2s}
     .gallery-card:hover{border-color:rgba(218,165,32,.45);transform:translateY(-2px)}
     .gallery-card-cover{width:100%;height:155px;background:rgba(218,165,32,.05);display:flex;align-items:center;justify-content:center;color:rgba(218,165,32,.25);font-size:32px;overflow:hidden}
-    .gallery-card-cover img{width:100%;height:155px;object-fit:cover;display:block}
+    .gallery-card-cover img{width:100%;height:155px;object-fit:cover;display:block;position:absolute;inset:0;}
     .gallery-card-body{padding:13px 15px}
     .gallery-card-title{font-family:var(--font-display);font-size:16px;font-weight:600;color:var(--ivory);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .gallery-card-meta{font-size:11px;color:rgba(245,240,232,.4);margin-bottom:9px}
@@ -904,16 +907,16 @@
       <nav class="portal-tabs">
         <button class="portal-tab portal-tab-back" onclick="goToMainSite()">← Main Site</button>
         <button class="portal-tab active" data-tab="dashboard">◈ Dashboard</button>
-        <button class="portal-tab" data-tab="members">◉ Members</button>
+        <button class="portal-tab" data-tab="inquiries">✉ Inquiries <span id="inquiriesNewBadge" style="display:none;background:var(--gold-warm);color:#000;font-family:var(--font-label);font-size:10px;letter-spacing:0.1em;padding:2px 6px;border-radius:10px;margin-left:4px;"></span></button>
         <button class="portal-tab" data-tab="reservations">◇ Reservations <span id="ownerResPendingBadge" style="display:none;background:var(--gold-warm);color:#000;font-family:var(--font-label);font-size:10px;letter-spacing:0.1em;padding:2px 6px;border-radius:10px;margin-left:4px;"></span></button>
         <button class="portal-tab" data-tab="events">◆ Events</button>
-        <button class="portal-tab" data-tab="analytics">▣ Analytics</button>
-        <button class="portal-tab" data-tab="scheduling">⊞ Scheduling</button>
-        <button class="portal-tab" data-tab="employees">◎ Employees</button>
-        <button class="portal-tab" data-tab="reporting">◑ Reporting</button>
-        <button class="portal-tab staff-view-tab" data-tab="staffview">⬡ Staff View</button>
         <button class="portal-tab" data-tab="gallery">◻ Gallery</button>
-        <button class="portal-tab" data-tab="inquiries">✉ Inquiries <span id="inquiriesNewBadge" style="display:none;background:var(--gold-warm);color:#000;font-family:var(--font-label);font-size:10px;letter-spacing:0.1em;padding:2px 6px;border-radius:10px;margin-left:4px;"></span></button>
+        <button class="portal-tab" data-tab="analytics">▣ Analytics</button>
+        <button class="portal-tab" data-tab="reporting">◑ Reporting</button>
+        <button class="portal-tab" data-tab="members">◉ Members</button>
+        <button class="portal-tab" data-tab="employees">◎ Employees</button>
+        <button class="portal-tab" data-tab="scheduling">⊞ Scheduling</button>
+        <button class="portal-tab staff-view-tab" data-tab="staffview">⬡ Staff View</button>
       </nav>
 
       <div class="portal-user">
@@ -1061,6 +1064,26 @@
         <h1 class="page-title">Reservations</h1>
       </div>
 
+      <!-- Reservations mini-calendar -->
+      <div class="panel" style="margin-bottom:20px;padding:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <button onclick="resCalChangeMonth(-1)" style="background:none;border:1px solid var(--graphite);color:var(--mist);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:16px;">‹</button>
+          <div id="resCalMonthLabel" style="font-family:var(--font-label);font-size:16px;letter-spacing:0.2em;color:var(--ivory);"></div>
+          <button onclick="resCalChangeMonth(1)"  style="background:none;border:1px solid var(--graphite);color:var(--mist);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:16px;">›</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;">
+          <div style="text-align:center;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;color:var(--ash);padding:4px 0;">SUN</div>
+          <div style="text-align:center;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;color:var(--ash);padding:4px 0;">MON</div>
+          <div style="text-align:center;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;color:var(--ash);padding:4px 0;">TUE</div>
+          <div style="text-align:center;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;color:var(--ash);padding:4px 0;">WED</div>
+          <div style="text-align:center;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;color:var(--ash);padding:4px 0;">THU</div>
+          <div style="text-align:center;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;color:var(--ash);padding:4px 0;">FRI</div>
+          <div style="text-align:center;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;color:var(--ash);padding:4px 0;">SAT</div>
+        </div>
+        <div id="resCalGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;"></div>
+        <div style="margin-top:8px;font-size:11px;color:var(--ash);">Click a date to filter reservations. <button onclick="clearResCalFilter()" style="background:none;border:none;color:var(--gold-warm);cursor:pointer;font-size:11px;padding:0;text-decoration:underline;">Clear</button></div>
+      </div>
+
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
         <div class="res-filters" style="margin-bottom:0;">
           <button class="res-filter active" onclick="ownerResTabFilter(this,'all')">All</button>
@@ -1167,6 +1190,7 @@
           </div>
           <div style="display:flex;gap:8px;margin-left:auto;">
             <button onclick="setGuestDateToday()" style="padding:6px 14px;font-family:var(--font-body);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;background:rgba(218,165,32,0.12);color:var(--owner-gold);border:1px solid rgba(218,165,32,0.3);border-radius:6px;cursor:pointer;">Today</button>
+            <button onclick="exportGuestListPrint()" style="padding:6px 14px;font-family:var(--font-body);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;background:rgba(76,175,80,0.12);color:#81C784;border:1px solid rgba(76,175,80,0.3);border-radius:6px;cursor:pointer;">⬇ Print List</button>
           </div>
         </div>
 
@@ -1331,6 +1355,7 @@
         </div>
         <div style="display:flex;gap:10px;">
           <button class="sched-nav-btn" onclick="schedWeekOffset(0, true)" style="width:auto;padding:0 14px;font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;">Today</button>
+          <button class="sched-nav-btn" onclick="openSchedExportModal()" style="width:auto;padding:0 14px;font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:#81C784;border-color:rgba(76,175,80,0.3);">⬇ Export</button>
           <button class="btn-add-shift" onclick="openShiftModal()">+ Add Shift</button>
         </div>
       </div>
@@ -1381,11 +1406,14 @@
         <button class="res-filter active" onclick="filterEmps(this,'all')">All</button>
         <button class="res-filter" onclick="filterEmps(this,'manager')">Manager</button>
         <button class="res-filter" onclick="filterEmps(this,'host')">VIP Host</button>
+        <button class="res-filter" onclick="filterEmps(this,'host_floor')">Host</button>
         <button class="res-filter" onclick="filterEmps(this,'server')">Server</button>
         <button class="res-filter" onclick="filterEmps(this,'security')">Security</button>
         <button class="res-filter" onclick="filterEmps(this,'barback')">Barback</button>
         <button class="res-filter" onclick="filterEmps(this,'bartender')">Bartender</button>
         <button class="res-filter" onclick="filterEmps(this,'promoter')">Promoter</button>
+        <button class="res-filter" onclick="filterEmps(this,'kitchen')">Kitchen</button>
+        <button class="res-filter" onclick="filterEmps(this,'chef')">Chef</button>
       </div>
 
       <div class="emp-grid" id="empGrid"><!-- Rendered by JS --></div>
@@ -1594,16 +1622,16 @@
   <div class="mobile-tab-bar">
     <div class="mobile-tabs">
       <button class="mobile-tab active" data-tab="dashboard"><span class="mobile-tab-icon">◈</span><span class="mobile-tab-label">Dash</span></button>
-      <button class="mobile-tab" data-tab="members"><span class="mobile-tab-icon">◉</span><span class="mobile-tab-label">Members</span></button>
+      <button class="mobile-tab" data-tab="inquiries"><span class="mobile-tab-icon">✉</span><span class="mobile-tab-label">Inquiries</span></button>
       <button class="mobile-tab" data-tab="reservations"><span class="mobile-tab-icon">◇</span><span class="mobile-tab-label">Reservations</span></button>
       <button class="mobile-tab" data-tab="events"><span class="mobile-tab-icon">◆</span><span class="mobile-tab-label">Events</span></button>
-      <button class="mobile-tab" data-tab="analytics"><span class="mobile-tab-icon">▣</span><span class="mobile-tab-label">Analytics</span></button>
-      <button class="mobile-tab" data-tab="scheduling"><span class="mobile-tab-icon">⊞</span><span class="mobile-tab-label">Schedule</span></button>
-      <button class="mobile-tab" data-tab="employees"><span class="mobile-tab-icon">◎</span><span class="mobile-tab-label">Employees</span></button>
-      <button class="mobile-tab" data-tab="reporting"><span class="mobile-tab-icon">◑</span><span class="mobile-tab-label">Reporting</span></button>
-      <button class="mobile-tab staff-view-tab" data-tab="staffview"><span class="mobile-tab-icon">⬡</span><span class="mobile-tab-label">Staff</span></button>
       <button class="mobile-tab" data-tab="gallery"><span class="mobile-tab-icon">◻</span><span class="mobile-tab-label">Gallery</span></button>
-      <button class="mobile-tab" data-tab="inquiries"><span class="mobile-tab-icon">✉</span><span class="mobile-tab-label">Inquiries</span></button>
+      <button class="mobile-tab" data-tab="analytics"><span class="mobile-tab-icon">▣</span><span class="mobile-tab-label">Analytics</span></button>
+      <button class="mobile-tab" data-tab="reporting"><span class="mobile-tab-icon">◑</span><span class="mobile-tab-label">Reporting</span></button>
+      <button class="mobile-tab" data-tab="members"><span class="mobile-tab-icon">◉</span><span class="mobile-tab-label">Members</span></button>
+      <button class="mobile-tab" data-tab="employees"><span class="mobile-tab-icon">◎</span><span class="mobile-tab-label">Employees</span></button>
+      <button class="mobile-tab" data-tab="scheduling"><span class="mobile-tab-icon">⊞</span><span class="mobile-tab-label">Schedule</span></button>
+      <button class="mobile-tab staff-view-tab" data-tab="staffview"><span class="mobile-tab-icon">⬡</span><span class="mobile-tab-label">Staff</span></button>
     </div>
   </div>
 </div>
@@ -1677,6 +1705,47 @@
   <div class="gallery-lightbox-counter" id="galleryLightboxCounter"></div>
 </div>
 
+<!-- Member Detail Modal -->
+<div class="modal-overlay" id="memberDetailModal">
+  <div class="modal-card" style="max-width:420px;">
+    <button onclick="closeMemberDetailModal()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:var(--ash);font-size:18px;cursor:pointer;">&#x2715;</button>
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="font-family:var(--font-display);font-size:28px;font-weight:300;color:var(--ivory);" id="mdName"></div>
+      <div style="margin-top:6px;" id="mdTier"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
+      <div class="panel" style="padding:12px;text-align:center;">
+        <div style="font-family:var(--font-display);font-size:22px;color:var(--gold-warm);" id="mdPoints"></div>
+        <div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-top:3px;">POINTS</div>
+      </div>
+      <div class="panel" style="padding:12px;text-align:center;">
+        <div style="font-family:var(--font-display);font-size:22px;color:var(--ivory);" id="mdVisits"></div>
+        <div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-top:3px;">VISITS</div>
+      </div>
+    </div>
+    <div style="margin-bottom:12px;">
+      <div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:6px;">PHONE</div>
+      <div style="font-size:15px;color:var(--mist);" id="mdPhone">—</div>
+    </div>
+    <div style="margin-bottom:12px;">
+      <div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:6px;">MEMBER ID</div>
+      <div style="font-family:var(--font-label);letter-spacing:0.15em;font-size:13px;color:var(--ash);" id="mdId"></div>
+    </div>
+    <div style="margin-bottom:20px;">
+      <div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:10px;">MEMBER QR</div>
+      <div id="mdQrWrap" style="background:white;padding:12px;border-radius:8px;display:inline-block;"></div>
+    </div>
+    <div style="margin-bottom:8px;">
+      <div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:6px;">MEMBER SINCE</div>
+      <div style="font-size:13px;color:var(--ash);" id="mdSince"></div>
+    </div>
+    <div class="modal-actions" style="margin-top:20px;">
+      <button class="btn-primary" onclick="closeMemberDetailModal();openEditModal(window._mdCurrentId)">Edit Points</button>
+      <button class="btn-ghost" onclick="closeMemberDetailModal()">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- Edit Points Modal -->
 <div class="modal-overlay" id="editModal">
   <div class="modal-card">
@@ -1693,6 +1762,33 @@
     <div class="modal-actions">
       <button class="btn-primary" onclick="savePointEdit()">Save Changes</button>
       <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Scheduling Export Modal -->
+<div class="modal-overlay" id="schedExportModal">
+  <div class="modal-card" style="max-width:400px;">
+    <div class="modal-title">Export Schedule</div>
+    <div class="modal-sub">Select a date range to export</div>
+    <div class="field">
+      <label for="schedExportFrom">From</label>
+      <input type="date" id="schedExportFrom" />
+    </div>
+    <div class="field">
+      <label for="schedExportTo">To</label>
+      <input type="date" id="schedExportTo" />
+    </div>
+    <div class="field">
+      <label>Format</label>
+      <div style="display:flex;gap:10px;margin-top:4px;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="radio" name="schedExportFmt" value="print" checked> Print / PDF</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="radio" name="schedExportFmt" value="csv"> CSV (Google Sheets)</label>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="runSchedExport()">Export</button>
+      <button class="btn-ghost" onclick="closeSchedExportModal()">Cancel</button>
     </div>
   </div>
 </div>
@@ -2125,6 +2221,7 @@ function goToTab(tabId) {
   if (tabId === 'events') { renderCalendar(); }
   if (tabId === 'gallery') { loadGalleries(); initGalleryDropZone(); }
   if (tabId === 'inquiries') { loadInquiries(); }
+  if (tabId === 'reservations') { renderResCalendar(); }
 }
 document.querySelectorAll('.portal-tab,.mobile-tab').forEach(btn=>{
   if(btn.dataset.tab) btn.addEventListener('click',()=>goToTab(btn.dataset.tab));
@@ -2294,7 +2391,7 @@ function renderMembersTable(query='') {
   document.getElementById('membersTableBody').innerHTML = filtered.map(m=>{
     const tier = getTier(m.total_points);
     return `
-      <tr>
+      <tr style="cursor:pointer;" onclick="openMemberDetailModal('${m.id}')">
         <td class="td-name">${m.first_name} ${m.last_name}</td>
         <td style="font-family:var(--font-label);letter-spacing:0.1em;font-size:11px;color:var(--ash);">${m.id}</td>
         <td>${tierBadgeHTML(tier)}</td>
@@ -2303,7 +2400,7 @@ function renderMembersTable(query='') {
         <td>${new Date(m.created_at).toLocaleDateString('en-US',{month:'short',year:'numeric'})}</td>
         <td>${enrolledByHTML(m.id)}</td>
         <td>
-          <button class="table-action-btn" onclick="openEditModal('${m.id}')">Edit Points</button>
+          <button class="table-action-btn" onclick="event.stopPropagation();openEditModal('${m.id}')">Edit Points</button>
         </td>
       </tr>
     `;
@@ -2352,7 +2449,41 @@ async function savePointEdit() {
   showToast(`✦ Points updated for ${m.first_name}`, 'gold');
 }
 
-/* ═══ STAFF VIEW: MEMBER LOOKUP ═══ */
+/* ═══ MEMBER DETAIL MODAL ═══ */
+window._mdCurrentId = null;
+
+function openMemberDetailModal(memberId) {
+  window._mdCurrentId = memberId;
+  const m = MEMBERS.find(m => m.id === memberId);
+  if (!m) return;
+  const tier = getTier(m.total_points);
+  document.getElementById('mdName').textContent = `${m.first_name} ${m.last_name}`;
+  document.getElementById('mdTier').innerHTML = tierBadgeHTML(tier);
+  document.getElementById('mdPoints').textContent = m.total_points.toLocaleString();
+  document.getElementById('mdVisits').textContent = m.total_visits;
+  document.getElementById('mdPhone').textContent = m.phone ? m.phone.replace('+1','').replace(/(\d{3})(\d{3})(\d{4})/,'($1) $2-$3') : '—';
+  document.getElementById('mdId').textContent = m.id;
+  document.getElementById('mdSince').textContent = new Date(m.created_at).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+
+  // QR code — member wallet URL
+  const qrWrap = document.getElementById('mdQrWrap');
+  qrWrap.innerHTML = '';
+  const qrUrl = `${window.location.origin}/members/index.html?member=${m.id}`;
+  if (window.QRCode) {
+    new QRCode(qrWrap, { text: qrUrl, width: 120, height: 120, colorDark:'#000', colorLight:'#fff' });
+  } else {
+    qrWrap.innerHTML = `<div style="font-size:11px;color:#888;padding:8px;">QR unavailable</div>`;
+  }
+
+  document.getElementById('memberDetailModal').classList.add('open');
+}
+
+function closeMemberDetailModal() {
+  document.getElementById('memberDetailModal').classList.remove('open');
+  window._mdCurrentId = null;
+}
+
+
 let ownerFoundMember = null;
 let ownerCheckinLog = [];
 
@@ -3114,11 +3245,14 @@ function showToast(msg,type=''){
       <select id="perfRoleSelect">
         <option value="manager">Manager</option>
         <option value="host">VIP Host</option>
+        <option value="host_floor">Host</option>
         <option value="server">Server / Waitress</option>
         <option value="bartender">Bartender</option>
         <option value="security">Security</option>
         <option value="barback">Barback</option>
         <option value="promoter">Promoter</option>
+        <option value="kitchen">Kitchen</option>
+        <option value="chef">Chef</option>
       </select>
     </div>
 
@@ -3146,11 +3280,14 @@ function showToast(msg,type=''){
         <select id="shiftRole">
           <option value="manager">Manager</option>
           <option value="host">VIP Host</option>
+          <option value="host_floor">Host</option>
           <option value="server">Server</option>
           <option value="security">Security</option>
           <option value="barback">Barback</option>
           <option value="bartender">Bartender</option>
           <option value="promoter">Promoter</option>
+          <option value="kitchen">Kitchen</option>
+          <option value="chef">Chef</option>
         </select>
       </div>
     </div>
@@ -3198,11 +3335,14 @@ function showToast(msg,type=''){
       <select id="empRole">
         <option value="manager">Manager</option>
         <option value="host">VIP Host</option>
+        <option value="host_floor">Host</option>
         <option value="server">Server / Waitress</option>
         <option value="bartender">Bartender</option>
         <option value="security">Security</option>
         <option value="barback">Barback</option>
         <option value="promoter">Promoter</option>
+        <option value="kitchen">Kitchen</option>
+        <option value="chef">Chef</option>
       </select>
     </div>
     <div class="field">
@@ -3526,8 +3666,9 @@ let EMPLOYEES = [
 ];
 
 const ROLE_LABELS = {
-  manager: 'Manager', host: 'VIP Host', server: 'Server',
-  security: 'Security', barback: 'Barback', bartender: 'Bartender', promoter: 'Promoter'
+  manager: 'Manager', host: 'VIP Host', host_floor: 'Host', server: 'Server',
+  security: 'Security', barback: 'Barback', bartender: 'Bartender', promoter: 'Promoter',
+  kitchen: 'Kitchen', chef: 'Chef'
 };
 
 let empFilter = 'all';
@@ -4327,6 +4468,12 @@ async function openCreateGalleryModal() {
 function closeCreateGalleryModal() {
   document.getElementById('galleryCreateModal').classList.remove('active');
   galleryPendingFiles = [];
+  document.getElementById('galleryEditId').value = '';
+  document.getElementById('galleryTitleInput').value = '';
+  document.getElementById('galleryUploadPreview').innerHTML = '';
+  document.getElementById('galleryModalStatus').className = 'gallery-status';
+  document.getElementById('gallerySaveBtn').disabled = false;
+  document.getElementById('gallerySaveBtn').textContent = 'Create Gallery';
 }
 
 async function galleryLoadEvents() {
@@ -4736,6 +4883,166 @@ function galleryFormatDate(d) {
   return new Date(d+'T12:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
 }
 function galleryEscAttr(s) { return (s||'').replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
+
+// ============================================
+// RESERVATIONS MINI-CALENDAR
+// ============================================
+let resCalYear = new Date().getFullYear();
+let resCalMonth = new Date().getMonth();
+let resCalSelectedDate = null;
+
+function renderResCalendar() {
+  const label = document.getElementById('resCalMonthLabel');
+  const grid  = document.getElementById('resCalGrid');
+  if (!label || !grid) return;
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  label.textContent = months[resCalMonth] + ' ' + resCalYear;
+
+  // Build date→count map from RESERVATIONS
+  const dateMap = {};
+  (RESERVATIONS || []).forEach(r => {
+    const d = (r.reservation_date || r.date || '').slice(0, 10);
+    if (d) dateMap[d] = (dateMap[d] || 0) + 1;
+  });
+
+  const firstDay = new Date(resCalYear, resCalMonth, 1).getDay();
+  const daysInMonth = new Date(resCalYear, resCalMonth + 1, 0).getDate();
+  const today = new Date().toISOString().slice(0,10);
+
+  let html = '';
+  for (let i = 0; i < firstDay; i++) html += '<div></div>';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${resCalYear}-${String(resCalMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const count = dateMap[dateStr] || 0;
+    const isSelected = dateStr === resCalSelectedDate;
+    const isToday = dateStr === today;
+    html += `<div onclick="resCalSelectDate('${dateStr}')"
+      style="text-align:center;padding:5px 2px;border-radius:4px;cursor:pointer;font-size:12px;
+             background:${isSelected ? 'var(--owner-gold)' : count > 0 ? 'rgba(218,165,32,0.12)' : 'transparent'};
+             color:${isSelected ? '#000' : isToday ? 'var(--gold-warm)' : count > 0 ? 'var(--ivory)' : 'var(--ash)'};
+             border:1px solid ${isSelected ? 'var(--owner-gold)' : isToday ? 'rgba(218,165,32,0.4)' : 'transparent'};
+             font-weight:${isToday ? '500' : '300'};">
+      ${d}${count > 0 ? `<div style="font-size:9px;color:${isSelected?'#000':'var(--gold-warm)'};">${count}</div>` : ''}
+    </div>`;
+  }
+  grid.innerHTML = html;
+}
+
+function resCalChangeMonth(dir) {
+  resCalMonth += dir;
+  if (resCalMonth > 11) { resCalMonth = 0; resCalYear++; }
+  if (resCalMonth < 0)  { resCalMonth = 11; resCalYear--; }
+  renderResCalendar();
+}
+
+function resCalSelectDate(dateStr) {
+  resCalSelectedDate = dateStr;
+  document.getElementById('resTabDateFilter').value = dateStr;
+  renderResCalendar();
+  renderResTab();
+}
+
+function clearResCalFilter() {
+  resCalSelectedDate = null;
+  document.getElementById('resTabDateFilter').value = '';
+  renderResCalendar();
+  renderResTab();
+}
+
+// ============================================
+// GUEST LIST PRINT EXPORT
+// ============================================
+function exportGuestListPrint() {
+  const dateVal = document.getElementById('guestListDateFilter').value;
+  const eventSel = document.getElementById('guestEventSelector');
+  const eventName = eventSel.options[eventSel.selectedIndex]?.text || 'All Events';
+  const rows = document.querySelectorAll('#guestListTableWrap tbody tr');
+  if (!rows.length) { showToast('No guest list to export'); return; }
+
+  let tableRows = '';
+  rows.forEach(tr => {
+    const cells = tr.querySelectorAll('td');
+    if (cells.length >= 2) {
+      tableRows += `<tr><td>${cells[0]?.textContent||''}</td><td>${cells[1]?.textContent||''}</td><td>${cells[2]?.textContent||''}</td></tr>`;
+    }
+  });
+
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html><head><title>Guest List</title>
+  <style>body{font-family:sans-serif;padding:24px;color:#111;}h2{margin-bottom:4px;}p{color:#555;font-size:13px;margin-bottom:20px;}
+  table{width:100%;border-collapse:collapse;}th{text-align:left;padding:8px 12px;border-bottom:2px solid #000;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;}
+  td{padding:8px 12px;border-bottom:1px solid #eee;font-size:13px;}@media print{button{display:none;}}</style></head>
+  <body><h2>RIDDIM Supper Club — Guest List</h2>
+  <p>${eventName}${dateVal ? ' &nbsp;·&nbsp; ' + dateVal : ''}</p>
+  <button onclick="window.print()" style="margin-bottom:16px;padding:8px 20px;background:#000;color:#fff;border:none;cursor:pointer;border-radius:4px;font-size:13px;">Print</button>
+  <table><thead><tr><th>Name</th><th>Status</th><th>Party Size</th></tr></thead><tbody>${tableRows}</tbody></table>
+  </body></html>`);
+  win.document.close();
+}
+
+// ============================================
+// SCHEDULING EXPORT
+// ============================================
+function openSchedExportModal() {
+  const today = new Date().toISOString().slice(0,10);
+  const nextWeek = new Date(Date.now() + 7*24*60*60*1000).toISOString().slice(0,10);
+  document.getElementById('schedExportFrom').value = today;
+  document.getElementById('schedExportTo').value = nextWeek;
+  document.getElementById('schedExportModal').classList.add('open');
+}
+function closeSchedExportModal() {
+  document.getElementById('schedExportModal').classList.remove('open');
+}
+
+async function runSchedExport() {
+  const from = document.getElementById('schedExportFrom').value;
+  const to   = document.getElementById('schedExportTo').value;
+  const fmt  = document.querySelector('input[name="schedExportFmt"]:checked')?.value || 'print';
+  if (!from || !to) { showToast('Select a date range'); return; }
+
+  // Fetch shifts in range
+  let shifts = [];
+  try {
+    const { data } = await supabaseClient.from('schedules')
+      .select('*, staff(first_name, last_name, role)')
+      .gte('shift_date', from).lte('shift_date', to)
+      .order('shift_date', { ascending: true });
+    shifts = data || [];
+  } catch(e) { shifts = []; }
+
+  if (fmt === 'csv') {
+    let csv = 'Date,Name,Role,Start,End,Notes\n';
+    shifts.forEach(s => {
+      const name = s.staff ? `${s.staff.first_name} ${s.staff.last_name}` : '';
+      csv += `${s.shift_date},"${name}","${ROLE_LABELS[s.role]||s.role}","${s.start_time||''}","${s.end_time||''}","${s.notes||''}"\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `riddim_schedule_${from}_to_${to}.csv`;
+    a.click();
+  } else {
+    // Print
+    let rows = shifts.map(s => {
+      const name = s.staff ? `${s.staff.first_name} ${s.staff.last_name}` : '—';
+      return `<tr><td>${s.shift_date}</td><td>${name}</td><td>${ROLE_LABELS[s.role]||s.role}</td><td>${s.start_time||'—'}</td><td>${s.end_time||'—'}</td><td>${s.notes||''}</td></tr>`;
+    }).join('');
+    if (!rows) rows = '<tr><td colspan="6" style="text-align:center;color:#888;padding:20px;">No shifts in this range</td></tr>';
+
+    const win = window.open('', '_blank');
+    win.document.write(`<!DOCTYPE html><html><head><title>Schedule</title>
+    <style>body{font-family:sans-serif;padding:24px;color:#111;}h2{margin-bottom:4px;}p{color:#555;font-size:13px;margin-bottom:20px;}
+    table{width:100%;border-collapse:collapse;}th{text-align:left;padding:8px 12px;border-bottom:2px solid #000;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;}
+    td{padding:8px 12px;border-bottom:1px solid #eee;font-size:13px;}@media print{button{display:none;}}</style></head>
+    <body><h2>RIDDIM Supper Club — Schedule</h2>
+    <p>${from} to ${to}</p>
+    <button onclick="window.print()" style="margin-bottom:16px;padding:8px 20px;background:#000;color:#fff;border:none;cursor:pointer;border-radius:4px;font-size:13px;">Print / Save PDF</button>
+    <table><thead><tr><th>Date</th><th>Name</th><th>Role</th><th>Start</th><th>End</th><th>Notes</th></tr></thead>
+    <tbody>${rows}</tbody></table></body></html>`);
+    win.document.close();
+  }
+  closeSchedExportModal();
+}
 
 // ============================================
 // INQUIRIES TAB
