@@ -1256,9 +1256,9 @@
     .member-photo-thumb { aspect-ratio: 1; border-radius: 6px; overflow: hidden; cursor: pointer; border: 1px solid rgba(212,168,67,0.08); transition: border-color 0.15s, transform 0.15s; position: relative; }
     .member-photo-thumb:hover { border-color: rgba(212,168,67,0.4); transform: scale(1.02); }
     .member-photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .member-lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.97); z-index: 2000; align-items: center; justify-content: center; flex-direction: column; }
+    .member-lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.97); z-index: 2000; align-items: center; justify-content: center; flex-direction: column; padding: 60px 16px 16px; box-sizing: border-box; }
     .member-lightbox.active { display: flex; }
-    .member-lightbox-img { max-width: 90vw; max-height: 80vh; object-fit: contain; border-radius: 4px; display: block; }
+    .member-lightbox-img { max-width: min(90vw, calc(100vh - 180px)); max-height: calc(100vh - 180px); width: auto; height: auto; object-fit: contain; border-radius: 4px; display: block; flex-shrink: 1; min-height: 0; }
     .member-lightbox-toolbar { display: flex; align-items: center; gap: 16px; margin-top: 16px; z-index: 2001; }
     .member-lightbox-download { display: flex; align-items: center; gap: 6px; padding: 9px 20px; background: var(--color-gold-warm, #D4A843); border: none; border-radius: 6px; color: #000; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; text-decoration: none; }
     .member-lightbox-download:hover { opacity: 0.85; }
@@ -1276,7 +1276,7 @@
     .member-gallery-empty { text-align: center; padding: 50px 20px; color: rgba(245,240,232,0.3); }
     .member-gallery-empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.4; }
     .member-gallery-empty-text { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 300; color: rgba(245,240,232,0.45); }
-    @media (max-width: 480px) { .member-galleries-grid { grid-template-columns: 1fr 1fr; gap: 10px; } .member-photo-grid { grid-template-columns: repeat(3, 1fr); gap: 5px; } }
+    @media (max-width: 480px) { .member-galleries-grid { grid-template-columns: 1fr 1fr; gap: 10px; } .member-photo-grid { grid-template-columns: repeat(3, 1fr); gap: 5px; } .member-lightbox { padding: 56px 8px 12px; } .member-lightbox-img { max-width: 100%; max-height: calc(100svh - 160px); border-radius: 2px; } .member-lightbox-toolbar { gap: 10px; flex-wrap: wrap; justify-content: center; } .member-lightbox-download, .member-lightbox-dl-ig { padding: 8px 14px; font-size: 12px; } }
   </style>
 </head>
 <body>
@@ -2819,6 +2819,7 @@ function returnToMainSite() {
 // ============================================
 let memberGalleryPhotos = [];
 let memberLightboxIndex = 0;
+let memberCurrentGalleryTitle = '';
 
 async function loadMemberGalleries() {
   const grid = document.getElementById('memberGalleriesGrid');
@@ -2903,6 +2904,50 @@ async function loadMemberGalleries() {
     }, { rootMargin: '150px' });
 
     grid.querySelectorAll('[data-gallery-id]').forEach(el => cardObserver.observe(el));
+    // Mobile fix: tab switches from display:none, so IntersectionObserver may fire before
+    // layout is painted and never see in-viewport cards. After a short delay, directly
+    // trigger the lazy-load for any card already in viewport that hasn't loaded yet.
+    setTimeout(() => {
+      grid.querySelectorAll('[data-gallery-id]').forEach(async card => {
+        const img = card.querySelector('[data-lazy-cover]');
+        if (img && img.src && img.src !== window.location.href) return; // already loaded
+        const rect = card.getBoundingClientRect();
+        if (rect.top < window.innerHeight + 200 && rect.bottom > -200) {
+          cardObserver.unobserve(card);
+          const gId = card.dataset.galleryId;
+          const coverId = card.dataset.coverPhotoId;
+          const ph = card.querySelector('[data-cover-placeholder]');
+          const cntEl = card.querySelector('[data-lazy-count]');
+          try {
+            const { count } = await supabaseClient.from('gallery_photos')
+              .select('*', { count: 'exact', head: true }).eq('gallery_id', gId);
+            if (cntEl) cntEl.textContent = (count || 0) + ' photo' + (count !== 1 ? 's' : '');
+          } catch(e) { console.error('member mobile count fallback:', e); }
+          try {
+            let path = null;
+            if (coverId) {
+              const { data: cp } = await supabaseClient.from('gallery_photos')
+                .select('storage_path').eq('id', coverId).single();
+              if (cp) path = cp.storage_path;
+            }
+            if (!path) {
+              const { data: fp } = await supabaseClient.from('gallery_photos')
+                .select('storage_path').eq('gallery_id', gId)
+                .order('display_order', { ascending: true }).limit(1).single();
+              if (fp) path = fp.storage_path;
+            }
+            if (path && img) {
+              const { data: su } = await supabaseClient.storage.from('gallery-photos')
+                .createSignedUrl(path, 3600);
+              if (su?.signedUrl) {
+                img.onload = () => { if (ph) ph.style.display = 'none'; img.style.display = 'block'; img.style.opacity = '1'; };
+                img.src = su.signedUrl;
+              }
+            }
+          } catch(e) { console.error('member mobile cover fallback:', e); }
+        }
+      });
+    }, 120);
 
   } catch (err) {
     console.error('loadMemberGalleries error:', err);
@@ -2911,6 +2956,7 @@ async function loadMemberGalleries() {
 }
 
 async function openMemberGallery(galleryId, title) {
+  memberCurrentGalleryTitle = title || '';
   document.getElementById('memberViewerTitle').textContent = title;
   document.getElementById('memberGalleryList').style.display = 'none';
   document.getElementById('memberGalleryViewer').classList.add('active');
@@ -2963,6 +3009,30 @@ async function openMemberGallery(galleryId, title) {
     }, { rootMargin: '200px' });
 
     document.querySelectorAll('#memberPhotoGrid [data-photo-index]').forEach(el => thumbObserver.observe(el));
+    // Mobile fix: photo grid may not be visible yet when observer fires.
+    // After a short delay, directly load any in-viewport thumbnails that haven't loaded.
+    setTimeout(() => {
+      document.querySelectorAll('#memberPhotoGrid [data-photo-index]').forEach(async tile => {
+        const img = tile.querySelector('[data-lazy-thumb]');
+        if (img && img.src && img.src !== window.location.href) return; // already loaded
+        const rect = tile.getBoundingClientRect();
+        if (rect.top < window.innerHeight + 250 && rect.bottom > -250) {
+          thumbObserver.unobserve(tile);
+          const idx = parseInt(tile.dataset.photoIndex);
+          const path = tile.dataset.storagePath;
+          if (!img || !path) return;
+          try {
+            const { data: su } = await supabaseClient.storage.from('gallery-photos')
+              .createSignedUrl(path, 7200);
+            if (su?.signedUrl) {
+              memberGalleryPhotos[idx].signedUrl = su.signedUrl;
+              img.onload = () => { img.style.opacity = '1'; };
+              img.src = su.signedUrl;
+            }
+          } catch(e) { console.error('member mobile thumb fallback:', e); }
+        }
+      });
+    }, 120);
 
   } catch (err) {
     console.error('openMemberGallery error:', err);
@@ -3062,7 +3132,11 @@ async function memberDownloadInstagram() {
     ctx.fillStyle = 'rgba(255,255,255,0.35)';
     ctx.textAlign = 'right';
     ctx.fillText('RIDDIM SUPPER CLUB', 1060, 1060);
-    const filename = `riddim_instagram_${Date.now()}.jpg`;
+    const gallerySlug = memberCurrentGalleryTitle
+      ? memberCurrentGalleryTitle.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 40)
+      : 'photo';
+    const dateStr = new Date().toISOString().slice(0, 10);
+    const filename = `riddim_${gallerySlug}_${dateStr}.jpg`;
     canvas.toBlob((blob) => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
