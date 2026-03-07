@@ -1673,6 +1673,37 @@
       </div>
     </div>
 
+    <div class="tab-panel" id="tab-events" style="padding:24px 20px;">
+  <div style="margin-bottom:20px;">
+    <p style="font-family:var(--font-label);font-size:10px;letter-spacing:0.12em;color:var(--gold-warm);margin-bottom:6px;">EVENTS</p>
+    <h2 style="font-family:var(--font-display);font-size:28px;font-weight:300;font-style:italic;color:var(--ivory);">This Month</h2>
+  </div>
+
+  <!-- Calendar -->
+  <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:16px;margin-bottom:24px;max-width:600px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <button onclick="staffEvtCalNav(-1)" style="background:none;border:1px solid rgba(255,255,255,0.12);color:#f5f0e8;width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:15px;">&#x2039;</button>
+      <div id="staffEvtCalLabel" style="font-family:var(--font-label);font-size:12px;letter-spacing:0.12em;color:#f5f0e8;"></div>
+      <button onclick="staffEvtCalNav(1)" style="background:none;border:1px solid rgba(255,255,255,0.12);color:#f5f0e8;width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:15px;">&#x203A;</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;">
+      <div style="text-align:center;font-size:10px;color:rgba(245,240,232,0.3);padding-bottom:3px;">Su</div>
+      <div style="text-align:center;font-size:10px;color:rgba(245,240,232,0.3);padding-bottom:3px;">Mo</div>
+      <div style="text-align:center;font-size:10px;color:rgba(245,240,232,0.3);padding-bottom:3px;">Tu</div>
+      <div style="text-align:center;font-size:10px;color:rgba(245,240,232,0.3);padding-bottom:3px;">We</div>
+      <div style="text-align:center;font-size:10px;color:rgba(245,240,232,0.3);padding-bottom:3px;">Th</div>
+      <div style="text-align:center;font-size:10px;color:rgba(245,240,232,0.3);padding-bottom:3px;">Fr</div>
+      <div style="text-align:center;font-size:10px;color:rgba(245,240,232,0.3);padding-bottom:3px;">Sa</div>
+    </div>
+    <div id="staffEvtCalGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;"></div>
+    <div id="staffEvtCalClearWrap" style="display:none;text-align:right;margin-top:8px;">
+      <button onclick="staffEvtCalClear()" style="font-size:11px;color:var(--gold-warm);background:none;border:none;cursor:pointer;">&#x2715; CLEAR</button>
+    </div>
+  </div>
+
+  <!-- Weekend list -->
+  <div id="staffEvtWeekendList" style="max-width:600px;display:flex;flex-direction:column;gap:10px;"></div>
+
   </main>
 
   <!-- Staff Lightbox -->
@@ -1736,37 +1767,6 @@
   </div>
 </div>
 
-<!-- ── TAB: EVENTS ── -->
-<div class="tab-panel" id="tab-events" style="padding:24px 20px;">
-  <div style="margin-bottom:20px;">
-    <p style="font-family:var(--font-label);font-size:10px;letter-spacing:0.12em;color:var(--gold-warm);margin-bottom:6px;">EVENTS</p>
-    <h2 style="font-family:var(--font-display);font-size:28px;font-weight:300;font-style:italic;color:var(--ivory);">This Month</h2>
-  </div>
-
-  <!-- Calendar -->
-  <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:16px;margin-bottom:24px;max-width:600px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-      <button onclick="staffEvtCalNav(-1)" style="background:none;border:1px solid rgba(255,255,255,0.12);color:#f5f0e8;width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:15px;">&#x2039;</button>
-      <div id="staffEvtCalLabel" style="font-family:var(--font-label);font-size:12px;letter-spacing:0.12em;color:#f5f0e8;"></div>
-      <button onclick="staffEvtCalNav(1)" style="background:none;border:1px solid rgba(255,255,255,0.12);color:#f5f0e8;width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:15px;">&#x203A;</button>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;">
-      <div style="text-align:center;font-size:10px;color:rgba(245,240,232,0.3);padding-bottom:3px;">Su</div>
-      <div style="text-align:center;font-size:10px;color:rgba(245,240,232,0.3);padding-bottom:3px;">Mo</div>
-      <div style="text-align:center;font-size:10px;color:rgba(245,240,232,0.3);padding-bottom:3px;">Tu</div>
-      <div style="text-align:center;font-size:10px;color:rgba(245,240,232,0.3);padding-bottom:3px;">We</div>
-      <div style="text-align:center;font-size:10px;color:rgba(245,240,232,0.3);padding-bottom:3px;">Th</div>
-      <div style="text-align:center;font-size:10px;color:rgba(245,240,232,0.3);padding-bottom:3px;">Fr</div>
-      <div style="text-align:center;font-size:10px;color:rgba(245,240,232,0.3);padding-bottom:3px;">Sa</div>
-    </div>
-    <div id="staffEvtCalGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;"></div>
-    <div id="staffEvtCalClearWrap" style="display:none;text-align:right;margin-top:8px;">
-      <button onclick="staffEvtCalClear()" style="font-size:11px;color:var(--gold-warm);background:none;border:none;cursor:pointer;">&#x2715; CLEAR</button>
-    </div>
-  </div>
-
-  <!-- Weekend list -->
-  <div id="staffEvtWeekendList" style="max-width:600px;display:flex;flex-direction:column;gap:10px;"></div>
 </div>
 
 <div class="toast" id="toast"></div>

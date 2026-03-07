@@ -1555,15 +1555,39 @@
 
     <!-- ─────────────── TAB: EVENTS ─────────────── -->
     <div class="tab-panel" id="tab-events">
-      <div style="margin-bottom:var(--space-8)">
+      <div style="margin-bottom:var(--space-6)">
         <p class="panel-eyebrow">Your Calendar</p>
         <h2 style="font-family:var(--font-display);font-size:36px;font-weight:300;font-style:italic;color:var(--color-ivory);margin-bottom:var(--space-2)">Upcoming Events</h2>
         <p style="color:var(--color-ash);font-size:14px">Members get early access and priority reservations.</p>
       </div>
 
-      <div class="events-tab-grid" id="eventsTabGrid">
-        <!-- Rendered by JS -->
+      <!-- EVENTS CALENDAR -->
+      <div id="eventsCalendarWrap" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:20px;margin-bottom:28px;max-width:680px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <button onclick="evtCalNav(-1)" style="background:none;border:1px solid rgba(255,255,255,0.12);color:var(--color-ivory);width:32px;height:32px;border-radius:6px;cursor:pointer;font-size:16px;">&#x2039;</button>
+          <div id="evtCalMonthLabel" style="font-family:var(--font-label);font-size:13px;letter-spacing:0.12em;color:var(--color-ivory);"></div>
+          <button onclick="evtCalNav(1)" style="background:none;border:1px solid rgba(255,255,255,0.12);color:var(--color-ivory);width:32px;height:32px;border-radius:6px;cursor:pointer;font-size:16px;">&#x203A;</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:6px;">
+          <div style="text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.1em;color:rgba(245,240,232,0.35);padding-bottom:4px;">Su</div>
+          <div style="text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.1em;color:rgba(245,240,232,0.35);padding-bottom:4px;">Mo</div>
+          <div style="text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.1em;color:rgba(245,240,232,0.35);padding-bottom:4px;">Tu</div>
+          <div style="text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.1em;color:rgba(245,240,232,0.35);padding-bottom:4px;">We</div>
+          <div style="text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.1em;color:rgba(245,240,232,0.35);padding-bottom:4px;">Th</div>
+          <div style="text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.1em;color:rgba(245,240,232,0.35);padding-bottom:4px;">Fr</div>
+          <div style="text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.1em;color:rgba(245,240,232,0.35);padding-bottom:4px;">Sa</div>
+        </div>
+        <div id="evtCalGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;"></div>
+        <div id="evtCalClearWrap" style="display:none;text-align:right;margin-top:10px;">
+          <button onclick="evtCalClearFilter()" style="font-size:11px;font-family:var(--font-label);letter-spacing:0.08em;color:var(--color-gold);background:none;border:none;cursor:pointer;">&#x2715; CLEAR FILTER</button>
+        </div>
       </div>
+
+      <!-- WEEKEND LIST -->
+      <div id="eventsWeekendList" style="max-width:680px;display:flex;flex-direction:column;gap:12px;"></div>
+
+      <!-- hidden grid kept for legacy refs -->
+      <div class="events-tab-grid" id="eventsTabGrid" style="display:none;"></div>
 
       <!-- Reservation request form -->
       <div class="reserve-inline" id="reserveInlineForm" style="display:none">
@@ -2359,11 +2383,159 @@ function renderUpcomingEvents() {
   }).join('');
 }
 
-/* ─── Events tab ─── */
+/* ─── Events Calendar + Weekend List ─── */
+let evtCalYear  = new Date().getFullYear();
+let evtCalMonth = new Date().getMonth();
+let evtCalFilter = null; // YYYY-MM-DD string or null
+
+function evtCalNav(dir) {
+  evtCalMonth += dir;
+  if (evtCalMonth > 11) { evtCalMonth = 0; evtCalYear++; }
+  if (evtCalMonth < 0)  { evtCalMonth = 11; evtCalYear--; }
+  renderEventsCalendar();
+  renderWeekendList();
+}
+
+function evtCalClearFilter() {
+  evtCalFilter = null;
+  document.getElementById('evtCalClearWrap').style.display = 'none';
+  renderEventsCalendar();
+  renderWeekendList();
+}
+
+function evtCalSelectDate(dateStr) {
+  evtCalFilter = (evtCalFilter === dateStr) ? null : dateStr;
+  document.getElementById('evtCalClearWrap').style.display = evtCalFilter ? 'block' : 'none';
+  renderEventsCalendar();
+  renderWeekendList();
+}
+
+function renderEventsCalendar() {
+  const label = document.getElementById('evtCalMonthLabel');
+  const grid  = document.getElementById('evtCalGrid');
+  if (!label || !grid) return;
+  const monthNames = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+  label.textContent = monthNames[evtCalMonth] + ' ' + evtCalYear;
+
+  // Build set of event dates this month
+  const eventDates = new Set(LIVE_EVENTS.map(e => e.event_date));
+  const today = new Date().toISOString().slice(0,10);
+
+  const firstDay = new Date(evtCalYear, evtCalMonth, 1).getDay();
+  const daysInMonth = new Date(evtCalYear, evtCalMonth+1, 0).getDate();
+
+  let cells = '';
+  for (let i = 0; i < firstDay; i++) cells += '<div></div>';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const mm   = String(evtCalMonth+1).padStart(2,'0');
+    const dd   = String(d).padStart(2,'0');
+    const iso  = `${evtCalYear}-${mm}-${dd}`;
+    const dow  = new Date(evtCalYear, evtCalMonth, d).getDay(); // 0=Sun,5=Fri,6=Sat
+    const isWeekend = dow === 0 || dow === 5 || dow === 6;
+    const hasEvent  = eventDates.has(iso);
+    const isToday   = iso === today;
+    const isSelected = iso === evtCalFilter;
+    const isPast    = iso < today;
+
+    let bg = 'transparent';
+    let border = 'none';
+    let color = isPast ? 'rgba(245,240,232,0.2)' : isWeekend ? 'rgba(245,240,232,0.7)' : 'rgba(245,240,232,0.35)';
+    let cursor = isWeekend ? 'pointer' : 'default';
+    if (isSelected) { bg = 'var(--color-gold)'; color = '#000'; border = 'none'; }
+    else if (isToday) { border = '1px solid var(--color-gold)'; }
+    else if (isWeekend && !isPast) { border = '1px solid rgba(212,168,67,0.2)'; }
+
+    const dot = hasEvent && !isSelected ? `<div style="width:4px;height:4px;border-radius:50%;background:${isSelected?'#000':'var(--color-gold)'};margin:1px auto 0;"></div>` : '';
+    const click = isWeekend ? `onclick="evtCalSelectDate('${iso}')"` : '';
+
+    cells += `<div ${click} style="text-align:center;padding:5px 2px;border-radius:5px;background:${bg};border:${border};color:${color};font-size:12px;cursor:${cursor};user-select:none;">
+      ${d}${dot}
+    </div>`;
+  }
+  grid.innerHTML = cells;
+}
+
+function renderWeekendList() {
+  const el = document.getElementById('eventsWeekendList');
+  if (!el) return;
+  const today = new Date().toISOString().slice(0,10);
+  const eventMap = {};
+  LIVE_EVENTS.forEach(e => { eventMap[e.event_date] = e; });
+
+  // Build all Fri/Sat/Sun for the displayed month
+  const daysInMonth = new Date(evtCalYear, evtCalMonth+1, 0).getDate();
+  const weekendRows = [];
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dow = new Date(evtCalYear, evtCalMonth, d).getDay();
+    if (dow !== 0 && dow !== 5 && dow !== 6) continue;
+    const mm  = String(evtCalMonth+1).padStart(2,'0');
+    const dd  = String(d).padStart(2,'0');
+    const iso = `${evtCalYear}-${mm}-${dd}`;
+    if (evtCalFilter && iso !== evtCalFilter) continue;
+    weekendRows.push(iso);
+  }
+
+  if (!weekendRows.length) {
+    el.innerHTML = '<p style="color:rgba(245,240,232,0.3);font-size:13px;padding:16px 0;">No weekend dates in this period.</p>';
+    return;
+  }
+
+  el.innerHTML = weekendRows.map(iso => {
+    const ev  = eventMap[iso];
+    const d   = new Date(iso + 'T00:00:00');
+    const dow = d.getDay();
+    const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const dateLabel = d.toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' }).toUpperCase();
+    const dayLabel  = dayNames[dow].toUpperCase();
+    const isPast    = iso < today;
+
+    if (ev) {
+      const isLive    = ev.status === 'live';
+      const isSoldOut = ev.status === 'sold_out';
+      const statusBadge = isLive
+        ? '<span style="font-family:var(--font-label);font-size:9px;letter-spacing:0.1em;background:rgba(129,199,132,0.15);color:#81C784;border:1px solid rgba(129,199,132,0.3);padding:2px 8px;border-radius:10px;">● LIVE NOW</span>'
+        : isSoldOut
+        ? '<span style="font-family:var(--font-label);font-size:9px;letter-spacing:0.1em;background:rgba(192,57,43,0.15);color:#E57373;border:1px solid rgba(192,57,43,0.3);padding:2px 8px;border-radius:10px;">SOLD OUT</span>'
+        : '<span style="font-family:var(--font-label);font-size:9px;letter-spacing:0.1em;background:rgba(212,168,67,0.12);color:var(--color-gold);border:1px solid rgba(212,168,67,0.25);padding:2px 8px;border-radius:10px;">SCHEDULED</span>';
+      const flyer = ev.flyer_url
+        ? `<img src="${ev.flyer_url}" style="width:64px;height:64px;object-fit:cover;border-radius:6px;flex-shrink:0;" loading="lazy">`
+        : `<div style="width:64px;height:64px;border-radius:6px;background:rgba(212,168,67,0.08);border:1px solid rgba(212,168,67,0.2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">✦</div>`;
+      const reserveBtn = !isSoldOut
+        ? `<button class="event-card-btn primary" style="margin-top:10px;font-size:11px;padding:7px 16px;" onclick="openReserveForm('${(ev.title||'').replace(/'/g,"\'")}','${iso}')">Reserve a Table</button>`
+        : `<button class="event-card-btn primary" style="margin-top:10px;font-size:11px;padding:7px 16px;opacity:0.4;cursor:default;" disabled>Sold Out</button>`;
+      return `<div style="display:flex;gap:14px;align-items:flex-start;background:rgba(212,168,67,0.05);border:1px solid rgba(212,168,67,0.2);border-radius:10px;padding:14px 16px;">
+        ${flyer}
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
+            <span style="font-family:var(--font-label);font-size:10px;letter-spacing:0.1em;color:var(--color-gold);">${dayLabel} · ${dateLabel}</span>
+            ${statusBadge}
+          </div>
+          <div style="font-family:var(--font-display);font-size:20px;font-weight:300;color:var(--color-ivory);line-height:1.2;">${ev.title || '—'}</div>
+          ${ev.description ? `<div style="font-size:12px;color:rgba(245,240,232,0.5);margin-top:3px;">${ev.description}</div>` : ''}
+          ${ev.start_time ? `<div style="font-size:11px;color:rgba(245,240,232,0.4);margin-top:2px;">Doors ${ev.start_time.slice(0,5)}</div>` : ''}
+          ${reserveBtn}
+        </div>
+      </div>`;
+    } else {
+      const opacity = isPast ? '0.25' : '0.5';
+      return `<div style="display:flex;gap:14px;align-items:center;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:14px 16px;opacity:${opacity};">
+        <div style="width:64px;height:64px;border-radius:6px;background:rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;color:rgba(245,240,232,0.2);">○</div>
+        <div>
+          <div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.1em;color:rgba(245,240,232,0.3);margin-bottom:4px;">${dayLabel} · ${dateLabel}</div>
+          <div style="font-family:var(--font-display);font-size:16px;font-weight:300;color:rgba(245,240,232,0.3);">Available</div>
+        </div>
+      </div>`;
+    }
+  }).join('');
+}
+
+/* ─── Events tab (legacy grid — now hidden, weekend list used instead) ─── */
 function renderEvents() {
+  renderEventsCalendar();
+  renderWeekendList();
   const el = document.getElementById('eventsTabGrid');
   if (!LIVE_EVENTS.length) {
-    el.innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:48px;color:var(--color-ash);font-size:14px;">No upcoming events. Check back soon.</p>';
+    el.innerHTML = '';
     return;
   }
   el.innerHTML = LIVE_EVENTS.map(ev => {
@@ -2478,6 +2650,7 @@ function goToTab(tabId) {
     btn.classList.toggle('active', btn.dataset.tab === tabId);
   });
   if (tabId === 'gallery') loadMemberGalleries();
+  if (tabId === 'events') { renderEventsCalendar(); renderWeekendList(); }
 }
 
 document.querySelectorAll('.portal-tab, .mobile-tab').forEach(btn => {
