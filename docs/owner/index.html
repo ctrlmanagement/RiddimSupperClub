@@ -4257,8 +4257,9 @@ async function saveGallery() {
       galleryId = data.id;
     }
     if (galleryPendingFiles.length > 0) {
+      const filesToUpload = [...galleryPendingFiles];
       closeCreateGalleryModal();
-      await uploadPhotosToGallery(galleryId, galleryPendingFiles);
+      await uploadPhotosToGallery(galleryId, filesToUpload);
     } else {
       closeCreateGalleryModal();
       await loadGalleries();
