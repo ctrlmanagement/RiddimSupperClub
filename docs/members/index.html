@@ -1918,7 +1918,7 @@ async function loadEvents() {
     const today = new Date().toISOString().slice(0, 10);
     const { data, error } = await supabaseClient
       .from('events')
-      .select('id, name, event_date, start_time, description, status, flyer_url, capacity')
+      .select('id, title, event_date, start_time, description, status, flyer_url, capacity')
       .in('status', ['scheduled', 'live', 'sold_out'])
       .gte('event_date', today)
       .order('event_date', { ascending: true })
@@ -2343,7 +2343,7 @@ function renderUpcomingEvents() {
   }
   el.innerHTML = upcoming.map(ev => {
     const dateStr  = ev.event_date || ev.date || '';
-    const title    = ev.name  || ev.title || '—';
+    const title    = ev.title || '—';
     const type     = ev.description || ev.type || '';
     const isLive   = ev.status === 'live';
     const isSoldOut = ev.status === 'sold_out';
@@ -2368,7 +2368,7 @@ function renderEvents() {
   }
   el.innerHTML = LIVE_EVENTS.map(ev => {
     const dateStr   = ev.event_date || ev.date || '';
-    const title     = ev.name  || ev.title || '—';
+    const title     = ev.title || '—';
     const type      = ev.description || ev.type || '';
     const isLive    = ev.status === 'live';
     const isSoldOut = ev.status === 'sold_out';
