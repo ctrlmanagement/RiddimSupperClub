@@ -2527,8 +2527,9 @@ function renderWeekendList() {
         const flyerFull  = ev.flyer_url    ? `<img src="${ev.flyer_url}" style="width:100%;max-height:340px;object-fit:contain;border-radius:8px;margin-bottom:14px;" loading="lazy">` : '';
         const promoVideo = ev.promo_video_url ? `<video controls style="width:100%;border-radius:8px;margin-bottom:14px;max-height:280px;background:#000;" preload="metadata"><source src="${ev.promo_video_url}"></video>` : '';
         const timeInfo   = [ev.start_time ? 'Doors ' + ev.start_time.slice(0,5) : '', ev.end_time ? '&#8212; ' + ev.end_time.slice(0,5) : ''].filter(Boolean).join(' ');
+        const safeTitle  = (ev.title || '').replace(/'/g, '&apos;');
         const resBtn     = !isSoldOut
-          ? `<button class="event-card-btn primary" style="width:100%;margin-top:14px;" onclick="event.stopPropagation();openReserveForm('${(ev.title||'').replace(/\/g,'\\').replace(/'/g,'&#39;')}','${iso}')">Reserve a Table</button>`
+          ? `<button class="event-card-btn primary" style="width:100%;margin-top:14px;" onclick="event.stopPropagation();openReserveForm('${safeTitle}','${iso}')">Reserve a Table</button>`
           : `<button class="event-card-btn primary" style="width:100%;margin-top:14px;opacity:0.4;cursor:default;" disabled>Sold Out</button>`;
         return `<div style="border-top:1px solid rgba(212,168,67,0.15);margin-top:14px;padding-top:16px;" onclick="event.stopPropagation()">
           ${flyerFull}${promoVideo}
