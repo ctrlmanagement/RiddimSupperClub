@@ -3892,6 +3892,23 @@ function staffLightboxKeyHandler(e) {
 
 document.getElementById('staffLightbox')?.addEventListener('click', function(e) { if (e.target === this) closeStaffLightbox(); });
 
+/* ── Touch swipe — staff lightbox ───────────────────────────── */
+(function() {
+  let startX = 0, startY = 0;
+  const lb = document.getElementById('staffLightbox');
+  if (!lb) return;
+  lb.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+  }, { passive: true });
+  lb.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - startX;
+    const dy = e.changedTouches[0].clientY - startY;
+    if (Math.abs(dx) < 40 || Math.abs(dy) > Math.abs(dx)) return;
+    staffLightboxNav(dx < 0 ? 1 : -1);
+  }, { passive: true });
+})();
+
 async function downloadInstagramCrop() {
   const photo = staffGalleryPhotos[staffLightboxIndex];
   if (!photo) return;
