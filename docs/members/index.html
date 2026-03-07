@@ -535,11 +535,9 @@
       border-bottom: 1px solid rgba(184,134,11,0.12);
       padding: var(--space-8) var(--space-8);
       opacity: 0;
-      transform: translateY(-6px);
-      transition: opacity var(--dur-slow) var(--ease-cinematic),
-                  transform var(--dur-slow) var(--ease-cinematic);
+      transition: opacity var(--dur-slow) var(--ease-cinematic);
     }
-    .recognition-banner.visible { opacity: 1; transform: translateY(0); }
+    .recognition-banner.visible { opacity: 1; }
     .recognition-inner { max-width: 1100px; margin: 0 auto; }
     .recognition-eyebrow {
       font-family: var(--font-label);
@@ -603,11 +601,9 @@
       margin: 0 auto;
       padding: var(--space-8) var(--space-8) calc(var(--space-16) + 60px);
       opacity: 0;
-      transform: translateY(16px);
-      transition: opacity var(--dur-slow) var(--ease-cinematic),
-                  transform var(--dur-slow) var(--ease-cinematic);
+      transition: opacity var(--dur-slow) var(--ease-cinematic);
     }
-    .portal-main.visible { opacity: 1; transform: translateY(0); }
+    .portal-main.visible { opacity: 1; }
     @media (max-width: 600px) {
       .portal-main { padding: var(--space-6) var(--space-4) 100px; }
       .portal-nav-inner { padding: 0 var(--space-4); }
@@ -1256,7 +1252,7 @@
     .member-photo-thumb { aspect-ratio: 1; border-radius: 6px; overflow: hidden; cursor: pointer; border: 1px solid rgba(212,168,67,0.08); transition: border-color 0.15s, transform 0.15s; position: relative; }
     .member-photo-thumb:hover { border-color: rgba(212,168,67,0.4); transform: scale(1.02); }
     .member-photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .member-lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.97); z-index: 2000; flex-direction: column; align-items: center; justify-content: center; }
+    .member-lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.97); z-index: 2000; flex-direction: column; align-items: center; justify-content: center; transform: none; }
     .member-lightbox.active { display: flex; }
     .member-lightbox-img { display: block; max-width: calc(100vw - 120px); max-height: calc(100vh - 120px); width: auto; height: auto; object-fit: contain; border-radius: 4px; flex-shrink: 0; }
     .member-lightbox-toolbar { display: flex; align-items: center; gap: 16px; margin-top: 20px; z-index: 2001; flex-shrink: 0; }
