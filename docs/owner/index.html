@@ -1694,6 +1694,34 @@
       <div class="gallery-upload-preview" id="galleryUploadPreview"></div>
     </div>
     <div class="gallery-status" id="galleryModalStatus"></div>
+    <!-- Photo Metadata -->
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--graphite);">
+      <div class="gallery-form-label" style="margin-bottom:10px;font-size:11px;letter-spacing:.08em;color:var(--owner-gold);">PHOTO METADATA <span style="color:var(--ash);font-weight:300;">(applied to all uploaded photos)</span></div>
+      <div class="gallery-form-row-half" style="gap:10px;">
+        <div>
+          <label class="gallery-form-label">Venue Name</label>
+          <input type="text" class="gallery-form-input" id="metaVenueName" value="RIDDIM Supper Club" placeholder="RIDDIM Supper Club">
+        </div>
+        <div>
+          <label class="gallery-form-label">Location</label>
+          <input type="text" class="gallery-form-input" id="metaLocation" placeholder="Atlanta, GA">
+        </div>
+      </div>
+      <div class="gallery-form-row-half" style="gap:10px;margin-top:10px;">
+        <div>
+          <label class="gallery-form-label">Photographer Credit</label>
+          <input type="text" class="gallery-form-input" id="metaPhotographer" placeholder="e.g. @riddimshots">
+        </div>
+        <div>
+          <label class="gallery-form-label">Date Taken</label>
+          <input type="date" class="gallery-form-input" id="metaDateTaken">
+        </div>
+      </div>
+      <div style="margin-top:10px;">
+        <label class="gallery-form-label">Caption / Description <span style="color:var(--ash);font-weight:300;">(optional)</span></label>
+        <textarea class="gallery-form-input" id="metaCaption" rows="2" placeholder="e.g. Friday night energy on the patio…" style="resize:vertical;min-height:52px;"></textarea>
+      </div>
+    </div>
     <button class="gallery-save-btn" id="gallerySaveBtn" onclick="saveGallery()">Create Gallery</button>
   </div>
 </div>
@@ -1705,6 +1733,49 @@
   <img class="gallery-lightbox-img" id="galleryLightboxImg" src="" alt="">
   <button class="gallery-lightbox-next" onclick="lightboxNav(1)">&#x203A;</button>
   <div class="gallery-lightbox-counter" id="galleryLightboxCounter"></div>
+  <!-- Edit metadata button — top right -->
+  <button onclick="openPhotoMetaModal()" style="position:absolute;top:16px;right:56px;background:rgba(0,0,0,0.5);border:1px solid rgba(212,168,67,0.4);color:var(--owner-gold);font-size:11px;font-family:var(--font-body);letter-spacing:.06em;padding:5px 12px;border-radius:4px;cursor:pointer;">✎ EDIT INFO</button>
+  <div id="galleryLightboxMeta" style="position:absolute;bottom:48px;left:0;right:0;padding:10px 20px;background:linear-gradient(transparent,rgba(0,0,0,0.75));text-align:left;pointer-events:none;display:none;">
+    <div id="galleryLightboxCaption" style="font-family:var(--font-display);font-size:15px;font-weight:300;color:var(--ivory);margin-bottom:4px;"></div>
+    <div id="galleryLightboxMetaRow" style="font-size:11px;color:rgba(255,255,255,0.55);display:flex;flex-wrap:wrap;gap:12px;"></div>
+  </div>
+</div>
+
+<!-- Photo Metadata Edit Modal -->
+<div class="modal-overlay" id="photoMetaModal" style="z-index:10001;">
+  <div class="modal-card" style="max-width:480px;">
+    <div class="modal-title">Edit Photo Info</div>
+    <div class="modal-sub" id="photoMetaFilename" style="font-size:11px;color:var(--ash);margin-bottom:16px;"></div>
+    <div class="field">
+      <label>Caption</label>
+      <textarea id="pmCaption" rows="2" style="width:100%;background:var(--void);border:1px solid var(--graphite);color:var(--ivory);padding:10px 12px;border-radius:6px;font-family:var(--font-body);font-size:14px;resize:vertical;"></textarea>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="field">
+        <label>Photographer</label>
+        <input type="text" id="pmPhotographer" placeholder="@riddimshots" />
+      </div>
+      <div class="field">
+        <label>Date Taken</label>
+        <input type="date" id="pmDateTaken" />
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="field">
+        <label>Venue Name</label>
+        <input type="text" id="pmVenueName" placeholder="RIDDIM Supper Club" />
+      </div>
+      <div class="field">
+        <label>Location</label>
+        <input type="text" id="pmLocation" placeholder="Atlanta, GA" />
+      </div>
+    </div>
+    <div class="auth-error" id="photoMetaError" style="text-align:left;margin-bottom:8px;"></div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="savePhotoMeta()">Save</button>
+      <button class="btn-ghost" onclick="document.getElementById('photoMetaModal').classList.remove('open')">Cancel</button>
+    </div>
+  </div>
 </div>
 
 <!-- Member Detail Modal -->
@@ -2778,7 +2849,7 @@ function renderEventsTab() {
       </div>
       <div style="flex:1;min-width:0;">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap;">
-          <div style="font-family:var(--font-display);font-size:20px;font-weight:300;color:var(--ivory);">${e.name}</div>
+          <div style="font-family:var(--font-display);font-size:20px;font-weight:300;color:var(--ivory);">${e.title}</div>
           <span style="font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:${color};border:1px solid ${color};padding:2px 8px;border-radius:4px;">${e.status.replace('_',' ').toUpperCase()}</span>
         </div>
         <div style="font-size:13px;color:var(--ash);">
@@ -2815,7 +2886,7 @@ function openEditEventModal(id) {
   if (!e) return;
   editingEventId = id;
   document.getElementById('eventModalTitle').textContent = 'Edit Event';
-  document.getElementById('eventName').value     = e.name || '';
+  document.getElementById('eventName').value     = e.title || '';
   document.getElementById('eventDate').value     = e.event_date || '';
   document.getElementById('eventStart').value    = e.start_time ? e.start_time.slice(0,5) : '20:00';
   document.getElementById('eventEnd').value      = e.end_time ? e.end_time.slice(0,5) : '02:00';
@@ -2832,7 +2903,7 @@ function closeEventModal() {
 }
 
 async function saveEvent() {
-  const name     = document.getElementById('eventName').value.trim();
+  const title    = document.getElementById('eventName').value.trim();
   const date     = document.getElementById('eventDate').value;
   const start    = document.getElementById('eventStart').value;
   const end      = document.getElementById('eventEnd').value;
@@ -2842,12 +2913,12 @@ async function saveEvent() {
   const desc     = document.getElementById('eventDesc').value.trim();
   const errEl    = document.getElementById('eventError');
 
-  if (!name) { errEl.textContent = 'Event name is required.'; return; }
-  if (!date) { errEl.textContent = 'Date is required.'; return; }
+  if (!title) { errEl.textContent = 'Event name is required.'; return; }
+  if (!date)  { errEl.textContent = 'Date is required.'; return; }
   errEl.textContent = '';
 
   const payload = {
-    name,
+    title,
     event_date:  date,
     start_time:  start || null,
     end_time:    end   || null,
@@ -2856,6 +2927,12 @@ async function saveEvent() {
     description: desc || null,
   };
 
+  // Flyer + promo video upload
+  const flyerUrl = editingEventId ? await uploadFlyer(editingEventId) : null;
+  if (flyerUrl !== undefined && flyerUrl !== null) payload.flyer_url = flyerUrl;
+  const promoUrl = editingEventId ? await uploadPromoVideo(editingEventId) : null;
+  if (promoUrl !== undefined && promoUrl !== null) payload.promo_video_url = promoUrl;
+
   if (editingEventId) {
     if (LIVE_DATA) {
       const { error } = await supabaseClient.from('events').update(payload).eq('id', editingEventId);
@@ -2863,17 +2940,30 @@ async function saveEvent() {
     }
     const idx = EVENTS.findIndex(e => e.id === editingEventId);
     if (idx > -1) EVENTS[idx] = { ...EVENTS[idx], ...payload };
-    showToast(`✦ ${name} updated`, 'gold');
+    showToast(`✦ ${title} updated`, 'gold');
   } else {
     if (LIVE_DATA) {
-      // created_by omitted — avoids NOT NULL constraint issues if column requires a UUID
       const { data, error } = await supabaseClient.from('events').insert(payload).select().single();
       if (error) { console.error('Event insert error:', error); errEl.textContent = 'Could not save: ' + (error.message || 'Try again.'); return; }
+      // Upload flyer + promo video using real UUID now that row exists
+      const updates = {};
+      if (flyerFile) {
+        const fu = await uploadFlyer(data.id);
+        if (fu) updates.flyer_url = fu;
+      }
+      if (promoVideoFile) {
+        const pu = await uploadPromoVideo(data.id);
+        if (pu) updates.promo_video_url = pu;
+      }
+      if (Object.keys(updates).length) {
+        await supabaseClient.from('events').update(updates).eq('id', data.id);
+        Object.assign(data, updates);
+      }
       EVENTS.push(data);
     } else {
       EVENTS.push({ id: 'E'+Date.now(), ...payload, created_at: new Date().toISOString() });
     }
-    showToast(`✦ ${name} added`, 'gold');
+    showToast(`✦ ${title} added`, 'gold');
   }
 
   renderEventsTab();
@@ -2947,7 +3037,7 @@ async function loadGuestsByEvent() {
   // Populate event selector if multiple events on same date
   const sel = document.getElementById('guestEventSelector');
   sel.innerHTML = GUEST_EVENTS_FOR_DATE.map(e =>
-    `<option value="${e.id}">${e.name} — ${e.start_time ? e.start_time.slice(0,5) : 'TBD'} (${e.status.replace('_',' ')})</option>`
+    `<option value="${e.id}">${e.title} — ${e.start_time ? e.start_time.slice(0,5) : 'TBD'} (${e.status.replace('_',' ')})</option>`
   ).join('');
   document.getElementById('guestEventSelectorWrap').style.display =
     GUEST_EVENTS_FOR_DATE.length > 1 ? 'block' : 'none';
@@ -3096,10 +3186,10 @@ function renderCalendar() {
     const chips = dayEvents.map(e => {
       const color = STATUS_COLORS[e.status] || 'var(--ash)';
       return `<div onclick="event.stopPropagation();openEditEventModal('${e.id}')"
-        title="${e.name} — ${e.status}"
+        title="${e.title} — ${e.status}"
         style="font-size:10px;padding:2px 5px;border-radius:3px;background:${color};color:#000;
                white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;
-               max-width:100%;margin-top:2px;font-weight:500;">${e.name}</div>`;
+               max-width:100%;margin-top:2px;font-weight:500;">${e.title}</div>`;
     }).join('');
 
     cells += `
@@ -3130,13 +3220,13 @@ function calDayClick(dateStr) {
 async function deleteEvent(id) {
   const e = EVENTS.find(e => e.id === id);
   if (!e) return;
-  if (!confirm(`Delete "${e.name}"? This cannot be undone.`)) return;
+  if (!confirm(`Delete "${e.title}"? This cannot be undone.`)) return;
   if (LIVE_DATA) {
     await supabaseClient.from('events').delete().eq('id', id);
   }
   EVENTS = EVENTS.filter(e => e.id !== id);
   renderEventsTab();
-  showToast(`${e.name} deleted`);
+  showToast(`${e.title} deleted`);
 }
 
 /* ═══ TOAST ═══ */
@@ -3212,6 +3302,26 @@ function showToast(msg,type=''){
         </div>
       </div>
       <div id="eventFlyerProgress" style="display:none;margin-top:8px;font-size:12px;color:var(--staff-light);">Uploading…</div>
+    </div>
+    <div class="field">
+      <label for="eventPromoVideo">Promo Video <span style="font-size:10px;color:var(--ash);font-weight:300;">(optional · MP4 · max 200MB)</span></label>
+      <div id="eventPromoVideoWrap" style="border:1px dashed var(--graphite);border-radius:6px;padding:16px;text-align:center;cursor:pointer;transition:border-color 150ms;position:relative;"
+        onclick="document.getElementById('eventPromoVideo').click()"
+        ondragover="event.preventDefault();this.style.borderColor='var(--owner-gold)'"
+        ondragleave="this.style.borderColor='var(--graphite)'"
+        ondrop="(function(ev){ev.preventDefault();document.getElementById('eventPromoVideoWrap').style.borderColor='var(--graphite)';const f=ev.dataTransfer?.files[0];if(f&&f.type.startsWith('video/')){promoVideoFile=f;onPromoVideoSelected({files:[f]});}})(event)">
+        <input type="file" id="eventPromoVideo" accept="video/mp4,video/quicktime,video/*" style="display:none;" onchange="onPromoVideoSelected(this)" />
+        <div id="eventPromoVideoPrompt" style="font-size:13px;color:var(--ash);">
+          <span style="font-size:20px;display:block;margin-bottom:6px;opacity:0.4;">▶</span>
+          Tap to upload or drag &amp; drop MP4
+        </div>
+        <div id="eventPromoVideoPreview" style="display:none;">
+          <video id="eventPromoVideoPlayer" controls style="max-height:140px;max-width:100%;border-radius:4px;display:none;margin:0 auto;"></video>
+          <div id="eventPromoVideoName" style="font-size:11px;color:var(--ash);margin-top:6px;"></div>
+          <button onclick="clearPromoVideo(event)" style="font-size:11px;color:var(--ember);background:none;border:none;cursor:pointer;margin-top:4px;padding:0;">✕ Remove</button>
+        </div>
+      </div>
+      <div id="eventPromoVideoProgress" style="display:none;margin-top:8px;font-size:12px;color:var(--staff-light);">Uploading video…</div>
     </div>
     <div class="auth-error" id="eventError" style="text-align:left;margin-bottom:8px;"></div>
     <div class="modal-actions">
@@ -3902,6 +4012,10 @@ let flyerFile     = null;
 let flyerPreviewUrl = null;
 let existingFlyerUrl = null;
 
+// Promo video state
+let promoVideoFile = null;
+let existingPromoVideoUrl = null;
+
 function onFlyerSelected(input) {
   if (!input.files || !input.files[0]) return;
   setFlyerFile(input.files[0]);
@@ -3966,12 +4080,77 @@ async function uploadFlyer(eventId) {
   }
 }
 
-// Patch openAddEventModal and openEditEventModal to handle flyer field
+// ── PROMO VIDEO ─────────────────────────────────────────
+function onPromoVideoSelected(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  if (!file.type.startsWith('video/')) { alert('Please select an MP4 video file.'); return; }
+  if (file.size > 200 * 1024 * 1024) { alert('Video is over 200MB. Please compress before uploading.'); return; }
+  promoVideoFile = file;
+  const preview = document.getElementById('eventPromoVideoPreview');
+  const prompt  = document.getElementById('eventPromoVideoPrompt');
+  const nameEl  = document.getElementById('eventPromoVideoName');
+  const vid     = document.getElementById('eventPromoVideoPlayer');
+  vid.src = URL.createObjectURL(file);
+  vid.style.display = 'block';
+  nameEl.textContent = file.name + ' (' + (file.size / 1024 / 1024).toFixed(1) + ' MB)';
+  prompt.style.display  = 'none';
+  preview.style.display = 'block';
+}
+
+function clearPromoVideo(e) {
+  e.stopPropagation();
+  promoVideoFile = null;
+  existingPromoVideoUrl = null;
+  document.getElementById('eventPromoVideo').value = '';
+  document.getElementById('eventPromoVideoPlayer').src = '';
+  document.getElementById('eventPromoVideoPlayer').style.display = 'none';
+  document.getElementById('eventPromoVideoName').textContent = '';
+  document.getElementById('eventPromoVideoPrompt').style.display  = 'block';
+  document.getElementById('eventPromoVideoPreview').style.display = 'none';
+  document.getElementById('eventPromoVideoProgress').style.display = 'none';
+}
+
+function resetPromoVideoField() {
+  promoVideoFile = null; existingPromoVideoUrl = null;
+  document.getElementById('eventPromoVideo').value = '';
+  document.getElementById('eventPromoVideoPlayer').src = '';
+  document.getElementById('eventPromoVideoPlayer').style.display = 'none';
+  document.getElementById('eventPromoVideoName').textContent = '';
+  document.getElementById('eventPromoVideoPrompt').style.display  = 'block';
+  document.getElementById('eventPromoVideoPreview').style.display = 'none';
+  document.getElementById('eventPromoVideoProgress').style.display = 'none';
+}
+
+async function uploadPromoVideo(eventId) {
+  if (!promoVideoFile || !LIVE_DATA || !supabaseClient) return existingPromoVideoUrl || null;
+  try {
+    document.getElementById('eventPromoVideoProgress').style.display = 'block';
+    document.getElementById('eventPromoVideoProgress').textContent = 'Uploading video…';
+    const ext  = promoVideoFile.name.split('.').pop().toLowerCase();
+    const path = `events/${eventId}/promo_${Date.now()}.${ext}`;
+    const { error } = await supabaseClient.storage
+      .from('event-flyers')
+      .upload(path, promoVideoFile, { upsert: true, contentType: promoVideoFile.type });
+    if (error) { console.error('Promo video upload error:', error); return existingPromoVideoUrl || null; }
+    const { data } = supabaseClient.storage.from('event-flyers').getPublicUrl(path);
+    document.getElementById('eventPromoVideoProgress').style.display = 'none';
+    return data.publicUrl;
+  } catch(err) {
+    document.getElementById('eventPromoVideoProgress').style.display = 'none';
+    console.error('Promo video upload exception:', err);
+    return existingPromoVideoUrl || null;
+  }
+}
+
+// Patch openAddEventModal and openEditEventModal to handle flyer + promo video fields
 const _origOpenAddEvent = openAddEventModal;
 openAddEventModal = function() {
   _origOpenAddEvent();
   resetFlyerField();
+  resetPromoVideoField();
   existingFlyerUrl = null;
+  existingPromoVideoUrl = null;
 };
 
 const _origOpenEditEvent = openEditEventModal;
@@ -3979,73 +4158,26 @@ openEditEventModal = function(id) {
   _origOpenEditEvent(id);
   const e = EVENTS.find(ev => ev.id === id);
   resetFlyerField();
+  resetPromoVideoField();
   existingFlyerUrl = e?.flyer_url || null;
+  existingPromoVideoUrl = e?.promo_video_url || null;
   if (existingFlyerUrl) {
     document.getElementById('eventFlyerImg').src = existingFlyerUrl;
     document.getElementById('eventFlyerName').textContent = 'Current flyer';
     document.getElementById('eventFlyerPrompt').style.display  = 'none';
     document.getElementById('eventFlyerPreview').style.display = 'block';
   }
-};
-
-// Patch saveEvent to upload flyer before/after saving
-const _origSaveEvent = saveEvent;
-saveEvent = async function() {
-  // We intercept: gather payload, upload flyer, write flyer_url
-  const name     = document.getElementById('eventName').value.trim();
-  const date     = document.getElementById('eventDate').value;
-  const start    = document.getElementById('eventStart').value;
-  const end      = document.getElementById('eventEnd').value;
-  const capacity = document.getElementById('eventCapacity').value;
-  const status   = document.getElementById('eventStatus').value.trim().toLowerCase();
-  const desc     = document.getElementById('eventDesc').value.trim();
-  const errEl    = document.getElementById('eventError');
-
-  if (!name) { errEl.textContent = 'Event name is required.'; return; }
-  if (!date) { errEl.textContent = 'Date is required.'; return; }
-  errEl.textContent = '';
-
-  const payload = {
-    name, event_date: date,
-    start_time: start || null, end_time: end || null,
-    capacity: capacity ? parseInt(capacity) : null,
-    status, description: desc || null,
-  };
-
-  if (editingEventId) {
-    const flyerUrl = await uploadFlyer(editingEventId);
-    if (flyerUrl !== undefined) payload.flyer_url = flyerUrl;
-
-    if (LIVE_DATA) {
-      const { error } = await supabaseClient.from('events').update(payload).eq('id', editingEventId);
-      if (error) { errEl.textContent = 'Could not save: ' + (error.message || 'Try again.'); return; }
-    }
-    const idx = EVENTS.findIndex(e => e.id === editingEventId);
-    if (idx > -1) EVENTS[idx] = { ...EVENTS[idx], ...payload };
-    showToast(`✦ ${name} updated`, 'gold');
-  } else {
-    if (LIVE_DATA) {
-      const { data, error } = await supabaseClient.from('events').insert(payload).select().single();
-      if (error) { errEl.textContent = 'Could not save: ' + (error.message || 'Try again.'); return; }
-      // Upload flyer using the new event's real UUID
-      if (flyerFile) {
-        const flyerUrl = await uploadFlyer(data.id);
-        if (flyerUrl) {
-          await supabaseClient.from('events').update({ flyer_url: flyerUrl }).eq('id', data.id);
-          data.flyer_url = flyerUrl;
-        }
-      }
-      EVENTS.push(data);
-    } else {
-      EVENTS.push({ id: 'E'+Date.now(), ...payload, created_at: new Date().toISOString() });
-    }
-    showToast(`✦ ${name} added`, 'gold');
+  if (existingPromoVideoUrl) {
+    const vid = document.getElementById('eventPromoVideoPlayer');
+    vid.src = existingPromoVideoUrl;
+    vid.style.display = 'block';
+    document.getElementById('eventPromoVideoName').textContent = 'Current promo video';
+    document.getElementById('eventPromoVideoPrompt').style.display  = 'none';
+    document.getElementById('eventPromoVideoPreview').style.display = 'block';
   }
-
-  renderEventsTab();
-  renderCalendar();
-  closeEventModal();
 };
+
+// saveEvent is fully consolidated above — no patch needed
 
 /* ═══════════════════════════════════════════════════
    REPORTING TAB — FOUR SEARCH FUNCTIONS
@@ -4463,6 +4595,12 @@ async function openCreateGalleryModal() {
   document.getElementById('galleryUploadPreview').innerHTML = '';
   document.getElementById('galleryModalStatus').className = 'gallery-status';
   galleryPendingFiles = [];
+  // Reset metadata fields
+  document.getElementById('metaVenueName').value   = 'RIDDIM Supper Club';
+  document.getElementById('metaLocation').value    = '';
+  document.getElementById('metaPhotographer').value = '';
+  document.getElementById('metaDateTaken').value   = new Date().toISOString().split('T')[0];
+  document.getElementById('metaCaption').value     = '';
   await galleryLoadEvents();
   document.getElementById('galleryCreateModal').classList.add('active');
 }
@@ -4608,7 +4746,17 @@ async function uploadPhotosToGallery(galleryId, files) {
       const ext = (f.name.split('.').pop() || 'jpg').toLowerCase();
       const path = 'galleries/'+galleryId+'/'+Date.now()+'_'+Math.random().toString(36).substr(2,6)+'.'+ext;
       const { error: ue } = await supabaseClient.storage.from('gallery-photos').upload(path, f, { contentType: f.type, upsert: false });
-      if (!ue) await supabaseClient.from('gallery_photos').insert({ gallery_id: galleryId, storage_path: path, display_order: orderStart+i, original_filename: f.name });
+      if (!ue) await supabaseClient.from('gallery_photos').insert({
+        gallery_id: galleryId,
+        storage_path: path,
+        display_order: orderStart+i,
+        original_filename: f.name,
+        venue_name: (document.getElementById('metaVenueName')?.value?.trim() || 'RIDDIM Supper Club') || null,
+        location: document.getElementById('metaLocation')?.value?.trim() || null,
+        photographer: document.getElementById('metaPhotographer')?.value?.trim() || null,
+        date_taken: document.getElementById('metaDateTaken')?.value || null,
+        caption: document.getElementById('metaCaption')?.value?.trim() || null,
+      });
     } catch(err) { console.error('upload error:', err); }
     done++;
     fill.style.width = Math.round((done/files.length)*100)+'%';
@@ -4679,7 +4827,7 @@ async function loadGalleryPhotos(galleryId) {
   const empty = document.getElementById('galleryManagerEmpty');
   c.innerHTML = '<div style="color:rgba(245,240,232,0.3);font-size:13px;">Loading...</div>';
   try {
-    const { data: photos, error } = await supabaseClient.from('gallery_photos').select('id, gallery_id, storage_path, display_order, original_filename')
+    const { data: photos, error } = await supabaseClient.from('gallery_photos').select('id, gallery_id, storage_path, display_order, original_filename, caption, photographer, venue_name, location, date_taken')
       .eq('gallery_id', galleryId).order('display_order', { ascending: true });
     if (error) throw error;
     const { data: gal } = await supabaseClient.from('galleries').select('cover_photo_id').eq('id', galleryId).single();
@@ -4781,6 +4929,23 @@ function renderLightbox() {
   const p = galleryCurrentPhotos[galleryLightboxIndex];
   document.getElementById('galleryLightboxImg').src = p?.signedUrl || '';
   document.getElementById('galleryLightboxCounter').textContent = (galleryLightboxIndex+1)+' / '+galleryCurrentPhotos.length;
+
+  // Metadata panel
+  const metaWrap  = document.getElementById('galleryLightboxMeta');
+  const captionEl = document.getElementById('galleryLightboxCaption');
+  const metaRow   = document.getElementById('galleryLightboxMetaRow');
+  if (p && (p.caption || p.photographer || p.location || p.venue_name || p.date_taken)) {
+    captionEl.textContent = p.caption || '';
+    const parts = [];
+    if (p.photographer) parts.push('📷 ' + p.photographer);
+    if (p.venue_name)   parts.push('📍 ' + p.venue_name);
+    if (p.location)     parts.push(p.location);
+    if (p.date_taken)   parts.push(new Date(p.date_taken + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }));
+    metaRow.innerHTML = parts.map(s => `<span>${s}</span>`).join('');
+    metaWrap.style.display = 'block';
+  } else {
+    metaWrap.style.display = 'none';
+  }
 }
 
 async function lightboxNav(d) {
@@ -4795,6 +4960,41 @@ async function lightboxNav(d) {
 function closeLightbox() {
   document.getElementById('galleryLightbox').classList.remove('active');
   document.removeEventListener('keydown', galleryLightboxKey);
+}
+
+function openPhotoMetaModal() {
+  const p = galleryCurrentPhotos[galleryLightboxIndex];
+  if (!p) return;
+  document.getElementById('photoMetaFilename').textContent = p.original_filename || p.storage_path?.split('/').pop() || '';
+  document.getElementById('pmCaption').value      = p.caption || '';
+  document.getElementById('pmPhotographer').value  = p.photographer || '';
+  document.getElementById('pmDateTaken').value     = p.date_taken || '';
+  document.getElementById('pmVenueName').value     = p.venue_name || 'RIDDIM Supper Club';
+  document.getElementById('pmLocation').value      = p.location || '';
+  document.getElementById('photoMetaError').textContent = '';
+  document.getElementById('photoMetaModal').classList.add('open');
+}
+
+async function savePhotoMeta() {
+  const p = galleryCurrentPhotos[galleryLightboxIndex];
+  if (!p) return;
+  const errEl = document.getElementById('photoMetaError');
+  const updates = {
+    caption:      document.getElementById('pmCaption').value.trim() || null,
+    photographer: document.getElementById('pmPhotographer').value.trim() || null,
+    date_taken:   document.getElementById('pmDateTaken').value || null,
+    venue_name:   document.getElementById('pmVenueName').value.trim() || null,
+    location:     document.getElementById('pmLocation').value.trim() || null,
+  };
+  if (LIVE_DATA) {
+    const { error } = await supabaseClient.from('gallery_photos').update(updates).eq('id', p.id);
+    if (error) { errEl.textContent = 'Could not save: ' + error.message; return; }
+  }
+  // Update in-memory so lightbox reflects immediately
+  Object.assign(galleryCurrentPhotos[galleryLightboxIndex], updates);
+  document.getElementById('photoMetaModal').classList.remove('open');
+  renderLightbox();
+  showToast('Photo info saved', 'gold');
 }
 
 function galleryLightboxKey(e) {
