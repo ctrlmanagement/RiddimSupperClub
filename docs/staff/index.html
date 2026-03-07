@@ -281,10 +281,10 @@
     .portal-main {
       max-width:1200px; margin:0 auto;
       padding:32px 32px calc(64px + 60px);
-      opacity:0; transform:translateY(16px);
-      transition:opacity 0.6s var(--ease-cinema), transform 0.6s var(--ease-cinema);
+      opacity:0;
+      transition:opacity 0.6s var(--ease-cinema);
     }
-    .portal-main.visible { opacity:1; transform:translateY(0); }
+    .portal-main.visible { opacity:1; }
     @media(max-width:600px){ .portal-main{padding:24px 16px 100px;} }
 
     .tab-panel { display:none; }
@@ -1017,10 +1017,10 @@
     .staff-photo-thumb { aspect-ratio: 1; border-radius: 5px; overflow: hidden; cursor: pointer; border: 1px solid rgba(100,140,200,0.08); transition: border-color 0.15s, transform 0.15s; position: relative; }
     .staff-photo-thumb:hover { border-color: rgba(212,168,67,0.45); transform: scale(1.02); }
     .staff-photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .staff-lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.97); z-index: 2000; align-items: center; justify-content: center; flex-direction: column; }
+    .staff-lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.97); z-index: 2000; align-items: center; justify-content: center; flex-direction: column; transform: none; }
     .staff-lightbox.active { display: flex; }
-    .staff-lightbox-img { max-width: 88vw; max-height: 78vh; object-fit: contain; border-radius: 4px; display: block; }
-    .staff-lightbox-toolbar { display: flex; align-items: center; gap: 10px; margin-top: 16px; z-index: 2001; flex-wrap: wrap; justify-content: center; }
+    .staff-lightbox-img { max-width: calc(100vw - 120px); max-height: calc(100vh - 120px); width: auto; height: auto; object-fit: contain; border-radius: 4px; display: block; flex-shrink: 0; }
+    .staff-lightbox-toolbar { display: flex; align-items: center; gap: 10px; margin-top: 20px; z-index: 2001; flex-wrap: wrap; justify-content: center; flex-shrink: 0; }
     .staff-lightbox-dl-btn { display: flex; align-items: center; gap: 6px; padding: 8px 18px; border-radius: 6px; border: none; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; text-decoration: none; }
     .staff-lightbox-dl-btn.instagram { background: linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); color: white; }
     .staff-lightbox-dl-btn.original { background: rgba(212,168,67,0.15); border: 1px solid rgba(212,168,67,0.35); color: #D4A843; }
@@ -1038,7 +1038,7 @@
     .staff-ig-processing { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 3000; align-items: center; justify-content: center; flex-direction: column; gap: 12px; }
     .staff-ig-processing.active { display: flex; }
     .staff-ig-processing-text { color: rgba(245,240,232,0.7); font-size: 14px; font-family: 'DM Sans', sans-serif; }
-    @media (max-width: 480px) { .staff-galleries-grid { grid-template-columns: 1fr 1fr; gap: 10px; } .staff-photo-grid { grid-template-columns: repeat(3, 1fr); gap: 5px; } .staff-lightbox-toolbar { gap: 8px; } }
+    @media (max-width: 480px) { .staff-galleries-grid { grid-template-columns: 1fr 1fr; gap: 10px; } .staff-photo-grid { grid-template-columns: repeat(3, 1fr); gap: 5px; } .staff-lightbox-toolbar { gap: 8px; } .staff-lightbox-img { max-width: calc(100vw - 80px); max-height: calc(100svh - 140px); border-radius: 2px; } .staff-lightbox-dl-btn { padding: 7px 12px; font-size: 11px; } }
 
   </style>
 </head>
@@ -3678,6 +3678,7 @@ function buildStoryHtml(w, h, qrSize=400) {
 // ============================================
 let staffGalleryPhotos = [];
 let staffLightboxIndex = 0;
+let staffCurrentGalleryTitle = '';
 
 async function loadStaffGalleries() {
   const grid = document.getElementById('staffGalleriesGrid');
@@ -3722,6 +3723,7 @@ async function loadStaffGalleries() {
 }
 
 async function openStaffGallery(galleryId, title) {
+  staffCurrentGalleryTitle = title || '';
   document.getElementById('staffViewerTitle').textContent = title;
   document.getElementById('staffGalleryList').style.display = 'none';
   document.getElementById('staffGalleryViewer').classList.add('active');
@@ -3775,6 +3777,30 @@ async function openStaffGallery(galleryId, title) {
     }, { rootMargin: '200px' });
 
     document.querySelectorAll('#staffPhotoGrid [data-photo-index]').forEach(el => thumbObserver.observe(el));
+    // Mobile fix: photo grid may not be visible yet when observer fires.
+    // After a short delay, directly load any in-viewport thumbnails that haven't loaded.
+    setTimeout(() => {
+      document.querySelectorAll('#staffPhotoGrid [data-photo-index]').forEach(async tile => {
+        const img = tile.querySelector('[data-lazy-thumb]');
+        if (img && img.src && img.src !== window.location.href) return;
+        const rect = tile.getBoundingClientRect();
+        if (rect.top < window.innerHeight + 250 && rect.bottom > -250) {
+          thumbObserver.unobserve(tile);
+          const idx = parseInt(tile.dataset.photoIndex);
+          const path = tile.dataset.storagePath;
+          if (!img || !path) return;
+          try {
+            const { data: su } = await supabaseClient.storage.from('gallery-photos')
+              .createSignedUrl(path, 7200);
+            if (su?.signedUrl) {
+              staffGalleryPhotos[idx].signedUrl = su.signedUrl;
+              img.onload = () => { img.style.opacity = '1'; };
+              img.src = su.signedUrl;
+            }
+          } catch(e) { console.error('staff mobile thumb fallback:', e); }
+        }
+      });
+    }, 120);
 
   } catch (err) {
     console.error('openStaffGallery error:', err);
@@ -3888,7 +3914,11 @@ async function downloadInstagramCrop() {
     ctx.fillStyle = 'rgba(255,255,255,0.35)';
     ctx.textAlign = 'right';
     ctx.fillText('RIDDIM SUPPER CLUB', 1060, 1060);
-    const filename = `riddim_instagram_${Date.now()}.jpg`;
+    const gallerySlug = staffCurrentGalleryTitle
+      ? staffCurrentGalleryTitle.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 40)
+      : 'photo';
+    const dateStr = new Date().toISOString().slice(0, 10);
+    const filename = `riddim_${gallerySlug}_${dateStr}.jpg`;
     canvas.toBlob((blob) => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
