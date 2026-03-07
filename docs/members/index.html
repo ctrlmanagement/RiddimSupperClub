@@ -1256,10 +1256,10 @@
     .member-photo-thumb { aspect-ratio: 1; border-radius: 6px; overflow: hidden; cursor: pointer; border: 1px solid rgba(212,168,67,0.08); transition: border-color 0.15s, transform 0.15s; position: relative; }
     .member-photo-thumb:hover { border-color: rgba(212,168,67,0.4); transform: scale(1.02); }
     .member-photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .member-lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.97); z-index: 2000; align-items: center; justify-content: center; flex-direction: column; padding: 60px 16px 16px; box-sizing: border-box; }
+    .member-lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.97); z-index: 2000; flex-direction: column; align-items: center; justify-content: center; }
     .member-lightbox.active { display: flex; }
-    .member-lightbox-img { max-width: min(90vw, calc(100vh - 180px)); max-height: calc(100vh - 180px); width: auto; height: auto; object-fit: contain; border-radius: 4px; display: block; flex-shrink: 1; min-height: 0; }
-    .member-lightbox-toolbar { display: flex; align-items: center; gap: 16px; margin-top: 16px; z-index: 2001; }
+    .member-lightbox-img { display: block; max-width: calc(100vw - 120px); max-height: calc(100vh - 120px); width: auto; height: auto; object-fit: contain; border-radius: 4px; flex-shrink: 0; }
+    .member-lightbox-toolbar { display: flex; align-items: center; gap: 16px; margin-top: 20px; z-index: 2001; flex-shrink: 0; }
     .member-lightbox-download { display: flex; align-items: center; gap: 6px; padding: 9px 20px; background: var(--color-gold-warm, #D4A843); border: none; border-radius: 6px; color: #000; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; text-decoration: none; }
     .member-lightbox-download:hover { opacity: 0.85; }
     .member-lightbox-dl-ig { display: flex; align-items: center; gap: 6px; padding: 9px 20px; background: transparent; border: 1px solid rgba(212,168,67,0.4); border-radius: 6px; color: var(--color-gold-warm, #D4A843); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
@@ -1276,7 +1276,7 @@
     .member-gallery-empty { text-align: center; padding: 50px 20px; color: rgba(245,240,232,0.3); }
     .member-gallery-empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.4; }
     .member-gallery-empty-text { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 300; color: rgba(245,240,232,0.45); }
-    @media (max-width: 480px) { .member-galleries-grid { grid-template-columns: 1fr 1fr; gap: 10px; } .member-photo-grid { grid-template-columns: repeat(3, 1fr); gap: 5px; } .member-lightbox { padding: 56px 8px 12px; } .member-lightbox-img { max-width: 100%; max-height: calc(100svh - 160px); border-radius: 2px; } .member-lightbox-toolbar { gap: 10px; flex-wrap: wrap; justify-content: center; } .member-lightbox-download, .member-lightbox-dl-ig { padding: 8px 14px; font-size: 12px; } }
+    @media (max-width: 480px) { .member-galleries-grid { grid-template-columns: 1fr 1fr; gap: 10px; } .member-photo-grid { grid-template-columns: repeat(3, 1fr); gap: 5px; } .member-lightbox-img { max-width: calc(100vw - 80px); max-height: calc(100svh - 140px); border-radius: 2px; } .member-lightbox-toolbar { gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 14px; } .member-lightbox-download, .member-lightbox-dl-ig { padding: 8px 14px; font-size: 12px; } }
   </style>
 </head>
 <body>
