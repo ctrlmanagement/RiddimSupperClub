@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Gallery — RIDDIM Supper Club Atlanta</title>
+<meta name="description" content="Photos from RIDDIM Supper Club Atlanta — nights worth remembering.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,600&family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_shared.css">
+<style>
+
+/* ── PAGE LAYOUT ─────────────────────────────────────────────── */
+.gallery-page { padding: var(--space-32) var(--space-12) var(--space-24); }
+.gallery-page-inner { max-width: 1100px; margin: 0 auto; }
+
+/* ── GALLERY LIST VIEW ───────────────────────────────────────── */
+.gallery-list-header {
+  margin-bottom: var(--space-12);
+}
+.gallery-list-title {
+  font-family: var(--font-display);
+  font-size: var(--t-display);
+  font-weight: 300;
+  color: var(--color-ivory);
+  line-height: 0.95;
+  margin-bottom: var(--space-4);
+}
+.gallery-list-title em { color: var(--color-gold-warm); font-style: italic; }
+.gallery-list-desc {
+  font-size: var(--t-body);
+  color: var(--color-ash);
+  max-width: 480px;
+  line-height: 1.7;
+}
+.gallery-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-6);
+}
+.gallery-card {
+  background: var(--color-carbon);
+  border: 1px solid var(--color-graphite);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.2s var(--ease-standard), transform 0.2s var(--ease-standard);
+}
+.gallery-card:hover {
+  border-color: rgba(212,168,67,0.4);
+  transform: translateY(-2px);
+}
+.gallery-card-cover {
+  width: 100%;
+  height: 200px;
+  background: var(--color-void);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(212,168,67,0.2);
+  font-size: 36px;
+  overflow: hidden;
+  position: relative;
+}
+.gallery-card-cover img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  opacity: 0;
+  transition: opacity 0.4s var(--ease-cinematic);
+}
+.gallery-card-cover img.loaded { opacity: 1; }
+.gallery-card-cover-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  color: rgba(212,168,67,0.15);
+}
+.gallery-card-body { padding: var(--space-4) var(--space-6); }
+.gallery-card-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-ivory);
+  margin-bottom: var(--space-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.gallery-card-meta {
+  font-size: 12px;
+  color: var(--color-ash);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.gallery-card-count {
+  font-size: 11px;
+  color: rgba(245,240,232,0.35);
+}
+
+/* ── PHOTO GRID VIEW ─────────────────────────────────────────── */
+.photo-view { display: none; }
+.photo-view.active { display: block; }
+.photo-view-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+  flex-wrap: wrap;
+}
+.photo-view-back {
+  background: none;
+  border: 1px solid var(--color-graphite);
+  border-radius: var(--radius-sm);
+  color: var(--color-ash);
+  padding: 7px 16px;
+  font-size: 12px;
+  font-family: var(--font-body);
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.photo-view-back:hover { border-color: var(--color-gold-warm); color: var(--color-gold-warm); }
+.photo-view-title {
+  font-family: var(--font-display);
+  font-size: clamp(22px, 3vw, 34px);
+  font-weight: 300;
+  color: var(--color-ivory);
+}
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--space-2);
+}
+.photo-thumb {
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: var(--color-carbon);
+  cursor: pointer;
+  position: relative;
+}
+.photo-thumb img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  opacity: 0;
+  transition: opacity 0.3s var(--ease-cinematic), transform 0.4s var(--ease-cinematic);
+}
+.photo-thumb img.loaded { opacity: 1; }
+.photo-thumb:hover img { transform: scale(1.05); }
+.photo-thumb-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(212,168,67,0.1);
+  font-size: 24px;
+}
+
+/* ── LIGHTBOX ────────────────────────────────────────────────── */
+.pub-lightbox {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.97);
+  z-index: 1000;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transform: none;
+}
+.pub-lightbox.active { display: flex; }
+.pub-lightbox-img {
+  max-width: calc(100vw - 120px);
+  max-height: calc(100vh - 100px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+  display: block;
+  flex-shrink: 0;
+}
+.pub-lightbox-close {
+  position: fixed;
+  top: 20px; right: 24px;
+  background: none; border: none;
+  color: rgba(245,240,232,0.5);
+  font-size: 28px;
+  cursor: pointer;
+  z-index: 1001;
+  line-height: 1;
+  transition: color 0.15s;
+}
+.pub-lightbox-close:hover { color: var(--color-ivory); }
+.pub-lightbox-prev,
+.pub-lightbox-next {
+  position: fixed;
+  top: 50%; transform: translateY(-50%);
+  background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(212,168,67,0.25);
+  border-radius: 50%;
+  width: 48px; height: 48px;
+  color: var(--color-gold-warm);
+  font-size: 20px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1001;
+  transition: all 0.15s;
+}
+.pub-lightbox-prev { left: 16px; }
+.pub-lightbox-next { right: 16px; }
+.pub-lightbox-prev:hover,
+.pub-lightbox-next:hover { background: rgba(212,168,67,0.15); border-color: var(--color-gold-warm); }
+.pub-lightbox-counter {
+  position: fixed;
+  bottom: 20px;
+  left: 50%; transform: translateX(-50%);
+  font-size: 12px;
+  color: rgba(245,240,232,0.3);
+  letter-spacing: 0.1em;
+}
+.pub-lightbox-join {
+  position: fixed;
+  bottom: 48px;
+  left: 50%; transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  background: rgba(10,10,10,0.85);
+  border: 1px solid rgba(212,168,67,0.2);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-6);
+  white-space: nowrap;
+  backdrop-filter: blur(8px);
+}
+.pub-lightbox-join-text {
+  font-size: 12px;
+  color: var(--color-ash);
+  letter-spacing: 0.04em;
+}
+.pub-lightbox-join-cta {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-gold-warm);
+  transition: color 0.15s;
+}
+.pub-lightbox-join-cta:hover { color: var(--color-gold-bright); }
+
+/* ── EMPTY / LOADING ─────────────────────────────────────────── */
+.gallery-empty {
+  text-align: center;
+  padding: 80px 20px;
+  color: rgba(245,240,232,0.25);
+}
+.gallery-empty-icon { font-size: 44px; margin-bottom: var(--space-4); opacity: 0.35; }
+.gallery-empty-text {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 300;
+}
+.gallery-skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-6);
+}
+.gallery-skeleton-card {
+  background: var(--color-carbon);
+  border-radius: var(--radius-md);
+  height: 260px;
+  animation: gallerySkeleton 1.4s ease-in-out infinite;
+}
+
+/* ── RESPONSIVE ──────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .gallery-page { padding: var(--space-24) var(--space-6) var(--space-16); }
+  .photo-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+}
+@media (max-width: 520px) {
+  .gallery-cards-grid { grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+  .gallery-card-cover { height: 140px; }
+  .photo-grid { grid-template-columns: repeat(3, 1fr); gap: 3px; }
+  .pub-lightbox-img { max-width: calc(100vw - 80px); max-height: calc(100svh - 120px); }
+  .pub-lightbox-join { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── NAV ──────────────────────────────────────────────────── -->
+<nav class="nav solid" id="nav">
+  <a href="index.html" class="nav-logo">RIDDIM</a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="experience.html">Experience</a></li>
+    <li><a href="menu.html">Menu</a></li>
+    <li><a href="events.html">Events</a></li>
+    <li><a href="private-events.html">Private Events</a></li>
+    <li><a href="gallery.html" class="active">Gallery</a></li>
+    <li><a href="join.html">Join the Club</a></li>
+    <li><a href="members/index.html">Members</a></li>
+    <li><a href="reserve.html" class="nav-cta">Reserve</a></li>
+  </ul>
+  <div class="hamburger" id="hamburger">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<div class="mobile-menu" id="mobileMenu">
+  <a href="experience.html" onclick="closeMobile()">Experience</a>
+  <a href="menu.html" onclick="closeMobile()">Menu</a>
+  <a href="events.html" onclick="closeMobile()">Events</a>
+  <a href="private-events.html" onclick="closeMobile()">Private Events</a>
+  <a href="gallery.html" onclick="closeMobile()">Gallery</a>
+  <a href="join.html" onclick="closeMobile()">Join the Club</a>
+  <a href="members/index.html" onclick="closeMobile()">Members</a>
+  <a href="reserve.html" onclick="closeMobile()" class="m-cta">Reserve a Table</a>
+</div>
+
+<!-- ── MAIN ──────────────────────────────────────────────────── -->
+<main class="gallery-page">
+  <div class="gallery-page-inner">
+
+    <!-- Gallery list view -->
+    <div id="galleryListView">
+      <div class="gallery-list-header reveal">
+        <div class="section-eyebrow">The Gallery</div>
+        <h1 class="gallery-list-title">Nights worth<br><em>remembering.</em></h1>
+        <p class="gallery-list-desc">A preview of what we've captured. Members get full-resolution access and downloads — every gallery, every night.</p>
+      </div>
+
+      <!-- Skeleton -->
+      <div class="gallery-skeleton-grid" id="gallerySkeleton">
+        <div class="gallery-skeleton-card"></div>
+        <div class="gallery-skeleton-card"></div>
+        <div class="gallery-skeleton-card"></div>
+        <div class="gallery-skeleton-card"></div>
+        <div class="gallery-skeleton-card"></div>
+        <div class="gallery-skeleton-card"></div>
+      </div>
+
+      <!-- Cards -->
+      <div class="gallery-cards-grid" id="galleryCardsGrid" style="display:none;"></div>
+
+      <!-- Empty -->
+      <div class="gallery-empty" id="galleryEmpty" style="display:none;">
+        <div class="gallery-empty-icon">📷</div>
+        <div class="gallery-empty-text">No galleries yet — check back after the next night out</div>
+      </div>
+
+      <!-- Footer CTA -->
+      <div style="text-align:center; margin-top:64px; padding-top:48px; border-top:1px solid var(--color-graphite);">
+        <p style="font-family:var(--font-display);font-size:clamp(18px,2vw,24px);font-weight:300;color:var(--color-ash);font-style:italic;margin-bottom:24px;">
+          Members see everything. <em style="color:var(--color-ivory);font-style:normal;">Every photo. Every night.</em>
+        </p>
+        <a href="join.html" class="btn btn-primary">Join the Club — It's Free</a>
+      </div>
+    </div>
+
+    <!-- Photo grid view (shown after clicking a gallery) -->
+    <div class="photo-view" id="photoView">
+      <div class="photo-view-header">
+        <button class="photo-view-back" onclick="showGalleryList()">← All Galleries</button>
+        <div class="photo-view-title" id="photoViewTitle"></div>
+      </div>
+      <div class="photo-grid" id="photoGrid"></div>
+      <div class="gallery-empty" id="photoEmpty" style="display:none;">
+        <div class="gallery-empty-icon">🖼️</div>
+        <div class="gallery-empty-text">No photos in this gallery yet</div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- ── LIGHTBOX ───────────────────────────────────────────────── -->
+<div class="pub-lightbox" id="pubLightbox">
+  <button class="pub-lightbox-close" onclick="closeLightbox()">✕</button>
+  <button class="pub-lightbox-prev" onclick="lightboxNav(-1)">‹</button>
+  <img class="pub-lightbox-img" id="pubLightboxImg" src="" alt="">
+  <button class="pub-lightbox-next" onclick="lightboxNav(1)">›</button>
+  <div class="pub-lightbox-counter" id="pubLightboxCounter"></div>
+  <div class="pub-lightbox-join">
+    <span class="pub-lightbox-join-text">Want full-res downloads?</span>
+    <a href="join.html" class="pub-lightbox-join-cta">Join the Club →</a>
+  </div>
+</div>
+
+<!-- ── FOOTER ─────────────────────────────────────────────────── -->
+<footer class="footer">
+  <div class="footer-grid">
+    <div>
+      <div class="footer-brand-name">RIDDIM</div>
+      <div class="footer-brand-tagline">Supper Club · Atlanta</div>
+      <p class="footer-brand-desc">Atlanta's only venue combining fine dining, hookah, an outdoor patio, and nightclub energy under one roof.</p>
+      <div class="footer-social">
+        <a href="#">IG</a><a href="#">TK</a><a href="#">FB</a>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-title">Explore</div>
+      <ul class="footer-links">
+        <li><a href="experience.html">Experience</a></li>
+        <li><a href="menu.html">Menu</a></li>
+        <li><a href="events.html">Events</a></li>
+        <li><a href="gallery.html">Gallery</a></li>
+        <li><a href="private-events.html">Private Events</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Members</div>
+      <ul class="footer-links">
+        <li><a href="join.html">Join the Club</a></li>
+        <li><a href="members/index.html">Member Portal</a></li>
+        <li><a href="reserve.html">Reserve a Table</a></li>
+      </ul>
+    </div>
+    <div class="footer-hours">
+      <div class="footer-col-title">Hours</div>
+      <p><strong>Wed – Thu</strong> 5PM – 1AM</p>
+      <p><strong>Fri – Sat</strong> 5PM – 3AM</p>
+      <p><strong>Sun</strong> 12PM – 9PM</p>
+      <p class="note">Kitchen closes 1 hour before close</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 AG Entertainment · RIDDIM Supper Club</span>
+    <span>Atlanta, GA · All rights reserved</span>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = 'https://cbvryfgrqzdvbqigyrgh.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_fQlHFhC7tPkZNRl1djnvcA_68LpKQpv';
+const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let galleryPhotos = [];
+let lightboxIndex = 0;
+
+/* ── NAV ──────────────────────────────────────────────────────── */
+const hamburger = document.getElementById('hamburger');
+const mobileMenu = document.getElementById('mobileMenu');
+hamburger.addEventListener('click', () => {
+  hamburger.classList.toggle('open');
+  mobileMenu.classList.toggle('open');
+  document.body.style.overflow = mobileMenu.classList.contains('open') ? 'hidden' : '';
+});
+function closeMobile() {
+  hamburger.classList.remove('open');
+  mobileMenu.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+/* ── SCROLL REVEAL ────────────────────────────────────────────── */
+const revealObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+}, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+
+/* ── SECRET PORTAL ACCESS ─────────────────────────────────────── */
+document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.shiftKey && e.key === 'S') window.location.href = 'staff/index.html';
+  if (e.shiftKey && e.key === 'O') window.location.href = 'owner/index.html';
+});
+
+/* ── GALLERY LIST ─────────────────────────────────────────────── */
+async function loadGalleries() {
+  const skeleton = document.getElementById('gallerySkeleton');
+  const cardsGrid = document.getElementById('galleryCardsGrid');
+  const empty = document.getElementById('galleryEmpty');
+  try {
+    const { data: galleries, error } = await client
+      .from('galleries')
+      .select('id, title, gallery_date, cover_photo_id, event_id')
+      .eq('is_private', false)
+      .order('gallery_date', { ascending: false });
+
+    skeleton.style.display = 'none';
+    if (error || !galleries || galleries.length === 0) {
+      empty.style.display = 'block'; return;
+    }
+    cardsGrid.style.display = 'grid';
+
+    cardsGrid.innerHTML = galleries.map(g => `
+      <div class="gallery-card reveal"
+           data-gallery-id="${g.id}"
+           data-cover-id="${g.cover_photo_id || ''}"
+           onclick="openGallery('${g.id}', '${(g.title || '').replace(/'/g, "\\'")}')">
+        <div class="gallery-card-cover">
+          <div class="gallery-card-cover-placeholder">📷</div>
+          <img data-lazy alt="${g.title || ''}">
+        </div>
+        <div class="gallery-card-body">
+          <div class="gallery-card-title">${g.title || 'Untitled'}</div>
+          <div class="gallery-card-meta">
+            <span>${formatDate(g.gallery_date)}</span>
+            <span class="gallery-card-count" data-count-id="${g.id}">— photos</span>
+          </div>
+        </div>
+      </div>`).join('');
+
+    // Re-observe new reveal elements
+    cardsGrid.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+
+    // Lazy load cover + count per card
+    const cardObserver = new IntersectionObserver(async (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        const card = entry.target;
+        cardObserver.unobserve(card);
+        const galleryId = card.dataset.galleryId;
+        const coverId   = card.dataset.coverId;
+        const img       = card.querySelector('img[data-lazy]');
+        const placeholder = card.querySelector('.gallery-card-cover-placeholder');
+        const countEl   = card.querySelector('[data-count-id]');
+
+        // Photo count
+        try {
+          const { count } = await client.from('gallery_photos')
+            .select('*', { count: 'exact', head: true }).eq('gallery_id', galleryId);
+          if (countEl) countEl.textContent = (count || 0) + ' photo' + (count !== 1 ? 's' : '');
+        } catch(e) {}
+
+        // Cover signed URL
+        try {
+          let path = null;
+          if (coverId) {
+            const { data: cp } = await client.from('gallery_photos')
+              .select('storage_path').eq('id', coverId).single();
+            if (cp) path = cp.storage_path;
+          }
+          if (!path) {
+            const { data: fp } = await client.from('gallery_photos')
+              .select('storage_path').eq('gallery_id', galleryId)
+              .order('display_order', { ascending: true }).limit(1).single();
+            if (fp) path = fp.storage_path;
+          }
+          if (path && img) {
+            const { data: su } = await client.storage.from('gallery-photos')
+              .createSignedUrl(path, 3600);
+            if (su?.signedUrl) {
+              img.onload = () => { img.classList.add('loaded'); if (placeholder) placeholder.style.display = 'none'; };
+              img.src = su.signedUrl;
+              img.removeAttribute('data-lazy');
+            }
+          }
+        } catch(e) {}
+      }
+    }, { rootMargin: '150px' });
+
+    cardsGrid.querySelectorAll('[data-gallery-id]').forEach(el => cardObserver.observe(el));
+
+    // Mobile fallback
+    setTimeout(() => {
+      cardsGrid.querySelectorAll('[data-gallery-id]').forEach(async card => {
+        const img = card.querySelector('img[data-lazy]');
+        if (!img) return;
+        const rect = card.getBoundingClientRect();
+        if (rect.top < window.innerHeight + 200) {
+          cardObserver.unobserve(card);
+          const galleryId = card.dataset.galleryId;
+          const coverId   = card.dataset.coverId;
+          const placeholder = card.querySelector('.gallery-card-cover-placeholder');
+          const countEl = card.querySelector('[data-count-id]');
+          try {
+            const { count } = await client.from('gallery_photos')
+              .select('*', { count: 'exact', head: true }).eq('gallery_id', galleryId);
+            if (countEl) countEl.textContent = (count || 0) + ' photo' + (count !== 1 ? 's' : '');
+          } catch(e) {}
+          try {
+            let path = null;
+            if (coverId) {
+              const { data: cp } = await client.from('gallery_photos')
+                .select('storage_path').eq('id', coverId).single();
+              if (cp) path = cp.storage_path;
+            }
+            if (!path) {
+              const { data: fp } = await client.from('gallery_photos')
+                .select('storage_path').eq('gallery_id', galleryId)
+                .order('display_order', { ascending: true }).limit(1).single();
+              if (fp) path = fp.storage_path;
+            }
+            if (path && img) {
+              const { data: su } = await client.storage.from('gallery-photos')
+                .createSignedUrl(path, 3600);
+              if (su?.signedUrl) {
+                img.onload = () => { img.classList.add('loaded'); if (placeholder) placeholder.style.display = 'none'; };
+                img.src = su.signedUrl;
+                img.removeAttribute('data-lazy');
+              }
+            }
+          } catch(e) {}
+        }
+      });
+    }, 120);
+
+  } catch(err) {
+    console.error('loadGalleries:', err);
+    document.getElementById('gallerySkeleton').style.display = 'none';
+    document.getElementById('galleryEmpty').style.display = 'block';
+  }
+}
+
+/* ── OPEN GALLERY → PHOTO GRID ────────────────────────────────── */
+async function openGallery(galleryId, title) {
+  document.getElementById('galleryListView').style.display = 'none';
+  const photoView = document.getElementById('photoView');
+  photoView.classList.add('active');
+  document.getElementById('photoViewTitle').textContent = title;
+  document.getElementById('photoGrid').innerHTML =
+    '<div style="color:rgba(245,240,232,0.3);font-size:13px;padding:40px 0;">Loading photos...</div>';
+  document.getElementById('photoEmpty').style.display = 'none';
+  galleryPhotos = [];
+
+  try {
+    const { data: photos, error } = await client.from('gallery_photos')
+      .select('id, storage_path, display_order, original_filename')
+      .eq('gallery_id', galleryId)
+      .order('display_order', { ascending: true });
+
+    if (error || !photos || photos.length === 0) {
+      document.getElementById('photoGrid').innerHTML = '';
+      document.getElementById('photoEmpty').style.display = 'block';
+      return;
+    }
+
+    galleryPhotos = photos.map(p => ({ ...p, signedUrl: null }));
+
+    document.getElementById('photoGrid').innerHTML = photos.map((p, i) => `
+      <div class="photo-thumb"
+           data-photo-index="${i}"
+           data-storage-path="${p.storage_path.replace(/"/g, '&quot;')}"
+           onclick="openLightbox(${i})">
+        <div class="photo-thumb-placeholder">🖼</div>
+        <img data-lazy-thumb alt="">
+      </div>`).join('');
+
+    // Lazy load thumbnails
+    const thumbObs = new IntersectionObserver(async (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        const tile = entry.target;
+        thumbObs.unobserve(tile);
+        await loadThumb(tile);
+      }
+    }, { rootMargin: '200px' });
+
+    document.querySelectorAll('#photoGrid [data-photo-index]').forEach(el => thumbObs.observe(el));
+
+    // Mobile fallback
+    setTimeout(() => {
+      document.querySelectorAll('#photoGrid [data-photo-index]').forEach(async tile => {
+        const img = tile.querySelector('img[data-lazy-thumb]');
+        if (!img || img.src) return;
+        const rect = tile.getBoundingClientRect();
+        if (rect.top < window.innerHeight + 250) { thumbObs.unobserve(tile); await loadThumb(tile); }
+      });
+    }, 120);
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  } catch(err) {
+    console.error('openGallery:', err);
+    document.getElementById('photoGrid').innerHTML =
+      '<div style="color:#e07070;font-size:13px;">Could not load photos.</div>';
+  }
+}
+
+async function loadThumb(tile) {
+  const idx  = parseInt(tile.dataset.photoIndex);
+  const path = tile.dataset.storagePath;
+  const img  = tile.querySelector('[data-lazy-thumb]');
+  const ph   = tile.querySelector('.photo-thumb-placeholder');
+  if (!img || !path) return;
+  try {
+    const { data: su } = await client.storage.from('gallery-photos')
+      .createSignedUrl(path, 7200);
+    if (su?.signedUrl) {
+      galleryPhotos[idx].signedUrl = su.signedUrl;
+      img.onload = () => { img.classList.add('loaded'); if (ph) ph.style.display = 'none'; };
+      img.src = su.signedUrl;
+      img.removeAttribute('data-lazy-thumb');
+    }
+  } catch(e) { console.error('loadThumb:', e); }
+}
+
+function showGalleryList() {
+  galleryPhotos = [];
+  document.getElementById('photoView').classList.remove('active');
+  document.getElementById('photoGrid').innerHTML = '';
+  document.getElementById('galleryListView').style.display = 'block';
+}
+
+/* ── LIGHTBOX ─────────────────────────────────────────────────── */
+async function ensureSignedUrl(i) {
+  if (i < 0 || i >= galleryPhotos.length) return;
+  if (galleryPhotos[i].signedUrl) return;
+  try {
+    const { data: su } = await client.storage.from('gallery-photos')
+      .createSignedUrl(galleryPhotos[i].storage_path, 7200);
+    if (su?.signedUrl) galleryPhotos[i].signedUrl = su.signedUrl;
+  } catch(e) {}
+}
+
+async function openLightbox(index) {
+  lightboxIndex = index;
+  await ensureSignedUrl(index);
+  renderLightbox();
+  document.getElementById('pubLightbox').classList.add('active');
+  document.addEventListener('keydown', lightboxKeyHandler);
+  ensureSignedUrl(index + 1);
+  ensureSignedUrl(index - 1);
+}
+
+function renderLightbox() {
+  const photo = galleryPhotos[lightboxIndex];
+  document.getElementById('pubLightboxImg').src = photo.signedUrl || '';
+  document.getElementById('pubLightboxCounter').textContent =
+    `${lightboxIndex + 1} / ${galleryPhotos.length}`;
+}
+
+async function lightboxNav(dir) {
+  lightboxIndex = (lightboxIndex + dir + galleryPhotos.length) % galleryPhotos.length;
+  await ensureSignedUrl(lightboxIndex);
+  renderLightbox();
+  ensureSignedUrl(lightboxIndex + dir);
+}
+
+function closeLightbox() {
+  document.getElementById('pubLightbox').classList.remove('active');
+  document.removeEventListener('keydown', lightboxKeyHandler);
+}
+
+function lightboxKeyHandler(e) {
+  if (e.key === 'ArrowLeft')  lightboxNav(-1);
+  if (e.key === 'ArrowRight') lightboxNav(1);
+  if (e.key === 'Escape')     closeLightbox();
+}
+
+document.getElementById('pubLightbox').addEventListener('click', function(e) {
+  if (e.target === this) closeLightbox();
+});
+
+/* ── UTILS ────────────────────────────────────────────────────── */
+function formatDate(str) {
+  if (!str) return '';
+  return new Date(str + 'T12:00:00').toLocaleDateString('en-US',
+    { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+/* ── INIT ─────────────────────────────────────────────────────── */
+loadGalleries();
+</script>
+</body>
+</html>

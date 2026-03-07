@@ -689,6 +689,7 @@ body::before {
 }
 .pub-gallery-tile img.loaded { opacity: 1; }
 .pub-gallery-tile:not(.gated):hover img { transform: scale(1.04); }
+.pub-gallery-tile:not(.gated) { cursor: pointer; }
 .pub-gallery-tile.gated img {
   opacity: 0.15 !important;
   filter: blur(4px);

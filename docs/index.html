@@ -1128,7 +1128,7 @@ body::before {
     <li><a href="menu.html">Menu</a></li>
     <li><a href="events.html">Events</a></li>
     <li><a href="private-events.html">Private Events</a></li>
-    <li><a href="#gallery">Gallery</a></li>
+    <li><a href="gallery.html">Gallery</a></li>
     <li><a href="join.html">Join the Club</a></li>
     <li><a href="members/index.html">Members</a></li>
     <li><a href="reserve.html" class="nav-cta">Reserve</a></li>
@@ -1143,7 +1143,7 @@ body::before {
   <a href="menu.html" onclick="closeMobile()">Menu</a>
   <a href="events.html" onclick="closeMobile()">Events</a>
   <a href="private-events.html" onclick="closeMobile()">Private Events</a>
-  <a href="#gallery" onclick="closeMobile()">Gallery</a>
+  <a href="gallery.html" onclick="closeMobile()">Gallery</a>
   <a href="join.html" onclick="closeMobile()">Join the Club</a>
   <a href="members/index.html" onclick="closeMobile()">Members</a>
   <a href="reserve.html" onclick="closeMobile()" class="m-cta">Reserve a Table</a>
@@ -1486,72 +1486,97 @@ reveals.forEach(el => observer.observe(el));
   });
 })();
 
-// ── Public Gallery
+// ── Public Gallery — one card per gallery, cover photo only
 (async function initPubGallery() {
   const SUPABASE_URL = 'https://cbvryfgrqzdvbqigyrgh.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_fQlHFhC7tPkZNRl1djnvcA_68LpKQpv';
-  const MAX_PHOTOS   = 10;
+  const MAX_GALLERIES = 9; // show 8 + 1 gated
   const grid    = document.getElementById('pubGalleryGrid');
   const loading = document.getElementById('pubGalleryLoading');
   if (!grid || !window.supabase) return;
   try {
     const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // Fetch galleries
     const { data: galleries } = await client
-      .from('galleries').select('id')
+      .from('galleries')
+      .select('id, title, gallery_date, cover_photo_id')
       .eq('is_private', false)
-      .order('gallery_date', { ascending: false });
+      .order('gallery_date', { ascending: false })
+      .limit(MAX_GALLERIES);
+
     if (!galleries || galleries.length === 0) { loading.style.display = 'none'; return; }
-    const { data: photos } = await client
-      .from('gallery_photos').select('id, storage_path, gallery_id')
-      .in('gallery_id', galleries.map(g => g.id))
-      .order('display_order', { ascending: true })
-      .limit(MAX_PHOTOS);
-    if (!photos || photos.length === 0) { loading.style.display = 'none'; return; }
+
     loading.style.display = 'none';
     grid.style.display = 'grid';
-    const visiblePhotos = photos.slice(0, 9);
-    const gatedPhoto    = photos[9] || photos[photos.length - 1];
-    const allTiles = [...visiblePhotos.map(p => ({ photo: p, gated: false })),
-                      { photo: gatedPhoto, gated: true }].slice(0, MAX_PHOTOS);
-    grid.innerHTML = allTiles.map(({ photo, gated }) => `
-      <div class="pub-gallery-tile${gated ? ' gated' : ''}">
-        <img data-src-path="${photo.storage_path}" alt="RIDDIM Gallery">
+
+    const visible = galleries.slice(0, 8);
+    const gated   = galleries[8] || galleries[galleries.length - 1];
+    const allCards = [...visible.map(g => ({ gallery: g, gated: false })),
+                      { gallery: gated, gated: true }].slice(0, MAX_GALLERIES);
+
+    grid.innerHTML = allCards.map(({ gallery: g, gated }) => `
+      <div class="pub-gallery-tile${gated ? ' gated' : ''}"
+           ${!gated ? `onclick="window.location.href='gallery.html'"` : ''}
+           data-cover-id="${g.cover_photo_id || ''}"
+           data-gallery-id="${g.id}">
+        <img data-lazy alt="${g.title || 'RIDDIM Gallery'}">
         ${gated ? `<div class="pub-gallery-gate">
           <div class="pub-gallery-gate-eyebrow">Members Only</div>
-          <div class="pub-gallery-gate-text">The full gallery awaits.<br>Join free to see every night.</div>
+          <div class="pub-gallery-gate-text">More nights await.<br>Join free for the full gallery.</div>
           <a href="join.html" class="pub-gallery-gate-cta">Join the Club</a>
         </div>` : ''}
       </div>`).join('');
+
+    // Lazy load cover signed URL per tile
     const tileObserver = new IntersectionObserver(async (entries) => {
       for (const entry of entries) {
         if (!entry.isIntersecting) continue;
         const tile = entry.target;
         tileObserver.unobserve(tile);
-        const img  = tile.querySelector('img[data-src-path]');
+        const img      = tile.querySelector('img[data-lazy]');
+        const coverId  = tile.dataset.coverId;
+        const galleryId = tile.dataset.galleryId;
         if (!img) continue;
         try {
-          const { data: su } = await client.storage.from('gallery-photos')
-            .createSignedUrl(img.getAttribute('data-src-path'), 3600);
-          if (su?.signedUrl) { img.onload = () => img.classList.add('loaded'); img.src = su.signedUrl; img.removeAttribute('data-src-path'); }
-        } catch(e) {}
+          // Get cover storage path
+          let path = null;
+          if (coverId) {
+            const { data: cp } = await client.from('gallery_photos')
+              .select('storage_path').eq('id', coverId).single();
+            if (cp) path = cp.storage_path;
+          }
+          if (!path) {
+            const { data: fp } = await client.from('gallery_photos')
+              .select('storage_path').eq('gallery_id', galleryId)
+              .order('display_order', { ascending: true }).limit(1).single();
+            if (fp) path = fp.storage_path;
+          }
+          if (path) {
+            const { data: su } = await client.storage.from('gallery-photos')
+              .createSignedUrl(path, 3600);
+            if (su?.signedUrl) {
+              img.onload = () => img.classList.add('loaded');
+              img.src = su.signedUrl;
+              img.removeAttribute('data-lazy');
+            }
+          }
+        } catch(e) { console.error('pub gallery cover:', e); }
       }
     }, { rootMargin: '200px' });
+
     grid.querySelectorAll('.pub-gallery-tile').forEach(t => tileObserver.observe(t));
+
+    // Mobile fallback
     setTimeout(() => {
-      grid.querySelectorAll('.pub-gallery-tile').forEach(async tile => {
-        const img = tile.querySelector('img[data-src-path]');
+      grid.querySelectorAll('.pub-gallery-tile').forEach(tile => {
+        const img = tile.querySelector('img[data-lazy]');
         if (!img) return;
         const rect = tile.getBoundingClientRect();
-        if (rect.top < window.innerHeight + 300) {
-          tileObserver.unobserve(tile);
-          try {
-            const { data: su } = await client.storage.from('gallery-photos')
-              .createSignedUrl(img.getAttribute('data-src-path'), 3600);
-            if (su?.signedUrl) { img.onload = () => img.classList.add('loaded'); img.src = su.signedUrl; img.removeAttribute('data-src-path'); }
-          } catch(e) {}
-        }
+        if (rect.top < window.innerHeight + 300) tileObserver.unobserve(tile);
       });
     }, 150);
+
   } catch(err) { console.error('pubGallery:', err); loading.style.display = 'none'; }
 })();
 </script>
