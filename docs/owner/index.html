@@ -182,16 +182,31 @@
     .mobile-tab-bar {
       display:none; position:fixed; bottom:0; left:0; right:0; z-index:100;
       background:rgba(17,17,17,0.97); border-top:1px solid rgba(218,165,32,0.2);
-      backdrop-filter:blur(20px); padding:8px 0 env(safe-area-inset-bottom,8px);
+      backdrop-filter:blur(20px); padding:6px 0 env(safe-area-inset-bottom,6px);
+      overflow:hidden;
     }
-    .mobile-tabs { display:flex; justify-content:space-around; }
+    .mobile-tabs {
+      display:flex; overflow-x:auto; overflow-y:hidden;
+      -webkit-overflow-scrolling:touch; scroll-snap-type:x proximity;
+      scrollbar-width:none; -ms-overflow-style:none;
+      padding:0 4px; gap:0;
+    }
+    .mobile-tabs::-webkit-scrollbar { display:none; }
     .mobile-tab {
-      flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;
-      padding:8px; background:none; border:none; cursor:pointer; color:var(--ash); transition:color 150ms;
+      flex:0 0 auto; min-width:60px; display:flex; flex-direction:column; align-items:center; gap:3px;
+      padding:6px 10px; background:none; border:none; cursor:pointer; color:var(--ash);
+      transition:color 150ms; scroll-snap-align:start;
     }
     .mobile-tab.active { color:var(--owner-gold); }
-    .mobile-tab-icon { font-size:16px; }
-    .mobile-tab-label { font-family:var(--font-label); font-size:8px; letter-spacing:0.2em; text-transform:uppercase; }
+    .mobile-tab.active .mobile-tab-icon { text-shadow:0 0 8px rgba(218,165,32,0.5); }
+    .mobile-tab-icon { font-size:18px; }
+    .mobile-tab-label { font-family:var(--font-label); font-size:8px; letter-spacing:0.15em; text-transform:uppercase; white-space:nowrap; }
+    /* Scroll indicator fade edges */
+    .mobile-tab-bar::before, .mobile-tab-bar::after {
+      content:''; position:absolute; top:0; bottom:0; width:18px; pointer-events:none; z-index:2;
+    }
+    .mobile-tab-bar::before { left:0; background:linear-gradient(to right,rgba(17,17,17,0.9),transparent); }
+    .mobile-tab-bar::after  { right:0; background:linear-gradient(to left,rgba(17,17,17,0.9),transparent); }
     @media(max-width:900px){ .portal-tabs{display:none;} .mobile-tab-bar{display:block;} }
     @media(max-width:600px){ .portal-nav-inner{padding:0 16px;} }
 
@@ -769,7 +784,11 @@
     .gallery-builder-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px}
     .gallery-builder-title{font-family:var(--font-display);font-size:26px;font-weight:300;color:var(--ivory);letter-spacing:.04em}
     .gallery-builder-title span{color:var(--owner-gold)}
-    .galleries-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px;margin-bottom:28px}
+    .galleries-grid{display:flex;flex-wrap:wrap;gap:18px;margin-bottom:28px;justify-content:center}
+    .galleries-grid .gallery-card{width:calc((100% - 4*18px)/5);min-width:180px;flex:0 0 auto}
+    @media(max-width:1100px){.galleries-grid .gallery-card{width:calc((100% - 3*18px)/4)}}
+    @media(max-width:800px){.galleries-grid .gallery-card{width:calc((100% - 2*18px)/3)}}
+    @media(max-width:600px){.galleries-grid{gap:10px}.galleries-grid .gallery-card{width:calc((100% - 10px)/2)}}
     .gallery-card{background:rgba(255,255,255,.03);border:1px solid rgba(218,165,32,.15);border-radius:8px;overflow:hidden;transition:border-color .2s,transform .2s}
     .gallery-card:hover{border-color:rgba(218,165,32,.45);transform:translateY(-2px)}
     .gallery-card-cover{width:100%;height:155px;background:rgba(218,165,32,.05);display:flex;align-items:center;justify-content:center;color:rgba(218,165,32,.25);font-size:32px;overflow:hidden}
@@ -859,7 +878,7 @@
     .gallery-lightbox-next{right:20px}
     .gallery-lightbox-prev:hover,.gallery-lightbox-next:hover{background:rgba(218,165,32,.18);border-color:var(--owner-gold)}
     .gallery-lightbox-counter{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);font-size:13px;color:rgba(245,240,232,.45);z-index:2001}
-    @media(max-width:600px){.gallery-form-row-half{grid-template-columns:1fr}.galleries-grid{grid-template-columns:1fr 1fr;gap:10px}.gallery-modal{padding:20px}}
+    @media(max-width:600px){.gallery-form-row-half{grid-template-columns:1fr}.gallery-modal{padding:20px}}
 
   </style>
 </head>
@@ -1815,9 +1834,9 @@
       <div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:6px;">MEMBER ID</div>
       <div style="font-family:var(--font-label);letter-spacing:0.15em;font-size:13px;color:var(--ash);" id="mdId"></div>
     </div>
-    <div style="margin-bottom:20px;">
+    <div style="margin-bottom:20px;text-align:center;">
       <div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:10px;">MEMBER QR</div>
-      <div id="mdQrWrap" style="background:white;padding:12px;border-radius:8px;display:inline-block;"></div>
+      <div id="mdQrWrap" style="background:white;padding:14px;border-radius:10px;display:inline-block;line-height:0;"></div>
     </div>
     <div style="margin-bottom:8px;">
       <div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:6px;">MEMBER SINCE</div>
@@ -1943,6 +1962,7 @@
 <div class="toast" id="toast"></div>
 
 <!-- Supabase -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
@@ -2297,6 +2317,9 @@ let schedInitialized = false;
 function goToTab(tabId) {
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id===`tab-${tabId}`));
   document.querySelectorAll('.portal-tab,.mobile-tab').forEach(btn=>btn.classList.toggle('active',btn.dataset.tab===tabId));
+  // Scroll active mobile tab into view
+  const activeBtn = document.querySelector(`.mobile-tab[data-tab="${tabId}"]`);
+  if (activeBtn) activeBtn.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
   if (tabId === 'scheduling' && !schedInitialized) {
     schedInitialized = true;
     schedBaseDate = getMonday(new Date());
@@ -2553,13 +2576,15 @@ function openMemberDetailModal(memberId) {
   const qrWrap = document.getElementById('mdQrWrap');
   qrWrap.innerHTML = '';
   const qrUrl = `${window.location.origin}/members/index.html?member=${m.id}`;
-  if (window.QRCode) {
-    new QRCode(qrWrap, { text: qrUrl, width: 120, height: 120, colorDark:'#000', colorLight:'#fff' });
-  } else {
-    qrWrap.innerHTML = `<div style="font-size:11px;color:#888;padding:8px;">QR unavailable</div>`;
-  }
-
   document.getElementById('memberDetailModal').classList.add('open');
+  // Render QR after modal is visible so dimensions are correct
+  requestAnimationFrame(() => {
+    if (window.QRCode) {
+      new QRCode(qrWrap, { text: qrUrl, width: 160, height: 160, colorDark:'#000', colorLight:'#fff' });
+    } else {
+      qrWrap.innerHTML = `<div style="font-size:11px;color:#888;padding:8px;">QR unavailable</div>`;
+    }
+  });
 }
 
 function closeMemberDetailModal() {
@@ -2797,13 +2822,13 @@ async function loadEvents() {
   scheduleAutoComplete();
 }
 
-/* ── Auto-mark events as completed at 3:00 AM ── */
+/* ── Auto-mark events as completed at 6:00 AM following morning ── */
 function scheduleAutoComplete() {
   const now   = new Date();
-  const next3 = new Date(now);
-  next3.setHours(3, 0, 0, 0);
-  if (next3 <= now) next3.setDate(next3.getDate() + 1); // already past 3AM today → schedule for tomorrow
-  const msUntil3 = next3 - now;
+  const next6 = new Date(now);
+  next6.setHours(6, 0, 0, 0);
+  if (next6 <= now) next6.setDate(next6.getDate() + 1); // already past 6AM today → schedule for tomorrow
+  const msUntil6 = next6 - now;
 
   setTimeout(async () => {
     const yesterday = new Date();
@@ -2828,8 +2853,8 @@ function scheduleAutoComplete() {
       showToast(`${toComplete.length} event${toComplete.length > 1 ? 's' : ''} marked completed`, 'gold');
     }
 
-    scheduleAutoComplete(); // reschedule for next night
-  }, msUntil3);
+    scheduleAutoComplete(); // reschedule for next morning
+  }, msUntil6);
 }
 
 function renderEventsTab() {
@@ -2913,6 +2938,23 @@ function closeEventModal() {
   editingEventId = null;
 }
 
+/* ── Toggle track colour helper ── */
+function syncToggleTrack(id) {
+  const cb = document.getElementById(id);
+  const track = document.getElementById(id + 'Track');
+  if (!cb || !track) return;
+  track.style.background = cb.checked ? 'var(--owner-gold)' : 'rgba(255,255,255,0.12)';
+  // Knob
+  track.style.setProperty('--knob-x', cb.checked ? '18px' : '2px');
+  track.innerHTML = `<span style="position:absolute;top:3px;left:${cb.checked?'18':'2'}px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left 200ms;box-shadow:0 1px 3px rgba(0,0,0,0.4);pointer-events:none;"></span>`;
+}
+function initToggle(id) {
+  const cb = document.getElementById(id);
+  if (!cb) return;
+  cb.addEventListener('change', () => syncToggleTrack(id));
+  syncToggleTrack(id);
+}
+
 async function saveEvent() {
   const title    = document.getElementById('eventName').value.trim();
   const date     = document.getElementById('eventDate').value;
@@ -2936,6 +2978,8 @@ async function saveEvent() {
     capacity:    capacity ? parseInt(capacity) : null,
     status,
     description: desc || null,
+    visible_staff:   document.getElementById('eventVisibleStaff')?.checked !== false,
+    visible_members: document.getElementById('eventVisibleMembers')?.checked !== false,
   };
 
   // Flyer + promo video upload
@@ -3333,6 +3377,29 @@ function showToast(msg,type=''){
         </div>
       </div>
       <div id="eventPromoVideoProgress" style="display:none;margin-top:8px;font-size:12px;color:var(--staff-light);">Uploading video…</div>
+    </div>
+    <!-- Visibility toggles -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+      <label style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.03);border:1px solid rgba(218,165,32,0.15);border-radius:8px;padding:11px 14px;cursor:pointer;gap:10px;">
+        <div>
+          <div style="font-size:13px;color:var(--ivory);font-weight:400;">Staff Calendar</div>
+          <div style="font-size:10px;color:var(--ash);margin-top:2px;">Visible to staff</div>
+        </div>
+        <div style="position:relative;width:38px;height:22px;flex-shrink:0;">
+          <input type="checkbox" id="eventVisibleStaff" style="opacity:0;width:0;height:0;position:absolute;" checked>
+          <span onclick="document.getElementById('eventVisibleStaff').click()" style="position:absolute;inset:0;border-radius:11px;cursor:pointer;transition:background 200ms;" id="eventVisibleStaffTrack"></span>
+        </div>
+      </label>
+      <label style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.03);border:1px solid rgba(218,165,32,0.15);border-radius:8px;padding:11px 14px;cursor:pointer;gap:10px;">
+        <div>
+          <div style="font-size:13px;color:var(--ivory);font-weight:400;">Member Calendar</div>
+          <div style="font-size:10px;color:var(--ash);margin-top:2px;">Visible to members</div>
+        </div>
+        <div style="position:relative;width:38px;height:22px;flex-shrink:0;">
+          <input type="checkbox" id="eventVisibleMembers" style="opacity:0;width:0;height:0;position:absolute;" checked>
+          <span onclick="document.getElementById('eventVisibleMembers').click()" style="position:absolute;inset:0;border-radius:11px;cursor:pointer;transition:background 200ms;" id="eventVisibleMembersTrack"></span>
+        </div>
+      </label>
     </div>
     <div class="auth-error" id="eventError" style="text-align:left;margin-bottom:8px;"></div>
     <div class="modal-actions">
@@ -4162,6 +4229,13 @@ openAddEventModal = function() {
   resetPromoVideoField();
   existingFlyerUrl = null;
   existingPromoVideoUrl = null;
+  // Default both visibility toggles ON for new events
+  const vs = document.getElementById('eventVisibleStaff');
+  const vm = document.getElementById('eventVisibleMembers');
+  if (vs) { vs.checked = true; syncToggleTrack('eventVisibleStaff'); }
+  if (vm) { vm.checked = true; syncToggleTrack('eventVisibleMembers'); }
+  initToggle('eventVisibleStaff');
+  initToggle('eventVisibleMembers');
 };
 
 const _origOpenEditEvent = openEditEventModal;
@@ -4172,6 +4246,13 @@ openEditEventModal = function(id) {
   resetPromoVideoField();
   existingFlyerUrl = e?.flyer_url || null;
   existingPromoVideoUrl = e?.promo_video_url || null;
+  // Restore visibility toggle state (default true if field not yet in DB)
+  const vs = document.getElementById('eventVisibleStaff');
+  const vm = document.getElementById('eventVisibleMembers');
+  if (vs) { vs.checked = e?.visible_staff !== false; syncToggleTrack('eventVisibleStaff'); }
+  if (vm) { vm.checked = e?.visible_members !== false; syncToggleTrack('eventVisibleMembers'); }
+  initToggle('eventVisibleStaff');
+  initToggle('eventVisibleMembers');
   if (existingFlyerUrl) {
     document.getElementById('eventFlyerImg').src = existingFlyerUrl;
     document.getElementById('eventFlyerName').textContent = 'Current flyer';
