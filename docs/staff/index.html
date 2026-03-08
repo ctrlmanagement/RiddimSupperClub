@@ -996,7 +996,11 @@
     .staff-gallery-title { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 300; color: var(--ivory, #F5F0E8); letter-spacing: 0.04em; }
     .staff-gallery-title span { color: #D4A843; }
     .staff-gallery-sub { font-size: 12px; color: rgba(245,240,232,0.38); margin-top: 2px; }
-    .staff-galleries-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; margin-bottom: 28px; }
+    .staff-galleries-grid { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 28px; justify-content: center; }
+    .staff-galleries-grid .staff-gallery-card { width: calc((100% - 4*14px)/5); min-width: 160px; flex: 0 0 auto; }
+    @media (max-width: 1100px) { .staff-galleries-grid .staff-gallery-card { width: calc((100% - 3*14px)/4); } }
+    @media (max-width: 800px)  { .staff-galleries-grid .staff-gallery-card { width: calc((100% - 2*14px)/3); } }
+    @media (max-width: 480px)  { .staff-galleries-grid { gap: 10px; } .staff-galleries-grid .staff-gallery-card { width: calc((100% - 10px)/2); } }
     .staff-gallery-card { background: rgba(255,255,255,0.025); border: 1px solid rgba(100,140,200,0.15); border-radius: 8px; overflow: hidden; cursor: pointer; transition: border-color 0.2s, transform 0.15s; }
     .staff-gallery-card:hover { border-color: rgba(100,140,200,0.4); transform: translateY(-1px); }
     .staff-gallery-cover { width: 100%; height: 140px; background: rgba(100,140,200,0.05); display: flex; align-items: center; justify-content: center; color: rgba(100,140,200,0.25); font-size: 28px; }
@@ -1038,7 +1042,7 @@
     .staff-ig-processing { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 3000; align-items: center; justify-content: center; flex-direction: column; gap: 12px; }
     .staff-ig-processing.active { display: flex; }
     .staff-ig-processing-text { color: rgba(245,240,232,0.7); font-size: 14px; font-family: 'DM Sans', sans-serif; }
-    @media (max-width: 480px) { .staff-galleries-grid { grid-template-columns: 1fr 1fr; gap: 10px; } .staff-photo-grid { grid-template-columns: repeat(3, 1fr); gap: 5px; } .staff-lightbox-toolbar { gap: 8px; } .staff-lightbox-img { max-width: calc(100vw - 80px); max-height: calc(100svh - 140px); border-radius: 2px; } .staff-lightbox-dl-btn { padding: 7px 12px; font-size: 11px; } }
+    @media (max-width: 480px) { .staff-photo-grid { grid-template-columns: repeat(3, 1fr); gap: 5px; } .staff-lightbox-toolbar { gap: 8px; } .staff-lightbox-img { max-width: calc(100vw - 80px); max-height: calc(100svh - 140px); border-radius: 2px; } .staff-lightbox-dl-btn { padding: 7px 12px; font-size: 11px; } }
 
   </style>
 </head>
@@ -1696,15 +1700,23 @@
       <div style="text-align:center;font-size:10px;color:rgba(245,240,232,0.3);padding-bottom:3px;">Sa</div>
     </div>
     <div id="staffEvtCalGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;"></div>
-    <div id="staffEvtCalClearWrap" style="display:none;text-align:right;margin-top:8px;">
-      <button onclick="staffEvtCalClear()" style="font-size:11px;color:var(--gold-warm);background:none;border:none;cursor:pointer;">&#x2715; CLEAR</button>
-    </div>
   </div>
 
-  <!-- Weekend list -->
-  <div id="staffEvtWeekendList" style="max-width:600px;display:flex;flex-direction:column;gap:10px;"></div>
+    <!-- Featured events list (visible_staff = true) -->
+    <div id="staffEvtFeaturedList" style="max-width:600px;display:flex;flex-direction:column;gap:10px;"></div>
 
   </main>
+
+  <!-- Staff Events Day Popup -->
+  <div id="staffEvtDayModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:500;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)closeStaffEvtDayModal()">
+    <div style="background:#1A1A1A;border:1px solid rgba(212,168,67,0.3);border-radius:14px;padding:24px;width:100%;max-width:480px;max-height:80vh;overflow-y:auto;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+        <div id="staffEvtDayModalTitle" style="font-family:var(--font-label);font-size:13px;letter-spacing:0.18em;color:var(--gold-warm);"></div>
+        <button onclick="closeStaffEvtDayModal()" style="background:none;border:none;color:rgba(245,240,232,0.4);font-size:22px;cursor:pointer;line-height:1;padding:0 4px;">✕</button>
+      </div>
+      <div id="staffEvtDayModalBody" style="display:flex;flex-direction:column;gap:12px;"></div>
+    </div>
+  </div>
 
   <!-- Staff Lightbox -->
   <div class="staff-lightbox" id="staffLightbox">
@@ -2030,7 +2042,7 @@ function goToTab(tabId) {
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id===`tab-${tabId}`));
   document.querySelectorAll('.portal-tab,.mobile-tab').forEach(btn=>btn.classList.toggle('active',btn.dataset.tab===tabId));
   if (tabId === 'gallery') loadStaffGalleries();
-  if (tabId === 'events') { loadStaffEvents().then(() => { staffEvtRenderCalendar(); staffEvtRenderWeekendList(); }); }
+  if (tabId === 'events') { loadStaffEvents().then(() => { staffEvtRenderCalendar(); staffEvtRenderFeatured(); }); }
 }
 document.querySelectorAll('.portal-tab,.mobile-tab').forEach(btn=>{ if(btn.dataset.tab) btn.addEventListener('click',()=>goToTab(btn.dataset.tab)); });
 
@@ -3998,17 +4010,16 @@ function formatStaffGalleryDate(dateStr) {
 /* ═══ STAFF EVENTS TAB ═══ */
 let staffEvtYear   = new Date().getFullYear();
 let staffEvtMonth  = new Date().getMonth();
-let staffEvtFilter = null;
-let STAFF_EVENTS   = []; // populated from Supabase on tab open
+let STAFF_EVENTS   = [];
 
 async function loadStaffEvents() {
   if (!LIVE_DATA || !supabaseClient) return;
   try {
     const { data } = await supabaseClient.from('events')
-      .select('id, title, event_date, start_time, end_time, status, description, flyer_url, promo_video_url, capacity')
+      .select('id, title, event_date, start_time, end_time, status, description, flyer_url, promo_video_url, capacity, visible_staff')
       .not('status', 'eq', 'cancelled')
       .order('event_date', { ascending: true });
-    STAFF_EVENTS = data || [];
+    STAFF_EVENTS = (data || []).filter(e => e.visible_staff !== false);
   } catch(e) { console.warn('Staff events fetch:', e); STAFF_EVENTS = []; }
 }
 
@@ -4017,29 +4028,60 @@ function staffEvtCalNav(dir) {
   if (staffEvtMonth > 11) { staffEvtMonth = 0; staffEvtYear++; }
   if (staffEvtMonth < 0)  { staffEvtMonth = 11; staffEvtYear--; }
   staffEvtRenderCalendar();
-  staffEvtRenderWeekendList();
+  staffEvtRenderFeatured();
 }
 
 function staffEvtCalClear() {
-  staffEvtFilter = null;
-  staffEvtExpanded = null;
-  document.getElementById('staffEvtCalClearWrap').style.display = 'none';
   staffEvtRenderCalendar();
-  staffEvtRenderWeekendList();
+  staffEvtRenderFeatured();
 }
 
 function staffEvtCalSelectDate(iso) {
-  staffEvtFilter = (staffEvtFilter === iso) ? null : iso;
-  staffEvtExpanded = staffEvtFilter || null;
-  document.getElementById('staffEvtCalClearWrap').style.display = staffEvtFilter ? 'block' : 'none';
-  staffEvtRenderCalendar();
-  staffEvtRenderWeekendList();
-  if (staffEvtExpanded) {
-    setTimeout(() => {
-      const el = document.getElementById('staffevtrow-' + staffEvtExpanded);
-      if (el) el.scrollIntoView({ behavior:'smooth', block:'nearest' });
-    }, 30);
+  // Build events for this date and show popup
+  const STATUS_COLORS = {
+    scheduled: '#81C784', live: '#4A7FC1', sold_out: 'var(--gold-warm)',
+    cancelled: '#E57373', completed: 'rgba(255,255,255,0.3)'
+  };
+  const dayEvents = STAFF_EVENTS.filter(e => e.event_date === iso);
+  const d = new Date(iso + 'T12:00:00');
+  const dayLabel = d.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' }).toUpperCase();
+  document.getElementById('staffEvtDayModalTitle').textContent = dayLabel;
+
+  const body = document.getElementById('staffEvtDayModalBody');
+  if (!dayEvents.length) {
+    body.innerHTML = `<div style="text-align:center;padding:24px 0;color:rgba(245,240,232,0.3);font-size:14px;">No events scheduled for this date.</div>`;
+  } else {
+    body.innerHTML = dayEvents.map(ev => staffEvtEventCard(ev, STATUS_COLORS)).join('');
   }
+
+  document.getElementById('staffEvtDayModal').style.display = 'flex';
+}
+
+function closeStaffEvtDayModal() {
+  document.getElementById('staffEvtDayModal').style.display = 'none';
+}
+
+function staffEvtEventCard(ev, STATUS_COLORS) {
+  const badge = (() => {
+    const s = ev.status;
+    if (s === 'live') return '<span style="font-size:9px;background:rgba(74,127,193,0.15);color:#81C784;border:1px solid rgba(74,127,193,0.3);padding:2px 8px;border-radius:10px;">● LIVE</span>';
+    if (s === 'sold_out') return '<span style="font-size:9px;background:rgba(192,57,43,0.15);color:#E57373;border:1px solid rgba(192,57,43,0.3);padding:2px 8px;border-radius:10px;">SOLD OUT</span>';
+    return `<span style="font-size:9px;background:rgba(212,168,67,0.12);color:var(--gold-warm);border:1px solid rgba(212,168,67,0.25);padding:2px 8px;border-radius:10px;">${s.replace('_',' ').toUpperCase()}</span>`;
+  })();
+  const thumb = ev.flyer_url
+    ? `<img src="${ev.flyer_url}" style="width:100%;max-height:220px;object-fit:cover;border-radius:8px;margin-bottom:12px;" loading="lazy">`
+    : '';
+  const timeInfo = [ev.start_time ? 'Doors ' + ev.start_time.slice(0,5) : '', ev.end_time ? '— ' + ev.end_time.slice(0,5) : ''].filter(Boolean).join(' ');
+  return `<div style="background:rgba(212,168,67,0.04);border:1px solid rgba(212,168,67,0.2);border-radius:10px;padding:14px;">
+    ${thumb}
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
+      <div style="font-family:var(--font-display);font-size:20px;font-weight:300;color:#f5f0e8;flex:1;">${ev.title||'—'}</div>
+      ${badge}
+    </div>
+    ${timeInfo ? `<div style="font-size:12px;color:rgba(245,240,232,0.45);margin-bottom:4px;">${timeInfo}</div>` : ''}
+    ${ev.capacity ? `<div style="font-size:11px;color:rgba(245,240,232,0.3);margin-bottom:4px;">Capacity: ${ev.capacity}</div>` : ''}
+    ${ev.description ? `<div style="font-size:13px;color:rgba(245,240,232,0.55);margin-top:8px;">${ev.description}</div>` : ''}
+  </div>`;
 }
 
 function staffEvtRenderCalendar() {
@@ -4048,131 +4090,97 @@ function staffEvtRenderCalendar() {
   if (!label || !grid) return;
   const months = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
   label.textContent = months[staffEvtMonth] + ' ' + staffEvtYear;
-  const eventDates = new Set(STAFF_EVENTS.map(e => e.event_date));
+
+  const STATUS_COLORS = {
+    scheduled: '#81C784', live: '#4A7FC1', sold_out: 'var(--gold-warm)',
+    cancelled: '#E57373', completed: 'rgba(255,255,255,0.2)'
+  };
+  const eventMap = {};
+  STAFF_EVENTS.forEach(e => { eventMap[e.event_date] = e; });
+
   const today = new Date().toISOString().slice(0,10);
   const firstDay = new Date(staffEvtYear, staffEvtMonth, 1).getDay();
   const daysInMonth = new Date(staffEvtYear, staffEvtMonth+1, 0).getDate();
+
   let cells = '';
   for (let i = 0; i < firstDay; i++) cells += '<div></div>';
+
   for (let d = 1; d <= daysInMonth; d++) {
     const mm  = String(staffEvtMonth+1).padStart(2,'0');
     const dd  = String(d).padStart(2,'0');
     const iso = `${staffEvtYear}-${mm}-${dd}`;
-    const dow = new Date(staffEvtYear, staffEvtMonth, d).getDay();
-    const isWeekend = dow === 0 || dow === 5 || dow === 6;
-    const hasEvent  = eventDates.has(iso);
-    const isToday   = iso === today;
-    const isSelected = iso === staffEvtFilter;
-    const isPast    = iso < today;
-    let bg = 'transparent', border = 'none';
-    let color = isPast ? 'rgba(245,240,232,0.2)' : isWeekend ? 'rgba(245,240,232,0.7)' : 'rgba(245,240,232,0.35)';
-    if (isSelected) { bg = 'var(--gold-warm)'; color = '#000'; }
-    else if (isToday) border = '1px solid var(--gold-warm)';
-    else if (isWeekend && !isPast) border = '1px solid rgba(212,168,67,0.2)';
-    const dot = hasEvent && !isSelected ? `<div style="width:4px;height:4px;border-radius:50%;background:${isSelected?'#000':'var(--gold-warm)'};margin:1px auto 0;"></div>` : '';
-    const click = isWeekend ? `onclick="staffEvtCalSelectDate('${iso}')"` : '';
-    cells += `<div ${click} style="text-align:center;padding:5px 2px;border-radius:5px;background:${bg};border:${border};color:${color};font-size:12px;cursor:${isWeekend?'pointer':'default'};user-select:none;">${d}${dot}</div>`;
+    const ev  = eventMap[iso];
+    const isToday = iso === today;
+    const isPast  = iso < today;
+
+    let bg     = isPast ? 'transparent' : 'rgba(255,255,255,0.02)';
+    let border = isToday ? '1px solid rgba(212,168,67,0.6)' : '1px solid rgba(255,255,255,0.05)';
+    let color  = isPast ? 'rgba(245,240,232,0.2)' : isToday ? '#D4A843' : 'rgba(245,240,232,0.75)';
+
+    const chip = ev
+      ? `<div style="width:100%;height:3px;border-radius:2px;background:${STATUS_COLORS[ev.status]||'var(--gold-warm)'};margin-top:3px;"></div>`
+      : '';
+
+    cells += `<div onclick="staffEvtCalSelectDate('${iso}')"
+      style="min-height:46px;padding:5px 4px;border-radius:6px;background:${bg};border:${border};
+             color:${color};font-size:12px;text-align:center;cursor:pointer;transition:all 120ms;user-select:none;"
+      onmouseover="this.style.background='rgba(212,168,67,0.08)';this.style.borderColor='rgba(212,168,67,0.4)'"
+      onmouseout="this.style.background='${bg}';this.style.borderColor='${isToday?'rgba(212,168,67,0.6)':'rgba(255,255,255,0.05)'}'">
+      <div style="font-family:var(--font-label);font-size:11px;">${d}</div>
+      ${chip}
+    </div>`;
   }
   grid.innerHTML = cells;
 }
 
-let staffEvtExpanded = null;
-
-function staffEvtToggleRow(iso) {
-  staffEvtExpanded = (staffEvtExpanded === iso) ? null : iso;
-  staffEvtRenderWeekendList();
-  if (staffEvtExpanded) {
-    setTimeout(() => {
-      const el = document.getElementById('staffevtrow-' + iso);
-      if (el) el.scrollIntoView({ behavior:'smooth', block:'nearest' });
-    }, 30);
-  }
-}
-
-function staffEvtRenderWeekendList() {
-  const el = document.getElementById('staffEvtWeekendList');
+function staffEvtRenderFeatured() {
+  const el = document.getElementById('staffEvtFeaturedList');
   if (!el) return;
+  const STATUS_COLORS = {
+    scheduled: '#81C784', live: '#4A7FC1', sold_out: 'var(--gold-warm)',
+    cancelled: '#E57373', completed: 'rgba(255,255,255,0.2)'
+  };
   const today = new Date().toISOString().slice(0,10);
-  const eventMap = {};
-  STAFF_EVENTS.forEach(e => { eventMap[e.event_date] = e; });
-  const daysInMonth = new Date(staffEvtYear, staffEvtMonth+1, 0).getDate();
-  const rows = [];
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dow = new Date(staffEvtYear, staffEvtMonth, d).getDay();
-    if (dow !== 0 && dow !== 5 && dow !== 6) continue;
-    const mm  = String(staffEvtMonth+1).padStart(2,'0');
-    const dd  = String(d).padStart(2,'0');
-    const iso = `${staffEvtYear}-${mm}-${dd}`;
-    if (staffEvtFilter && iso !== staffEvtFilter) continue;
-    rows.push(iso);
+  // Show upcoming featured events (visible_staff = true is already filtered in STAFF_EVENTS)
+  const featured = STAFF_EVENTS.filter(e => e.event_date >= today).slice(0, 10);
+
+  if (!featured.length) {
+    el.innerHTML = '<p style="color:rgba(245,240,232,0.3);font-size:13px;text-align:center;padding:20px 0;">No upcoming events.</p>';
+    return;
   }
-  if (!rows.length) { el.innerHTML = '<p style="color:rgba(245,240,232,0.3);font-size:13px;">No weekend dates.</p>'; return; }
-  const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  el.innerHTML = rows.map(iso => {
-    const ev     = eventMap[iso];
-    const d      = new Date(iso + 'T00:00:00');
-    const dow    = d.getDay();
-    const dayLabel  = dayNames[dow].toUpperCase();
-    const dateLabel = d.toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' }).toUpperCase();
-    const isPast    = iso < today;
-    const isOpen    = staffEvtExpanded === iso;
 
-    if (ev) {
-      const isLive    = ev.status === 'live';
-      const isSoldOut = ev.status === 'sold_out';
-      const badge = isLive
-        ? '<span style="font-size:9px;background:rgba(129,199,132,0.15);color:#81C784;border:1px solid rgba(129,199,132,0.3);padding:2px 8px;border-radius:10px;">&#9679; LIVE</span>'
-        : isSoldOut
-        ? '<span style="font-size:9px;background:rgba(192,57,43,0.15);color:#E57373;border:1px solid rgba(192,57,43,0.3);padding:2px 8px;border-radius:10px;">SOLD OUT</span>'
-        : `<span style="font-size:9px;background:rgba(212,168,67,0.12);color:var(--gold-warm);border:1px solid rgba(212,168,67,0.25);padding:2px 8px;border-radius:10px;">${ev.status.replace('_',' ').toUpperCase()}</span>`;
-      const thumb = ev.flyer_url
-        ? `<img src="${ev.flyer_url}" style="width:56px;height:56px;object-fit:cover;border-radius:6px;flex-shrink:0;" loading="lazy">`
-        : `<div style="width:56px;height:56px;border-radius:6px;background:rgba(212,168,67,0.08);border:1px solid rgba(212,168,67,0.2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;color:rgba(212,168,67,0.4);">&#10022;</div>`;
+  el.innerHTML = featured.map(ev => {
+    const d = new Date(ev.event_date + 'T12:00:00');
+    const dateLabel = d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' }).toUpperCase();
+    const timeInfo = [ev.start_time ? ev.start_time.slice(0,5) : '', ev.end_time ? '– ' + ev.end_time.slice(0,5) : ''].filter(Boolean).join(' ');
+    const badge = (() => {
+      const s = ev.status;
+      if (s === 'live') return '<span style="font-size:9px;background:rgba(74,127,193,0.15);color:#81C784;border:1px solid rgba(74,127,193,0.3);padding:2px 8px;border-radius:10px;">● LIVE</span>';
+      if (s === 'sold_out') return '<span style="font-size:9px;background:rgba(192,57,43,0.15);color:#E57373;border:1px solid rgba(192,57,43,0.3);padding:2px 8px;border-radius:10px;">SOLD OUT</span>';
+      return `<span style="font-size:9px;background:rgba(212,168,67,0.12);color:var(--gold-warm);border:1px solid rgba(212,168,67,0.25);padding:2px 8px;border-radius:10px;">${s.replace('_',' ').toUpperCase()}</span>`;
+    })();
+    const thumb = ev.flyer_url
+      ? `<img src="${ev.flyer_url}" style="width:56px;height:56px;object-fit:cover;border-radius:6px;flex-shrink:0;" loading="lazy">`
+      : `<div style="width:56px;height:56px;border-radius:6px;background:rgba(212,168,67,0.06);border:1px solid rgba(212,168,67,0.15);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;color:rgba(212,168,67,0.3);">◆</div>`;
 
-      const revealHtml = isOpen ? (() => {
-        const flyerFull  = ev.flyer_url       ? `<img src="${ev.flyer_url}" style="width:100%;max-height:340px;object-fit:contain;border-radius:8px;margin-bottom:14px;" loading="lazy">` : '';
-        const promoVideo = ev.promo_video_url  ? `<video controls style="width:100%;border-radius:8px;margin-bottom:14px;max-height:280px;background:#000;" preload="metadata"><source src="${ev.promo_video_url}"></video>` : '';
-        const timeInfo   = [ev.start_time ? 'Doors ' + ev.start_time.slice(0,5) : '', ev.end_time ? '&#8212; ' + ev.end_time.slice(0,5) : ''].filter(Boolean).join(' ');
-        return `<div style="border-top:1px solid rgba(212,168,67,0.15);margin-top:12px;padding-top:14px;" onclick="event.stopPropagation()">
-          ${flyerFull}${promoVideo}
-          ${ev.description ? `<p style="font-size:13px;color:rgba(245,240,232,0.6);margin:0 0 8px;">${ev.description}</p>` : ''}
-          ${timeInfo ? `<p style="font-size:11px;color:rgba(245,240,232,0.4);margin:0 0 4px;">${timeInfo}</p>` : ''}
-          ${ev.capacity ? `<p style="font-size:11px;color:rgba(245,240,232,0.3);margin:0;">Capacity: ${ev.capacity}</p>` : ''}
-        </div>`;
-      })() : '';
-
-      return `<div id="staffevtrow-${iso}" onclick="staffEvtToggleRow('${iso}')" style="background:${isOpen?'rgba(212,168,67,0.07)':'rgba(212,168,67,0.03)'};border:1px solid ${isOpen?'rgba(212,168,67,0.35)':'rgba(212,168,67,0.18)'};border-radius:10px;padding:12px 14px;cursor:pointer;transition:border-color 0.2s,background 0.2s;">
-        <div style="display:flex;gap:12px;align-items:center;">
-          ${thumb}
-          <div style="flex:1;min-width:0;">
-            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
-              <span style="font-size:10px;letter-spacing:0.1em;color:var(--gold-warm);">${dayLabel} &#183; ${dateLabel}</span>${badge}
-            </div>
-            <div style="font-family:var(--font-display);font-size:18px;font-weight:300;color:#f5f0e8;">${ev.title||'&#8212;'}</div>
+    return `<div onclick="staffEvtCalSelectDate('${ev.event_date}')"
+      style="background:rgba(212,168,67,0.03);border:1px solid rgba(212,168,67,0.15);border-radius:10px;padding:12px 14px;cursor:pointer;transition:border-color 0.2s,background 0.2s;"
+      onmouseover="this.style.background='rgba(212,168,67,0.07)';this.style.borderColor='rgba(212,168,67,0.35)'"
+      onmouseout="this.style.background='rgba(212,168,67,0.03)';this.style.borderColor='rgba(212,168,67,0.15)'">
+      <div style="display:flex;gap:12px;align-items:center;">
+        ${thumb}
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+            <span style="font-size:10px;letter-spacing:0.1em;color:var(--gold-warm);">${dateLabel}</span>${badge}
           </div>
-          <span style="color:rgba(212,168,67,0.5);font-size:14px;flex-shrink:0;transition:transform 0.2s;transform:rotate(${isOpen?'180':'0'}deg);">&#9660;</span>
+          <div style="font-family:var(--font-display);font-size:18px;font-weight:300;color:#f5f0e8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ev.title||'—'}</div>
+          ${timeInfo ? `<div style="font-size:11px;color:rgba(245,240,232,0.38);margin-top:2px;">${timeInfo}</div>` : ''}
         </div>
-        ${revealHtml}
-      </div>`;
-
-    } else {
-      const isOpen2 = staffEvtExpanded === iso;
-      const reveal2 = isOpen2 ? `<div style="border-top:1px solid rgba(255,255,255,0.06);margin-top:10px;padding-top:10px;"><p style="font-size:13px;color:rgba(245,240,232,0.3);margin:0;">No event scheduled for this date.</p></div>` : '';
-      return `<div id="staffevtrow-${iso}" onclick="staffEvtToggleRow('${iso}')" style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,${isOpen2?'0.1':'0.05'});border-radius:10px;padding:12px 14px;opacity:${isPast?'0.2':'0.45'};cursor:pointer;">
-        <div style="display:flex;gap:12px;align-items:center;">
-          <div style="width:56px;height:56px;border-radius:6px;background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;color:rgba(245,240,232,0.15);">&#9675;</div>
-          <div style="flex:1;">
-            <div style="font-size:10px;letter-spacing:0.1em;color:rgba(245,240,232,0.25);margin-bottom:3px;">${dayLabel} &#183; ${dateLabel}</div>
-            <div style="font-family:var(--font-display);font-size:15px;font-weight:300;color:rgba(245,240,232,0.25);">No Event Scheduled</div>
-          </div>
-          <span style="color:rgba(255,255,255,0.15);font-size:14px;">${isOpen2?'&#9650;':'&#9660;'}</span>
-        </div>
-        ${reveal2}
-      </div>`;
-    }
+        <span style="color:rgba(212,168,67,0.4);font-size:12px;flex-shrink:0;">›</span>
+      </div>
+    </div>`;
   }).join('');
 }
-
 
 </script>
 </body>
