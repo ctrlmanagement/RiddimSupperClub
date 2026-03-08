@@ -1684,7 +1684,7 @@
   </div>
 
   <!-- Calendar -->
-  <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:16px;margin-bottom:24px;max-width:600px;">
+  <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:16px;margin-bottom:24px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
       <button onclick="staffEvtCalNav(-1)" style="background:none;border:1px solid rgba(255,255,255,0.12);color:#f5f0e8;width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:15px;">&#x2039;</button>
       <div id="staffEvtCalLabel" style="font-family:var(--font-label);font-size:12px;letter-spacing:0.12em;color:#f5f0e8;"></div>
@@ -1703,7 +1703,7 @@
   </div>
 
     <!-- Featured events list (visible_staff = true) -->
-    <div id="staffEvtFeaturedList" style="max-width:600px;display:flex;flex-direction:column;gap:10px;"></div>
+    <div id="staffEvtFeaturedList" style="display:flex;flex-direction:column;gap:10px;"></div>
 
   </main>
 
@@ -4136,6 +4136,10 @@ function staffEvtRenderCalendar() {
 function staffEvtRenderFeatured() {
   const el = document.getElementById('staffEvtFeaturedList');
   if (!el) return;
+  // Responsive: 2 columns on desktop, 1 on mobile
+  el.style.display = 'grid';
+  el.style.gridTemplateColumns = window.innerWidth >= 700 ? 'repeat(2,1fr)' : '1fr';
+  el.style.gap = '10px';
   const STATUS_COLORS = {
     scheduled: '#81C784', live: '#4A7FC1', sold_out: 'var(--gold-warm)',
     cancelled: '#E57373', completed: 'rgba(255,255,255,0.2)'
