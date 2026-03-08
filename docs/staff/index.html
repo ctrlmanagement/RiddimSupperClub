@@ -4086,9 +4086,12 @@ function staffEvtEventCard(ev, STATUS_COLORS) {
   const thumb = ev.flyer_url
     ? `<img src="${ev.flyer_url}" style="width:100%;max-height:220px;object-fit:cover;border-radius:8px;margin-bottom:12px;" loading="lazy">`
     : '';
+  const promo = ev.promo_video_url
+    ? `<video controls style="width:100%;border-radius:8px;margin-bottom:12px;max-height:260px;background:#000;" preload="metadata"><source src="${ev.promo_video_url}"></video>`
+    : '';
   const timeInfo = [ev.start_time ? 'Doors ' + ev.start_time.slice(0,5) : '', ev.end_time ? '— ' + ev.end_time.slice(0,5) : ''].filter(Boolean).join(' ');
   return `<div style="background:rgba(212,168,67,0.04);border:1px solid rgba(212,168,67,0.2);border-radius:10px;padding:14px;">
-    ${thumb}
+    ${thumb}${promo}
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
       <div style="font-family:var(--font-display);font-size:20px;font-weight:300;color:#f5f0e8;flex:1;">${ev.title||'—'}</div>
       ${badge}
