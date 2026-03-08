@@ -4073,6 +4073,8 @@ function staffEvtCalSelectDate(iso) {
 }
 
 function closeStaffEvtDayModal() {
+  // Stop any playing video before closing
+  document.querySelectorAll('#staffEvtDayModalBody video').forEach(v => { v.pause(); v.currentTime = 0; });
   document.getElementById('staffEvtDayModal').style.display = 'none';
 }
 
