@@ -577,7 +577,7 @@ loadStaffSchedule();
 });
 }
 });
-const GUEST_SCANNER_ROLES = ['manager', 'host', 'doorman', 'security', 'server', 'barback', 'bartender', 'promoter'];
+const GUEST_SCANNER_ROLES = ['manager', 'host', 'doorman', 'security', 'server', 'barback', 'bartender', 'promoter', 'vip host', 'floor host'];
 let todayEvent = null; 
 let guestList = []; 
 let foundGuestMember = null; 
@@ -593,7 +593,7 @@ async function initGuestsTab() {
 const role = currentStaff?.role || '';
 const locked = document.getElementById('guestsRoleLocked');
 const content = document.getElementById('guestsTabContent');
-if (!GUEST_SCANNER_ROLES.includes(role)) {
+if (!GUEST_SCANNER_ROLES.includes(role.toLowerCase())) {
 locked.style.display = 'block';
 content.style.display = 'none';
 return;
@@ -1543,49 +1543,40 @@ data-storage-path="${p.storage_path.replace(/"/g,'&quot;')}"
 onclick="openStaffLightbox(${i})"><img data-lazy-thumb
 style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .25s;"
 alt=""></div>`).join('');
+// Mobile-safe photo loader — loads all photos directly on mobile (iOS Safari
+// IntersectionObserver rootMargin is unreliable when scroll root is not window).
+// On desktop uses IntersectionObserver for progressive lazy load.
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+async function loadThumb(tile) {
+const idx = parseInt(tile.dataset.photoIndex);
+const path = tile.dataset.storagePath;
+const img = tile.querySelector('[data-lazy-thumb]');
+if (!img || !path || (img.src && img.src !== window.location.href && !img.src.endsWith('#'))) return;
+try {
+const { data: su } = await supabaseClient.storage.from('gallery-photos')
+.createSignedUrl(path, 7200);
+if (su?.signedUrl) {
+staffGalleryPhotos[idx].signedUrl = su.signedUrl;
+img.onload = () => { img.style.opacity = '1'; };
+img.src = su.signedUrl;
+}
+} catch(err) { console.error('staff thumb load:', err); }
+}
+if (isMobile) {
+// Load all thumbs immediately on mobile — no lazy loading
+const tiles = document.querySelectorAll('#staffPhotoGrid [data-photo-index]');
+tiles.forEach(tile => loadThumb(tile));
+} else {
+// Desktop — use IntersectionObserver with window as root
 const thumbObserver = new IntersectionObserver((entries) => {
-entries.forEach(async entry => {
+entries.forEach(entry => {
 if (!entry.isIntersecting) return;
-const tile = entry.target;
-thumbObserver.unobserve(tile);
-const idx = parseInt(tile.dataset.photoIndex);
-const path = tile.dataset.storagePath;
-const img = tile.querySelector('[data-lazy-thumb]');
-if (!img || !path) return;
-try {
-const { data: su } = await supabaseClient.storage.from('gallery-photos')
-.createSignedUrl(path, 7200);
-if (su?.signedUrl) {
-staffGalleryPhotos[idx].signedUrl = su.signedUrl;
-img.onload = () => { img.style.opacity = '1'; };
-img.src = su.signedUrl;
-}
-} catch(err) { console.error('staff lazy thumb:', err); }
+thumbObserver.unobserve(entry.target);
+loadThumb(entry.target);
 });
-}, { rootMargin: '200px' });
+}, { root: null, rootMargin: '300px' });
 document.querySelectorAll('#staffPhotoGrid [data-photo-index]').forEach(el => thumbObserver.observe(el));
-setTimeout(() => {
-document.querySelectorAll('#staffPhotoGrid [data-photo-index]').forEach(async tile => {
-const img = tile.querySelector('[data-lazy-thumb]');
-if (img && img.src && img.src !== window.location.href) return;
-const rect = tile.getBoundingClientRect();
-if (rect.top < window.innerHeight + 250 && rect.bottom > -250) {
-thumbObserver.unobserve(tile);
-const idx = parseInt(tile.dataset.photoIndex);
-const path = tile.dataset.storagePath;
-if (!img || !path) return;
-try {
-const { data: su } = await supabaseClient.storage.from('gallery-photos')
-.createSignedUrl(path, 7200);
-if (su?.signedUrl) {
-staffGalleryPhotos[idx].signedUrl = su.signedUrl;
-img.onload = () => { img.style.opacity = '1'; };
-img.src = su.signedUrl;
 }
-} catch(e) { console.error('staff mobile thumb fallback:', e); }
-}
-});
-}, 120);
 } catch (err) {
 console.error('openStaffGallery error:', err);
 document.getElementById('staffPhotoGrid').innerHTML = '<div style="color:#e07070;font-size:13px;">Could not load photos.</div>';
