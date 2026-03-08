@@ -257,17 +257,30 @@
       display:none; position:fixed; bottom:0; left:0; right:0; z-index:100;
       background:rgba(17,17,17,0.97); border-top:1px solid rgba(74,127,193,0.2);
       backdrop-filter:blur(20px);
-      padding:8px 0 env(safe-area-inset-bottom,8px);
+      padding:6px 0 env(safe-area-inset-bottom,6px);
+      overflow:hidden;
     }
-    .mobile-tabs { display:flex; justify-content:space-around; }
+    .mobile-tabs {
+      display:flex; overflow-x:auto; overflow-y:hidden;
+      -webkit-overflow-scrolling:touch; scroll-snap-type:x proximity;
+      scrollbar-width:none; -ms-overflow-style:none;
+      padding:0 4px; gap:0;
+    }
+    .mobile-tabs::-webkit-scrollbar { display:none; }
     .mobile-tab {
-      flex:1; display:flex; flex-direction:column; align-items:center;
-      gap:4px; padding:8px; background:none; border:none;
-      cursor:pointer; color:var(--ash); transition:color 150ms;
+      flex:0 0 auto; min-width:60px; display:flex; flex-direction:column; align-items:center;
+      gap:3px; padding:6px 10px; background:none; border:none;
+      cursor:pointer; color:var(--ash); transition:color 150ms; scroll-snap-align:start;
     }
     .mobile-tab.active { color:var(--staff-light); }
-    .mobile-tab-icon { font-size:16px; }
-    .mobile-tab-label { font-family:var(--font-label); font-size:8px; letter-spacing:0.2em; text-transform:uppercase; }
+    .mobile-tab.active .mobile-tab-icon { text-shadow:0 0 8px rgba(74,127,193,0.6); }
+    .mobile-tab-icon { font-size:18px; }
+    .mobile-tab-label { font-family:var(--font-label); font-size:8px; letter-spacing:0.15em; text-transform:uppercase; white-space:nowrap; }
+    .mobile-tab-bar::before, .mobile-tab-bar::after {
+      content:''; position:absolute; top:0; bottom:0; width:18px; pointer-events:none; z-index:2;
+    }
+    .mobile-tab-bar::before { left:0; background:linear-gradient(to right,rgba(17,17,17,0.9),transparent); }
+    .mobile-tab-bar::after  { right:0; background:linear-gradient(to left,rgba(17,17,17,0.9),transparent); }
     @media(max-width:720px){
       .portal-tabs{display:none;}
       .portal-user .portal-user-role{display:none;}
@@ -1677,7 +1690,7 @@
       </div>
     </div>
 
-    <div class="tab-panel" id="tab-events" style="padding:24px 20px;">
+    <div class="tab-panel" id="tab-events" style="padding:24px 32px;">
   <div style="margin-bottom:20px;">
     <p style="font-family:var(--font-label);font-size:10px;letter-spacing:0.12em;color:var(--gold-warm);margin-bottom:6px;">EVENTS</p>
     <h2 style="font-family:var(--font-display);font-size:28px;font-weight:300;font-style:italic;color:var(--ivory);">This Month</h2>
@@ -2041,6 +2054,8 @@ async function loadLiveData() {
 function goToTab(tabId) {
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id===`tab-${tabId}`));
   document.querySelectorAll('.portal-tab,.mobile-tab').forEach(btn=>btn.classList.toggle('active',btn.dataset.tab===tabId));
+  const activeBtn = document.querySelector(`.mobile-tab[data-tab="${tabId}"]`);
+  if (activeBtn) activeBtn.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
   if (tabId === 'gallery') loadStaffGalleries();
   if (tabId === 'events') { loadStaffEvents().then(() => { staffEvtRenderCalendar(); staffEvtRenderFeatured(); }); }
 }
