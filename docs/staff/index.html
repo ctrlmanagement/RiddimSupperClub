@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head>
+x<!DOCTYPE html><html lang="en"><head>
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="robots" content="noindex, nofollow">
@@ -118,8 +118,6 @@ if (error && !isNoRowsError(error)) {
 }
 if (error || !data) {
 const phoneNotFound = !data && isNoRowsError(error);
-const debugDetail = error ? ` [${error.code||'no-code'}: ${error.message||'no-msg'} / status:${error.status||'?'}]` : ' [no error obj/data null]';
-showError('loginError', phoneNotFound ? 'Phone not registered. Contact your manager.' : `Connection error — please try again.${debugDetail}`);
 btn.disabled = false; btn.textContent = 'Send Code';
 return;
 }
