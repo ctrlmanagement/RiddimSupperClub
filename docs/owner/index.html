@@ -729,7 +729,7 @@ const thumbHtml = e.flyer_url
     </div>`
   : e.promo_video_url
     ? `<div style="flex-shrink:0;width:72px;height:72px;border-radius:6px;overflow:hidden;background:var(--carbon);border:1px solid var(--graphite);position:relative;">
-        <video src="${e.promo_video_url}" preload="metadata" muted playsinline style="width:100%;height:100%;object-fit:cover;display:block;" tabindex="-1"></video>
+        <video src="${e.promo_video_url}#t=0.1" preload="metadata" muted playsinline style="width:100%;height:100%;object-fit:cover;display:block;" tabindex="-1" onloadedmetadata="this.currentTime=0.1" onerror="this.style.display='none'"></video>
         <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
           <span style="width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.55);border:1px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;padding-left:2px;">▶</span>
         </div>
