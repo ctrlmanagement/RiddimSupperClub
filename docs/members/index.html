@@ -553,6 +553,8 @@ const badge = isLive
 : '<span style="font-family:var(--font-label);font-size:9px;letter-spacing:0.1em;background:rgba(212,168,67,0.12);color:var(--color-gold);border:1px solid rgba(212,168,67,0.25);padding:2px 8px;border-radius:10px;">SCHEDULED</span>';
 const thumb = ev.flyer_url
 ? `<img src="${ev.flyer_url}" style="width:56px;height:56px;object-fit:cover;border-radius:6px;flex-shrink:0;" loading="lazy">`
+: ev.promo_video_url
+? `<div style="width:56px;height:56px;border-radius:6px;overflow:hidden;flex-shrink:0;position:relative;background:#000;"><video src="${ev.promo_video_url}#t=0.1" preload="metadata" muted playsinline style="width:100%;height:100%;object-fit:cover;display:block;" tabindex="-1" onloadedmetadata="this.currentTime=0.1" onerror="this.style.display='none'"></video><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;"><span style="width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,0.55);border:1px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;padding-left:1px;">▶</span></div></div>`
 : `<div style="width:56px;height:56px;border-radius:6px;background:rgba(212,168,67,0.08);border:1px solid rgba(212,168,67,0.2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;color:rgba(212,168,67,0.5);">&#10022;</div>`;
 return `<div onclick="evtCalSelectDate('${ev.event_date}')"
 style="background:rgba(212,168,67,0.03);border:1px solid rgba(212,168,67,0.15);border-radius:10px;padding:14px 16px;cursor:pointer;transition:border-color 0.2s,background 0.2s;"
