@@ -723,8 +723,20 @@ document.getElementById('eventsGrid').innerHTML = data.map(e => {
 const d = new Date(e.event_date + 'T12:00:00');
 const dateStr = d.toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric', year:'numeric'});
 const color = STATUS_COLORS[e.status] || 'var(--ash)';
+const thumbHtml = e.flyer_url
+  ? `<div style="flex-shrink:0;width:72px;height:72px;border-radius:6px;overflow:hidden;background:var(--carbon);border:1px solid var(--graphite);">
+      <img src="${e.flyer_url}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;" loading="lazy" />
+    </div>`
+  : e.promo_video_url
+    ? `<div style="flex-shrink:0;width:72px;height:72px;border-radius:6px;overflow:hidden;background:var(--carbon);border:1px solid var(--graphite);position:relative;">
+        <video src="${e.promo_video_url}" preload="metadata" muted playsinline style="width:100%;height:100%;object-fit:cover;display:block;" tabindex="-1"></video>
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
+          <span style="width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.55);border:1px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;padding-left:2px;">▶</span>
+        </div>
+      </div>`
+    : `<div style="flex-shrink:0;width:72px;height:72px;border-radius:6px;background:rgba(218,165,32,0.04);border:1px solid var(--graphite);display:flex;align-items:center;justify-content:center;color:rgba(218,165,32,0.2);font-size:22px;">◆</div>`;
 return `
-<div class="panel" style="display:flex;align-items:flex-start;gap:20px;padding:20px 24px;"><div style="min-width:56px;text-align:center;background:var(--deep);border-radius:8px;padding:10px 8px;"><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);">${d.toLocaleString('default',{month:'short'}).toUpperCase()}</div><div style="font-family:var(--font-display);font-size:28px;font-weight:300;color:var(--ivory);line-height:1;">${d.getDate()}</div></div><div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap;"><div style="font-family:var(--font-display);font-size:20px;font-weight:300;color:var(--ivory);">${e.title}</div><span style="font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:${color};border:1px solid ${color};padding:2px 8px;border-radius:4px;">${e.status.replace('_',' ').toUpperCase()}</span></div><div style="font-size:13px;color:var(--ash);">
+<div class="panel" style="display:flex;align-items:flex-start;gap:20px;padding:20px 24px;">${thumbHtml}<div style="min-width:56px;text-align:center;background:var(--deep);border-radius:8px;padding:10px 8px;"><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);">${d.toLocaleString('default',{month:'short'}).toUpperCase()}</div><div style="font-family:var(--font-display);font-size:28px;font-weight:300;color:var(--ivory);line-height:1;">${d.getDate()}</div></div><div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap;"><div style="font-family:var(--font-display);font-size:20px;font-weight:300;color:var(--ivory);">${e.title}</div><span style="font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:${color};border:1px solid ${color};padding:2px 8px;border-radius:4px;">${e.status.replace('_',' ').toUpperCase()}</span></div><div style="font-size:13px;color:var(--ash);">
 ${e.start_time ? e.start_time.slice(0,5) : ''} ${e.end_time ? '– '+e.end_time.slice(0,5) : ''}
 ${e.capacity ? ` · Capacity: ${e.capacity}` : ''}
 </div>
