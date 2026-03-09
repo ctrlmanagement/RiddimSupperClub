@@ -118,7 +118,8 @@ if (error && !isNoRowsError(error)) {
 }
 if (error || !data) {
 const phoneNotFound = !data && isNoRowsError(error);
-showError('loginError', phoneNotFound ? 'Phone not registered. Contact your manager.' : 'Connection error — please try again.');
+const debugDetail = error ? ` [${error.code||'no-code'}: ${error.message||'no-msg'} / status:${error.status||'?'}]` : ' [no error obj/data null]';
+showError('loginError', phoneNotFound ? 'Phone not registered. Contact your manager.' : `Connection error — please try again.${debugDetail}`);
 btn.disabled = false; btn.textContent = 'Send Code';
 return;
 }
