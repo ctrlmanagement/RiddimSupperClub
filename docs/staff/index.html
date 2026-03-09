@@ -105,15 +105,20 @@ const doStaffLookup = async () => {
     .single();
 };
 let { data, error } = await doStaffLookup();
-// If it looks like a network/connection error, wait 800ms and retry once.
-// This handles iOS PWA BFCache restoration where the first request can fail.
-if (error && error.message && (error.message.toLowerCase().includes('fetch') || error.message.toLowerCase().includes('network') || error.message.toLowerCase().includes('failed'))) {
+// PGRST116 = PostgREST "no rows returned" — the only error that means the phone
+// genuinely isn't in the staff table. Every other error (usage limits, RLS block,
+// network failure, 503/429 from Supabase) must show a connection error, not
+// "Phone not registered", to avoid misleading staff with valid numbers.
+const isNoRowsError = (e) => e && (e.code === 'PGRST116' || (e.message && e.message.toLowerCase().includes('no rows')));
+// Retry once on any error that isn't a clean no-rows result.
+// Covers: iOS BFCache restoration, Supabase cold-start, usage-limit throttling.
+if (error && !isNoRowsError(error)) {
   await new Promise(r => setTimeout(r, 800));
   ({ data, error } = await doStaffLookup());
 }
 if (error || !data) {
-const isNetworkErr = error && error.message && (error.message.toLowerCase().includes('fetch') || error.message.toLowerCase().includes('network') || error.message.toLowerCase().includes('failed'));
-showError('loginError', isNetworkErr ? 'Connection error — please try again.' : 'Phone not registered. Contact your manager.');
+const phoneNotFound = !data && isNoRowsError(error);
+showError('loginError', phoneNotFound ? 'Phone not registered. Contact your manager.' : 'Connection error — please try again.');
 btn.disabled = false; btn.textContent = 'Send Code';
 return;
 }
