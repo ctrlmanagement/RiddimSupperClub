@@ -702,11 +702,11 @@ body::before {
   display: grid;
   grid-template-columns: 1fr 420px;
   gap: var(--space-16);
-  align-items: start;
+  align-items: stretch;
 }
 @media (max-width: 960px) {
   .contact-grid { grid-template-columns: 1fr; }
-  .contact-sidebar { order: -1; }
+  .contact-sidebar { order: 2; }
 }
 @media (max-width: 768px) {
   .contact-body { padding: var(--space-16) var(--space-6); }
@@ -718,9 +718,11 @@ body::before {
   border: 1px solid var(--color-graphite);
   border-radius: var(--radius-md);
   padding: var(--space-12);
+  height: 100%;
+  box-sizing: border-box;
 }
 @media (max-width: 768px) {
-  .contact-form-card { padding: var(--space-8) var(--space-6); }
+  .contact-form-card { padding: var(--space-8) var(--space-6); height: auto; }
 }
 
 .contact-form-title {
@@ -1084,8 +1086,8 @@ body::before {
   <div class="contact-grid">
 
     <!-- FORM COLUMN -->
-    <div>
-      <div class="contact-form-card">
+    <div style="display:flex;flex-direction:column;">
+      <div class="contact-form-card" style="flex:1;">
 
         <!-- Success state -->
         <div class="form-success" id="formSuccess">
