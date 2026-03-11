@@ -2682,7 +2682,7 @@ async function createVIPPass() {
     owner_note: ownerNote,
     high_value_alert: highValueAlert,
     status: 'unused',
-    created_by: session?.user?.email || 'owner',
+    created_by: (await supabaseClient.auth.getSession())?.data?.session?.user?.email || 'owner',
   };
   if (LIVE_DATA && supabaseClient) {
     const { data, error } = await supabaseClient.from('vip_passes').insert(payload).select().single();
