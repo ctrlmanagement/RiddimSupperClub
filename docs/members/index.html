@@ -1379,8 +1379,8 @@ async function loadReservations(phone) {
       .select('*')
       .eq('member_phone', phone)
       .eq('status', 'confirmed')
-      .gte('date', today)
-      .order('date', { ascending: true });
+      .gte('event_date', today)
+      .order('event_date', { ascending: true });
     if (error) throw error;
     loadEl.style.display = 'none';
     if (!data || data.length === 0) { emptyEl.style.display = 'block'; return; }
@@ -1395,7 +1395,7 @@ async function loadReservations(phone) {
           <p class="wpass-eyebrow" style="color:#2A9D74">Table Reservation</p>
           <p class="wpass-name">${escHtml(r.occasion || 'Dinner at RIDDIM')}</p>
           <div class="wpass-meta">
-            <span class="wpass-meta-item">Date <strong>${fmtDate(r.date)}</strong></span>
+            <span class="wpass-meta-item">Date <strong>${fmtDate(r.event_date)}</strong></span>
             ${r.party_size ? `<span class="wpass-meta-item">Party of <strong>${r.party_size}</strong></span>` : ''}
             ${r.table_assignment ? `<span class="wpass-meta-item">Table <strong>${escHtml(r.table_assignment)}</strong></span>` : ''}
           </div>
