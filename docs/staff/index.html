@@ -100,17 +100,28 @@
       <p class="panel-title">Scan ID Barcode</p>
       <p style="font-size:12px;color:var(--ash);margin-bottom:16px;line-height:1.6;">Point the camera at the <strong style="color:var(--mist);">PDF417 barcode on the back</strong> of the driver's license or state ID.</p>
       <!-- idle state -->
-      <div class="idcheck-scanner-idle" id="idCheckScannerIdle" onclick="startIdCheckScanner()">
-        <div class="idcheck-scanner-idle-icon">🪪</div>
-        <div class="idcheck-scanner-idle-label">Tap to Scan Back of ID</div>
-        <div class="idcheck-scanner-idle-sub">PDF417 barcode · All US states</div>
+      <!-- Photo capture - works natively on iOS and Android -->
+      <div class="idcheck-scanner-idle" id="idCheckScannerIdle" onclick="triggerIdPhotoCapture()">
+        <div class="idcheck-scanner-idle-icon">📷</div>
+        <div class="idcheck-scanner-idle-label">Tap to Photograph Back of ID</div>
+        <div class="idcheck-scanner-idle-sub">Opens camera · All US states supported</div>
       </div>
-      <!-- live camera frame -->
-      <div class="idcheck-frame" id="idCheckScannerFrame" style="display:none;">
-        <video id="idCheckVideo" playsinline muted style="width:100%;display:block;border-radius:8px;max-height:260px;object-fit:cover;background:#000;"></video>
+      <!-- Hidden file input — capture="environment" opens rear camera, does NOT save to Camera Roll -->
+      <input type="file" id="idCheckPhotoInput" accept="image/*" capture="environment" style="display:none;" onchange="processIdPhoto(this)" />
+      <!-- Photo preview shown after capture -->
+      <div id="idCheckPhotoPreview" style="display:none;margin-bottom:12px;border-radius:8px;overflow:hidden;border:1px solid var(--graphite);">
+        <img id="idCheckPhotoImg" style="width:100%;max-height:200px;object-fit:contain;background:#000;display:block;" />
       </div>
       <div class="idcheck-status-msg" id="idCheckStatusMsg" style="display:none;"></div>
-      <button id="btnStopIdCheckScan" style="display:none;width:100%;padding:10px;border-radius:6px;background:none;border:1px solid var(--graphite);color:var(--ash);font-family:var(--font-body);font-size:13px;cursor:pointer;margin-bottom:12px;" onclick="stopIdCheckScanner()">✕ Stop Scanner</button>
+      <button id="btnStopIdCheckScan" style="display:none;width:100%;padding:10px;border-radius:6px;background:none;border:1px solid var(--graphite);color:var(--ash);font-family:var(--font-body);font-size:13px;cursor:pointer;margin-bottom:12px;" onclick="resetIdCheck()">↺ Scan Another</button>
+      <!-- Privacy notice -->
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:rgba(74,127,193,0.06);border:1px solid rgba(74,127,193,0.18);border-radius:8px;margin-bottom:16px;">
+        <span style="font-size:16px;flex-shrink:0;margin-top:1px;">🔒</span>
+        <div>
+          <div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--staff-light);margin-bottom:4px;">PRIVACY NOTICE</div>
+          <div style="font-size:11px;color:var(--ash);line-height:1.6;">Photo is read locally on this device only. <strong style="color:var(--mist);">No image is saved, uploaded, or stored.</strong> Only the pass/fail result and age are logged for this session.</div>
+        </div>
+      </div>
       <!-- manual entry divider -->
       <div class="idcheck-manual-divider"><span>or enter manually</span></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
@@ -156,7 +167,8 @@
     </div>
   </div>
 </div>
-</div><div id="staffEvtDayModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:500;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)closeStaffEvtDayModal()"><div style="background:#1A1A1A;border:1px solid rgba(212,168,67,0.3);border-radius:14px;padding:24px;width:100%;max-width:480px;max-height:80vh;overflow-y:auto;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;"><div id="staffEvtDayModalTitle" style="font-family:var(--font-label);font-size:13px;letter-spacing:0.18em;color:var(--gold-warm);"></div><button onclick="closeStaffEvtDayModal()" style="background:none;border:none;color:rgba(245,240,232,0.4);font-size:22px;cursor:pointer;line-height:1;padding:0 4px;">✕</button></div><div id="staffEvtDayModalBody" style="display:flex;flex-direction:column;gap:12px;"></div></div></div><div class="staff-lightbox" id="staffLightbox"><button class="staff-lightbox-close" onclick="closeStaffLightbox()">✕</button><button class="staff-lightbox-prev" onclick="staffLightboxNav(-1)">‹</button><img class="staff-lightbox-img" id="staffLightboxImg" src="" alt=""><button class="staff-lightbox-next" onclick="staffLightboxNav(1)">›</button><div class="staff-lightbox-toolbar"><button class="staff-lightbox-dl-btn instagram" onclick="downloadInstagramCrop()">📸 Instagram (1080×1080)</button><button class="staff-lightbox-dl-btn original" id="staffLightboxOriginalDl" onclick="downloadOriginalPhoto()">↓ Original</button><span class="staff-lightbox-counter-txt" id="staffLightboxCounter"></span></div></div><div class="staff-ig-processing" id="staffIgProcessing"><div style="font-size:32px;">📸</div><div class="staff-ig-processing-text">Preparing Instagram photo...</div></div><canvas id="staffIgCanvas" style="display:none;" width="1080" height="1080"></canvas><div class="mobile-tab-bar"><div class="mobile-tabs"><button class="mobile-tab active" data-tab="checkin"><span class="mobile-tab-icon">⬡</span><span class="mobile-tab-label">Check-In</span></button><button class="mobile-tab" data-tab="reservations"><span class="mobile-tab-icon">◈</span><span class="mobile-tab-label">Reservations</span></button><button class="mobile-tab" data-tab="members"><span class="mobile-tab-icon">◉</span><span class="mobile-tab-label">Members</span></button><button class="mobile-tab" data-tab="guests"><span class="mobile-tab-icon">✦</span><span class="mobile-tab-label">Guests</span></button><button class="mobile-tab" data-tab="schedule"><span class="mobile-tab-icon">⊞</span><span class="mobile-tab-label">Schedule</span></button><button class="mobile-tab" data-tab="referrals"><span class="mobile-tab-icon">★</span><span class="mobile-tab-label">Referrals</span></button><button class="mobile-tab" data-tab="gallery"><span class="mobile-tab-icon">📷</span><span class="mobile-tab-label">Gallery</span></button><button class="mobile-tab" data-tab="events"><span class="mobile-tab-icon">📅</span><span class="mobile-tab-label">Events</span></button><button class="mobile-tab" data-tab="idcheck"><span class="mobile-tab-icon">🪪</span><span class="mobile-tab-label">ID Check</span></button></div></div></div></div><div class="toast" id="toast"></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://unpkg.com/@zxing/browser@0.1.4/umd/index.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script><script>const SUPABASE_URL = 'https://cbvryfgrqzdvbqigyrgh.supabase.co';
+</div><div id="staffEvtDayModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:500;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)closeStaffEvtDayModal()"><div style="background:#1A1A1A;border:1px solid rgba(212,168,67,0.3);border-radius:14px;padding:24px;width:100%;max-width:480px;max-height:80vh;overflow-y:auto;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;"><div id="staffEvtDayModalTitle" style="font-family:var(--font-label);font-size:13px;letter-spacing:0.18em;color:var(--gold-warm);"></div><button onclick="closeStaffEvtDayModal()" style="background:none;border:none;color:rgba(245,240,232,0.4);font-size:22px;cursor:pointer;line-height:1;padding:0 4px;">✕</button></div><div id="staffEvtDayModalBody" style="display:flex;flex-direction:column;gap:12px;"></div></div></div><div class="staff-lightbox" id="staffLightbox"><button class="staff-lightbox-close" onclick="closeStaffLightbox()">✕</button><button class="staff-lightbox-prev" onclick="staffLightboxNav(-1)">‹</button><img class="staff-lightbox-img" id="staffLightboxImg" src="" alt=""><button class="staff-lightbox-next" onclick="staffLightboxNav(1)">›</button><div class="staff-lightbox-toolbar"><button class="staff-lightbox-dl-btn instagram" onclick="downloadInstagramCrop()">📸 Instagram (1080×1080)</button><button class="staff-lightbox-dl-btn original" id="staffLightboxOriginalDl" onclick="downloadOriginalPhoto()">↓ Original</button><span class="staff-lightbox-counter-txt" id="staffLightboxCounter"></span></div></div><div class="staff-ig-processing" id="staffIgProcessing"><div style="font-size:32px;">📸</div><div class="staff-ig-processing-text">Preparing Instagram photo...</div></div><canvas id="staffIgCanvas" style="display:none;" width="1080" height="1080"></canvas><div class="mobile-tab-bar"><div class="mobile-tabs"><button class="mobile-tab active" data-tab="checkin"><span class="mobile-tab-icon">⬡</span><span class="mobile-tab-label">Check-In</span></button><button class="mobile-tab" data-tab="reservations"><span class="mobile-tab-icon">◈</span><span class="mobile-tab-label">Reservations</span></button><button class="mobile-tab" data-tab="members"><span class="mobile-tab-icon">◉</span><span class="mobile-tab-label">Members</span></button><button class="mobile-tab" data-tab="guests"><span class="mobile-tab-icon">✦</span><span class="mobile-tab-label">Guests</span></button><button class="mobile-tab" data-tab="schedule"><span class="mobile-tab-icon">⊞</span><span class="mobile-tab-label">Schedule</span></button><button class="mobile-tab" data-tab="referrals"><span class="mobile-tab-icon">★</span><span class="mobile-tab-label">Referrals</span></button><button class="mobile-tab" data-tab="gallery"><span class="mobile-tab-icon">📷</span><span class="mobile-tab-label">Gallery</span></button><button class="mobile-tab" data-tab="events"><span class="mobile-tab-icon">📅</span><span class="mobile-tab-label">Events</span></button><button class="mobile-tab" data-tab="idcheck"><span class="mobile-tab-icon">🪪</span><span class="mobile-tab-label">ID Check</span></button></div></div></div></div><div class="toast" id="toast"></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://unpkg.com/@zxing/library@0.20.0/umd/index.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script><script>const SUPABASE_URL = 'https://cbvryfgrqzdvbqigyrgh.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_fQlHFhC7tPkZNRl1djnvcA_68LpKQpv';
 const DEV_MODE = true; 
 const LIVE_DATA = true; 
@@ -2306,7 +2318,7 @@ function stopCheckinScanner() {
 }
 
 // ─── ID CHECK MODULE ───────────────────────────────────────────────────────
-let idCheckQrScanner = null; // holds IScannerControls from ZXing
+let idCheckQrScanner = null;
 let idCheckLog = [];
 
 // AAMVA PDF417 barcode parser
@@ -2456,57 +2468,109 @@ function renderIdCheckLog() {
   `).join('');
 }
 
-function startIdCheckScanner() {
-  document.getElementById('idCheckScannerIdle').style.display = 'none';
-  document.getElementById('idCheckScannerFrame').style.display = 'block';
-  document.getElementById('btnStopIdCheckScan').style.display = 'block';
+function triggerIdPhotoCapture() {
+  document.getElementById('idCheckPhotoInput').value = '';
+  document.getElementById('idCheckPhotoInput').click();
+}
+
+function processIdPhoto(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
   const statusEl = document.getElementById('idCheckStatusMsg');
   statusEl.style.display = 'block';
   statusEl.className = 'idcheck-status-msg scanning';
-  statusEl.textContent = '📡 Point camera at barcode on back of ID…';
+  statusEl.textContent = '🔍 Reading barcode from photo…';
 
-  const videoEl = document.getElementById('idCheckVideo');
-  const codeReader = new ZXingBrowser.BrowserMultiFormatReader();
+  // Show preview
+  const objectURL = URL.createObjectURL(file);
+  const imgEl = document.getElementById('idCheckPhotoImg');
+  imgEl.src = objectURL;
+  document.getElementById('idCheckPhotoPreview').style.display = 'block';
+  document.getElementById('idCheckScannerIdle').style.display = 'none';
+  document.getElementById('btnStopIdCheckScan').style.display = 'block';
 
-  codeReader.decodeFromVideoDevice(null, videoEl, (result, err, controls) => {
-    // Store controls on first callback so we can stop later
-    if (!idCheckQrScanner) idCheckQrScanner = controls;
-    if (result) {
-      controls.stop();
-      idCheckQrScanner = null;
-      document.getElementById('idCheckScannerFrame').style.display = 'none';
-      document.getElementById('btnStopIdCheckScan').style.display = 'none';
-      document.getElementById('idCheckScannerIdle').style.display = 'flex';
-      const parsed = parseAamva(result.getText());
-      if (parsed && (parsed.dob || parsed.exp)) {
-        runIdCheckResult(parsed);
-      } else {
-        statusEl.style.display = 'block';
-        statusEl.className = 'idcheck-status-msg error';
-        statusEl.textContent = '⚠ Barcode read but not a US ID. Try manual entry.';
-      }
-    }
-  }).catch(() => {
+  const img = new Image();
+  img.onload = function() {
+    URL.revokeObjectURL(objectURL); // immediately release from memory
+
+    // Draw to canvas
+    const canvas = document.createElement('canvas');
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+
+    // Try Html5Qrcode image decode (it handles PDF417 from still images better)
+    Html5Qrcode.scanFile(file, false)
+      .then(decodedText => {
+        handleIdScanResult(decodedText, statusEl);
+      })
+      .catch(() => {
+        // Fallback: try ZXing on canvas pixel data
+        try {
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const len = imageData.data.length / 4;
+          const luminances = new Uint8ClampedArray(len);
+          for (let i = 0; i < len; i++) {
+            const r = imageData.data[i*4], g = imageData.data[i*4+1], b = imageData.data[i*4+2];
+            luminances[i] = Math.round(0.299*r + 0.587*g + 0.114*b);
+          }
+          const luminanceSource = {
+            getRow(y, row) { const w = canvas.width; if (!row || row.length < w) row = new Uint8ClampedArray(w); for (let i=0;i<w;i++) row[i]=luminances[y*w+i]; return row; },
+            getMatrix() { return luminances; },
+            getWidth() { return canvas.width; },
+            getHeight() { return canvas.height; },
+            isCropSupported() { return false; },
+            isRotateSupported() { return false; },
+            crop() { return this; },
+            rotateCounterClockwise() { return this; },
+            rotateCounterClockwise45() { return this; },
+            invert() { return this; }
+          };
+          const binaryBitmap = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(luminanceSource));
+          const hints = new Map();
+          hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [ZXing.BarcodeFormat.PDF_417, ZXing.BarcodeFormat.CODE_128]);
+          hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+          const reader = new ZXing.MultiFormatReader();
+          reader.setHints(hints);
+          const result = reader.decode(binaryBitmap);
+          handleIdScanResult(result.getText(), statusEl);
+        } catch(e) {
+          statusEl.className = 'idcheck-status-msg error';
+          statusEl.textContent = '⚠ Could not read barcode. Hold the phone steady and try again — ensure the full barcode is in frame.';
+        }
+      });
+  };
+  img.onerror = () => {
     statusEl.className = 'idcheck-status-msg error';
-    statusEl.textContent = '⚠ Camera access denied. Allow camera permission and try again.';
-  });
+    statusEl.textContent = '⚠ Could not load photo. Please try again.';
+  };
+  img.src = objectURL;
 }
 
-function stopIdCheckScanner() {
-  if (idCheckQrScanner) { try { idCheckQrScanner.stop(); } catch(e) {} idCheckQrScanner = null; }
-  document.getElementById('idCheckScannerFrame').style.display = 'none';
-  document.getElementById('btnStopIdCheckScan').style.display = 'none';
-  document.getElementById('idCheckScannerIdle').style.display = 'flex';
+function handleIdScanResult(raw, statusEl) {
+  const parsed = parseAamva(raw);
+  if (parsed && (parsed.dob || parsed.exp)) {
+    statusEl.style.display = 'none';
+    runIdCheckResult(parsed);
+  } else {
+    statusEl.className = 'idcheck-status-msg error';
+    statusEl.textContent = '⚠ Barcode read but not a US ID format. Try manual entry below.';
+  }
 }
+
+function startIdCheckScanner() { triggerIdPhotoCapture(); }
+function stopIdCheckScanner() { resetIdCheck(); }
 
 function resetIdCheck() {
-  stopIdCheckScanner();
   document.getElementById('idCheckResultCard').classList.remove('visible');
   document.getElementById('idCheckStatusMsg').style.display = 'none';
+  document.getElementById('idCheckPhotoPreview').style.display = 'none';
+  document.getElementById('idCheckPhotoImg').src = '';
+  document.getElementById('btnStopIdCheckScan').style.display = 'none';
   document.getElementById('idCheckDob').value = '';
   document.getElementById('idCheckExp').value = '';
   document.getElementById('idCheckScannerIdle').style.display = 'flex';
-  document.getElementById('idCheckScannerFrame').style.display = 'none';
 }
 
 function runManualIdCheck() {
