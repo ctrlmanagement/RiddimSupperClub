@@ -2456,6 +2456,9 @@ function renderIdCheckLog() {
   `).join('');
 }
 
+let idCheckStream = null;
+let idCheckNativeInterval = null;
+
 function startIdCheckScanner() {
   document.getElementById('idCheckScannerIdle').style.display = 'none';
   document.getElementById('idCheckScannerFrame').style.display = 'block';
@@ -2463,45 +2466,89 @@ function startIdCheckScanner() {
   const statusEl = document.getElementById('idCheckStatusMsg');
   statusEl.style.display = 'block';
   statusEl.className = 'idcheck-status-msg scanning';
-  statusEl.textContent = '📡 Scanning for ID barcode…';
+  statusEl.textContent = '📡 Point camera at barcode on back of ID…';
 
-  const videoEl = document.createElement('video');
-  videoEl.style.cssText = 'width:100%;border-radius:10px;display:block;';
+  // Build video element with playsinline for iOS
   const readerEl = document.getElementById('idCheckQrReader');
   readerEl.innerHTML = '';
+  const videoEl = document.createElement('video');
+  videoEl.setAttribute('playsinline', 'true');
+  videoEl.setAttribute('muted', 'true');
+  videoEl.setAttribute('autoplay', 'true');
+  videoEl.style.cssText = 'width:100%;border-radius:10px;display:block;max-height:260px;object-fit:cover;';
   readerEl.appendChild(videoEl);
 
-  const hints = new Map();
-  hints.set(2, [11]); // PDF_417
+  const constraints = {
+    video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
+  };
 
-  const codeReader = new ZXingBrowser.BrowserMultiFormatReader(hints);
-  idCheckQrScanner = codeReader;
+  navigator.mediaDevices.getUserMedia(constraints).then(stream => {
+    idCheckStream = stream;
+    videoEl.srcObject = stream;
+    videoEl.play();
 
-  codeReader.decodeFromVideoDevice(null, videoEl, (result, err) => {
-    if (result) {
-      codeReader.reset();
-      idCheckQrScanner = null;
-      stopIdCheckScanner();
-      const parsed = parseAamva(result.getText());
-      if (parsed && (parsed.dob || parsed.exp)) {
-        runIdCheckResult(parsed);
-      } else {
-        statusEl.style.display = 'block';
+    // Try native BarcodeDetector first (Android Chrome)
+    if ('BarcodeDetector' in window) {
+      const detector = new BarcodeDetector({ formats: ['pdf417', 'code_128', 'qr_code', 'aztec'] });
+      idCheckNativeInterval = setInterval(async () => {
+        if (videoEl.readyState < 2) return;
+        try {
+          const barcodes = await detector.detect(videoEl);
+          if (barcodes.length > 0) {
+            const raw = barcodes[0].rawValue;
+            clearInterval(idCheckNativeInterval);
+            stopIdCheckScanner();
+            const parsed = parseAamva(raw);
+            if (parsed && (parsed.dob || parsed.exp)) {
+              runIdCheckResult(parsed);
+            } else {
+              statusEl.style.display = 'block';
+              statusEl.className = 'idcheck-status-msg error';
+              statusEl.textContent = '⚠ Barcode detected but not a US ID. Try manual entry.';
+            }
+          }
+        } catch(e) {}
+      }, 150);
+    } else {
+      // ZXing fallback (iOS Safari)
+      try {
+        const codeReader = new ZXingBrowser.BrowserMultiFormatReader();
+        idCheckQrScanner = codeReader;
+        codeReader.decodeFromConstraints(
+          { video: { facingMode: { ideal: 'environment' } } },
+          videoEl,
+          (result, err) => {
+            if (result) {
+              const raw = result.getText();
+              codeReader.reset();
+              idCheckQrScanner = null;
+              stopIdCheckScanner();
+              const parsed = parseAamva(raw);
+              if (parsed && (parsed.dob || parsed.exp)) {
+                runIdCheckResult(parsed);
+              } else {
+                statusEl.style.display = 'block';
+                statusEl.className = 'idcheck-status-msg error';
+                statusEl.textContent = '⚠ Barcode detected but not a US ID. Try manual entry.';
+              }
+            }
+          }
+        );
+      } catch(e) {
         statusEl.className = 'idcheck-status-msg error';
-        statusEl.textContent = '⚠ Barcode read but format not recognized. Try manual entry.';
+        statusEl.textContent = '⚠ Scanner unavailable. Use manual entry below.';
       }
     }
-  });
-
-  codeReader.decodeFromVideoDevice(null, videoEl, () => {}).catch(() => {
-    statusEl.style.display = 'block';
+  }).catch(() => {
     statusEl.className = 'idcheck-status-msg error';
-    statusEl.textContent = '⚠ Camera unavailable. Use manual entry below.';
+    statusEl.textContent = '⚠ Camera permission denied. Use manual entry below.';
   });
 }
 
 function stopIdCheckScanner() {
+  if (idCheckNativeInterval) { clearInterval(idCheckNativeInterval); idCheckNativeInterval = null; }
   if (idCheckQrScanner) { try { idCheckQrScanner.reset(); } catch(e) {} idCheckQrScanner = null; }
+  if (idCheckStream) { idCheckStream.getTracks().forEach(t => t.stop()); idCheckStream = null; }
   document.getElementById('idCheckScannerFrame').style.display = 'none';
   document.getElementById('btnStopIdCheckScan').style.display = 'none';
   document.getElementById('idCheckScannerIdle').style.display = 'flex';
