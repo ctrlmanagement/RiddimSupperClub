@@ -1308,12 +1308,16 @@ async function loadWalletPasses() {
   if (walletPassesLoaded) return;
   if (!currentMember) return;
   walletPassesLoaded = true;
-  let phone = currentMember.phone ? currentMember.phone.replace(/\D/g,'') : '';
-  if (phone.length === 11 && phone.startsWith('1')) phone = phone.slice(1);
+  const rawPhone = currentMember.phone || '';
+  // vip_passes stores 10-digit no country code: 4049770302
+  let phone10 = rawPhone.replace(/\D/g,'');
+  if (phone10.length === 11 && phone10.startsWith('1')) phone10 = phone10.slice(1);
+  // reservations stores E.164 with +1: +14049770302
+  const phoneE164 = rawPhone.startsWith('+') ? rawPhone : '+1' + phone10;
   await Promise.all([
-    loadVipPasses(phone),
-    loadReservations(phone),
-    loadTickets(phone)
+    loadVipPasses(phone10),
+    loadReservations(phoneE164),
+    loadTickets(phone10)
   ]);
 }
 
