@@ -49,7 +49,7 @@ return 'BRONZE';
 function tierBadgeHTML(tier) {
 return `<span class="tier-badge tier-${tier}"><span class="tier-dot"></span>${TIERS[tier].label}</span>`;
 }
-const MOCK_STAFF = { name: 'Jordan Mills', phone: '+14045550199', role: 'manager' };
+const MOCK_STAFF = { name: 'Jordan Mills', phone: '+14045550199' };
 const MOCK_MEMBERS = [
 { id:'RDM-0042', first_name:'Marcus', last_name:'Thompson', phone:'+14045550100', total_points:2847, total_visits:31, created_at:'2024-03-15' },
 { id:'RDM-0017', first_name:'Nia', last_name:'Carter', phone:'+14045550101', total_points:5240, total_visits:58, created_at:'2023-11-01' },
@@ -621,7 +621,7 @@ async function initGuestsTab() {
 const role = currentStaff?.role || '';
 const locked = document.getElementById('guestsRoleLocked');
 const content = document.getElementById('guestsTabContent');
-if (role && !GUEST_SCANNER_ROLES.includes(role.toLowerCase())) {
+if (!GUEST_SCANNER_ROLES.includes(role.toLowerCase())) {
 locked.style.display = 'block';
 content.style.display = 'none';
 return;
@@ -744,11 +744,14 @@ return `
 }).join('');
 }
 function startGuestScanner() {
-if (!todayEvent) { showToast('Select an event above first.'); return; }
-document.getElementById('guestScannerIdle').style.display = 'none';
-document.getElementById('guestScannerFrame').style.display = 'block';
-document.getElementById('btnStopGuestScan').style.display = 'block';
-setGuestScanStatus('scanning', '⬡ Scanner active — point at member QR code');
+const idle = document.getElementById('guestScannerIdle');
+const frame = document.getElementById('guestScannerFrame');
+const stopBtn = document.getElementById('btnStopGuestScan');
+idle.style.display = 'none';
+frame.style.display = 'block';
+stopBtn.style.display = 'block';
+setGuestScanStatus('scanning', '⬡ Scanner active — point at QR code');
+if (html5QrScanner) { try { html5QrScanner.stop(); } catch(e) {} }
 html5QrScanner = new Html5Qrcode('guestQrReader');
 guestScannerActive = true;
 html5QrScanner.start(
@@ -758,17 +761,20 @@ html5QrScanner.start(
 if (!guestScannerActive) return;
 guestScannerActive = false;
 html5QrScanner.stop().catch(() => {});
-document.getElementById('guestScannerFrame').style.display = 'none';
-document.getElementById('btnStopGuestScan').style.display = 'none';
+frame.style.display = 'none';
+stopBtn.style.display = 'none';
 processGuestQR(decoded);
 },
-() => {} 
+() => {}
 ).catch(err => {
 console.warn('Scanner start error:', err);
-setGuestScanStatus('error', 'Camera access denied. Check browser permissions.');
-document.getElementById('guestScannerFrame').style.display = 'none';
-document.getElementById('btnStopGuestScan').style.display = 'none';
-document.getElementById('guestScannerIdle').style.display = 'block';
+const msg = (err && err.toString().includes('ermission'))
+? '⊘ Camera permission denied — check browser settings.'
+: '⊘ Could not start camera. Try again.';
+setGuestScanStatus('error', msg);
+frame.style.display = 'none';
+stopBtn.style.display = 'none';
+idle.style.display = 'block';
 });
 }
 function stopGuestScanner() {
