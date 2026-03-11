@@ -668,7 +668,7 @@ body::before {
   position: relative;
 }
 @media (max-width: 768px) {
-  .contact-hero { min-height: 42vh; padding: var(--space-16) var(--space-6) var(--space-12); }
+  .contact-hero { min-height: 30vh; padding: var(--space-16) var(--space-6) var(--space-12); }
 }
 
 .contact-hero-inner { max-width: 900px; }
@@ -2002,7 +2002,7 @@ function closeMobile() {
 /* ── Reveal ──────────────────────────────────────────────────── */
 const revealEls = document.querySelectorAll('.reveal');
 const revealObs = new IntersectionObserver(entries => {
-  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); revealObs.unobserve(e.target); } });
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); revealObs.unobserve(e.target); } });
 }, { threshold: 0.1 });
 revealEls.forEach(el => revealObs.observe(el));
 
