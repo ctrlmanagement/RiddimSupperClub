@@ -457,7 +457,8 @@ document.getElementById('walletFullId').textContent = memberId;
 document.getElementById('walletFullSince').textContent = `Member since ${since}`;
 document.getElementById('walletFullPts').textContent = `${m.total_points.toLocaleString()} pts`;
 setTierBadge('tierPanelBadge', 'tierPanelLabel', tier);
-document.getElementById('tierPanelPts').textContent = tierCfg.next
+const tierPanelPtsEl = document.getElementById('tierPanelPts');
+if (tierPanelPtsEl) tierPanelPtsEl.textContent = tierCfg.next
 ? `${m.total_points} / ${tierCfg.next} pts to ${tierCfg.nextLabel}`
 : 'Maximum tier achieved ✦';
 renderTierProgress(m.total_points, tier);
@@ -482,7 +483,8 @@ document.getElementById('perkList').innerHTML = perks.map(p => `
 function renderTierProgress(pts, tier) {
 const pct = tier === 'OBSIDIAN' ? 100 : Math.min((pts / TIERS[tier].next) * 100, 100);
 setTimeout(() => {
-document.getElementById('tierSegFill').style.width = pct + '%';
+const segFill = document.getElementById('tierSegFill');
+if (segFill) segFill.style.width = pct + '%';
 }, 500);
 const tiers = ['BRONZE', 'SILVER', 'GOLD', 'OBSIDIAN'];
 const idx = tiers.indexOf(tier);
