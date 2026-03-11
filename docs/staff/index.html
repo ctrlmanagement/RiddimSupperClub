@@ -100,26 +100,26 @@
       <p class="panel-title">Scan ID Barcode</p>
       <p style="font-size:12px;color:var(--ash);margin-bottom:16px;line-height:1.6;">Point the camera at the <strong style="color:var(--mist);">PDF417 barcode on the back</strong> of the driver's license or state ID.</p>
       <!-- idle state -->
-      <!-- Photo capture - works natively on iOS and Android -->
+      <!-- Photo capture - uses native iOS/Android camera, no stream management -->
       <div class="idcheck-scanner-idle" id="idCheckScannerIdle" onclick="triggerIdPhotoCapture()">
         <div class="idcheck-scanner-idle-icon">📷</div>
         <div class="idcheck-scanner-idle-label">Tap to Photograph Back of ID</div>
-        <div class="idcheck-scanner-idle-sub">Opens camera · All US states supported</div>
+        <div class="idcheck-scanner-idle-sub">Opens camera · PDF417 · All US states</div>
       </div>
-      <!-- Hidden file input — capture="environment" opens rear camera, does NOT save to Camera Roll -->
+      <!-- capture="environment" = rear camera, photo NOT saved to Camera Roll -->
       <input type="file" id="idCheckPhotoInput" accept="image/*" capture="environment" style="display:none;" onchange="processIdPhoto(this)" />
-      <!-- Photo preview shown after capture -->
-      <div id="idCheckPhotoPreview" style="display:none;margin-bottom:12px;border-radius:8px;overflow:hidden;border:1px solid var(--graphite);">
-        <img id="idCheckPhotoImg" style="width:100%;max-height:200px;object-fit:contain;background:#000;display:block;" />
+      <!-- Photo preview while decoding -->
+      <div id="idCheckPhotoPreview" style="display:none;border-radius:8px;overflow:hidden;border:1px solid var(--graphite);margin-bottom:12px;">
+        <img id="idCheckPhotoImg" style="width:100%;max-height:220px;object-fit:contain;background:#000;display:block;" />
       </div>
       <div class="idcheck-status-msg" id="idCheckStatusMsg" style="display:none;"></div>
-      <button id="btnStopIdCheckScan" style="display:none;width:100%;padding:10px;border-radius:6px;background:none;border:1px solid var(--graphite);color:var(--ash);font-family:var(--font-body);font-size:13px;cursor:pointer;margin-bottom:12px;" onclick="resetIdCheck()">↺ Scan Another</button>
+      <button id="btnIdCheckAgain" style="display:none;width:100%;padding:10px;border-radius:6px;background:none;border:1px solid var(--graphite);color:var(--ash);font-family:var(--font-body);font-size:13px;cursor:pointer;margin-bottom:12px;" onclick="resetIdCheck()">↺ Try Again</button>
       <!-- Privacy notice -->
       <div style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:rgba(74,127,193,0.06);border:1px solid rgba(74,127,193,0.18);border-radius:8px;margin-bottom:16px;">
-        <span style="font-size:16px;flex-shrink:0;margin-top:1px;">🔒</span>
+        <span style="font-size:15px;flex-shrink:0;margin-top:2px;">🔒</span>
         <div>
-          <div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--staff-light);margin-bottom:4px;">PRIVACY NOTICE</div>
-          <div style="font-size:11px;color:var(--ash);line-height:1.6;">Photo is read locally on this device only. <strong style="color:var(--mist);">No image is saved, uploaded, or stored.</strong> Only the pass/fail result and age are logged for this session.</div>
+          <div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--staff-light);margin-bottom:3px;">PRIVACY NOTICE</div>
+          <div style="font-size:11px;color:var(--ash);line-height:1.6;"><strong style="color:var(--mist);">Photo is never saved or uploaded.</strong> Decoded on this device only. Session log records pass/fail and age — no image, no ID number, no personal data retained.</div>
         </div>
       </div>
       <!-- manual entry divider -->
@@ -2469,94 +2469,61 @@ function renderIdCheckLog() {
 }
 
 function triggerIdPhotoCapture() {
-  document.getElementById('idCheckPhotoInput').value = '';
-  document.getElementById('idCheckPhotoInput').click();
+  // Reset input so same photo can be re-selected if needed
+  const inp = document.getElementById('idCheckPhotoInput');
+  inp.value = '';
+  inp.click();
 }
 
 function processIdPhoto(input) {
   if (!input.files || !input.files[0]) return;
   const file = input.files[0];
+
   const statusEl = document.getElementById('idCheckStatusMsg');
   statusEl.style.display = 'block';
   statusEl.className = 'idcheck-status-msg scanning';
-  statusEl.textContent = '🔍 Reading barcode from photo…';
+  statusEl.textContent = '🔍 Reading barcode…';
 
   // Show preview
-  const objectURL = URL.createObjectURL(file);
-  const imgEl = document.getElementById('idCheckPhotoImg');
-  imgEl.src = objectURL;
+  const objURL = URL.createObjectURL(file);
+  document.getElementById('idCheckPhotoImg').src = objURL;
   document.getElementById('idCheckPhotoPreview').style.display = 'block';
   document.getElementById('idCheckScannerIdle').style.display = 'none';
-  document.getElementById('btnStopIdCheckScan').style.display = 'block';
+  document.getElementById('btnIdCheckAgain').style.display = 'block';
 
-  const img = new Image();
-  img.onload = function() {
-    URL.revokeObjectURL(objectURL); // immediately release from memory
-
-    // Draw to canvas
-    const canvas = document.createElement('canvas');
-    canvas.width = img.naturalWidth;
-    canvas.height = img.naturalHeight;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0);
-
-    // Try Html5Qrcode image decode (it handles PDF417 from still images better)
-    Html5Qrcode.scanFile(file, false)
-      .then(decodedText => {
-        handleIdScanResult(decodedText, statusEl);
-      })
-      .catch(() => {
-        // Fallback: try ZXing on canvas pixel data
-        try {
-          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-          const len = imageData.data.length / 4;
-          const luminances = new Uint8ClampedArray(len);
-          for (let i = 0; i < len; i++) {
-            const r = imageData.data[i*4], g = imageData.data[i*4+1], b = imageData.data[i*4+2];
-            luminances[i] = Math.round(0.299*r + 0.587*g + 0.114*b);
+  // Use ZXing BrowserMultiFormatReader.decodeFromImageUrl — designed for still images
+  const reader = new ZXing.BrowserMultiFormatReader();
+  reader.decodeFromImageUrl(objURL)
+    .then(result => {
+      URL.revokeObjectURL(objURL);
+      const parsed = parseAamva(result.getText());
+      if (parsed && (parsed.dob || parsed.exp)) {
+        statusEl.style.display = 'none';
+        runIdCheckResult(parsed);
+      } else {
+        statusEl.className = 'idcheck-status-msg error';
+        statusEl.textContent = '⚠ Barcode read but not a US ID. Try manual entry below.';
+      }
+    })
+    .catch(() => {
+      URL.revokeObjectURL(objURL);
+      // Retry with Html5Qrcode scanFile as fallback
+      Html5Qrcode.scanFile(file, false)
+        .then(decodedText => {
+          const parsed = parseAamva(decodedText);
+          if (parsed && (parsed.dob || parsed.exp)) {
+            statusEl.style.display = 'none';
+            runIdCheckResult(parsed);
+          } else {
+            statusEl.className = 'idcheck-status-msg error';
+            statusEl.textContent = '⚠ Barcode read but not a US ID. Try manual entry below.';
           }
-          const luminanceSource = {
-            getRow(y, row) { const w = canvas.width; if (!row || row.length < w) row = new Uint8ClampedArray(w); for (let i=0;i<w;i++) row[i]=luminances[y*w+i]; return row; },
-            getMatrix() { return luminances; },
-            getWidth() { return canvas.width; },
-            getHeight() { return canvas.height; },
-            isCropSupported() { return false; },
-            isRotateSupported() { return false; },
-            crop() { return this; },
-            rotateCounterClockwise() { return this; },
-            rotateCounterClockwise45() { return this; },
-            invert() { return this; }
-          };
-          const binaryBitmap = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(luminanceSource));
-          const hints = new Map();
-          hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [ZXing.BarcodeFormat.PDF_417, ZXing.BarcodeFormat.CODE_128]);
-          hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
-          const reader = new ZXing.MultiFormatReader();
-          reader.setHints(hints);
-          const result = reader.decode(binaryBitmap);
-          handleIdScanResult(result.getText(), statusEl);
-        } catch(e) {
+        })
+        .catch(() => {
           statusEl.className = 'idcheck-status-msg error';
-          statusEl.textContent = '⚠ Could not read barcode. Hold the phone steady and try again — ensure the full barcode is in frame.';
-        }
-      });
-  };
-  img.onerror = () => {
-    statusEl.className = 'idcheck-status-msg error';
-    statusEl.textContent = '⚠ Could not load photo. Please try again.';
-  };
-  img.src = objectURL;
-}
-
-function handleIdScanResult(raw, statusEl) {
-  const parsed = parseAamva(raw);
-  if (parsed && (parsed.dob || parsed.exp)) {
-    statusEl.style.display = 'none';
-    runIdCheckResult(parsed);
-  } else {
-    statusEl.className = 'idcheck-status-msg error';
-    statusEl.textContent = '⚠ Barcode read but not a US ID format. Try manual entry below.';
-  }
+          statusEl.textContent = '⚠ Could not read barcode. Make sure the full barcode on the back is in frame, in good light, and try again.';
+        });
+    });
 }
 
 function startIdCheckScanner() { triggerIdPhotoCapture(); }
@@ -2567,10 +2534,10 @@ function resetIdCheck() {
   document.getElementById('idCheckStatusMsg').style.display = 'none';
   document.getElementById('idCheckPhotoPreview').style.display = 'none';
   document.getElementById('idCheckPhotoImg').src = '';
-  document.getElementById('btnStopIdCheckScan').style.display = 'none';
+  document.getElementById('btnIdCheckAgain').style.display = 'none';
+  document.getElementById('idCheckScannerIdle').style.display = 'flex';
   document.getElementById('idCheckDob').value = '';
   document.getElementById('idCheckExp').value = '';
-  document.getElementById('idCheckScannerIdle').style.display = 'flex';
 }
 
 function runManualIdCheck() {
