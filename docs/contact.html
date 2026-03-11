@@ -659,7 +659,7 @@ body::before {
 
 /* Hero */
 .contact-hero {
-  min-height: 52vh;
+  min-height: 62vh;
   display: flex; align-items: flex-end;
   padding: var(--space-24) var(--space-12) var(--space-16);
   background:
@@ -932,12 +932,18 @@ body::before {
 
 /* Sidebar */
 .contact-sidebar { display: flex; flex-direction: column; gap: var(--space-6); }
-
 .sidebar-card {
   background: var(--color-carbon);
   border: 1px solid var(--color-graphite);
   border-radius: var(--radius-md);
-  padding: var(--space-8);
+  padding: var(--space-10);
+}
+/* Mobile sidebar order */
+@media (max-width: 960px) {
+  .sidebar-card-expect  { order: 1; }
+  .sidebar-card-findus  { order: 2; }
+  .sidebar-card-hours   { order: 3; }
+  .sidebar-card-follow  { order: 4; }
 }
 .sidebar-card-title {
   font-family: var(--font-label);
@@ -1066,6 +1072,10 @@ body::before {
     <div class="section-eyebrow">Work With Us</div>
     <h1 class="contact-hero-title">Let's make it<br><em>unforgettable.</em></h1>
     <p class="contact-hero-sub">From intimate dinners to full venue productions — we handle every detail so your event is the one people talk about.</p>
+    <div style="margin-top:var(--space-8);padding-top:var(--space-8);border-top:1px solid rgba(212,168,67,0.2);">
+      <h2 style="font-family:var(--font-display);font-size:clamp(22px,2.5vw,32px);font-weight:300;color:var(--color-ivory);margin-bottom:var(--space-2);">Tell us about your event</h2>
+      <p style="font-size:14px;color:rgba(245,240,232,0.55);line-height:1.7;">Select an inquiry type below. Fields adjust based on your needs. <span style="color:var(--color-gold-warm);">We respond within 24 hours.</span></p>
+    </div>
   </div>
 </section>
 
@@ -1086,8 +1096,6 @@ body::before {
 
         <!-- Form -->
         <div id="formInner">
-          <h2 class="contact-form-title">Tell us about your event</h2>
-          <p class="contact-form-sub">Select an inquiry type to get started. Fields adjust based on your needs. <em>We respond within 24 hours.</em></p>
 
           <!-- Inquiry type selector -->
           <div class="inquiry-types" id="inquiryTypes">
@@ -1595,41 +1603,8 @@ body::before {
     <!-- SIDEBAR -->
     <div class="contact-sidebar reveal">
 
-      <!-- Venue Info -->
-      <div class="sidebar-card">
-        <div class="sidebar-card-title">Find Us</div>
-        <div class="venue-address">
-          <span class="venue-address-icon">📍</span>
-          <div>
-            <div class="venue-address-text">2901 B Clairmont Rd<br>Atlanta, GA 30329</div>
-            <a href="https://maps.google.com/?q=2901+B+Clairmont+Rd+Atlanta+GA+30329"
-               target="_blank" rel="noopener" class="venue-address-link">Open in Google Maps ↗</a>
-          </div>
-        </div>
-      </div>
-
-      <!-- Hours -->
-      <div class="sidebar-card">
-        <div class="sidebar-card-title">Hours</div>
-        <div class="hours-grid">
-          <div class="hours-row">
-            <span class="hours-day">Wednesday – Thursday</span>
-            <span class="hours-time">5PM – 1AM</span>
-          </div>
-          <div class="hours-row">
-            <span class="hours-day">Friday – Saturday</span>
-            <span class="hours-time">5PM – 3AM</span>
-          </div>
-          <div class="hours-row">
-            <span class="hours-day">Sunday</span>
-            <span class="hours-time">12PM – 9PM</span>
-          </div>
-        </div>
-        <p class="hours-note">Kitchen closes 1 hour before close</p>
-      </div>
-
       <!-- What to Expect -->
-      <div class="sidebar-card">
+      <div class="sidebar-card sidebar-card-expect">
         <div class="sidebar-card-title">What to Expect</div>
         <div class="expect-list">
           <div class="expect-item">
@@ -1651,8 +1626,41 @@ body::before {
         </div>
       </div>
 
+      <!-- Venue Info -->
+      <div class="sidebar-card sidebar-card-findus">
+        <div class="sidebar-card-title">Find Us</div>
+        <div class="venue-address">
+          <span class="venue-address-icon">📍</span>
+          <div>
+            <div class="venue-address-text">2901 B Clairmont Rd<br>Atlanta, GA 30329</div>
+            <a href="https://maps.google.com/?q=2901+B+Clairmont+Rd+Atlanta+GA+30329"
+               target="_blank" rel="noopener" class="venue-address-link">Open in Google Maps ↗</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hours -->
+      <div class="sidebar-card sidebar-card-hours">
+        <div class="sidebar-card-title">Hours</div>
+        <div class="hours-grid">
+          <div class="hours-row">
+            <span class="hours-day">Wednesday – Thursday</span>
+            <span class="hours-time">5PM – 1AM</span>
+          </div>
+          <div class="hours-row">
+            <span class="hours-day">Friday – Saturday</span>
+            <span class="hours-time">5PM – 3AM</span>
+          </div>
+          <div class="hours-row">
+            <span class="hours-day">Sunday</span>
+            <span class="hours-time">12PM – 9PM</span>
+          </div>
+        </div>
+        <p class="hours-note">Kitchen closes 1 hour before close</p>
+      </div>
+
       <!-- Follow -->
-      <div class="sidebar-card">
+      <div class="sidebar-card sidebar-card-follow">
         <div class="sidebar-card-title">Follow the Night</div>
         <div class="social-links">
           <a href="https://www.instagram.com/atlgoldroom?igsh=MTR2b3k0dWFhbzh2dg%3D%3D" target="_blank" rel="noopener" class="social-link">
