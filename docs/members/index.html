@@ -1306,7 +1306,8 @@ async function loadWalletPasses() {
   if (walletPassesLoaded) return;
   if (!currentMember) return;
   walletPassesLoaded = true;
-  const phone = currentMember.phone ? currentMember.phone.replace(/\D/g,'') : '';
+  let phone = currentMember.phone ? currentMember.phone.replace(/\D/g,'') : '';
+  if (phone.length === 11 && phone.startsWith('1')) phone = phone.slice(1);
   await Promise.all([
     loadVipPasses(phone),
     loadReservations(phone),
