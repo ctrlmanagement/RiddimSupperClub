@@ -2142,7 +2142,8 @@ function startCheckinScanner() {
         idle.style.display = 'block';
         status.className = 'guest-scan-status';
         status.textContent = '';
-        // Route the decoded QR to member check-in lookup
+        // Route: VIP pass → gold alert overlay; member QR → check-in lookup
+        if (/^VIP:/i.test(decoded)) { processVIPPass(decoded.slice(4)); return; }
         document.getElementById('memberSearch').value = decoded;
         lookupMember();
       },

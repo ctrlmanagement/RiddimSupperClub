@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>RIDDIM — VIP Pass</title>
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --obsidian:#0A0A0A;
+  --void:#111111;
+  --carbon:#1A1A1A;
+  --graphite:#2A2A2A;
+  --ash:#888888;
+  --mist:#CCCCCC;
+  --ivory:#F5F0E8;
+  --gold-deep:#B8860B;
+  --gold-warm:#D4A843;
+  --gold-bright:#F0C060;
+  --ember:#C0392B;
+  --font-display:'Cormorant Garamond',serif;
+  --font-label:'Bebas Neue',sans-serif;
+  --font-body:'DM Sans',sans-serif;
+}
+html,body{
+  background:var(--obsidian);
+  color:var(--ivory);
+  font-family:var(--font-body);
+  font-weight:300;
+  min-height:100vh;
+  min-height:100dvh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:24px 16px env(safe-area-inset-bottom,24px);
+}
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  opacity:0.45;
+}
+.wrap{
+  position:relative;
+  z-index:1;
+  width:100%;
+  max-width:420px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:0;
+}
+
+/* Loading state */
+.loading{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:16px;
+  padding:48px 0;
+}
+.spinner{
+  width:28px;height:28px;
+  border-radius:50%;
+  border:2px solid rgba(212,168,67,0.2);
+  border-top-color:var(--gold-warm);
+  animation:spin 0.9s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-text{font-family:var(--font-label);font-size:11px;letter-spacing:0.3em;color:var(--ash);}
+
+/* Error state */
+.error-card{
+  text-align:center;
+  padding:40px 24px;
+  background:var(--carbon);
+  border:1px solid rgba(192,57,43,0.3);
+  border-radius:12px;
+  width:100%;
+}
+.error-icon{font-size:32px;margin-bottom:12px;opacity:0.5;}
+.error-title{font-family:var(--font-display);font-size:22px;font-weight:300;color:var(--ivory);margin-bottom:6px;}
+.error-msg{font-size:13px;color:var(--ash);line-height:1.6;}
+
+/* Pass card */
+.pass-card{
+  width:100%;
+  background:linear-gradient(160deg,#1a1200 0%,#0d0d0d 60%,#0a0800 100%);
+  border:1px solid rgba(212,168,67,0.5);
+  border-radius:16px;
+  overflow:hidden;
+  box-shadow:0 0 60px rgba(212,168,67,0.12),0 0 0 1px rgba(212,168,67,0.1);
+  animation:cardIn 0.4s cubic-bezier(0.16,1,0.3,1) forwards;
+}
+@keyframes cardIn{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+
+.pass-top{
+  background:linear-gradient(135deg,rgba(212,168,67,0.18),rgba(184,134,11,0.25));
+  border-bottom:1px solid rgba(212,168,67,0.3);
+  padding:20px 24px 16px;
+  text-align:center;
+}
+.pass-wordmark{
+  font-family:var(--font-label);
+  font-size:18px;
+  letter-spacing:0.35em;
+  color:var(--gold-warm);
+  display:block;
+  margin-bottom:14px;
+}
+.pass-banner{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  background:linear-gradient(90deg,var(--gold-deep),var(--gold-warm),var(--gold-deep));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  font-family:var(--font-label);
+  font-size:11px;
+  letter-spacing:0.45em;
+  margin-bottom:10px;
+}
+.pass-diamond{font-size:9px;-webkit-text-fill-color:var(--gold-warm);}
+.pass-guest-name{
+  font-family:var(--font-display);
+  font-size:clamp(24px,7vw,36px);
+  font-weight:300;
+  font-style:italic;
+  color:var(--ivory);
+  line-height:1.1;
+  margin-bottom:8px;
+}
+.pass-type-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:4px 16px;
+  border-radius:999px;
+  border:1px solid rgba(212,168,67,0.45);
+  background:rgba(212,168,67,0.08);
+  font-family:var(--font-label);
+  font-size:10px;
+  letter-spacing:0.25em;
+  color:var(--gold-warm);
+}
+
+.pass-body{
+  padding:20px 24px 24px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:16px;
+}
+
+/* QR */
+.qr-outer{
+  position:relative;
+  width:220px;
+  height:220px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.qr-glow{
+  position:absolute;
+  inset:-20px;
+  background:radial-gradient(ellipse at center,rgba(212,168,67,0.12) 0%,transparent 65%);
+  pointer-events:none;
+}
+.qr-inner{
+  width:200px;
+  height:200px;
+  background:#fff;
+  border-radius:10px;
+  padding:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  z-index:1;
+}
+.qr-inner canvas,.qr-inner img{display:block;}
+.qr-border{
+  position:absolute;
+  inset:-3px;
+  border:1px solid rgba(212,168,67,0.4);
+  border-radius:13px;
+  z-index:2;
+  pointer-events:none;
+}
+.qr-tick{position:absolute;width:12px;height:12px;z-index:3;}
+.qr-tick.tl{top:-6px;left:-6px;border-top:2px solid var(--gold-warm);border-left:2px solid var(--gold-warm);}
+.qr-tick.tr{top:-6px;right:-6px;border-top:2px solid var(--gold-warm);border-right:2px solid var(--gold-warm);}
+.qr-tick.bl{bottom:-6px;left:-6px;border-bottom:2px solid var(--gold-warm);border-left:2px solid var(--gold-warm);}
+.qr-tick.br{bottom:-6px;right:-6px;border-bottom:2px solid var(--gold-warm);border-right:2px solid var(--gold-warm);}
+
+.qr-instruction{
+  font-family:var(--font-label);
+  font-size:10px;
+  letter-spacing:0.28em;
+  color:var(--ash);
+  text-align:center;
+}
+
+/* Detail grid */
+.pass-details{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  width:100%;
+}
+.pass-detail{
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(212,168,67,0.12);
+  border-radius:8px;
+  padding:10px 12px;
+}
+.pass-detail.full{grid-column:1/-1;}
+.pass-detail-label{
+  font-family:var(--font-label);
+  font-size:9px;
+  letter-spacing:0.3em;
+  color:var(--ash);
+  margin-bottom:3px;
+}
+.pass-detail-val{
+  font-size:14px;
+  color:var(--ivory);
+}
+.pass-detail-val.gold{color:var(--gold-warm);font-size:16px;}
+
+/* Note */
+.pass-note{
+  width:100%;
+  background:rgba(212,168,67,0.06);
+  border:1px solid rgba(212,168,67,0.2);
+  border-radius:8px;
+  padding:12px 14px;
+}
+.pass-note-label{
+  font-family:var(--font-label);
+  font-size:9px;
+  letter-spacing:0.3em;
+  color:var(--gold-warm);
+  margin-bottom:4px;
+}
+.pass-note-text{
+  font-size:13px;
+  color:var(--mist);
+  font-style:italic;
+  line-height:1.5;
+}
+
+/* Status banners */
+.pass-used{
+  width:100%;
+  text-align:center;
+  padding:14px;
+  background:rgba(192,57,43,0.08);
+  border:1px solid rgba(192,57,43,0.3);
+  border-radius:8px;
+  color:#E57373;
+  font-family:var(--font-label);
+  font-size:11px;
+  letter-spacing:0.2em;
+}
+.pass-active{
+  width:100%;
+  text-align:center;
+  padding:14px;
+  background:rgba(76,175,80,0.06);
+  border:1px solid rgba(76,175,80,0.25);
+  border-radius:8px;
+  color:#81C784;
+  font-family:var(--font-label);
+  font-size:11px;
+  letter-spacing:0.18em;
+}
+
+.pass-footer{
+  margin-top:4px;
+  font-size:11px;
+  color:rgba(212,168,67,0.35);
+  text-align:center;
+  letter-spacing:0.05em;
+}
+</style>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <div class="loading" id="loadingState">
+    <div class="spinner"></div>
+    <div class="loading-text">Loading your pass…</div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://cbvryfgrqzdvbqigyrgh.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_fQlHFhC7tPkZNRl1djnvcA_68LpKQpv';
+
+const params = new URLSearchParams(window.location.search);
+const token = params.get('token');
+
+function formatDate(d) {
+  if (!d) return '—';
+  const dt = new Date(d + 'T12:00:00');
+  return dt.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+}
+
+function showError(msg) {
+  document.getElementById('wrap').innerHTML = `
+    <div class="error-card">
+      <div class="error-icon">◆</div>
+      <div class="error-title">Pass Not Found</div>
+      <div class="error-msg">${msg}</div>
+    </div>`;
+}
+
+function renderPass(pass) {
+  const typeLabels = { comp_table:'COMP TABLE', entry:'ENTRY PASS', comp_tab:'COMP TAB' };
+  const typeLabel = typeLabels[pass.pass_type] || pass.pass_type.toUpperCase();
+
+  // Status checks
+  const isVoided = pass.status === 'voided';
+  const isClosed = pass.status === 'closed';
+  const isUsed = ['used','acknowledged'].includes(pass.status);
+  const isActive = pass.status === 'active';
+
+  // Details
+  let detailsHtml = `
+    <div class="pass-detail">
+      <div class="pass-detail-label">PARTY SIZE</div>
+      <div class="pass-detail-val">${pass.party_size || 1} guest${(pass.party_size||1)>1?'s':''}</div>
+    </div>
+    <div class="pass-detail">
+      <div class="pass-detail-label">VALID DATE</div>
+      <div class="pass-detail-val">${formatDate(pass.valid_date)}</div>
+    </div>`;
+
+  if (pass.pass_type === 'comp_table' && pass.table_assignment) {
+    detailsHtml += `
+      <div class="pass-detail full">
+        <div class="pass-detail-label">TABLE ASSIGNMENT</div>
+        <div class="pass-detail-val gold">${pass.table_assignment}</div>
+      </div>`;
+  }
+  if (pass.pass_type === 'comp_tab') {
+    detailsHtml += `
+      <div class="pass-detail full">
+        <div class="pass-detail-label">TAB LIMIT</div>
+        <div class="pass-detail-val gold">${pass.tab_limit ? '$' + Number(pass.tab_limit).toFixed(0) : 'No limit set'}</div>
+      </div>`;
+  }
+
+  // Note
+  const noteHtml = pass.owner_note ? `
+    <div class="pass-note">
+      <div class="pass-note-label">NOTE FROM RIDDIM</div>
+      <div class="pass-note-text">${pass.owner_note}</div>
+    </div>` : '';
+
+  // Status message
+  let statusHtml = '';
+  if (isVoided) {
+    statusHtml = '<div class="pass-used">⊘ THIS PASS HAS BEEN VOIDED</div>';
+  } else if (isClosed) {
+    statusHtml = '<div class="pass-used">✓ TAB HAS BEEN CLOSED</div>';
+  } else if (isUsed) {
+    statusHtml = '<div class="pass-used">✓ PASS HAS BEEN USED</div>';
+  } else if (isActive) {
+    statusHtml = '<div class="pass-active">● TAB IS OPEN</div>';
+  }
+
+  // QR — only show for usable passes
+  const showQR = !isVoided && !isClosed && !isUsed;
+
+  document.getElementById('wrap').innerHTML = `
+    <div class="pass-card">
+      <div class="pass-top">
+        <span class="pass-wordmark">RIDDIM</span>
+        <div class="pass-banner">
+          <span class="pass-diamond">◆</span>
+          VIP GUEST PASS
+          <span class="pass-diamond">◆</span>
+        </div>
+        <div class="pass-guest-name">${pass.guest_name || '—'}</div>
+        <div class="pass-type-badge">${typeLabel}</div>
+      </div>
+      <div class="pass-body">
+        ${showQR ? `
+        <div class="qr-outer">
+          <div class="qr-glow"></div>
+          <div class="qr-inner" id="qrTarget"></div>
+          <div class="qr-border"></div>
+          <div class="qr-tick tl"></div>
+          <div class="qr-tick tr"></div>
+          <div class="qr-tick bl"></div>
+          <div class="qr-tick br"></div>
+        </div>
+        <div class="qr-instruction">SHOW THIS QR CODE AT THE DOOR</div>
+        ` : ''}
+        ${statusHtml}
+        <div class="pass-details">${detailsHtml}</div>
+        ${noteHtml}
+      </div>
+    </div>
+    <div class="pass-footer">RIDDIM Supper Club · Atlanta</div>`;
+
+  if (showQR) {
+    try {
+      new QRCode(document.getElementById('qrTarget'), {
+        text: 'VIP:' + pass.qr_token,
+        width: 180,
+        height: 180,
+        colorDark: '#000000',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    } catch(e) {
+      document.getElementById('qrTarget').innerHTML = '<span style="font-size:11px;color:#888;padding:20px;text-align:center;">QR unavailable</span>';
+    }
+  }
+}
+
+async function loadPass() {
+  if (!token) {
+    showError('No pass token found. Please check the link you received and try again.');
+    return;
+  }
+
+  let pass = null;
+  try {
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const { data, error } = await sb
+      .from('vip_passes')
+      .select('*')
+      .eq('qr_token', token)
+      .maybeSingle();
+    if (!error) pass = data;
+  } catch(e) {}
+
+  if (!pass) {
+    showError('This pass could not be found. It may have been voided, or the link may be incorrect.<br><br>Please contact RIDDIM Supper Club if you believe this is an error.');
+    return;
+  }
+
+  renderPass(pass);
+}
+
+loadPass();
+</script>
+</body>
+</html>

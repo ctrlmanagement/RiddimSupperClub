@@ -2709,7 +2709,7 @@ function showVIPQRResult(pass) {
     new QRCode(wrap, { text: 'VIP:' + pass.qr_token, width: 164, height: 164, colorDark: '#000000', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
   } catch(e) { wrap.innerHTML = '<span style="font-size:11px;color:#888;">QR unavailable</span>'; }
   document.getElementById('btnVIPSms').onclick = () => sendVIPSms(pass);
-  const passUrl = 'https://portal.ctrlmanagement.com/vip?token=' + pass.qr_token;
+  const passUrl = 'https://portal.ctrlmanagement.com/vip.html?token=' + pass.qr_token;
   document.getElementById('btnVIPCopyLink').onclick = () => {
     navigator.clipboard?.writeText(passUrl).then(() => showToast('Link copied!', 'gold')).catch(() => showToast('Copy failed.'));
   };
@@ -2720,7 +2720,7 @@ function sendVIPSms(pass) {
   if (!pass.guest_phone) { showToast('No phone number on this pass.'); return; }
   const typeLabels = { comp_table:'complimentary table', entry:'VIP entry pass', comp_tab:'complimentary tab' };
   const extra = pass.table_assignment ? ' — Table ' + pass.table_assignment : pass.tab_limit ? ' — Tab limit $' + pass.tab_limit : '';
-  const msg = encodeURIComponent(pass.guest_name + ', your ' + (typeLabels[pass.pass_type] || 'VIP pass') + ' at RIDDIM Supper Club is ready for ' + vipFormatDate(pass.valid_date) + extra + '. Show this QR at the door: https://portal.ctrlmanagement.com/vip?token=' + pass.qr_token);
+  const msg = encodeURIComponent(pass.guest_name + ', your ' + (typeLabels[pass.pass_type] || 'VIP pass') + ' at RIDDIM Supper Club is ready for ' + vipFormatDate(pass.valid_date) + extra + '. Show this QR at the door: https://portal.ctrlmanagement.com/vip.html?token=' + pass.qr_token);
   window.open('sms:' + pass.guest_phone + '?body=' + msg, '_blank');
 }
 
