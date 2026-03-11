@@ -469,6 +469,7 @@ loadEvents();
 }
 function setTierBadge(badgeId, labelId, tier) {
 const el = document.getElementById(badgeId);
+if (!el) return;
 el.className = `tier-badge tier-${tier}`;
 el.innerHTML = `<span class="tier-dot"></span><span id="${labelId}">${TIERS[tier].label}</span>`;
 }
