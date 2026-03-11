@@ -1,4 +1,4 @@
-x<!DOCTYPE html><html lang="en"><head>
+<!DOCTYPE html><html lang="en"><head>
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="robots" content="noindex, nofollow">
@@ -795,6 +795,7 @@ memberId = url.searchParams.get('id') || null;
 if (/^RDM-/i.test(decoded)) memberId = decoded.toUpperCase();
 }
 if (!memberId) {
+if (/^VIP:/i.test(decoded)) { await processVIPPass(decoded.slice(4)); return; }
 setGuestScanStatus('error', '✕ Unrecognised QR code. Ask member to show their card.');
 return;
 }
@@ -1852,6 +1853,214 @@ ${chip}
 }
 grid.innerHTML = cells;
 }
+/* ─── F06 VIP PASS CSS ─────────────────────────────────────── */
+const vipStyle = document.createElement('style');
+vipStyle.textContent = `
+.vip-overlay{display:none;position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,0.92);align-items:center;justify-content:center;padding:20px;}
+.vip-overlay.active{display:flex;}
+.vip-card{position:relative;width:100%;max-width:480px;background:linear-gradient(160deg,#1a1200 0%,#0d0d0d 60%,#0a0800 100%);border:1px solid rgba(212,168,67,0.5);border-radius:16px;overflow:hidden;box-shadow:0 0 60px rgba(212,168,67,0.15),0 0 0 1px rgba(212,168,67,0.15);animation:vipIn 0.35s cubic-bezier(0.16,1,0.3,1) forwards;}
+@keyframes vipIn{from{opacity:0;transform:scale(0.92) translateY(20px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.vip-card-top{background:linear-gradient(135deg,rgba(212,168,67,0.18),rgba(184,134,11,0.25));border-bottom:1px solid rgba(212,168,67,0.3);padding:20px 24px 16px;text-align:center;}
+.vip-alert-banner{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(90deg,var(--gold-deep),var(--gold-warm),var(--gold-deep));-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-family:var(--font-label);font-size:13px;letter-spacing:0.4em;margin-bottom:12px;}
+.vip-alert-diamond{font-size:10px;-webkit-text-fill-color:var(--gold-warm);}
+.vip-guest-name{font-family:var(--font-display);font-size:clamp(26px,5vw,38px);font-weight:300;font-style:italic;color:var(--ivory);line-height:1.1;margin-bottom:6px;}
+.vip-pass-type-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 16px;border-radius:999px;border:1px solid rgba(212,168,67,0.45);background:rgba(212,168,67,0.08);font-family:var(--font-label);font-size:10px;letter-spacing:0.25em;color:var(--gold-warm);}
+.vip-card-body{padding:20px 24px;}
+.vip-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.vip-detail{background:rgba(255,255,255,0.03);border:1px solid rgba(212,168,67,0.12);border-radius:8px;padding:10px 14px;}
+.vip-detail-label{font-family:var(--font-label);font-size:9px;letter-spacing:0.3em;color:var(--ash);margin-bottom:3px;}
+.vip-detail-val{font-size:14px;color:var(--ivory);}
+.vip-detail.full-width{grid-column:1/-1;}
+.vip-note{background:rgba(212,168,67,0.06);border:1px solid rgba(212,168,67,0.2);border-radius:8px;padding:12px 14px;margin-bottom:16px;}
+.vip-note-label{font-family:var(--font-label);font-size:9px;letter-spacing:0.3em;color:var(--gold-warm);margin-bottom:4px;}
+.vip-note-text{font-size:13px;color:var(--mist);font-style:italic;line-height:1.5;}
+.vip-actions{display:flex;flex-direction:column;gap:10px;}
+.btn-vip-primary{padding:14px;border-radius:8px;background:linear-gradient(135deg,var(--gold-deep),var(--gold-warm));border:none;color:#000;font-family:var(--font-label);font-size:13px;letter-spacing:0.2em;cursor:pointer;transition:opacity 150ms;font-weight:bold;}
+.btn-vip-primary:hover{opacity:0.85;}
+.btn-vip-secondary{padding:13px;border-radius:8px;background:rgba(212,168,67,0.1);border:1px solid rgba(212,168,67,0.35);color:var(--gold-warm);font-family:var(--font-label);font-size:12px;letter-spacing:0.18em;cursor:pointer;transition:all 150ms;}
+.btn-vip-secondary:hover{background:rgba(212,168,67,0.18);}
+.btn-vip-close-tab{padding:13px;border-radius:8px;background:rgba(192,57,43,0.1);border:1px solid rgba(192,57,43,0.35);color:#E57373;font-family:var(--font-label);font-size:12px;letter-spacing:0.18em;cursor:pointer;transition:all 150ms;}
+.btn-vip-close-tab:hover{background:rgba(192,57,43,0.2);}
+.vip-dismiss{position:absolute;top:14px;right:16px;background:none;border:none;color:rgba(212,168,67,0.4);font-size:22px;cursor:pointer;line-height:1;padding:4px;}
+.vip-dismiss:hover{color:var(--gold-warm);}
+.vip-status-used{text-align:center;padding:16px;background:rgba(192,57,43,0.08);border:1px solid rgba(192,57,43,0.3);border-radius:8px;color:#E57373;font-family:var(--font-label);font-size:11px;letter-spacing:0.2em;}
+`;
+document.head.appendChild(vipStyle);
+
+/* ─── F06 VIP PASS HTML ─────────────────────────────────────── */
+const vipOverlayEl = document.createElement('div');
+vipOverlayEl.className = 'vip-overlay';
+vipOverlayEl.id = 'vipOverlay';
+vipOverlayEl.innerHTML = `
+<div class="vip-card" id="vipCard">
+  <button class="vip-dismiss" onclick="dismissVIPOverlay()">✕</button>
+  <div class="vip-card-top">
+    <div class="vip-alert-banner"><span class="vip-alert-diamond">◆</span> HIGH VALUE GUEST <span class="vip-alert-diamond">◆</span></div>
+    <div class="vip-guest-name" id="vipGuestName">—</div>
+    <div class="vip-pass-type-badge" id="vipPassTypeBadge">ENTRY PASS</div>
+  </div>
+  <div class="vip-card-body">
+    <div class="vip-detail-grid" id="vipDetailGrid"></div>
+    <div class="vip-note" id="vipNoteWrap" style="display:none">
+      <div class="vip-note-label">OWNER NOTE</div>
+      <div class="vip-note-text" id="vipNoteText"></div>
+    </div>
+    <div class="vip-actions" id="vipActions"></div>
+  </div>
+</div>`;
+document.body.appendChild(vipOverlayEl);
+
+/* ─── F06 VIP PASS JS ─────────────────────────────────────── */
+let currentVIPPass = null;
+
+async function processVIPPass(token) {
+  setGuestScanStatus('scanning', '◆ Looking up VIP pass…');
+  let pass = null;
+  if (LIVE_DATA && supabaseClient) {
+    try {
+      const { data } = await supabaseClient
+        .from('vip_passes')
+        .select('*')
+        .eq('qr_token', token)
+        .maybeSingle();
+      pass = data;
+    } catch(e) { pass = null; }
+  }
+  if (!pass) {
+    setGuestScanStatus('error', '✕ VIP pass not found. May be voided or invalid.');
+    return;
+  }
+  currentVIPPass = pass;
+  // Validate date
+  const today = new Date().toISOString().slice(0,10);
+  if (pass.valid_date !== today) {
+    setGuestScanStatus('error', `✕ Pass is not valid today. Valid date: ${formatPassDate(pass.valid_date)}.`);
+    return;
+  }
+  setGuestScanStatus('', '');
+  showVIPOverlay(pass);
+}
+
+function formatPassDate(d) {
+  if (!d) return '—';
+  const dt = new Date(d + 'T12:00:00');
+  return dt.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
+}
+
+function showVIPOverlay(pass) {
+  const typeLabels = { comp_table:'COMP TABLE', entry:'ENTRY PASS', comp_tab:'COMP TAB' };
+  document.getElementById('vipGuestName').textContent = pass.guest_name || '—';
+  document.getElementById('vipPassTypeBadge').textContent = typeLabels[pass.pass_type] || pass.pass_type.toUpperCase();
+
+  // Build detail grid
+  const grid = document.getElementById('vipDetailGrid');
+  let details = `
+    <div class="vip-detail"><div class="vip-detail-label">PARTY SIZE</div><div class="vip-detail-val">${pass.party_size || 1} guest${(pass.party_size||1)>1?'s':''}</div></div>
+    <div class="vip-detail"><div class="vip-detail-label">VALID DATE</div><div class="vip-detail-val">${formatPassDate(pass.valid_date)}</div></div>`;
+  if (pass.pass_type === 'comp_table' && pass.table_assignment) {
+    details += `<div class="vip-detail full-width"><div class="vip-detail-label">TABLE ASSIGNMENT</div><div class="vip-detail-val" style="font-size:18px;color:var(--gold-warm);">${pass.table_assignment}</div></div>`;
+  }
+  if (pass.pass_type === 'comp_tab') {
+    details += `<div class="vip-detail full-width"><div class="vip-detail-label">TAB LIMIT</div><div class="vip-detail-val" style="color:var(--gold-warm);">${pass.tab_limit ? '$' + Number(pass.tab_limit).toFixed(0) : 'No limit'}</div></div>`;
+  }
+  grid.innerHTML = details;
+
+  // Note
+  const noteWrap = document.getElementById('vipNoteWrap');
+  const noteText = document.getElementById('vipNoteText');
+  if (pass.owner_note) {
+    noteText.textContent = pass.owner_note;
+    noteWrap.style.display = 'block';
+  } else {
+    noteWrap.style.display = 'none';
+  }
+
+  // Actions
+  const actionsEl = document.getElementById('vipActions');
+  if (pass.status === 'voided') {
+    actionsEl.innerHTML = '<div class="vip-status-used">⊘ THIS PASS HAS BEEN VOIDED</div>';
+  } else if (pass.status === 'closed') {
+    actionsEl.innerHTML = '<div class="vip-status-used">✓ TAB ALREADY CLOSED</div>';
+  } else if (pass.status === 'active' && pass.pass_type === 'comp_tab') {
+    actionsEl.innerHTML = `
+      <button class="btn-vip-primary" onclick="acknowledgeVIPPass()">✦ Acknowledge Guest</button>
+      <button class="btn-vip-close-tab" onclick="closeVIPTab()">Close Tab</button>`;
+  } else if (pass.status === 'unused' && pass.pass_type === 'comp_tab') {
+    actionsEl.innerHTML = `
+      <button class="btn-vip-primary" onclick="openVIPTab()">◆ Open Tab</button>`;
+  } else if (pass.status === 'unused') {
+    actionsEl.innerHTML = `
+      <button class="btn-vip-primary" onclick="acknowledgeVIPPass()">✦ Acknowledge & Check In</button>`;
+  } else {
+    actionsEl.innerHTML = `<div class="vip-status-used">✓ ALREADY PROCESSED — Pass ${pass.status.toUpperCase()}</div>`;
+  }
+
+  document.getElementById('vipOverlay').classList.add('active');
+}
+
+async function acknowledgeVIPPass() {
+  if (!currentVIPPass) return;
+  const btn = document.querySelector('#vipActions .btn-vip-primary');
+  if (btn) { btn.disabled = true; btn.textContent = 'Processing…'; }
+  if (!currentStaff?.supabaseId && LIVE_DATA && supabaseClient) {
+    const { data } = await supabaseClient.from('staff').select('id').eq('phone', currentStaff.phone).single();
+    if (data) currentStaff.supabaseId = data.id;
+  }
+  if (LIVE_DATA && supabaseClient) {
+    await supabaseClient.from('vip_passes').update({
+      status: 'active',
+      activated_at: new Date().toISOString(),
+      activated_by: currentStaff?.supabaseId || null,
+    }).eq('id', currentVIPPass.id);
+  }
+  dismissVIPOverlay();
+  showToast('◆ VIP guest acknowledged', 'gold');
+}
+
+async function openVIPTab() {
+  if (!currentVIPPass) return;
+  const btn = document.querySelector('#vipActions .btn-vip-primary');
+  if (btn) { btn.disabled = true; btn.textContent = 'Opening…'; }
+  if (!currentStaff?.supabaseId && LIVE_DATA && supabaseClient) {
+    const { data } = await supabaseClient.from('staff').select('id').eq('phone', currentStaff.phone).single();
+    if (data) currentStaff.supabaseId = data.id;
+  }
+  if (LIVE_DATA && supabaseClient) {
+    await supabaseClient.from('vip_passes').update({
+      status: 'active',
+      activated_at: new Date().toISOString(),
+      activated_by: currentStaff?.supabaseId || null,
+    }).eq('id', currentVIPPass.id);
+  }
+  dismissVIPOverlay();
+  showToast('◆ Comp tab opened', 'gold');
+}
+
+async function closeVIPTab() {
+  if (!currentVIPPass) return;
+  const btn = document.querySelector('#vipActions .btn-vip-close-tab');
+  if (btn) { btn.disabled = true; btn.textContent = 'Closing…'; }
+  if (!currentStaff?.supabaseId && LIVE_DATA && supabaseClient) {
+    const { data } = await supabaseClient.from('staff').select('id').eq('phone', currentStaff.phone).single();
+    if (data) currentStaff.supabaseId = data.id;
+  }
+  if (LIVE_DATA && supabaseClient) {
+    await supabaseClient.from('vip_passes').update({
+      status: 'closed',
+      closed_at: new Date().toISOString(),
+      closed_by: currentStaff?.supabaseId || null,
+    }).eq('id', currentVIPPass.id);
+  }
+  dismissVIPOverlay();
+  showToast('✓ Comp tab closed', 'success');
+}
+
+function dismissVIPOverlay() {
+  document.getElementById('vipOverlay').classList.remove('active');
+  currentVIPPass = null;
+}
+
+/* ─── END F06 VIP PASS ─── */
 function staffEvtRenderFeatured() {
 const el = document.getElementById('staffEvtFeaturedList');
 if (!el) return;
