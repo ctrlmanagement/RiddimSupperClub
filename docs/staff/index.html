@@ -156,7 +156,7 @@
     </div>
   </div>
 </div>
-</div><div id="staffEvtDayModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:500;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)closeStaffEvtDayModal()"><div style="background:#1A1A1A;border:1px solid rgba(212,168,67,0.3);border-radius:14px;padding:24px;width:100%;max-width:480px;max-height:80vh;overflow-y:auto;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;"><div id="staffEvtDayModalTitle" style="font-family:var(--font-label);font-size:13px;letter-spacing:0.18em;color:var(--gold-warm);"></div><button onclick="closeStaffEvtDayModal()" style="background:none;border:none;color:rgba(245,240,232,0.4);font-size:22px;cursor:pointer;line-height:1;padding:0 4px;">✕</button></div><div id="staffEvtDayModalBody" style="display:flex;flex-direction:column;gap:12px;"></div></div></div><div class="staff-lightbox" id="staffLightbox"><button class="staff-lightbox-close" onclick="closeStaffLightbox()">✕</button><button class="staff-lightbox-prev" onclick="staffLightboxNav(-1)">‹</button><img class="staff-lightbox-img" id="staffLightboxImg" src="" alt=""><button class="staff-lightbox-next" onclick="staffLightboxNav(1)">›</button><div class="staff-lightbox-toolbar"><button class="staff-lightbox-dl-btn instagram" onclick="downloadInstagramCrop()">📸 Instagram (1080×1080)</button><button class="staff-lightbox-dl-btn original" id="staffLightboxOriginalDl" onclick="downloadOriginalPhoto()">↓ Original</button><span class="staff-lightbox-counter-txt" id="staffLightboxCounter"></span></div></div><div class="staff-ig-processing" id="staffIgProcessing"><div style="font-size:32px;">📸</div><div class="staff-ig-processing-text">Preparing Instagram photo...</div></div><canvas id="staffIgCanvas" style="display:none;" width="1080" height="1080"></canvas><div class="mobile-tab-bar"><div class="mobile-tabs"><button class="mobile-tab active" data-tab="checkin"><span class="mobile-tab-icon">⬡</span><span class="mobile-tab-label">Check-In</span></button><button class="mobile-tab" data-tab="reservations"><span class="mobile-tab-icon">◈</span><span class="mobile-tab-label">Reservations</span></button><button class="mobile-tab" data-tab="members"><span class="mobile-tab-icon">◉</span><span class="mobile-tab-label">Members</span></button><button class="mobile-tab" data-tab="guests"><span class="mobile-tab-icon">✦</span><span class="mobile-tab-label">Guests</span></button><button class="mobile-tab" data-tab="schedule"><span class="mobile-tab-icon">⊞</span><span class="mobile-tab-label">Schedule</span></button><button class="mobile-tab" data-tab="referrals"><span class="mobile-tab-icon">★</span><span class="mobile-tab-label">Referrals</span></button><button class="mobile-tab" data-tab="gallery"><span class="mobile-tab-icon">📷</span><span class="mobile-tab-label">Gallery</span></button><button class="mobile-tab" data-tab="events"><span class="mobile-tab-icon">📅</span><span class="mobile-tab-label">Events</span></button><button class="mobile-tab" data-tab="idcheck"><span class="mobile-tab-icon">🪪</span><span class="mobile-tab-label">ID Check</span></button></div></div></div></div><div class="toast" id="toast"></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script><script>const SUPABASE_URL = 'https://cbvryfgrqzdvbqigyrgh.supabase.co';
+</div><div id="staffEvtDayModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:500;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)closeStaffEvtDayModal()"><div style="background:#1A1A1A;border:1px solid rgba(212,168,67,0.3);border-radius:14px;padding:24px;width:100%;max-width:480px;max-height:80vh;overflow-y:auto;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;"><div id="staffEvtDayModalTitle" style="font-family:var(--font-label);font-size:13px;letter-spacing:0.18em;color:var(--gold-warm);"></div><button onclick="closeStaffEvtDayModal()" style="background:none;border:none;color:rgba(245,240,232,0.4);font-size:22px;cursor:pointer;line-height:1;padding:0 4px;">✕</button></div><div id="staffEvtDayModalBody" style="display:flex;flex-direction:column;gap:12px;"></div></div></div><div class="staff-lightbox" id="staffLightbox"><button class="staff-lightbox-close" onclick="closeStaffLightbox()">✕</button><button class="staff-lightbox-prev" onclick="staffLightboxNav(-1)">‹</button><img class="staff-lightbox-img" id="staffLightboxImg" src="" alt=""><button class="staff-lightbox-next" onclick="staffLightboxNav(1)">›</button><div class="staff-lightbox-toolbar"><button class="staff-lightbox-dl-btn instagram" onclick="downloadInstagramCrop()">📸 Instagram (1080×1080)</button><button class="staff-lightbox-dl-btn original" id="staffLightboxOriginalDl" onclick="downloadOriginalPhoto()">↓ Original</button><span class="staff-lightbox-counter-txt" id="staffLightboxCounter"></span></div></div><div class="staff-ig-processing" id="staffIgProcessing"><div style="font-size:32px;">📸</div><div class="staff-ig-processing-text">Preparing Instagram photo...</div></div><canvas id="staffIgCanvas" style="display:none;" width="1080" height="1080"></canvas><div class="mobile-tab-bar"><div class="mobile-tabs"><button class="mobile-tab active" data-tab="checkin"><span class="mobile-tab-icon">⬡</span><span class="mobile-tab-label">Check-In</span></button><button class="mobile-tab" data-tab="reservations"><span class="mobile-tab-icon">◈</span><span class="mobile-tab-label">Reservations</span></button><button class="mobile-tab" data-tab="members"><span class="mobile-tab-icon">◉</span><span class="mobile-tab-label">Members</span></button><button class="mobile-tab" data-tab="guests"><span class="mobile-tab-icon">✦</span><span class="mobile-tab-label">Guests</span></button><button class="mobile-tab" data-tab="schedule"><span class="mobile-tab-icon">⊞</span><span class="mobile-tab-label">Schedule</span></button><button class="mobile-tab" data-tab="referrals"><span class="mobile-tab-icon">★</span><span class="mobile-tab-label">Referrals</span></button><button class="mobile-tab" data-tab="gallery"><span class="mobile-tab-icon">📷</span><span class="mobile-tab-label">Gallery</span></button><button class="mobile-tab" data-tab="events"><span class="mobile-tab-icon">📅</span><span class="mobile-tab-label">Events</span></button><button class="mobile-tab" data-tab="idcheck"><span class="mobile-tab-icon">🪪</span><span class="mobile-tab-label">ID Check</span></button></div></div></div></div><div class="toast" id="toast"></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script><script src="https://unpkg.com/@zxing/browser@0.1.4/umd/index.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script><script>const SUPABASE_URL = 'https://cbvryfgrqzdvbqigyrgh.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_fQlHFhC7tPkZNRl1djnvcA_68LpKQpv';
 const DEV_MODE = true; 
 const LIVE_DATA = true; 
@@ -2465,29 +2465,35 @@ function startIdCheckScanner() {
   statusEl.className = 'idcheck-status-msg scanning';
   statusEl.textContent = '📡 Scanning for ID barcode…';
 
-  idCheckQrScanner = new Html5Qrcode('idCheckQrReader');
-  idCheckQrScanner.start(
-    { facingMode: 'environment' },
-    { fps: 10, qrbox: { width: 300, height: 160 }, formatsToSupport: [
-        Html5QrcodeSupportedFormats.PDF_417,
-        Html5QrcodeSupportedFormats.CODE_128,
-        Html5QrcodeSupportedFormats.QR_CODE
-    ]},
-    (decodedText) => {
+  const videoEl = document.createElement('video');
+  videoEl.style.cssText = 'width:100%;border-radius:10px;display:block;';
+  const readerEl = document.getElementById('idCheckQrReader');
+  readerEl.innerHTML = '';
+  readerEl.appendChild(videoEl);
+
+  const hints = new Map();
+  hints.set(2, [11]); // PDF_417
+
+  const codeReader = new ZXingBrowser.BrowserMultiFormatReader(hints);
+  idCheckQrScanner = codeReader;
+
+  codeReader.decodeFromVideoDevice(null, videoEl, (result, err) => {
+    if (result) {
+      codeReader.reset();
+      idCheckQrScanner = null;
       stopIdCheckScanner();
-      const parsed = parseAamva(decodedText);
+      const parsed = parseAamva(result.getText());
       if (parsed && (parsed.dob || parsed.exp)) {
         runIdCheckResult(parsed);
       } else {
-        const statusEl = document.getElementById('idCheckStatusMsg');
         statusEl.style.display = 'block';
         statusEl.className = 'idcheck-status-msg error';
-        statusEl.textContent = '⚠ Barcode read but ID format not recognized. Try manual entry.';
+        statusEl.textContent = '⚠ Barcode read but format not recognized. Try manual entry.';
       }
-    },
-    () => {}
-  ).catch((err) => {
-    const statusEl = document.getElementById('idCheckStatusMsg');
+    }
+  });
+
+  codeReader.decodeFromVideoDevice(null, videoEl, () => {}).catch(() => {
     statusEl.style.display = 'block';
     statusEl.className = 'idcheck-status-msg error';
     statusEl.textContent = '⚠ Camera unavailable. Use manual entry below.';
@@ -2495,7 +2501,7 @@ function startIdCheckScanner() {
 }
 
 function stopIdCheckScanner() {
-  if (idCheckQrScanner) { try { idCheckQrScanner.stop(); } catch(e) {} idCheckQrScanner = null; }
+  if (idCheckQrScanner) { try { idCheckQrScanner.reset(); } catch(e) {} idCheckQrScanner = null; }
   document.getElementById('idCheckScannerFrame').style.display = 'none';
   document.getElementById('btnStopIdCheckScan').style.display = 'none';
   document.getElementById('idCheckScannerIdle').style.display = 'flex';
