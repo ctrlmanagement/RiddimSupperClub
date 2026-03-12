@@ -2143,7 +2143,7 @@ const c = document.getElementById('galleryManagerPhotos');
 const empty = document.getElementById('galleryManagerEmpty');
 c.innerHTML = '<div style="color:rgba(245,240,232,0.3);font-size:13px;">Loading...</div>';
 try {
-const { data: photos, error } = await supabaseClient.from('gallery_photos').select('id, gallery_id, storage_path, display_order, original_filename, caption, photographer, venue_name, location, date_taken')
+const { data: photos, error } = await supabaseClient.from('gallery_photos').select('id, gallery_id, storage_path, display_order, original_filename, caption, photographer, venue_name, location, date_taken, reach')
 .eq('gallery_id', galleryId).order('display_order', { ascending: true });
 if (error) throw error;
 const { data: gal } = await supabaseClient.from('galleries').select('cover_photo_id').eq('id', galleryId).single();
@@ -2157,6 +2157,7 @@ data-photo-index="${i}"
 data-storage-path="${galleryEscAttr(p.storage_path)}"
 onclick="openLightbox(${i})">
 ${p.id===coverId ? '<div class="gallery-cover-badge">Cover</div>' : ''}
+${p.reach ? `<div style="position:absolute;bottom:5px;left:5px;background:rgba(0,0,0,0.72);border:1px solid rgba(245,240,232,0.15);border-radius:4px;padding:2px 7px;font-family:var(--font-label);font-size:9px;letter-spacing:0.1em;color:rgba(245,240,232,0.6);z-index:2;">👁 ${p.reach}</div>` : ''}
 <img data-lazy-thumb
 style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .3s;"
 alt=""><div class="gallery-mgr-photo-actions"><button class="gallery-mgr-action-btn" title="Set cover" onclick="event.stopPropagation();setCoverPhoto('${galleryId}','${p.id}')">&#x2B50;</button><button class="gallery-mgr-action-btn delete" title="Delete" onclick="event.stopPropagation();deletePhoto('${p.id}','${galleryEscAttr(p.storage_path)}','${galleryId}')">&#x1F5D1;</button></div></div>`).join('');
