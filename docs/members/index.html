@@ -1179,6 +1179,8 @@ renderMemberLightbox();
 memberEnsureSignedUrl(memberLightboxIndex + dir);
 }
 async function memberDownloadOriginal() {
+  // F04: track download reach
+  if (window._currentMemberPhotoId) incrementReach('gallery_photos', window._currentMemberPhotoId);
 const photo = memberGalleryPhotos[memberLightboxIndex];
 if (!photo) return;
 const btn = document.getElementById('memberLightboxDownload');
@@ -1363,6 +1365,7 @@ async function loadVipPasses(phone) {
         <div class="wpass-qr-wrap">
           <div style="background:#fff;padding:6px;border-radius:6px;width:92px;height:92px;display:flex;align-items:center;justify-content:center" id="${qrId}"></div>
           <p class="wpass-qr-label" style="color:var(--color-gold-deep)">Show to staff</p>
+          ${!isVoided ? `<a href="sms:?body=${encodeURIComponent('My RIDDIM VIP Pass — Valid ' + fmtDate(p.valid_date) + ', party of ' + (p.party_size||1) + '. View pass: https://portal.ctrlmanagement.com/vip.html?token=' + p.qr_token)}" style="margin-top:6px;display:flex;align-items:center;gap:4px;padding:5px 8px;border:1px solid rgba(212,168,67,0.35);border-radius:4px;color:var(--color-gold-warm);font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;text-decoration:none;white-space:nowrap;">📲 SHARE</a>` : ''}
         </div>`;
       listEl.appendChild(div);
       if (!isVoided) makeQR(qrId, 'VIP:' + p.qr_token, 80);
@@ -1412,6 +1415,7 @@ async function loadReservations(phone) {
         <div class="wpass-qr-wrap">
           <div style="background:#fff;padding:6px;border-radius:6px;width:92px;height:92px;display:flex;align-items:center;justify-content:center" id="${qrId}"></div>
           <p class="wpass-qr-label" style="color:#2A9D74">Show at door</p>
+          <a href="sms:?body=${encodeURIComponent('RIDDIM reservation — ' + fmtDate(r.event_date) + ', party of ' + (r.party_size||'?') + '. Ref: RES-' + r.id.slice(0,8).toUpperCase())}" style="margin-top:6px;display:flex;align-items:center;gap:4px;padding:5px 8px;border:1px solid rgba(42,157,116,0.35);border-radius:4px;color:#4ABFA0;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;text-decoration:none;white-space:nowrap;">📲 SHARE</a>
         </div>`;
       listEl.appendChild(div);
       makeQR(qrId, 'RES:' + r.id, 80);
@@ -1468,6 +1472,7 @@ async function loadTickets(phone) {
         <div class="wpass-qr-wrap">
           <div style="background:#fff;padding:6px;border-radius:6px;width:92px;height:92px;display:flex;align-items:center;justify-content:center" id="${qrId}"></div>
           <p class="wpass-qr-label" style="color:#9B8FD4">Ref #${shortId}</p>
+          <a href="sms:?body=${encodeURIComponent('RIDDIM ticket — ' + eventName + ' on ' + fmtDate(eventDate) + '. Ref: TKT-' + shortId)}" style="margin-top:6px;display:flex;align-items:center;gap:4px;padding:5px 8px;border:1px solid rgba(124,111,205,0.35);border-radius:4px;color:#B8AFEA;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;text-decoration:none;white-space:nowrap;">📲 SHARE</a>
         </div>`;
       listEl.appendChild(div);
       makeQR(qrId, 'TKT:' + t.id, 80);
@@ -1476,6 +1481,17 @@ async function loadTickets(phone) {
     loadEl.style.display = 'none';
     emptyEl.style.display = 'block';
     console.warn('Tickets load failed:', e);
+  }
+}
+
+// ── F01/F04: Reach tracking — increment counter silently
+// SQL for 'reach' column runs separately; this is build-first
+async function incrementReach(table, id) {
+  if (!LIVE_DATA || !supabaseClient || !id) return;
+  try {
+    await supabaseClient.rpc('increment_reach', { p_table: table, p_id: id });
+  } catch(e) {
+    // Silently ignore — reach column may not exist yet
   }
 }
 

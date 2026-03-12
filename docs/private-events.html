@@ -1655,6 +1655,13 @@ body::before {
         <input type="hidden" id="selectedEventType" value="">
 
         <div class="form-section-label" style="margin-top:var(--space-6)">Your Details</div>
+        <div class="form-group">
+          <label class="form-label" for="phone">Phone Number</label>
+          <div style="position:relative">
+            <input class="form-input" type="tel" id="phone" placeholder="(404) 555-0100" autocomplete="tel" onblur="lookupGuest()" style="padding-right:140px">
+            <div id="guestLookupIndicator" style="display:none;position:absolute;right:12px;top:50%;transform:translateY(-50%);font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--color-gold-warm);pointer-events:none;"></div>
+          </div>
+        </div>
         <div class="form-row">
           <div class="form-group">
             <label class="form-label" for="firstName">First Name</label>
@@ -1665,15 +1672,9 @@ body::before {
             <input class="form-input" type="text" id="lastName" placeholder="Thompson" autocomplete="family-name">
           </div>
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" for="phone">Phone</label>
-            <input class="form-input" type="tel" id="phone" placeholder="(404) 555-0100" autocomplete="tel">
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="email">Email</label>
-            <input class="form-input" type="email" id="email" placeholder="you@email.com" autocomplete="email">
-          </div>
+        <div class="form-group">
+          <label class="form-label" for="email">Email Address</label>
+          <input class="form-input" type="email" id="email" placeholder="you@email.com" autocomplete="email">
         </div>
 
         <div class="form-section-label" style="margin-top:var(--space-6)">Event Details</div>
@@ -1791,7 +1792,70 @@ body::before {
   </div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+// ── Supabase config
+const SUPABASE_URL = 'https://cbvryfgrqzdvbqigyrgh.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_fQlHFhC7tPkZNRl1djnvcA_68LpKQpv';
+const LIVE_DATA = true;
+let supabaseClient = null;
+try { supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e) { console.warn('Supabase init failed', e); }
+
+// ── F02 guest lookup state
+let _guestStatus = 'New';
+let _memberId = null;
+
+// ── Phone normalisation (standard across all F02 forms)
+function normalizePhone(raw) {
+  const digits = raw.replace(/\D/g, '');
+  let phone10 = digits;
+  if (digits.length === 11 && digits.startsWith('1')) phone10 = digits.slice(1);
+  const valid = phone10.length === 10;
+  const phoneE164 = valid ? '+1' + phone10 : null;
+  return { phone10, phoneE164, valid };
+}
+
+// ── Silent multi-table guest lookup on phone blur
+async function lookupGuest() {
+  const raw = document.getElementById('phone').value.trim();
+  const { phone10, phoneE164, valid } = normalizePhone(raw);
+  const indicator = document.getElementById('guestLookupIndicator');
+  _guestStatus = 'New'; _memberId = null;
+  if (!indicator) return;
+  indicator.style.display = 'none';
+  if (!valid || !LIVE_DATA || !supabaseClient) return;
+  try {
+    const [mRes, rRes, vRes, gRes, iRes] = await Promise.all([
+      supabaseClient.from('members').select('id,first_name,last_name,email').eq('phone', phoneE164).maybeSingle(),
+      supabaseClient.from('reservations').select('id').eq('member_phone', phoneE164).limit(1),
+      supabaseClient.from('vip_passes').select('id').eq('guest_phone', phone10).in('status',['active','unused']).limit(1),
+      supabaseClient.from('guest_lists').select('id').eq('phone', phoneE164).limit(1),
+      supabaseClient.from('inquiries').select('id').or(`phone.eq.${phone10},phone.eq.${phoneE164}`).limit(1),
+    ]);
+    if (mRes.data) {
+      _guestStatus = 'Member'; _memberId = mRes.data.id;
+      const fn = document.getElementById('firstName');
+      const ln = document.getElementById('lastName');
+      const em = document.getElementById('email');
+      if (fn && !fn.value) fn.value = mRes.data.first_name || '';
+      if (ln && !ln.value) ln.value = mRes.data.last_name || '';
+      if (em && !em.value) em.value = mRes.data.email || '';
+    } else if (rRes.data && rRes.data.length) {
+      _guestStatus = 'Reservation';
+    } else if (vRes.data && vRes.data.length) {
+      _guestStatus = 'VIP Guest';
+    } else if (gRes.data && gRes.data.length) {
+      _guestStatus = 'Guest List';
+    } else if (iRes.data && iRes.data.length) {
+      _guestStatus = 'Returning';
+    }
+    if (_guestStatus !== 'New') {
+      indicator.textContent = '✦ ' + _guestStatus.toUpperCase();
+      indicator.style.display = 'block';
+    }
+  } catch(e) { console.warn('Guest lookup failed:', e); }
+}
+
 // ── Nav scroll
 const nav = document.getElementById('nav');
 window.addEventListener('scroll', () => {
@@ -1826,14 +1890,62 @@ function selectChip(el) {
   document.getElementById('selectedEventType').value = el.textContent;
 }
 
-// ── Form submit
-function submitInquiry() {
+// ── Form submit — real Supabase write
+async function submitInquiry() {
   const first = document.getElementById('firstName').value.trim();
-  const phone = document.getElementById('phone').value.trim();
-  if (!first || !phone) {
+  const last  = document.getElementById('lastName').value.trim();
+  const rawPhone = document.getElementById('phone').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const selectedType = document.getElementById('selectedEventType').value.trim();
+  const eventDate = document.getElementById('eventDate').value;
+  const guestCount = document.getElementById('guestCount').value;
+  const space = document.getElementById('spacePreference').value;
+  const budget = document.getElementById('budget').value;
+  const vision = document.getElementById('vision').value.trim();
+
+  const { phoneE164, valid } = normalizePhone(rawPhone);
+  if (!first || !rawPhone) {
     alert('Please fill in your name and phone number so we can reach you.');
     return;
   }
+
+  // Build message with space preference + vision
+  const msgParts = [];
+  if (space) msgParts.push('Space: ' + space);
+  if (vision) msgParts.push(vision);
+  const message = msgParts.join('\n\n') || null;
+
+  const btn = document.querySelector('.form-submit');
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+
+  const payload = {
+    inquiry_type: 'private_event',
+    first_name: first,
+    last_name: last || null,
+    phone: phoneE164 || rawPhone,
+    email: email || null,
+    occasion: selectedType || null,
+    preferred_date: eventDate || null,
+    guest_count: guestCount || null,
+    budget_range: budget || null,
+    message: message,
+    guest_status: _guestStatus,
+    status: 'new',
+  };
+  if (_memberId) payload.member_id = _memberId;
+
+  let submitOk = false;
+  if (LIVE_DATA && supabaseClient) {
+    try {
+      const { error } = await supabaseClient.from('inquiries').insert(payload);
+      if (error) console.warn('Inquiry insert error:', error);
+      else submitOk = true;
+    } catch(e) { console.warn('Inquiry insert failed:', e); }
+  }
+
+  if (btn) { btn.disabled = false; btn.textContent = 'Send Event Inquiry →'; }
+
+  // Show success regardless (graceful fallback)
   document.getElementById('inquiryForm').style.display = 'none';
   document.getElementById('formSuccess').classList.add('show');
   window.scrollTo({ top: document.getElementById('inquire').offsetTop - 80, behavior: 'smooth' });

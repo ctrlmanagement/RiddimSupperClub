@@ -23,7 +23,31 @@
  </button><button class="gallery-source-btn" onclick="openGooglePicker('create')"><span>&#x1F535;</span> Google Drive
  </button><button class="gallery-source-btn" onclick="openDropboxChooser('create')"><span>&#x1F4E6;</span> Dropbox
  </button></div><div class="gallery-drop-zone" id="galleryDropZone"><input type="file" id="galleryFileInput" multiple accept="image/jpeg,image/png,image/webp,image/heic" onchange="handleFileSelect(event)"><div class="gallery-drop-icon">&#x1F4F8;</div><div class="gallery-drop-text">Drop photos here or click to select</div><div class="gallery-drop-sub">JPEG, PNG, WebP, HEIC &middot; Max 10MB each</div></div><div class="gallery-upload-preview" id="galleryUploadPreview"></div></div><div class="gallery-status" id="galleryModalStatus"></div><div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--graphite);"><div class="gallery-form-label" style="margin-bottom:10px;font-size:11px;letter-spacing:.08em;color:var(--owner-gold);">PHOTO METADATA <span style="color:var(--ash);font-weight:300;">(applied to all uploaded photos)</span></div><div class="gallery-form-row-half" style="gap:10px;"><div><label class="gallery-form-label">Venue Name</label><input type="text" class="gallery-form-input" id="metaVenueName" value="RIDDIM Supper Club" placeholder="RIDDIM Supper Club"></div><div><label class="gallery-form-label">Location</label><input type="text" class="gallery-form-input" id="metaLocation" placeholder="Atlanta, GA"></div></div><div class="gallery-form-row-half" style="gap:10px;margin-top:10px;"><div><label class="gallery-form-label">Photographer Credit</label><input type="text" class="gallery-form-input" id="metaPhotographer" placeholder="e.g. @riddimshots"></div><div><label class="gallery-form-label">Date Taken</label><input type="date" class="gallery-form-input" id="metaDateTaken"></div></div><div style="margin-top:10px;"><label class="gallery-form-label">Caption / Description <span style="color:var(--ash);font-weight:300;">(optional)</span></label><textarea class="gallery-form-input" id="metaCaption" rows="2" placeholder="e.g. Friday night energy on the patio…" style="resize:vertical;min-height:52px;"></textarea></div></div><button class="gallery-save-btn" id="gallerySaveBtn" onclick="saveGallery()">Create Gallery</button></div></div><div class="gallery-lightbox" id="galleryLightbox"><button class="gallery-lightbox-close" onclick="closeLightbox()">&#x2715;</button><button class="gallery-lightbox-prev" onclick="lightboxNav(-1)">&#x2039;</button><img class="gallery-lightbox-img" id="galleryLightboxImg" src="" alt=""><button class="gallery-lightbox-next" onclick="lightboxNav(1)">&#x203A;</button><div class="gallery-lightbox-counter" id="galleryLightboxCounter"></div><button onclick="openPhotoMetaModal()" style="position:absolute;top:16px;right:56px;background:rgba(0,0,0,0.5);border:1px solid rgba(212,168,67,0.4);color:var(--owner-gold);font-size:11px;font-family:var(--font-body);letter-spacing:.06em;padding:5px 12px;border-radius:4px;cursor:pointer;">✎ EDIT INFO</button><div id="galleryLightboxMeta" style="position:absolute;bottom:48px;left:0;right:0;padding:10px 20px;background:linear-gradient(transparent,rgba(0,0,0,0.75));text-align:left;pointer-events:none;display:none;"><div id="galleryLightboxCaption" style="font-family:var(--font-display);font-size:15px;font-weight:300;color:var(--ivory);margin-bottom:4px;"></div><div id="galleryLightboxMetaRow" style="font-size:11px;color:rgba(255,255,255,0.55);display:flex;flex-wrap:wrap;gap:12px;"></div></div></div><div class="modal-overlay" id="photoMetaModal" style="z-index:10001;"><div class="modal-card" style="max-width:480px;"><div class="modal-title">Edit Photo Info</div><div class="modal-sub" id="photoMetaFilename" style="font-size:11px;color:var(--ash);margin-bottom:16px;"></div><div class="field"><label>Caption</label><textarea id="pmCaption" rows="2" style="width:100%;background:var(--void);border:1px solid var(--graphite);color:var(--ivory);padding:10px 12px;border-radius:6px;font-family:var(--font-body);font-size:14px;resize:vertical;"></textarea></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"><div class="field"><label>Photographer</label><input type="text" id="pmPhotographer" placeholder="@riddimshots" /></div><div class="field"><label>Date Taken</label><input type="date" id="pmDateTaken" /></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"><div class="field"><label>Venue Name</label><input type="text" id="pmVenueName" placeholder="RIDDIM Supper Club" /></div><div class="field"><label>Location</label><input type="text" id="pmLocation" placeholder="Atlanta, GA" /></div></div><div class="auth-error" id="photoMetaError" style="text-align:left;margin-bottom:8px;"></div><div class="modal-actions"><button class="btn-primary" onclick="savePhotoMeta()">Save</button><button class="btn-ghost" onclick="document.getElementById('photoMetaModal').classList.remove('open')">Cancel</button></div></div></div><div class="modal-overlay" id="memberDetailModal"><div class="modal-card" style="max-width:420px;"><button onclick="closeMemberDetailModal()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:var(--ash);font-size:18px;cursor:pointer;">&#x2715;</button><div style="text-align:center;margin-bottom:20px;"><div style="font-family:var(--font-display);font-size:28px;font-weight:300;color:var(--ivory);" id="mdName"></div><div style="margin-top:6px;" id="mdTier"></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;"><div class="panel" style="padding:12px;text-align:center;"><div style="font-family:var(--font-display);font-size:22px;color:var(--gold-warm);" id="mdPoints"></div><div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-top:3px;">POINTS</div></div><div class="panel" style="padding:12px;text-align:center;"><div style="font-family:var(--font-display);font-size:22px;color:var(--ivory);" id="mdVisits"></div><div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-top:3px;">VISITS</div></div></div><div style="margin-bottom:12px;"><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:6px;">PHONE</div><div style="font-size:15px;color:var(--mist);" id="mdPhone">—</div></div><div style="margin-bottom:12px;"><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:6px;">MEMBER ID</div><div style="font-family:var(--font-label);letter-spacing:0.15em;font-size:13px;color:var(--ash);" id="mdId"></div></div><div style="margin-bottom:20px;text-align:center;"><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:10px;">MEMBER QR</div><div id="mdQrWrap" style="background:white;padding:14px;border-radius:10px;display:inline-block;line-height:0;"></div></div><div style="margin-bottom:8px;"><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:6px;">MEMBER SINCE</div><div style="font-size:13px;color:var(--ash);" id="mdSince"></div></div><div class="modal-actions" style="margin-top:20px;"><button class="btn-primary" onclick="closeMemberDetailModal();openEditModal(window._mdCurrentId)">Edit Points</button><button class="btn-ghost" onclick="closeMemberDetailModal()">Close</button></div></div></div><div class="modal-overlay" id="editModal"><div class="modal-card"><div class="modal-title" id="editModalTitle">Edit Points</div><div class="modal-sub" id="editModalSub">Adjust this member's point balance</div><div class="field"><label for="editPointsInput">New Point Total</label><input type="number" id="editPointsInput" placeholder="e.g. 2500" /></div><div class="field"><label for="editNoteInput">Note (internal)</label><input type="text" id="editNoteInput" placeholder="Reason for adjustment…" /></div><div class="modal-actions"><button class="btn-primary" onclick="savePointEdit()">Save Changes</button><button class="btn-ghost" onclick="closeModal()">Cancel</button></div></div></div><div class="modal-overlay" id="schedExportModal"><div class="modal-card" style="max-width:400px;"><div class="modal-title">Export Schedule</div><div class="modal-sub">Select a date range to export</div><div class="field"><label for="schedExportFrom">From</label><input type="date" id="schedExportFrom" /></div><div class="field"><label for="schedExportTo">To</label><input type="date" id="schedExportTo" /></div><div class="field"><label>Format</label><div style="display:flex;gap:10px;margin-top:4px;"><label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="radio" name="schedExportFmt" value="print" checked> Print / PDF</label><label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="radio" name="schedExportFmt" value="csv"> CSV (Google Sheets)</label></div></div><div class="modal-actions"><button class="btn-primary" onclick="runSchedExport()">Export</button><button class="btn-ghost" onclick="closeSchedExportModal()">Cancel</button></div></div></div><div class="modal-overlay" id="inquiryDetailModal" style="display:none;align-items:flex-start;padding-top:60px;"><div class="modal-card" style="max-width:560px;width:100%;max-height:80vh;overflow-y:auto;position:relative;"><button onclick="closeInquiryModal()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:var(--ash);font-size:18px;cursor:pointer;line-height:1;">&#x2715;</button><div class="modal-title" id="inquiryModalTitle">Inquiry</div><div id="inquiryModalMeta" style="font-size:12px;color:var(--ash);margin-bottom:20px;display:flex;gap:16px;flex-wrap:wrap;"></div><div style="margin-bottom:24px;"><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:8px;">STATUS</div><div style="display:flex;gap:8px;flex-wrap:wrap;" id="inquiryStatusBtns"></div></div><div id="inquiryDetailRows" style="display:grid;gap:12px;"></div><div style="margin-top:24px;"><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:8px;">OWNER NOTES</div><textarea id="inquiryNotesInput" rows="4" placeholder="Add internal notes…"
- style="width:100%;background:var(--void);border:1px solid var(--graphite);color:var(--ivory);padding:10px 12px;border-radius:6px;font-family:var(--font-body);font-size:13px;resize:vertical;line-height:1.5;"></textarea><button onclick="saveInquiryNotes()" style="margin-top:8px;padding:8px 20px;background:var(--owner-gold);color:#000;border:none;border-radius:6px;font-family:var(--font-label);font-size:11px;letter-spacing:0.15em;cursor:pointer;">Save Notes</button><span id="inquiryNotesSaved" style="margin-left:10px;font-size:12px;color:var(--green);display:none;">Saved ✓</span></div></div></div><style>.inq-status{display:inline-flex;align-items:center;gap:5px;font-family:var(--font-label);font-size:10px;letter-spacing:0.18em;padding:3px 10px;border-radius:999px;border:1px solid;}.inq-status.new{color:#60a5fa;border-color:rgba(96,165,250,0.4);background:rgba(96,165,250,0.08);}.inq-status.reviewed{color:var(--gold-warm);border-color:rgba(212,168,67,0.4);background:rgba(212,168,67,0.08);}.inq-status.quoted{color:#a78bfa;border-color:rgba(167,139,250,0.4);background:rgba(167,139,250,0.08);}.inq-status.booked{color:var(--green);border-color:rgba(76,175,80,0.4);background:rgba(76,175,80,0.08);}.inq-status.declined{color:var(--ember);border-color:rgba(192,57,43,0.4);background:rgba(192,57,43,0.08);}.inq-type-chip{display:inline-block;font-family:var(--font-label);font-size:10px;letter-spacing:0.18em;padding:3px 10px;border-radius:999px;background:rgba(218,165,32,0.1);border:1px solid rgba(218,165,32,0.25);color:var(--owner-gold);}.inq-status-btn{padding:5px 14px;border-radius:999px;border:1px solid var(--graphite);background:none;color:var(--ash);font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;cursor:pointer;transition:all 150ms;}.inq-status-btn:hover{border-color:var(--owner-gold);color:var(--owner-gold);}.inq-status-btn.active-new{border-color:#60a5fa;color:#60a5fa;background:rgba(96,165,250,0.1);}.inq-status-btn.active-reviewed{border-color:var(--gold-warm);color:var(--gold-warm);background:rgba(212,168,67,0.1);}.inq-status-btn.active-quoted{border-color:#a78bfa;color:#a78bfa;background:rgba(167,139,250,0.1);}.inq-status-btn.active-booked{border-color:var(--green);color:var(--green);background:rgba(76,175,80,0.1);}.inq-status-btn.active-declined{border-color:var(--ember);color:var(--ember);background:rgba(192,57,43,0.1);}.inq-detail-row{display:grid;grid-template-columns:140px 1fr;gap:8px;padding:10px 0;border-bottom:1px solid rgba(42,42,42,0.5);font-size:13px;}.inq-detail-label{font-family:var(--font-label);font-size:10px;letter-spacing:0.18em;color:var(--ash);padding-top:2px;}.inq-detail-value{color:var(--mist);line-height:1.5;}</style><div class="toast" id="toast"></div><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>const SUPABASE_URL = 'https://cbvryfgrqzdvbqigyrgh.supabase.co';
+ style="width:100%;background:var(--void);border:1px solid var(--graphite);color:var(--ivory);padding:10px 12px;border-radius:6px;font-family:var(--font-body);font-size:13px;resize:vertical;line-height:1.5;"></textarea><button onclick="saveInquiryNotes()" style="margin-top:8px;padding:8px 20px;background:var(--owner-gold);color:#000;border:none;border-radius:6px;font-family:var(--font-label);font-size:11px;letter-spacing:0.15em;cursor:pointer;">Save Notes</button><span id="inquiryNotesSaved" style="margin-left:10px;font-size:12px;color:var(--green);display:none;">Saved ✓</span></div>
+<!-- ── GUEST HISTORY PANEL ───────────────────────── -->
+<div class="gh-panel" id="guestHistoryPanel" style="display:none;">
+  <div class="gh-title">GUEST HISTORY</div>
+  <div id="guestHistoryContent"><div class="gh-loading">Looking up guest history…</div></div>
+</div>
+</div></div></div><style>.inq-status{display:inline-flex;align-items:center;gap:5px;font-family:var(--font-label);font-size:10px;letter-spacing:0.18em;padding:3px 10px;border-radius:999px;border:1px solid;}.inq-status.new{color:#60a5fa;border-color:rgba(96,165,250,0.4);background:rgba(96,165,250,0.08);}.inq-status.reviewed{color:var(--gold-warm);border-color:rgba(212,168,67,0.4);background:rgba(212,168,67,0.08);}.inq-status.quoted{color:#a78bfa;border-color:rgba(167,139,250,0.4);background:rgba(167,139,250,0.08);}.inq-status.booked{color:var(--green);border-color:rgba(76,175,80,0.4);background:rgba(76,175,80,0.08);}.inq-status.declined{color:var(--ember);border-color:rgba(192,57,43,0.4);background:rgba(192,57,43,0.08);}.inq-type-chip{display:inline-block;font-family:var(--font-label);font-size:10px;letter-spacing:0.18em;padding:3px 10px;border-radius:999px;background:rgba(218,165,32,0.1);border:1px solid rgba(218,165,32,0.25);color:var(--owner-gold);}.inq-status-btn{padding:5px 14px;border-radius:999px;border:1px solid var(--graphite);background:none;color:var(--ash);font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;cursor:pointer;transition:all 150ms;}.inq-status-btn:hover{border-color:var(--owner-gold);color:var(--owner-gold);}.inq-status-btn.active-new{border-color:#60a5fa;color:#60a5fa;background:rgba(96,165,250,0.1);}.inq-status-btn.active-reviewed{border-color:var(--gold-warm);color:var(--gold-warm);background:rgba(212,168,67,0.1);}.inq-status-btn.active-quoted{border-color:#a78bfa;color:#a78bfa;background:rgba(167,139,250,0.1);}.inq-status-btn.active-booked{border-color:var(--green);color:var(--green);background:rgba(76,175,80,0.1);}.inq-status-btn.active-declined{border-color:var(--ember);color:var(--ember);background:rgba(192,57,43,0.1);}.inq-detail-row{display:grid;grid-template-columns:140px 1fr;gap:8px;padding:10px 0;border-bottom:1px solid rgba(42,42,42,0.5);font-size:13px;}.inq-detail-label{font-family:var(--font-label);font-size:10px;letter-spacing:0.18em;color:var(--ash);padding-top:2px;}.inq-detail-value{color:var(--mist);line-height:1.5;}
+.gh-panel{margin-top:24px;padding-top:20px;border-top:1px solid rgba(42,42,42,0.6);}
+.gh-title{font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:12px;}
+.gh-loading{font-size:12px;color:var(--ash);padding:12px 0;}
+.gh-stat-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+.gh-stat{flex:1;min-width:90px;background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:10px 12px;text-align:center;}
+.gh-stat-val{font-family:var(--font-display);font-size:22px;font-weight:300;color:var(--ivory);line-height:1;}
+.gh-stat-lbl{font-family:var(--font-label);font-size:9px;letter-spacing:0.18em;color:var(--ash);margin-top:3px;}
+.gh-member-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(184,134,11,0.1);border:1px solid rgba(184,134,11,0.3);border-radius:4px;padding:4px 10px;font-family:var(--font-label);font-size:10px;letter-spacing:0.18em;color:var(--owner-gold);margin-bottom:14px;}
+.gh-touchpoint{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid rgba(42,42,42,0.4);font-size:12px;}
+.gh-touchpoint:last-child{border-bottom:none;}
+.gh-tp-icon{font-size:14px;flex-shrink:0;margin-top:1px;}
+.gh-tp-body{flex:1;}
+.gh-tp-title{color:var(--mist);line-height:1.4;}
+.gh-tp-meta{font-size:11px;color:var(--ash);margin-top:2px;}
+.gh-tp-tag{font-family:var(--font-label);font-size:9px;letter-spacing:0.15em;padding:2px 7px;border-radius:3px;border:1px solid;margin-left:auto;flex-shrink:0;}
+.gh-empty{font-size:12px;color:var(--ash);font-style:italic;padding:8px 0;}
+.inq-guest-badge{display:inline-flex;align-items:center;font-family:var(--font-label);font-size:9px;letter-spacing:0.15em;padding:2px 7px;border-radius:3px;background:rgba(184,134,11,0.1);border:1px solid rgba(184,134,11,0.3);color:var(--owner-gold);margin-left:6px;vertical-align:middle;}
+</style><div class="toast" id="toast"></div><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>const SUPABASE_URL = 'https://cbvryfgrqzdvbqigyrgh.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_fQlHFhC7tPkZNRl1djnvcA_68LpKQpv';
 const LIVE_DATA = true;
 let supabaseClient = null;
@@ -738,7 +762,7 @@ const thumbHtml = e.flyer_url
       </div>`
     : `<div style="flex-shrink:0;width:72px;height:72px;border-radius:6px;background:rgba(218,165,32,0.04);border:1px solid var(--graphite);display:flex;align-items:center;justify-content:center;color:rgba(218,165,32,0.2);font-size:22px;">◆</div>`;
 return `
-<div class="panel" style="display:flex;align-items:flex-start;gap:20px;padding:20px 24px;">${thumbHtml}<div style="min-width:56px;text-align:center;background:var(--deep);border-radius:8px;padding:10px 8px;"><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);">${d.toLocaleString('default',{month:'short'}).toUpperCase()}</div><div style="font-family:var(--font-display);font-size:28px;font-weight:300;color:var(--ivory);line-height:1;">${d.getDate()}</div></div><div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap;"><div style="font-family:var(--font-display);font-size:20px;font-weight:300;color:var(--ivory);">${e.title}</div><span style="font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:${color};border:1px solid ${color};padding:2px 8px;border-radius:4px;">${e.status.replace('_',' ').toUpperCase()}</span></div><div style="font-size:13px;color:var(--ash);">
+<div class="panel" style="display:flex;align-items:flex-start;gap:20px;padding:20px 24px;">${thumbHtml}<div style="min-width:56px;text-align:center;background:var(--deep);border-radius:8px;padding:10px 8px;"><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);">${d.toLocaleString('default',{month:'short'}).toUpperCase()}</div><div style="font-family:var(--font-display);font-size:28px;font-weight:300;color:var(--ivory);line-height:1;">${d.getDate()}</div></div><div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap;"><div style="font-family:var(--font-display);font-size:20px;font-weight:300;color:var(--ivory);">${e.title}</div><span style="font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:${color};border:1px solid ${color};padding:2px 8px;border-radius:4px;">${e.status.replace('_',' ').toUpperCase()}</span>${e.reach != null ? `<span style="font-family:var(--font-label);font-size:10px;letter-spacing:0.12em;color:var(--ash);border:1px solid var(--graphite);padding:2px 8px;border-radius:4px;">👁 ${e.reach} reach</span>` : ''}</div><div style="font-size:13px;color:var(--ash);">
 ${e.start_time ? e.start_time.slice(0,5) : ''} ${e.end_time ? '– '+e.end_time.slice(0,5) : ''}
 ${e.capacity ? ` · Capacity: ${e.capacity}` : ''}
 </div>
@@ -2526,7 +2550,8 @@ tbody.innerHTML = rows.map(inq => {
 const date = new Date(inq.created_at).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
 const name = [inq.first_name, inq.last_name].filter(Boolean).join(' ');
 const contact = inq.phone || inq.email || '—';
-return `<tr style="cursor:pointer;" onclick="openInquiryModal('${inq.id}')"><td style="color:var(--ash);font-size:12px;">${date}</td><td class="td-name">${esc(name)}</td><td><span class="inq-type-chip">${esc(inq.inquiry_type)}</span></td><td style="font-size:12px;color:var(--ash);">${esc(contact)}</td><td><span class="inq-status ${inq.status}">${inq.status}</span></td><td><button class="table-action-btn" onclick="event.stopPropagation();openInquiryModal('${inq.id}')">View</button></td></tr>`;
+const guestBadge = inq.guest_status && inq.guest_status !== 'New' ? `<span class="inq-guest-badge">${esc(inq.guest_status.toUpperCase())}</span>` : '';
+return `<tr style="cursor:pointer;" onclick="openInquiryModal('${inq.id}')"><td style="color:var(--ash);font-size:12px;">${date}</td><td class="td-name">${esc(name)}${guestBadge}</td><td><span class="inq-type-chip">${esc(inq.inquiry_type)}</span></td><td style="font-size:12px;color:var(--ash);">${esc(contact)}</td><td><span class="inq-status ${inq.status}">${inq.status}</span></td><td><button class="table-action-btn" onclick="event.stopPropagation();openInquiryModal('${inq.id}')">View</button></td></tr>`;
 }).join('');
 }
 function openInquiryModal(id) {
@@ -2570,10 +2595,104 @@ document.getElementById('inquiryDetailRows').innerHTML = allRows.map(([label, va
 ).join('');
 document.getElementById('inquiryNotesInput').value = inq.owner_notes || '';
 document.getElementById('inquiryNotesSaved').style.display = 'none';
+// Guest History panel
+const ghPanel = document.getElementById('guestHistoryPanel');
+const ghContent = document.getElementById('guestHistoryContent');
+if (ghPanel && ghContent && inq.phone) {
+  ghPanel.style.display = 'block';
+  ghContent.innerHTML = '<div class="gh-loading">Looking up guest history…</div>';
+  loadGuestHistory(inq.phone, inq.guest_status);
+} else if (ghPanel) {
+  ghPanel.style.display = 'none';
+}
 const modal = document.getElementById('inquiryDetailModal');
 modal.style.display = 'flex';
 document.body.style.overflow = 'hidden';
 }
+async function loadGuestHistory(rawPhone, knownStatus) {
+  const ghContent = document.getElementById('guestHistoryContent');
+  if (!ghContent || !supabaseClient) return;
+  // Normalize phone
+  const digits = rawPhone.replace(/\D/g,'');
+  let phone10 = digits;
+  if (digits.length === 11 && digits.startsWith('1')) phone10 = digits.slice(1);
+  const phoneE164 = rawPhone.startsWith('+') ? rawPhone : (phone10.length === 10 ? '+1' + phone10 : rawPhone);
+
+  try {
+    const [mRes, rRes, vRes, gRes, iRes] = await Promise.all([
+      supabaseClient.from('members').select('id,first_name,last_name,total_points,created_at').eq('phone', phoneE164).maybeSingle(),
+      supabaseClient.from('reservations').select('id,event_date,party_size,status,occasion').eq('member_phone', phoneE164).order('event_date', { ascending: false }).limit(5),
+      supabaseClient.from('vip_passes').select('id,pass_type,valid_date,status,guest_name').eq('guest_phone', phone10).order('valid_date', { ascending: false }).limit(5),
+      supabaseClient.from('guest_lists').select('id,created_at,status').eq('phone', phoneE164).order('created_at', { ascending: false }).limit(5),
+      supabaseClient.from('inquiries').select('id,created_at,inquiry_type,status').or(`phone.eq.${phone10},phone.eq.${phoneE164}`).order('created_at', { ascending: false }).limit(10),
+    ]);
+
+    let html = '';
+
+    // Member block
+    const member = mRes.data;
+    if (member) {
+      const since = new Date(member.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      html += `<div class="gh-member-badge">✦ MEMBER — ${esc((member.first_name || '') + ' ' + (member.last_name || '')).trim()}</div>`;
+      html += `<div class="gh-stat-row">
+        <div class="gh-stat"><div class="gh-stat-val">${member.total_points || 0}</div><div class="gh-stat-lbl">POINTS</div></div>
+        <div class="gh-stat"><div class="gh-stat-val">${since}</div><div class="gh-stat-lbl">MEMBER SINCE</div></div>
+      </div>`;
+    }
+
+    // Touchpoints
+    const touchpoints = [];
+
+    // Reservations
+    (rRes.data || []).forEach(r => {
+      const d = r.event_date ? new Date(r.event_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+      const statusColor = r.status === 'confirmed' ? '#4ABFA0' : r.status === 'no_show' ? 'var(--ember)' : 'var(--ash)';
+      touchpoints.push({ icon: '🍽️', title: `Reservation — party of ${r.party_size || '?'}${r.occasion ? ` · ${r.occasion}` : ''}`, meta: d, tag: r.status, tagColor: statusColor, date: r.event_date });
+    });
+
+    // VIP Passes
+    (vRes.data || []).forEach(p => {
+      const d = p.valid_date ? new Date(p.valid_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+      const typeLabel = p.pass_type === 'comp_table' ? 'Comp Table' : p.pass_type === 'entry' ? 'Entry Pass' : 'Comp Tab';
+      const statusColor = p.status === 'active' ? 'var(--owner-gold)' : p.status === 'closed' ? 'var(--green)' : p.status === 'voided' ? 'var(--ember)' : 'var(--ash)';
+      touchpoints.push({ icon: '✦', title: `VIP Pass — ${typeLabel}${p.guest_name ? ` · ${p.guest_name}` : ''}`, meta: d, tag: p.status, tagColor: statusColor, date: p.valid_date });
+    });
+
+    // Guest list
+    (gRes.data || []).forEach(g => {
+      const d = new Date(g.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const statusColor = g.status === 'confirmed' ? '#4ABFA0' : g.status === 'no_show' ? 'var(--ember)' : 'var(--ash)';
+      touchpoints.push({ icon: '📋', title: 'Guest List', meta: d, tag: g.status || 'pending', tagColor: statusColor, date: g.created_at });
+    });
+
+    // Past inquiries (exclude current)
+    (iRes.data || []).filter(i => i.id !== currentInquiryId).slice(0,5).forEach(i => {
+      const d = new Date(i.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const statusColor = i.status === 'booked' ? 'var(--green)' : i.status === 'declined' ? 'var(--ember)' : i.status === 'quoted' ? '#a78bfa' : 'var(--ash)';
+      touchpoints.push({ icon: '📩', title: `Inquiry — ${i.inquiry_type || 'general'}`, meta: d, tag: i.status, tagColor: statusColor, date: i.created_at });
+    });
+
+    if (touchpoints.length === 0 && !member) {
+      html += '<div class="gh-empty">No prior touchpoints found for this phone number.</div>';
+    } else if (touchpoints.length > 0) {
+      // Sort by date desc
+      touchpoints.sort((a,b) => new Date(b.date||0) - new Date(a.date||0));
+      html += touchpoints.map(t =>
+        `<div class="gh-touchpoint">
+          <span class="gh-tp-icon">${t.icon}</span>
+          <div class="gh-tp-body"><div class="gh-tp-title">${esc(t.title)}</div><div class="gh-tp-meta">${esc(t.meta)}</div></div>
+          <span class="gh-tp-tag" style="color:${t.tagColor};border-color:${t.tagColor}30">${esc(t.tag||'').toUpperCase()}</span>
+        </div>`
+      ).join('');
+    }
+
+    ghContent.innerHTML = html || '<div class="gh-empty">No history found.</div>';
+  } catch(e) {
+    ghContent.innerHTML = '<div class="gh-empty">Could not load guest history.</div>';
+    console.warn('Guest history load failed:', e);
+  }
+}
+
 function closeInquiryModal() {
 document.getElementById('inquiryDetailModal').style.display = 'none';
 document.body.style.overflow = '';
