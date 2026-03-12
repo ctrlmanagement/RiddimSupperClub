@@ -30,7 +30,14 @@
  </div></div></div><div id="enrollDlPostWrap"></div><div id="enrollDlStoryWrap"></div></div><div class="tab-panel" id="tab-gallery"><div class="staff-gallery-wrap"><div id="staffGalleryList"><div class="staff-gallery-header"><div><div class="staff-gallery-title">Photo <span>Gallery</span></div><div class="staff-gallery-sub">All galleries · Instagram downloads available</div></div></div><div class="staff-galleries-grid" id="staffGalleriesGrid"><div style="color:rgba(245,240,232,0.3);font-size:13px;">Loading...</div></div><div class="staff-gallery-empty" id="staffGalleryEmpty" style="display:none;"><div class="staff-gallery-empty-icon">📷</div><div class="staff-gallery-empty-text">No galleries yet</div></div></div><div id="staffGalleryViewer" class="staff-gallery-viewer"><div class="staff-gallery-viewer-header"><button class="staff-gallery-back-btn" onclick="showStaffGalleryList()">← Back</button><div class="staff-gallery-viewer-title" id="staffViewerTitle"></div></div><div class="staff-photo-grid" id="staffPhotoGrid"></div><div class="staff-gallery-empty" id="staffPhotoEmpty" style="display:none;"><div class="staff-gallery-empty-icon">🖼️</div><div class="staff-gallery-empty-text">No photos in this gallery</div></div></div></div></div><div class="tab-panel" id="tab-events" style="padding:24px 32px;"><div style="margin-bottom:20px;"><p style="font-family:var(--font-label);font-size:10px;letter-spacing:0.12em;color:var(--gold-warm);margin-bottom:6px;">EVENTS</p><h2 style="font-family:var(--font-display);font-size:28px;font-weight:300;font-style:italic;color:var(--ivory);">This Month</h2></div><div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:16px;margin-bottom:24px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;"><button onclick="staffEvtCalNav(-1)" style="background:none;border:1px solid rgba(255,255,255,0.12);color:#f5f0e8;width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:15px;">&#x2039;</button><div id="staffEvtCalLabel" style="font-family:var(--font-label);font-size:12px;letter-spacing:0.12em;color:#f5f0e8;"></div><button onclick="staffEvtCalNav(1)" style="background:none;border:1px solid rgba(255,255,255,0.12);color:#f5f0e8;width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:15px;">&#x203A;</button></div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;"><div style="text-align:center;font-size:10px;color:rgba(245,240,232,0.3);padding-bottom:3px;">Su</div><div style="text-align:center;font-size:10px;color:rgba(245,240,232,0.3);padding-bottom:3px;">Mo</div><div style="text-align:center;font-size:10px;color:rgba(245,240,232,0.3);padding-bottom:3px;">Tu</div><div style="text-align:center;font-size:10px;color:rgba(245,240,232,0.3);padding-bottom:3px;">We</div><div style="text-align:center;font-size:10px;color:rgba(245,240,232,0.3);padding-bottom:3px;">Th</div><div style="text-align:center;font-size:10px;color:rgba(245,240,232,0.3);padding-bottom:3px;">Fr</div><div style="text-align:center;font-size:10px;color:rgba(245,240,232,0.3);padding-bottom:3px;">Sa</div></div><div id="staffEvtCalGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;"></div></div><div id="staffEvtFeaturedList" style="display:flex;flex-direction:column;gap:10px;"></div></main><div id="staffEvtDayModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:500;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)closeStaffEvtDayModal()"><div style="background:#1A1A1A;border:1px solid rgba(212,168,67,0.3);border-radius:14px;padding:24px;width:100%;max-width:480px;max-height:80vh;overflow-y:auto;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;"><div id="staffEvtDayModalTitle" style="font-family:var(--font-label);font-size:13px;letter-spacing:0.18em;color:var(--gold-warm);"></div><button onclick="closeStaffEvtDayModal()" style="background:none;border:none;color:rgba(245,240,232,0.4);font-size:22px;cursor:pointer;line-height:1;padding:0 4px;">✕</button></div><div id="staffEvtDayModalBody" style="display:flex;flex-direction:column;gap:12px;"></div></div></div><div class="staff-lightbox" id="staffLightbox"><button class="staff-lightbox-close" onclick="closeStaffLightbox()">✕</button><button class="staff-lightbox-prev" onclick="staffLightboxNav(-1)">‹</button><img class="staff-lightbox-img" id="staffLightboxImg" src="" alt=""><button class="staff-lightbox-next" onclick="staffLightboxNav(1)">›</button><div class="staff-lightbox-toolbar"><button class="staff-lightbox-dl-btn instagram" onclick="downloadInstagramCrop()">📸 Instagram (1080×1080)</button><button class="staff-lightbox-dl-btn original" id="staffLightboxOriginalDl" onclick="downloadOriginalPhoto()">↓ Original</button><span class="staff-lightbox-counter-txt" id="staffLightboxCounter"></span></div></div><div class="staff-ig-processing" id="staffIgProcessing"><div style="font-size:32px;">📸</div><div class="staff-ig-processing-text">Preparing Instagram photo...</div></div><canvas id="staffIgCanvas" style="display:none;" width="1080" height="1080"></canvas><div class="mobile-tab-bar"><div class="mobile-tabs"><button class="mobile-tab active" data-tab="checkin"><span class="mobile-tab-icon">⬡</span><span class="mobile-tab-label">Check-In</span></button><button class="mobile-tab" data-tab="reservations"><span class="mobile-tab-icon">◈</span><span class="mobile-tab-label">Reservations</span></button><button class="mobile-tab" data-tab="members"><span class="mobile-tab-icon">◉</span><span class="mobile-tab-label">Members</span></button><button class="mobile-tab" data-tab="guests"><span class="mobile-tab-icon">✦</span><span class="mobile-tab-label">Guests</span></button><button class="mobile-tab" data-tab="schedule"><span class="mobile-tab-icon">⊞</span><span class="mobile-tab-label">Schedule</span></button><button class="mobile-tab" data-tab="referrals"><span class="mobile-tab-icon">★</span><span class="mobile-tab-label">Referrals</span></button><button class="mobile-tab" data-tab="gallery"><span class="mobile-tab-icon">📷</span><span class="mobile-tab-label">Gallery</span></button><button class="mobile-tab" data-tab="events"><span class="mobile-tab-icon">📅</span><span class="mobile-tab-label">Events</span></button></div></div></div></div><div class="toast" id="toast"></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script><script>const SUPABASE_URL = 'https://cbvryfgrqzdvbqigyrgh.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_fQlHFhC7tPkZNRl1djnvcA_68LpKQpv';
 const DEV_MODE = true; 
-const LIVE_DATA = true; 
+const LIVE_DATA = true;
+
+// ── Reach tracking helper (F01/F03/F04)
+async function incrementReach(table, id) {
+  if (!LIVE_DATA || !supabaseClient || !id) return;
+  try { await supabaseClient.rpc('increment_reach', { p_table: table, p_id: id }); }
+  catch(e) { /* silent — column may not exist yet */ }
+} 
 let supabaseClient = null;
 try {
 supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -1658,6 +1665,8 @@ staffEnsureSignedUrl(staffLightboxIndex + dir);
 async function downloadOriginalPhoto() {
 const photo = staffGalleryPhotos[staffLightboxIndex];
 if (!photo) return;
+// F03: reach tracking on download
+if (photo.id) incrementReach('gallery_photos', photo.id);
 const btn = document.getElementById('staffLightboxOriginalDl');
 const origText = btn.textContent;
 btn.textContent = 'Downloading...';
@@ -1711,6 +1720,8 @@ staffLightboxNav(dx < 0 ? 1 : -1);
 async function downloadInstagramCrop() {
 const photo = staffGalleryPhotos[staffLightboxIndex];
 if (!photo) return;
+// F03: reach tracking on IG download
+if (photo.id) incrementReach('gallery_photos', photo.id);
 const processing = document.getElementById('staffIgProcessing');
 processing.classList.add('active');
 try {
@@ -1791,6 +1802,10 @@ if (!dayEvents.length) {
 body.innerHTML = `<div style="text-align:center;padding:24px 0;color:rgba(245,240,232,0.3);font-size:14px;">No events scheduled for this date.</div>`;
 } else {
 body.innerHTML = dayEvents.map(ev => staffEvtEventCard(ev, STATUS_COLORS)).join('');
+// F01: increment reach for events with flyer or promo video
+dayEvents.forEach(ev => {
+  if ((ev.flyer_url || ev.promo_video_url) && ev.id) incrementReach('events', ev.id);
+});
 }
 document.getElementById('staffEvtDayModal').style.display = 'flex';
 }

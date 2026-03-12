@@ -1207,6 +1207,13 @@ const SUPABASE_URL = 'https://cbvryfgrqzdvbqigyrgh.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_fQlHFhC7tPkZNRl1djnvcA_68LpKQpv';
 const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+// ── F04: Reach tracking helper
+async function incrementReach(table, id) {
+  if (!client || !id) return;
+  try { await client.rpc('increment_reach', { p_table: table, p_id: id }); }
+  catch(e) { /* silent */ }
+}
+
 const GALLERY_LIMIT = 10;   /* max galleries shown on the page  */
 const PHOTO_LIMIT   = 10;   /* max photos per gallery (public)  */
 const GATE_INDEX    = 9;    /* 0-based index of the gated photo */
@@ -1562,7 +1569,13 @@ async function openLightbox(index) {
   document.getElementById('pubLightbox').classList.add('active');
   document.body.style.overflow = 'hidden';
   document.addEventListener('keydown', lightboxKeyHandler);
-  if (!isGate) { ensureSignedUrl(index + 1); ensureSignedUrl(index - 1); }
+  if (!isGate) {
+    ensureSignedUrl(index + 1);
+    ensureSignedUrl(index - 1);
+    // F04: track photo view reach
+    const photo = galleryPhotos[index];
+    if (photo?.id) incrementReach('gallery_photos', photo.id);
+  }
 }
 
 function renderLightbox() {
