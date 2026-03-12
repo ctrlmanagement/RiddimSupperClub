@@ -543,6 +543,10 @@ if (!dayEvents.length) {
 body.innerHTML = '<div style="text-align:center;padding:24px 0;color:rgba(245,240,232,0.3);font-size:14px;">No events scheduled for this date.</div>';
 } else {
 body.innerHTML = dayEvents.map(ev => memberEvtCard(ev)).join('');
+// F01: reach on events with flyer or promo video
+dayEvents.forEach(ev => {
+  if ((ev.flyer_url || ev.promo_video_url) && ev.id) incrementReach('events', ev.id);
+});
 }
 document.getElementById('memberEvtDayModal').style.display = 'flex';
 }
