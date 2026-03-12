@@ -1932,7 +1932,9 @@ async function submitInquiry() {
     guest_status: _guestStatus,
     status: 'new',
   };
-  if (_memberId) payload.member_id = _memberId;
+  // Only stamp member_id if it is a valid UUID — members table may use legacy IDs like RDM-3382
+  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (_memberId && isUUID.test(_memberId)) payload.member_id = _memberId;
 
   let submitOk = false;
   if (LIVE_DATA && supabaseClient) {
