@@ -1829,7 +1829,7 @@ async function lookupGuest() {
       supabaseClient.from('members').select('id,first_name,last_name,email').eq('phone', phoneE164).maybeSingle(),
       supabaseClient.from('reservations').select('id').eq('member_phone', phoneE164).limit(1),
       supabaseClient.from('vip_passes').select('id').eq('guest_phone', phone10).in('status',['active','unused']).limit(1),
-      supabaseClient.from('guest_lists').select('id').eq('phone', phoneE164).limit(1),
+      supabaseClient.from('guest_lists').select('id').eq('guest_phone', phone10).limit(1),
       supabaseClient.from('inquiries').select('id').or(`phone.eq.${phone10},phone.eq.${phoneE164}`).limit(1),
     ]);
     if (mRes.data) {
