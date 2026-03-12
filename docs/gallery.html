@@ -1402,6 +1402,8 @@ async function hydrateCard(card) {
    The GATE_INDEX (10th, index 9) is rendered with the join overlay.
    ================================================================= */
 async function openGallery(galleryId, title) {
+  // F04: gallery-level reach on open
+  if (galleryId) incrementReach('galleries', galleryId);
   document.getElementById('galleryListView').style.display = 'none';
   const photoView = document.getElementById('photoView');
   photoView.classList.add('active');
@@ -1572,9 +1574,7 @@ async function openLightbox(index) {
   if (!isGate) {
     ensureSignedUrl(index + 1);
     ensureSignedUrl(index - 1);
-    // F04: track photo view reach
-    const photo = galleryPhotos[index];
-    if (photo?.id) incrementReach('gallery_photos', photo.id);
+
   }
 }
 

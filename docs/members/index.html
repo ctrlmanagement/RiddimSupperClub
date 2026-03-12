@@ -1070,6 +1070,8 @@ grid.innerHTML = '<div style="color:#e07070;font-size:13px;">Could not load gall
 }
 }
 async function openMemberGallery(galleryId, title) {
+// F04: gallery-level reach on open
+if (galleryId) incrementReach('galleries', galleryId);
 memberCurrentGalleryTitle = title || '';
 document.getElementById('memberViewerTitle').textContent = title;
 document.getElementById('memberGalleryList').style.display = 'none';
@@ -1156,10 +1158,9 @@ await memberEnsureSignedUrl(index);
 renderMemberLightbox();
 memberEnsureSignedUrl(index + 1);
 memberEnsureSignedUrl(index - 1);
-// F04: track photo id for reach and fire view reach
+// track photo id for download reach
 const _p = memberGalleryPhotos[index];
 window._currentMemberPhotoId = _p?.id || null;
-if (window._currentMemberPhotoId) incrementReach('gallery_photos', window._currentMemberPhotoId);
 }
 async function memberEnsureSignedUrl(i) {
 if (i < 0 || i >= memberGalleryPhotos.length) return;

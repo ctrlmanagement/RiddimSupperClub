@@ -1865,7 +1865,7 @@ if (!grid) return;
 grid.innerHTML = '<div style="color:rgba(245,240,232,0.3);font-size:13px;padding:20px 0;">Loading galleries...</div>';
 try {
 const { data: galleries, error } = await supabaseClient
-.from('galleries').select('id, title, gallery_date, is_private, cover_photo_id, event_id, events(title)')
+.from('galleries').select('id, title, gallery_date, is_private, cover_photo_id, event_id, reach, events(title)')
 .order('gallery_date', { ascending: false });
 if (error) throw error;
 if (!galleries || galleries.length === 0) {
@@ -1879,7 +1879,7 @@ grid.innerHTML = galleries.map(g => `
 data-gallery-id="${g.id}"
 data-cover-photo-id="${g.cover_photo_id || ''}"><div class="gallery-card-cover" data-lazy-cover-target><span class="gallery-card-cover-placeholder" style="font-size:32px;color:rgba(218,165,32,.25);">&#x1F4F7;</span><img data-lazy-cover
 style="width:100%;height:155px;object-fit:cover;display:none;opacity:0;transition:opacity .3s;position:absolute;inset:0;"
-alt=""></div><div class="gallery-card-body"><div class="gallery-card-title">${g.title}</div><div class="gallery-card-meta">${galleryFormatDate(g.gallery_date)}${g.events ? ' &middot; '+g.events.title : ''}</div><div class="gallery-card-footer"><span class="${g.is_private ? 'gallery-private-badge' : 'gallery-public-badge'}">${g.is_private ? '&#x1F512; Private' : '&#x2713; Public'}</span><span class="gallery-photo-count" data-lazy-count>— photos</span></div><div class="gallery-card-actions"><button class="gallery-card-btn" onclick="openGalleryManager('${g.id}','${galleryEscAttr(g.title)}')">Manage</button><button class="gallery-card-btn" onclick="editGallery('${g.id}')">Edit</button><button class="gallery-card-btn danger" onclick="deleteGallery('${g.id}','${galleryEscAttr(g.title)}')">Delete</button></div></div></div>`).join('');
+alt=""></div><div class="gallery-card-body"><div class="gallery-card-title">${g.title}</div><div class="gallery-card-meta">${galleryFormatDate(g.gallery_date)}${g.events ? ' &middot; '+g.events.title : ''}</div><div class="gallery-card-footer"><span class="${g.is_private ? 'gallery-private-badge' : 'gallery-public-badge'}">${g.is_private ? '&#x1F512; Private' : '&#x2713; Public'}</span><span class="gallery-photo-count" data-lazy-count>— photos</span>${g.reach ? `<span style="font-family:var(--font-label);font-size:9px;letter-spacing:0.1em;color:var(--ash);padding:2px 7px;border:1px solid var(--graphite);border-radius:4px;">👁 ${g.reach}</span>` : ''}</div><div class="gallery-card-actions"><button class="gallery-card-btn" onclick="openGalleryManager('${g.id}','${galleryEscAttr(g.title)}')">Manage</button><button class="gallery-card-btn" onclick="editGallery('${g.id}')">Edit</button><button class="gallery-card-btn danger" onclick="deleteGallery('${g.id}','${galleryEscAttr(g.title)}')">Delete</button></div></div></div>`).join('');
 grid.querySelectorAll('[data-lazy-cover-target]').forEach(el => {
 el.style.position = 'relative';
 el.style.display = 'flex';
@@ -2143,7 +2143,7 @@ const c = document.getElementById('galleryManagerPhotos');
 const empty = document.getElementById('galleryManagerEmpty');
 c.innerHTML = '<div style="color:rgba(245,240,232,0.3);font-size:13px;">Loading...</div>';
 try {
-const { data: photos, error } = await supabaseClient.from('gallery_photos').select('id, gallery_id, storage_path, display_order, original_filename, caption, photographer, venue_name, location, date_taken, reach')
+const { data: photos, error } = await supabaseClient.from('gallery_photos').select('id, gallery_id, storage_path, display_order, original_filename, caption, photographer, venue_name, location, date_taken')
 .eq('gallery_id', galleryId).order('display_order', { ascending: true });
 if (error) throw error;
 const { data: gal } = await supabaseClient.from('galleries').select('cover_photo_id').eq('id', galleryId).single();
@@ -2157,7 +2157,6 @@ data-photo-index="${i}"
 data-storage-path="${galleryEscAttr(p.storage_path)}"
 onclick="openLightbox(${i})">
 ${p.id===coverId ? '<div class="gallery-cover-badge">Cover</div>' : ''}
-${p.reach ? `<div style="position:absolute;bottom:5px;left:5px;background:rgba(0,0,0,0.72);border:1px solid rgba(245,240,232,0.15);border-radius:4px;padding:2px 7px;font-family:var(--font-label);font-size:9px;letter-spacing:0.1em;color:rgba(245,240,232,0.6);z-index:2;">👁 ${p.reach}</div>` : ''}
 <img data-lazy-thumb
 style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .3s;"
 alt=""><div class="gallery-mgr-photo-actions"><button class="gallery-mgr-action-btn" title="Set cover" onclick="event.stopPropagation();setCoverPhoto('${galleryId}','${p.id}')">&#x2B50;</button><button class="gallery-mgr-action-btn delete" title="Delete" onclick="event.stopPropagation();deletePhoto('${p.id}','${galleryEscAttr(p.storage_path)}','${galleryId}')">&#x1F5D1;</button></div></div>`).join('');

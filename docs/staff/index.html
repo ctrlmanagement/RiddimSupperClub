@@ -1563,6 +1563,8 @@ grid.innerHTML = '<div style="color:#e07070;font-size:13px;">Could not load gall
 }
 }
 async function openStaffGallery(galleryId, title) {
+// F04: gallery-level reach on open
+if (galleryId) incrementReach('galleries', galleryId);
 staffCurrentGalleryTitle = title || '';
 document.getElementById('staffViewerTitle').textContent = title;
 document.getElementById('staffGalleryList').style.display = 'none';
