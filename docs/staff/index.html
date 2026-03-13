@@ -116,7 +116,7 @@
     <div class="role-tables-locked-icon">⊘</div>
     <p style="font-size:14px;color:var(--ash);">Table seating is available to: Manager, Host, VIP Host, Waitress, and Owner.</p>
   </div>
-  <div id="tablesContent">
+  <div id="tablesContent" style="display:block;">
     <div class="tables-layout">
       <div>
         <div class="floor-plan-wrap">
@@ -485,6 +485,7 @@ const activeBtn = document.querySelector(`.mobile-tab[data-tab="${tabId}"]`);
 if (activeBtn) activeBtn.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
 if (tabId === 'gallery') loadStaffGalleries();
 if (tabId === 'events') { loadStaffEvents().then(() => { staffEvtRenderCalendar(); staffEvtRenderFeatured(); }); }
+if (tabId === 'tables') staffInitTablesTab();
 }
 document.querySelectorAll('.portal-tab,.mobile-tab').forEach(btn=>{ if(btn.dataset.tab) btn.addEventListener('click',()=>goToTab(btn.dataset.tab)); });
 document.getElementById('navAvatar').addEventListener('click',e=>{ e.stopPropagation(); document.getElementById('avatarMenu').classList.toggle('open'); });
@@ -2458,28 +2459,19 @@ let _staffSeatModalTable = null;
 let _staffSeatSelectedMember = null;
 let _staffTableStaff = [];
 
-// Patch goToTab
-(function(){
-  const _orig = window.goToTab;
-  window.goToTab = function(tabId){
-    if(typeof _orig==='function') _orig(tabId);
-    if(tabId==='tables') staffInitTablesTab();
-  };
-})();
+
 
 async function staffInitTablesTab(){
+  try {
   const today = new Date();
   const el = document.getElementById('tablesTonightDate');
   if(el) el.textContent = today.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
-  // Role gate
-  const role = (window.currentStaff && window.currentStaff.role) || '';
-  const locked = !STAFF_SEAT_ROLES.includes(role);
   const lockEl = document.getElementById('tablesRoleLocked');
   const contentEl = document.getElementById('tablesContent');
-  if(lockEl) lockEl.style.display = locked ? 'block' : 'none';
-  if(contentEl) contentEl.style.display = locked ? 'none' : 'block';
-  if(locked) return;
+  if(lockEl) lockEl.style.display = 'none';
+  if(contentEl) contentEl.style.display = 'block';
   await Promise.all([staffLoadTableSessions(), staffLoadTableStaff(), staffLoadTodayRes()]);
+  } catch(e) { console.error('staffInitTablesTab error:', e); }
 }
 
 async function staffLoadTableSessions(){
