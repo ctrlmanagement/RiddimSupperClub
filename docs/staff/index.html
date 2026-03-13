@@ -226,16 +226,15 @@ document.addEventListener('DOMContentLoaded', async function() {
   try {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) return; // No session → stay on login screen
-    // Look up staff record by user phone (stored in user_metadata or phone)
+    // Staff portal only supports phone-OTP sessions.
+    // Ignore Google OAuth sessions (owner portal shares this Supabase project).
+    const provider = session.user.app_metadata?.provider;
+    if (provider && provider !== 'phone') return;
     const userPhone = session.user.phone || session.user.user_metadata?.phone;
-    const userEmail = session.user.email;
+    if (!userPhone) return; // No phone in session — not a valid staff session
     let staffRow = null;
-    if (userPhone) {
+    {
       const { data } = await supabaseClient.from('staff').select('id,first_name,last_name,role,phone').eq('phone', userPhone).single();
-      staffRow = data;
-    }
-    if (!staffRow && userEmail) {
-      const { data } = await supabaseClient.from('staff').select('id,first_name,last_name,role,phone').eq('email', userEmail).single();
       staffRow = data;
     }
     if (staffRow) {
@@ -1482,6 +1481,7 @@ setTimeout(loadResReferralCount, 400);
 });
 async function generateResQR() {
 if (resQrGenerated) return;
+if (!currentStaff?.phone) return; // no valid staff context
 const wrap = document.getElementById('resQrCanvas');
 if (!wrap) return;
 if (!currentStaff?.supabaseId && LIVE_DATA && supabaseClient) {
@@ -1588,6 +1588,7 @@ console.warn('Referral count fetch error:', e);
 }
 async function generateStaffQR() {
 if (staffQrGenerated) return;
+if (!currentStaff?.phone) return; // no valid staff context
 const canvasWrap = document.getElementById('staffQrCanvas');
 if (!currentStaff?.supabaseId && LIVE_DATA && supabaseClient) {
 try {
