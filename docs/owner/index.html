@@ -2590,76 +2590,6 @@ win.document.write(`<!DOCTYPE html><html><head>
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><title>Guest List</title><style>body{font-family:sans-serif;padding:24px;color:#111;}h2{margin-bottom:4px;}p{color:#555;font-size:13px;margin-bottom:20px;}table{width:100%;border-collapse:collapse;}th{text-align:left;padding:8px 12px;border-bottom:2px solid #000;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;}td{padding:8px 12px;border-bottom:1px solid #eee;font-size:13px;}@media print{button{display:none;}}</style></head><body><h2>RIDDIM Supper Club — Guest List</h2><p>${eventName}${dateVal ? ' &nbsp;·&nbsp; ' + dateVal : ''}</p><button onclick="window.print()" style="margin-bottom:16px;padding:8px 20px;background:#000;color:#fff;border:none;cursor:pointer;border-radius:4px;font-size:13px;">Print</button><table><thead><tr><th>Name</th><th>Status</th><th>Party Size</th></tr></thead><tbody>${tableRows}</tbody></table>
-<!-- SEAT TABLE MODAL -->
-<div class="seat-modal-overlay" id="seatModalOverlay">
-  <div class="seat-modal-card" id="seatModalCard">
-    <div class="seat-modal-table-badge"><span class="seat-modal-table-label" id="seatModalTableLabel">TABLE 1</span></div>
-    <div class="seat-modal-title" id="seatModalTitle">Seat Guests</div>
-    <div class="seat-modal-sub" id="seatModalSub">Assign a guest, party size, and server to this table.</div>
-    <!-- Current occupant info (shown when table is occupied) -->
-    <div id="seatCurrentInfo" class="seat-current-info" style="display:none;">
-      <div class="seat-current-label">CURRENTLY SEATED</div>
-      <div class="seat-current-guest" id="seatCurrentGuest">—</div>
-      <div class="seat-current-meta" id="seatCurrentMeta">—</div>
-    </div>
-    <!-- Member search -->
-    <div class="seat-field">
-      <label>Guest / Member</label>
-      <div class="seat-member-lookup-wrap">
-        <input type="text" id="seatGuestInput" placeholder="Search name, phone, or ID…" oninput="seatMemberSearch()" autocomplete="off"/>
-        <div class="seat-member-results" id="seatMemberResults"></div>
-      </div>
-      <div id="seatMemberBadge" style="display:none;">
-        <div class="seat-member-badge" onclick="clearSeatMember()">
-          <span id="seatMemberBadgeText">—</span> <span style="opacity:0.5;font-size:10px;">✕ clear</span>
-        </div>
-      </div>
-    </div>
-    <!-- Party size -->
-    <div class="seat-field">
-      <label>Party Size</label>
-      <select id="seatPartySize">
-        <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-        <option value="4" selected>4</option><option value="5">5</option><option value="6">6</option>
-        <option value="7">7</option><option value="8">8</option><option value="10">10</option>
-        <option value="12">12</option><option value="15">15</option><option value="20">20+</option>
-      </select>
-    </div>
-    <!-- Server assign -->
-    <div class="seat-field">
-      <label>Assign Server / Waitress</label>
-      <select id="seatServerSelect"><option value="">— Select server —</option></select>
-    </div>
-    <!-- Reservation link (optional) -->
-    <div class="seat-field">
-      <label>Link to Reservation (optional)</label>
-      <select id="seatResSelect"><option value="">— None —</option></select>
-    </div>
-    <!-- Owner-only: deposit + comp -->
-    <div class="deposit-section" id="seatDepositSection">
-      <div class="deposit-section-label">✦ OWNER — APPLY PAYMENT / COMP</div>
-      <div class="seat-deposit-row">
-        <div class="seat-field" style="margin-bottom:0;">
-          <label>Deposit Paid ($)</label>
-          <input type="number" id="seatDepositInput" placeholder="0.00" min="0" step="0.01"/>
-        </div>
-        <div class="seat-field" style="margin-bottom:0;">
-          <label>Comp Amount ($)</label>
-          <input type="number" id="seatCompInput" placeholder="0.00" min="0" step="0.01"/>
-        </div>
-      </div>
-      <div class="seat-field" style="margin-top:12px;margin-bottom:0;">
-        <label>Notes (internal)</label>
-        <input type="text" id="seatNotesInput" placeholder="e.g. Birthday VIP, pre-paid $200…"/>
-      </div>
-    </div>
-    <div class="seat-modal-actions" id="seatModalActions">
-      <button class="btn-seat-primary" onclick="confirmSeatTable()">✦ Seat Table</button>
-      <button class="btn-seat-ghost" onclick="closeSeatModal()">Cancel</button>
-    </div>
-    <div id="seatModalError" style="font-size:13px;color:var(--ember);text-align:center;margin-top:8px;min-height:18px;"></div>
-  </div>
-</div>
 </body></html>`);
 win.document.close();
 }
@@ -3297,8 +3227,9 @@ function closeSeatModal() {
   _seatModalTable = null;
   _seatSelectedMember = null;
 }
-document.getElementById('seatModalOverlay').addEventListener('click', function(e) {
-  if (e.target === this) closeSeatModal();
+document.addEventListener('DOMContentLoaded', function() {
+  var _seatOverlay = document.getElementById('seatModalOverlay');
+  if (_seatOverlay) _seatOverlay.addEventListener('click', function(e) { if (e.target === this) closeSeatModal(); });
 });
 
 // Member search in seat modal
@@ -3414,6 +3345,76 @@ async function closeTableSession(tableNum) {
 /* ═══ END TABLE MANAGEMENT ═══════════════════════════════════════════ */
 
 </script>
+<!-- SEAT TABLE MODAL -->
+<div class="seat-modal-overlay" id="seatModalOverlay">
+  <div class="seat-modal-card" id="seatModalCard">
+    <div class="seat-modal-table-badge"><span class="seat-modal-table-label" id="seatModalTableLabel">TABLE 1</span></div>
+    <div class="seat-modal-title" id="seatModalTitle">Seat Guests</div>
+    <div class="seat-modal-sub" id="seatModalSub">Assign a guest, party size, and server to this table.</div>
+    <!-- Current occupant info (shown when table is occupied) -->
+    <div id="seatCurrentInfo" class="seat-current-info" style="display:none;">
+      <div class="seat-current-label">CURRENTLY SEATED</div>
+      <div class="seat-current-guest" id="seatCurrentGuest">—</div>
+      <div class="seat-current-meta" id="seatCurrentMeta">—</div>
+    </div>
+    <!-- Member search -->
+    <div class="seat-field">
+      <label>Guest / Member</label>
+      <div class="seat-member-lookup-wrap">
+        <input type="text" id="seatGuestInput" placeholder="Search name, phone, or ID…" oninput="seatMemberSearch()" autocomplete="off"/>
+        <div class="seat-member-results" id="seatMemberResults"></div>
+      </div>
+      <div id="seatMemberBadge" style="display:none;">
+        <div class="seat-member-badge" onclick="clearSeatMember()">
+          <span id="seatMemberBadgeText">—</span> <span style="opacity:0.5;font-size:10px;">✕ clear</span>
+        </div>
+      </div>
+    </div>
+    <!-- Party size -->
+    <div class="seat-field">
+      <label>Party Size</label>
+      <select id="seatPartySize">
+        <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+        <option value="4" selected>4</option><option value="5">5</option><option value="6">6</option>
+        <option value="7">7</option><option value="8">8</option><option value="10">10</option>
+        <option value="12">12</option><option value="15">15</option><option value="20">20+</option>
+      </select>
+    </div>
+    <!-- Server assign -->
+    <div class="seat-field">
+      <label>Assign Server / Waitress</label>
+      <select id="seatServerSelect"><option value="">— Select server —</option></select>
+    </div>
+    <!-- Reservation link (optional) -->
+    <div class="seat-field">
+      <label>Link to Reservation (optional)</label>
+      <select id="seatResSelect"><option value="">— None —</option></select>
+    </div>
+    <!-- Owner-only: deposit + comp -->
+    <div class="deposit-section" id="seatDepositSection">
+      <div class="deposit-section-label">✦ OWNER — APPLY PAYMENT / COMP</div>
+      <div class="seat-deposit-row">
+        <div class="seat-field" style="margin-bottom:0;">
+          <label>Deposit Paid ($)</label>
+          <input type="number" id="seatDepositInput" placeholder="0.00" min="0" step="0.01"/>
+        </div>
+        <div class="seat-field" style="margin-bottom:0;">
+          <label>Comp Amount ($)</label>
+          <input type="number" id="seatCompInput" placeholder="0.00" min="0" step="0.01"/>
+        </div>
+      </div>
+      <div class="seat-field" style="margin-top:12px;margin-bottom:0;">
+        <label>Notes (internal)</label>
+        <input type="text" id="seatNotesInput" placeholder="e.g. Birthday VIP, pre-paid $200…"/>
+      </div>
+    </div>
+    <div class="seat-modal-actions" id="seatModalActions">
+      <button class="btn-seat-primary" onclick="confirmSeatTable()">✦ Seat Table</button>
+      <button class="btn-seat-ghost" onclick="closeSeatModal()">Cancel</button>
+    </div>
+    <div id="seatModalError" style="font-size:13px;color:var(--ember);text-align:center;margin-top:8px;min-height:18px;"></div>
+  </div>
+</div>
 <!-- F06 VIP Creation Modal -->
 <div class="vip-modal-overlay" id="vipModalOverlay" onclick="if(event.target===this)closeVIPModal()">
   <div class="vip-modal-card">

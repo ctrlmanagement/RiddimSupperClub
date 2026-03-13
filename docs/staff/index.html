@@ -2590,8 +2590,9 @@ function staffCloseSeatModal(){
   _staffSeatModalTable=null;
   _staffSeatSelectedMember=null;
 }
-document.getElementById('staffSeatModalOverlay').addEventListener('click',function(e){
-  if(e.target===this) staffCloseSeatModal();
+document.addEventListener('DOMContentLoaded',function(){
+  var _staffSeatOverlay=document.getElementById('staffSeatModalOverlay');
+  if(_staffSeatOverlay) _staffSeatOverlay.addEventListener('click',function(e){ if(e.target===this) staffCloseSeatModal(); });
 });
 
 let _staffSeatSearchTO=null;
