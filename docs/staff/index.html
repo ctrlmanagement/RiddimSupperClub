@@ -1939,8 +1939,9 @@ document.body.appendChild(vipOverlayEl);
 /* ─── F06 VIP PASS JS ─────────────────────────────────────── */
 let currentVIPPass = null;
 
-async function processVIPPass(token) {
-  setGuestScanStatus('scanning', '◆ Looking up VIP pass…');
+async function processVIPPass(token, setStatus) {
+  if (!setStatus) setStatus = setGuestScanStatus;
+  setStatus('scanning', '◆ Looking up VIP pass…');
   let pass = null;
   if (LIVE_DATA && supabaseClient) {
     try {
@@ -1953,17 +1954,17 @@ async function processVIPPass(token) {
     } catch(e) { pass = null; }
   }
   if (!pass) {
-    setGuestScanStatus('error', '✕ VIP pass not found. May be voided or invalid.');
+    setStatus('error', '✕ VIP pass not found. May be voided or invalid.');
     return;
   }
   currentVIPPass = pass;
   // Validate date
   const today = new Date().toISOString().slice(0,10);
   if (pass.valid_date !== today) {
-    setGuestScanStatus('error', `✕ Pass is not valid today. Valid date: ${formatPassDate(pass.valid_date)}.`);
+    setStatus('error', `✕ Pass is not valid today. Valid date: ${formatPassDate(pass.valid_date)}.`);
     return;
   }
-  setGuestScanStatus('', '');
+  setStatus('', '');
   showVIPOverlay(pass);
 }
 
@@ -2160,7 +2161,7 @@ function startCheckinScanner() {
         status.className = 'guest-scan-status';
         status.textContent = '';
         // Route: VIP pass → gold alert overlay; member QR → check-in lookup
-        if (/^VIP:/i.test(decoded)) { processVIPPass(decoded.slice(4)); return; }
+        if (/^VIP:/i.test(decoded)) { processVIPPass(decoded.slice(4), (type, msg) => { const el = document.getElementById('checkinScanStatus'); el.className = `guest-scan-status${type ? ' '+type : ''}`; el.textContent = msg; el.style.display = type ? 'block' : 'none'; }); return; }
         // Direct Supabase lookup by RDM ID — bypasses local array which may be empty
         if (/^RDM-/i.test(decoded) && LIVE_DATA && supabaseClient) {
           (async () => {
