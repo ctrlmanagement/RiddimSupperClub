@@ -2623,7 +2623,7 @@ async function loadGuestHistory(rawPhone, knownStatus) {
       supabaseClient.from('members').select('id,first_name,last_name,total_points,created_at').eq('phone', phoneE164).maybeSingle(),
       supabaseClient.from('reservations').select('id,event_date,party_size,status,occasion').eq('member_phone', phoneE164).order('event_date', { ascending: false }).limit(5),
       supabaseClient.from('vip_passes').select('id,pass_type,valid_date,status,guest_name').eq('guest_phone', phone10).order('valid_date', { ascending: false }).limit(5),
-      supabaseClient.from('guest_lists').select('id,created_at,status').eq('phone', phoneE164).order('created_at', { ascending: false }).limit(5),
+      supabaseClient.from('guest_lists').select('id,created_at,status').eq('guest_phone', phone10).order('created_at', { ascending: false }).limit(5),
       supabaseClient.from('inquiries').select('id,created_at,inquiry_type,status').or(`phone.eq.${phone10},phone.eq.${phoneE164}`).order('created_at', { ascending: false }).limit(10),
     ]);
 
