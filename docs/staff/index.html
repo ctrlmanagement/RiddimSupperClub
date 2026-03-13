@@ -2157,9 +2157,8 @@ function startCheckinScanner() {
         frame.style.display = 'none';
         stopBtn.style.display = 'none';
         idle.style.display = 'block';
-        status.className = 'guest-scan-status error';
-        status.textContent = 'SCAN DEBUG: ' + decoded.slice(0, 60);
-        status.style.display = 'block';
+        status.className = 'guest-scan-status';
+        status.textContent = '';
         // Route: VIP pass → gold alert overlay; member QR → check-in lookup
         if (/^VIP:/i.test(decoded)) { processVIPPass(decoded.slice(4)); return; }
         // Direct Supabase lookup by RDM ID — bypasses local array which may be empty
