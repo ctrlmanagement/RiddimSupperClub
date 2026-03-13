@@ -3106,7 +3106,7 @@ async function loadTableStaff() {
   const { data } = await supabaseClient
     .from('staff')
     .select('id, first_name, last_name, role')
-    .eq('is_active', true)
+    .eq('active', true)
     .in('role', ['server','host','host_floor','manager']);
   _tableStaff = data || [];
   const sel = document.getElementById('seatServerSelect');
@@ -3120,13 +3120,13 @@ async function loadTodayReservations() {
   const today = new Date().toISOString().split('T')[0];
   const { data } = await supabaseClient
     .from('reservations')
-    .select('id, first_name, last_name, party_size, reservation_date, status')
-    .eq('reservation_date', today)
+    .select('id, guest_name, party_size, event_date, status')
+    .eq('event_date', today)
     .in('status', ['confirmed','pending']);
   const sel = document.getElementById('seatResSelect');
   if (!sel) return;
   sel.innerHTML = '<option value="">— None —</option>' +
-    (data || []).map(r => `<option value="${r.id}">${r.first_name} ${r.last_name} — Party of ${r.party_size} (${r.status})</option>`).join('');
+    (data || []).map(r => `<option value="${r.id}">${r.guest_name} — Party of ${r.party_size} (${r.status})</option>`).join('');
 }
 
 function renderFloorPlan(map) {

@@ -219,6 +219,46 @@ window.addEventListener('pageshow', function(e) {
   }
 });
 } catch(e) { console.warn('Supabase init failed:', e); }
+
+// ── Session restore: if staff is already authenticated, skip OTP and boot portal
+document.addEventListener('DOMContentLoaded', async function() {
+  if (!supabaseClient) return;
+  try {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) return; // No session → stay on login screen
+    // Look up staff record by user phone (stored in user_metadata or phone)
+    const userPhone = session.user.phone || session.user.user_metadata?.phone;
+    const userEmail = session.user.email;
+    let staffRow = null;
+    if (userPhone) {
+      const { data } = await supabaseClient.from('staff').select('id,first_name,last_name,role,phone').eq('phone', userPhone).single();
+      staffRow = data;
+    }
+    if (!staffRow && userEmail) {
+      const { data } = await supabaseClient.from('staff').select('id,first_name,last_name,role,phone').eq('email', userEmail).single();
+      staffRow = data;
+    }
+    if (staffRow) {
+      currentStaff = { name: staffRow.first_name + ' ' + staffRow.last_name, phone: staffRow.phone, role: staffRow.role, supabaseId: staffRow.id };
+    } else {
+      // Authenticated but no staff row — build minimal currentStaff from session
+      currentStaff = { name: session.user.user_metadata?.name || 'Staff Member', phone: userPhone || '', role: '', supabaseId: null };
+    }
+    // Boot the portal
+    const initials = currentStaff.name.split(' ').map(n=>n[0]).join('').toUpperCase();
+    document.getElementById('navStaffName').textContent = currentStaff.name;
+    document.getElementById('navAvatar').childNodes[0].textContent = initials;
+    document.getElementById('tonightDate').textContent = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+    goScreen('screenPortal');
+    setTimeout(()=>document.getElementById('portalMain').classList.add('visible'),100);
+    loadLiveData();
+    setTimeout(generateResQR, 900);
+    setTimeout(generateStaffQR, 1000);
+  } catch(err) {
+    console.warn('Session restore failed:', err);
+  }
+});
+
 const TIERS = {
 BRONZE: { label:'Bronze', threshold:0 },
 SILVER: { label:'Silver', threshold:500 },
@@ -2334,13 +2374,13 @@ function startCheckinScanner() {
         // Route: RES:<uuid> → Tables tab, seat modal pre-filled from reservation
         if (/^RES:/i.test(decoded)) {
           const resId = decoded.slice(4).trim();
-          switchTab('tables');
+          goToTab('tables');
           showToast('⊟ Loading reservation…', 'blue');
           (async () => {
             if (LIVE_DATA && supabaseClient) {
               const { data: res } = await supabaseClient.from('reservations').select('*').eq('id', resId).maybeSingle();
               if (res) {
-                openStaffSeatModal(res.table_number || null, { prefillReservation: res });
+                staffOpenSeatModal(res.table_number || null, { prefillReservation: res });
               } else { showToast('Reservation not found for this QR.'); }
             } else { showToast('Live data required to look up reservations.'); }
           })();
@@ -2349,13 +2389,13 @@ function startCheckinScanner() {
         // Route: COMP:<uuid> → Tables tab, seat modal pre-filled from comp/vip_pass
         if (/^COMP:/i.test(decoded)) {
           const compId = decoded.slice(5).trim();
-          switchTab('tables');
+          goToTab('tables');
           showToast('⊟ Loading comp table…', 'blue');
           (async () => {
             if (LIVE_DATA && supabaseClient) {
               const { data: vp } = await supabaseClient.from('vip_passes').select('*').eq('id', compId).maybeSingle();
               if (vp) {
-                openStaffSeatModal(vp.table_number || null, { prefillComp: vp });
+                staffOpenSeatModal(vp.table_number || null, { prefillComp: vp });
               } else { showToast('Comp pass not found for this QR.'); }
             } else { showToast('Live data required to look up comp passes.'); }
           })();
@@ -2590,9 +2630,8 @@ function staffCloseSeatModal(){
   _staffSeatModalTable=null;
   _staffSeatSelectedMember=null;
 }
-document.addEventListener('DOMContentLoaded',function(){
-  var _staffSeatOverlay=document.getElementById('staffSeatModalOverlay');
-  if(_staffSeatOverlay) _staffSeatOverlay.addEventListener('click',function(e){ if(e.target===this) staffCloseSeatModal(); });
+document.getElementById('staffSeatModalOverlay').addEventListener('click',function(e){
+  if(e.target===this) staffCloseSeatModal();
 });
 
 let _staffSeatSearchTO=null;
