@@ -456,6 +456,10 @@ document.getElementById('walletFullName').textContent = fullName;
 document.getElementById('walletFullId').textContent = memberId;
 document.getElementById('walletFullSince').textContent = `Member since ${since}`;
 document.getElementById('walletFullPts').textContent = `${m.total_points.toLocaleString()} pts`;
+['walletQR', 'membershipQRBox'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) { el.innerHTML = ''; makeQR(id, memberId, 58); }
+});
 setTierBadge('tierPanelBadge', 'tierPanelLabel', tier);
 const tierPanelPtsEl = document.getElementById('tierPanelPts');
 if (tierPanelPtsEl) tierPanelPtsEl.textContent = tierCfg.next
