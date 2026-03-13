@@ -1849,9 +1849,9 @@ async function lookupGuest() {
     const d3 = await r3.json();
     if (d3 && d3.length > 0) foundStatuses.push('VIP Guest');
 
-    // 4. guest_lists (E.164)
-    if (phoneE164) {
-      const r = await fetch(`${SUPABASE_URL}/rest/v1/guest_lists?phone=eq.${encodeURIComponent(phoneE164)}&select=id&limit=1`, { headers });
+    // 4. guest_lists (10-digit)
+    if (phone10) {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/guest_lists?guest_phone=eq.${phone10}&select=id&limit=1`, { headers });
       const d = await r.json();
       if (d && d.length > 0) foundStatuses.push('Guest List');
     }
