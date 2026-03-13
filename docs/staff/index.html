@@ -2161,6 +2161,21 @@ function startCheckinScanner() {
         status.textContent = '';
         // Route: VIP pass → gold alert overlay; member QR → check-in lookup
         if (/^VIP:/i.test(decoded)) { processVIPPass(decoded.slice(4)); return; }
+        // Direct Supabase lookup by RDM ID — bypasses local array which may be empty
+        if (/^RDM-/i.test(decoded) && LIVE_DATA && supabaseClient) {
+          (async () => {
+            const { data } = await supabaseClient.from('members').select('*').eq('id', decoded.toUpperCase()).maybeSingle();
+            if (data) {
+              // Inject into liveMembers if missing, then surface result
+              if (!liveMembers.find(m => m.id === data.id)) liveMembers.push(data);
+              document.getElementById('memberSearch').value = decoded;
+              lookupMember();
+            } else {
+              showToast('No member found for this QR.');
+            }
+          })();
+          return;
+        }
         document.getElementById('memberSearch').value = decoded;
         lookupMember();
       },
