@@ -620,7 +620,7 @@ else { badge.style.display = 'none'; }
 }
 const filtered = resFilter==='all' ? resData : resData.filter(r=>r.status===resFilter);
 document.getElementById('resGrid').innerHTML = filtered.map(r=>`
-<div class="res-card status-${r.status}" id="res-${r.id}"><div class="res-card-header"><div class="res-guest-name">${r.guest_name}</div><span class="res-status ${r.status}">${r.status.charAt(0).toUpperCase()+r.status.slice(1)}</span></div><div class="res-meta"><strong>${r.time}</strong> · Party of ${r.party}
+<div class="res-card status-${r.status}" id="res-${r.id}"><div class="res-card-header"><div class="res-guest-name">${r.member_name||r.guest_name||'—'}</div><span class="res-status ${r.status}">${r.status.charAt(0).toUpperCase()+r.status.slice(1)}</span></div><div class="res-meta"><strong>${r.event_date||r.time||'—'}</strong> · Party of ${r.party_size||r.party||'—'}
 ${r.occasion ? `<br>${r.occasion}` : ''}
 ${r.notes ? `<br><em>${r.notes}</em>` : ''}
 ${r.tier ? `<br>${tierBadgeHTML(r.tier)}` : ''}
@@ -2488,7 +2488,7 @@ async function staffLoadTableSessions(){
 
 async function staffLoadTableStaff(){
   if(!LIVE_DATA||!supabaseClient) return;
-  const {data}=await supabaseClient.from('staff').select('id,first_name,last_name,role').eq('is_active',true).in('role',['server','host','host_floor','manager']);
+  const {data}=await supabaseClient.from('staff').select('id,first_name,last_name,role').eq('active',true).in('role',['server','host','host_floor','manager']);
   _staffTableStaff=data||[];
   const sel=document.getElementById('staffSeatServerSelect');
   if(!sel) return;
@@ -2498,10 +2498,10 @@ async function staffLoadTableStaff(){
 async function staffLoadTodayRes(){
   if(!LIVE_DATA||!supabaseClient) return;
   const today=new Date().toISOString().split('T')[0];
-  const {data}=await supabaseClient.from('reservations').select('id,first_name,last_name,party_size,status').eq('reservation_date',today).in('status',['confirmed','pending']);
+  const {data}=await supabaseClient.from('reservations').select('id,member_name,party_size,status').eq('event_date',today).in('status',['confirmed','pending']);
   const sel=document.getElementById('staffSeatResSelect');
   if(!sel) return;
-  sel.innerHTML='<option value="">— None —</option>'+(data||[]).map(r=>`<option value="${r.id}">${r.first_name} ${r.last_name} — Party of ${r.party_size}</option>`).join('');
+  sel.innerHTML='<option value="">— None —</option>'+(data||[]).map(r=>`<option value="${r.id}">${r.member_name||'Guest'} — Party of ${r.party_size||'?'}</option>`).join('');
 }
 
 function staffRenderFloorPlan(map){
@@ -2559,7 +2559,7 @@ function staffOpenSeatModal(tableNum, opts){
   // --- Prefill from scanned QR (reservation or comp) ---
   if(opts && opts.prefillReservation){
     const r=opts.prefillReservation;
-    document.getElementById('staffSeatGuestInput').value=r.guest_name||r.name||'';
+    document.getElementById('staffSeatGuestInput').value=r.member_name||r.guest_name||r.name||'';
     if(r.party_size) document.getElementById('staffSeatPartySize').value=String(r.party_size);
     // pre-select reservation in the dropdown after it renders
     setTimeout(()=>{
@@ -2571,7 +2571,7 @@ function staffOpenSeatModal(tableNum, opts){
       }
     },400);
     document.getElementById('staffSeatModalTitle').textContent='Seat from Reservation';
-    document.getElementById('staffSeatModalSub').textContent=`Reservation for ${r.guest_name||'guest'} · Party of ${r.party_size||'?'}`;
+    document.getElementById('staffSeatModalSub').textContent=`Reservation for ${r.member_name||r.guest_name||'guest'} · Party of ${r.party_size||'?'}`;
     document.getElementById('staffSeatCurrentInfo').style.display='none';
     document.getElementById('staffSeatModalActions').innerHTML=`
       <button class="btn-seat-primary" onclick="staffConfirmSeatTable()">✦ Seat Table</button>

@@ -3120,13 +3120,13 @@ async function loadTodayReservations() {
   const today = new Date().toISOString().split('T')[0];
   const { data } = await supabaseClient
     .from('reservations')
-    .select('id, guest_name, party_size, event_date, status')
+    .select('id, member_name, party_size, event_date, status')
     .eq('event_date', today)
     .in('status', ['confirmed','pending']);
   const sel = document.getElementById('seatResSelect');
   if (!sel) return;
   sel.innerHTML = '<option value="">— None —</option>' +
-    (data || []).map(r => `<option value="${r.id}">${r.guest_name} — Party of ${r.party_size} (${r.status})</option>`).join('');
+    (data || []).map(r => `<option value="${r.id}">${r.member_name||'Guest'} — Party of ${r.party_size||'?'} (${r.status})</option>`).join('');
 }
 
 function renderFloorPlan(map) {
