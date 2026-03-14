@@ -2407,6 +2407,26 @@ function startCheckinScanner() {
           })();
           return;
         }
+        // Route: TBK:<uuid> → gold booking alert, then tables tab seat modal
+        if (/^TBK:/i.test(decoded)) {
+          const bookingId = decoded.slice(4).trim();
+          showToast('⊟ Loading table booking…', 'blue');
+          (async () => {
+            if (!LIVE_DATA || !supabaseClient) { showToast('Live data required.'); return; }
+            const { data: bk } = await supabaseClient
+              .from('table_bookings')
+              .select('*, events(title, event_date)')
+              .eq('id', bookingId)
+              .maybeSingle();
+            if (!bk) { showToast('Table booking not found.'); return; }
+            // Show booking alert overlay then open seat modal
+            showTableBookingOverlay(bk, () => {
+              goToTab('tables');
+              staffOpenSeatModal(bk.table_number || null, { prefillBooking: bk });
+            });
+          })();
+          return;
+        }
         // Direct Supabase lookup by RDM ID — bypasses local array which may be empty
         if (/^RDM-/i.test(decoded) && LIVE_DATA && supabaseClient) {
           (async () => {
@@ -2503,10 +2523,16 @@ async function staffLoadTableStaff(){
 async function staffLoadTodayRes(){
   if(!LIVE_DATA||!supabaseClient) return;
   const today=new Date().toISOString().split('T')[0];
-  const {data}=await supabaseClient.from('reservations').select('id,member_name,party_size,status').eq('event_date',today).in('status',['confirmed','pending']);
+  const [resResult, bkResult] = await Promise.all([
+    supabaseClient.from('reservations').select('id,member_name,party_size,status').eq('event_date',today).in('status',['confirmed','pending']),
+    supabaseClient.from('table_bookings').select('id,guest_name,party_size,status,section_name,events(title,event_date)').eq('events.event_date',today).in('status',['confirmed','pending'])
+  ]);
   const sel=document.getElementById('staffSeatResSelect');
   if(!sel) return;
-  sel.innerHTML='<option value="">— None —</option>'+(data||[]).map(r=>`<option value="${r.id}">${r.member_name||'Guest'} — Party of ${r.party_size||'?'}</option>`).join('');
+  const resOpts = (resResult.data||[]).map(r=>`<option value="RES:${r.id}">🍽 ${r.member_name||'Guest'} — ${r.party_size||'?'} guests (${r.status})</option>`).join('');
+  const SECTION_LABELS = { front:'Front Booths', mid:'Mid Row', center:'Center Cluster', second:'Second Row', top:'Top Row + Lounge' };
+  const bkOpts = (bkResult.data||[]).map(b=>`<option value="TBK:${b.id}">🌙 ${b.guest_name||'Guest'} — ${b.party_size||'?'} guests · ${SECTION_LABELS[b.section_name]||b.section_name} (${b.status})</option>`).join('');
+  sel.innerHTML='<option value="">— None —</option>'+resOpts+bkOpts;
 }
 
 function staffRenderFloorPlan(map){
@@ -2547,7 +2573,7 @@ function staffUpdateStats(map){
 function staffEsc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 function staffOpenSeatModal(tableNum, opts){
-  // opts: { prefillReservation: <reservation row>, prefillComp: <vip_pass row> }
+  // opts: { prefillReservation, prefillComp, prefillBooking }
   _staffSeatModalTable = tableNum || null;
   _staffSeatSelectedMember = null;
   const existing = tableNum ? _staffTableSessions[tableNum] : null;
@@ -2561,17 +2587,46 @@ function staffOpenSeatModal(tableNum, opts){
   document.getElementById('staffSeatPartySize').value='4';
   document.getElementById('staffSeatServerSelect').value='';
   document.getElementById('staffSeatResSelect').value='';
-  // --- Prefill from scanned QR (reservation or comp) ---
+  if(document.getElementById('staffSeatNotesInput')) document.getElementById('staffSeatNotesInput').value='';
+
+  // Show/hide table picker — needed when no table assigned yet (booking or comp scan)
+  const needsPicker = !tableNum;
+  const pickerRow = document.getElementById('staffSeatTablePickerRow');
+  if(pickerRow) pickerRow.style.display = needsPicker ? 'block' : 'none';
+
+  // --- prefillBooking: table_booking scan ---
+  if(opts && opts.prefillBooking){
+    const b = opts.prefillBooking;
+    const SECTION_LABELS = { front:'Front Booths', mid:'Mid Row', center:'Center Cluster', second:'Second Row', top:'Top Row + Lounge' };
+    document.getElementById('staffSeatGuestInput').value = b.guest_name||'';
+    if(b.party_size) document.getElementById('staffSeatPartySize').value = String(b.party_size);
+    // Pre-select in dropdown
+    setTimeout(()=>{
+      const sel = document.getElementById('staffSeatResSelect');
+      if(sel){ for(let i=0;i<sel.options.length;i++){ if(sel.options[i].value==='TBK:'+b.id){ sel.selectedIndex=i; break; } } }
+    }, 400);
+    document.getElementById('staffSeatModalTitle').textContent = '🌙 Seat Table Booking';
+    document.getElementById('staffSeatModalSub').textContent =
+      `${b.guest_name||'Guest'} · ${b.party_size||'?'} guests · ${SECTION_LABELS[b.section_name]||b.section_name} · Min $${parseFloat(b.minimum_spend_required||0).toLocaleString()}`;
+    if(b.notes && document.getElementById('staffSeatNotesInput')) document.getElementById('staffSeatNotesInput').value = b.notes;
+    document.getElementById('staffSeatCurrentInfo').style.display='none';
+    document.getElementById('staffSeatModalActions').innerHTML=`
+      <button class="btn-seat-primary" onclick="staffConfirmSeatTable()">✦ Seat Table</button>
+      <button class="btn-seat-ghost" onclick="staffCloseSeatModal()">Cancel</button>`;
+    document.getElementById('staffSeatModalOverlay').classList.add('open');
+    return;
+  }
+
+  // --- prefillReservation ---
   if(opts && opts.prefillReservation){
     const r=opts.prefillReservation;
-    document.getElementById('staffSeatGuestInput').value=r.member_name||r.guest_name||r.name||'';
+    document.getElementById('staffSeatGuestInput').value=r.member_name||r.guest_name||'';
     if(r.party_size) document.getElementById('staffSeatPartySize').value=String(r.party_size);
-    // pre-select reservation in the dropdown after it renders
     setTimeout(()=>{
       const sel=document.getElementById('staffSeatResSelect');
       if(sel && r.id){
         for(let i=0;i<sel.options.length;i++){
-          if(sel.options[i].value===r.id){ sel.selectedIndex=i; break; }
+          if(sel.options[i].value==='RES:'+r.id||sel.options[i].value===r.id){ sel.selectedIndex=i; break; }
         }
       }
     },400);
@@ -2584,12 +2639,15 @@ function staffOpenSeatModal(tableNum, opts){
     document.getElementById('staffSeatModalOverlay').classList.add('open');
     return;
   }
+
+  // --- prefillComp ---
   if(opts && opts.prefillComp){
     const c=opts.prefillComp;
-    document.getElementById('staffSeatGuestInput').value=c.guest_name||c.name||'';
+    document.getElementById('staffSeatGuestInput').value=c.guest_name||'';
     if(c.party_size) document.getElementById('staffSeatPartySize').value=String(c.party_size);
+    if(c.owner_note && document.getElementById('staffSeatNotesInput')) document.getElementById('staffSeatNotesInput').value = c.owner_note;
     document.getElementById('staffSeatModalTitle').textContent='Seat Comp Table';
-    document.getElementById('staffSeatModalSub').textContent=`Comp pass for ${c.guest_name||'guest'}`;
+    document.getElementById('staffSeatModalSub').textContent=`Comp pass for ${c.guest_name||'guest'}${c.table_assignment?' · '+c.table_assignment:''}`;
     document.getElementById('staffSeatCurrentInfo').style.display='none';
     document.getElementById('staffSeatModalActions').innerHTML=`
       <button class="btn-seat-primary" onclick="staffConfirmSeatTable()">✦ Seat Table</button>
@@ -2597,6 +2655,8 @@ function staffOpenSeatModal(tableNum, opts){
     document.getElementById('staffSeatModalOverlay').classList.add('open');
     return;
   }
+
+  // --- existing / new from floor plan click ---
   if(existing){
     document.getElementById('staffSeatModalTitle').textContent='Manage Table';
     document.getElementById('staffSeatModalSub').textContent='Update seating or close this table.';
@@ -2606,6 +2666,7 @@ function staffOpenSeatModal(tableNum, opts){
     document.getElementById('staffSeatGuestInput').value=existing.guest_name||'';
     document.getElementById('staffSeatPartySize').value=String(existing.party_size||4);
     if(existing.server_id) document.getElementById('staffSeatServerSelect').value=existing.server_id;
+    if(existing.notes && document.getElementById('staffSeatNotesInput')) document.getElementById('staffSeatNotesInput').value=existing.notes;
     document.getElementById('staffSeatModalActions').innerHTML=`
       <button class="btn-seat-primary" onclick="staffConfirmSeatTable()">✦ Update</button>
       <button class="btn-seat-close" onclick="staffCloseTableSession(${tableNum})">✕ Close Table</button>
@@ -2671,40 +2732,54 @@ async function staffConfirmSeatTable(){
   const guestName=document.getElementById('staffSeatGuestInput').value.trim();
   const partySize=parseInt(document.getElementById('staffSeatPartySize').value);
   const serverId=document.getElementById('staffSeatServerSelect').value;
-  const resId=document.getElementById('staffSeatResSelect').value;
+  const resRaw=document.getElementById('staffSeatResSelect').value;
+  const notes=document.getElementById('staffSeatNotesInput')?.value.trim()||'';
   const errEl=document.getElementById('staffSeatModalError');
+
+  // Table number from picker if not pre-set from floor plan click
+  const tablePickerEl = document.getElementById('staffSeatTablePicker');
+  const effectiveTable = tableNum || (tablePickerEl ? parseInt(tablePickerEl.value)||null : null);
+  if(!effectiveTable){ errEl.textContent='Please select a table number.'; return; }
   if(!guestName){ errEl.textContent='Please enter a guest name.'; return; }
   errEl.textContent='';
+
+  // Parse res/booking type from prefixed value
+  const isBooking = resRaw.startsWith('TBK:');
+  const resId = resRaw.startsWith('RES:') ? resRaw.slice(4) : (resRaw.startsWith('TBK:') ? null : resRaw || null);
+  const bookingId = isBooking ? resRaw.slice(4) : null;
+
   const serverObj=_staffTableStaff.find(s=>s.id===serverId);
   const serverName=serverObj?`${serverObj.first_name} ${serverObj.last_name}`:null;
   const payload={
-    table_number:tableNum, guest_name:guestName, party_size:partySize,
+    table_number:effectiveTable, guest_name:guestName, party_size:partySize,
     server_id:serverId||null, server_name:serverName,
     member_id:_staffSeatSelectedMember?_staffSeatSelectedMember.id:null,
     reservation_id:resId||null, status:'seated',
     seated_at:new Date().toISOString(),
-    deposit_applied:0, comp_applied:0
+    deposit_applied:0, comp_applied:0,
+    notes: notes || null,
   };
   if(!LIVE_DATA||!supabaseClient){
-    _staffTableSessions[tableNum]=payload;
+    _staffTableSessions[effectiveTable]=payload;
     staffRenderFloorPlan(_staffTableSessions);
     staffRenderActiveList(_staffTableSessions);
     staffUpdateStats(_staffTableSessions);
     staffCloseSeatModal();
-    showToast(`Table ${tableNum} seated — ${guestName}`,'blue');
+    showToast(`Table ${effectiveTable} seated — ${guestName}`,'blue');
     return;
   }
-  const existing=_staffTableSessions[tableNum];
+  const existing=_staffTableSessions[effectiveTable];
   if(existing&&existing.id) await supabaseClient.from('table_sessions').update({status:'closed',closed_at:new Date().toISOString()}).eq('id',existing.id);
   const {data,error}=await supabaseClient.from('table_sessions').insert(payload).select().single();
   if(error){ errEl.textContent='Error: '+error.message; return; }
-  _staffTableSessions[tableNum]=data;
+  _staffTableSessions[effectiveTable]=data;
   staffRenderFloorPlan(_staffTableSessions);
   staffRenderActiveList(_staffTableSessions);
   staffUpdateStats(_staffTableSessions);
   if(resId) await supabaseClient.from('reservations').update({status:'seated'}).eq('id',resId);
+  if(bookingId) await supabaseClient.from('table_bookings').update({status:'seated', table_number:effectiveTable}).eq('id',bookingId);
   staffCloseSeatModal();
-  showToast(`Table ${tableNum} seated — ${guestName}`,'blue');
+  showToast(`Table ${effectiveTable} seated — ${guestName}`,'blue');
 }
 
 async function staffCloseTableSession(tableNum){
@@ -2719,6 +2794,49 @@ async function staffCloseTableSession(tableNum){
   staffCloseSeatModal();
   showToast(`Table ${tableNum} closed`,'success');
 }
+/* ── Table booking scan alert overlay ── */
+let _tblBookingOverlayCb = null;
+function showTableBookingOverlay(bk, onSeat) {
+  _tblBookingOverlayCb = onSeat;
+  const SECTION_LABELS = { front:'Front Booths (1–6)', mid:'Mid Row (7–11)', center:'Center Cluster (12–19)', second:'Second Row (20–24)', top:'Top Row + Lounge (25–31)' };
+  const evTitle = bk.events?.title || 'Tonight\'s Event';
+  const evDate = bk.events?.event_date ? new Date(bk.events.event_date+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}) : '—';
+  const section = SECTION_LABELS[bk.section_name] || bk.section_name;
+  const minSpend = bk.minimum_spend_required ? '$'+parseFloat(bk.minimum_spend_required).toLocaleString() : '—';
+  const acked = bk.minimum_spend_acknowledged ? '<span style="color:#81C784;">✓ Acknowledged</span>' : '<span style="color:var(--ember);">Not acknowledged</span>';
+
+  document.getElementById('tblBkOverlayGuestName').textContent = bk.guest_name || '—';
+  document.getElementById('tblBkOverlayDetails').innerHTML = `
+    <div class="vip-detail"><div class="vip-detail-label">EVENT</div><div class="vip-detail-val">${staffEsc(evTitle)}</div></div>
+    <div class="vip-detail"><div class="vip-detail-label">DATE</div><div class="vip-detail-val">${evDate}</div></div>
+    <div class="vip-detail"><div class="vip-detail-label">SECTION</div><div class="vip-detail-val">${section}</div></div>
+    <div class="vip-detail"><div class="vip-detail-label">PARTY SIZE</div><div class="vip-detail-val">${bk.party_size||'?'} guests</div></div>
+    <div class="vip-detail full-width"><div class="vip-detail-label">MIN SPEND</div><div class="vip-detail-val" style="color:var(--gold-warm);">${minSpend} &nbsp;${acked}</div></div>
+    ${bk.notes ? `<div class="vip-detail full-width"><div class="vip-detail-label">NOTES</div><div class="vip-detail-val" style="color:var(--mist);">${staffEsc(bk.notes)}</div></div>` : ''}`;
+
+  const statusEl = document.getElementById('tblBkOverlayStatus');
+  if(bk.status === 'seated'){
+    statusEl.innerHTML = '<div class="vip-status-used">✓ ALREADY SEATED</div>';
+  } else if(bk.status === 'cancelled'){
+    statusEl.innerHTML = '<div class="vip-status-used">⊘ BOOKING CANCELLED</div>';
+  } else {
+    statusEl.innerHTML = `
+      <button class="btn-vip-primary" onclick="tblBkOverlayConfirm()">✦ Proceed to Seat Table</button>
+      <button style="margin-top:10px;width:100%;padding:12px;border-radius:6px;background:none;border:1px solid var(--graphite);color:var(--ash);font-family:var(--font-label);font-size:12px;letter-spacing:0.15em;cursor:pointer;" onclick="dismissTblBkOverlay()">Dismiss</button>`;
+  }
+  document.getElementById('tblBkOverlay').classList.add('active');
+}
+
+function tblBkOverlayConfirm() {
+  dismissTblBkOverlay();
+  if(typeof _tblBookingOverlayCb === 'function') _tblBookingOverlayCb();
+}
+
+function dismissTblBkOverlay() {
+  document.getElementById('tblBkOverlay').classList.remove('active');
+  _tblBookingOverlayCb = null;
+}
+
 /* ═══ END STAFF TABLE MANAGEMENT ════════════════════════════════════ */
 
 </script>
@@ -2732,6 +2850,35 @@ async function staffCloseTableSession(tableNum){
       <div class="seat-current-label">CURRENTLY SEATED</div>
       <div class="seat-current-guest" id="staffSeatCurrentGuest">—</div>
       <div class="seat-current-meta" id="staffSeatCurrentMeta">—</div>
+    </div>
+    <!-- Table number picker — shown when scanning a booking/comp with no pre-assigned table -->
+    <div class="seat-field" id="staffSeatTablePickerRow" style="display:none;">
+      <label>Table Number</label>
+      <select id="staffSeatTablePicker">
+        <option value="">— Select table —</option>
+        <optgroup label="Front Booths">
+          <option value="1">Table 1</option><option value="2">Table 2</option><option value="3">Table 3</option>
+          <option value="4">Table 4</option><option value="5">Table 5</option><option value="6">Table 6</option>
+        </optgroup>
+        <optgroup label="Mid Row">
+          <option value="7">Table 7</option><option value="8">Table 8</option><option value="9">Table 9</option>
+          <option value="10">Table 10</option><option value="11">Table 11</option>
+        </optgroup>
+        <optgroup label="Center Cluster">
+          <option value="12">Table 12</option><option value="13">Table 13</option><option value="14">Table 14</option>
+          <option value="15">Table 15</option><option value="16">Table 16</option><option value="17">Table 17</option>
+          <option value="18">Table 18</option><option value="19">Table 19</option>
+        </optgroup>
+        <optgroup label="Second Row">
+          <option value="20">Table 20</option><option value="21">Table 21</option><option value="22">Table 22</option>
+          <option value="23">Table 23</option><option value="24">Table 24</option>
+        </optgroup>
+        <optgroup label="Top Row + Lounge">
+          <option value="25">Table 25</option><option value="26">Table 26</option><option value="27">Table 27</option>
+          <option value="28">Table 28</option><option value="29">Table 29</option><option value="30">Table 30</option>
+          <option value="31">Table 31 (Lounge)</option>
+        </optgroup>
+      </select>
     </div>
     <div class="seat-field">
       <label>Guest / Member</label>
@@ -2751,7 +2898,7 @@ async function staffCloseTableSession(tableNum){
         <option value="1">1</option><option value="2">2</option><option value="3">3</option>
         <option value="4" selected>4</option><option value="5">5</option><option value="6">6</option>
         <option value="7">7</option><option value="8">8</option><option value="10">10</option>
-        <option value="12">12</option><option value="15">15</option><option value="20">20+</option>
+        <option value="12">12</option><option value="15">15</option><option value="20">20</option><option value="25">25</option>
       </select>
     </div>
     <div class="seat-field">
@@ -2759,14 +2906,29 @@ async function staffCloseTableSession(tableNum){
       <select id="staffSeatServerSelect"><option value="">— Select server —</option></select>
     </div>
     <div class="seat-field">
-      <label>Link to Reservation (optional)</label>
+      <label>Link to Reservation / Booking (optional)</label>
       <select id="staffSeatResSelect"><option value="">— None —</option></select>
+    </div>
+    <div class="seat-field">
+      <label>Tab Notes (internal)</label>
+      <input type="text" id="staffSeatNotesInput" placeholder="e.g. Birthday hookah setup, bottle on arrival…" style="width:100%;background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:11px 14px;color:var(--ivory);font-family:var(--font-body);font-size:14px;outline:none;"/>
     </div>
     <div class="seat-modal-actions" id="staffSeatModalActions">
       <button class="btn-seat-primary" onclick="staffConfirmSeatTable()">✦ Seat Table</button>
       <button class="btn-seat-ghost" onclick="staffCloseSeatModal()">Cancel</button>
     </div>
     <div id="staffSeatModalError" style="font-size:13px;color:var(--ember);text-align:center;margin-top:8px;min-height:18px;"></div>
+  </div>
+</div>
+
+<!-- TABLE BOOKING SCAN OVERLAY (gold alert for TBK: scans) -->
+<div class="vip-overlay" id="tblBkOverlay" onclick="if(event.target===this)dismissTblBkOverlay()">
+  <div class="vip-card">
+    <div style="font-family:var(--font-label);font-size:11px;letter-spacing:0.3em;color:var(--gold-warm);margin-bottom:8px;">🌙 TABLE BOOKING</div>
+    <div class="vip-guest-name" id="tblBkOverlayGuestName">—</div>
+    <div class="vip-badge" style="background:rgba(212,168,67,0.15);border-color:rgba(212,168,67,0.5);color:var(--gold-warm);margin-bottom:20px;">NIGHTLIFE TABLE</div>
+    <div class="vip-detail-grid" id="tblBkOverlayDetails"></div>
+    <div id="tblBkOverlayStatus" style="margin-top:20px;"></div>
   </div>
 </div>
 </body></html>

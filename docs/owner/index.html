@@ -82,6 +82,24 @@
 .seat-current-meta{font-size:12px;color:var(--ash);margin-top:3px;}
 .deposit-section{background:rgba(212,168,67,0.04);border:1px solid rgba(212,168,67,0.2);border-radius:8px;padding:16px;margin-bottom:14px;}
 .deposit-section-label{font-family:var(--font-label);font-size:10px;letter-spacing:0.25em;color:var(--owner-gold);margin-bottom:10px;}
+/* ── Table Pricing Modal ── */
+.pricing-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:3000;display:none;align-items:center;justify-content:center;padding:16px;overflow-y:auto;}
+.pricing-modal-overlay.open{display:flex;}
+.pricing-modal-card{width:100%;max-width:560px;background:var(--carbon);border:1px solid rgba(218,165,32,0.4);border-radius:12px;padding:32px 28px;box-shadow:0 8px 48px rgba(0,0,0,0.7);max-height:90vh;overflow-y:auto;}
+.pricing-section-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+@media(max-width:480px){.pricing-section-grid{grid-template-columns:1fr;}}
+.pricing-section-btn{padding:12px 14px;border-radius:8px;border:1px solid var(--graphite);background:none;color:var(--ash);font-family:var(--font-body);font-size:13px;cursor:pointer;text-align:left;transition:all 150ms;}
+.pricing-section-btn:hover{border-color:var(--owner-gold);color:var(--owner-gold);}
+.pricing-section-btn.selected{border-color:var(--owner-gold);background:rgba(218,165,32,0.1);color:var(--owner-gold);}
+.pricing-rule-row{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;margin-bottom:10px;}
+@media(max-width:480px){.pricing-rule-row{grid-template-columns:1fr 1fr;}.pricing-rule-row .del-btn{grid-column:1/-1;}}
+.pricing-rules-list{margin-bottom:20px;}
+.pricing-rule-card{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--void);border:1px solid var(--graphite);border-radius:8px;margin-bottom:8px;}
+.pricing-rule-section{font-family:var(--font-label);font-size:11px;letter-spacing:0.15em;color:var(--owner-gold);flex:1;}
+.pricing-rule-amount{font-family:var(--font-display);font-size:20px;font-weight:300;color:var(--ivory);}
+.pricing-rule-tables{font-size:11px;color:var(--ash);flex:2;}
+.del-btn{padding:6px 10px;border-radius:4px;background:none;border:1px solid rgba(192,57,43,0.35);color:#E57373;font-size:11px;cursor:pointer;transition:all 150ms;white-space:nowrap;}
+.del-btn:hover{background:rgba(192,57,43,0.1);}
 /* ── Table filter bar ── */
 .tbl-filter-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
 .tbl-filter-btn{padding:5px 14px;border-radius:999px;background:none;border:1px solid var(--graphite);color:var(--ash);font-family:var(--font-body);font-size:12px;cursor:pointer;transition:all 150ms;}
@@ -105,8 +123,41 @@
  </span></div><button class="google-btn" id="googleBtn" onclick="startGoogleLogin()"><svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2.01c-.72.48-1.63.77-2.7.77-2.08 0-3.84-1.4-4.47-3.29H1.87v2.07A8 8 0 0 0 8.98 17z"/><path fill="#FBBC05" d="M4.51 10.53A4.8 4.8 0 0 1 4.26 9c0-.53.09-1.04.25-1.53V5.4H1.87A8 8 0 0 0 .98 9c0 1.29.31 2.51.89 3.6l2.64-2.07z"/><path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 8.98 1 8 8 0 0 0 1.87 5.4L4.51 7.47c.63-1.89 2.39-3.29 4.47-3.29z"/></svg>
  Sign in with Google
  </button><div class="auth-error" id="loginError" style="margin-top:16px;"></div><div class="auth-footer" style="margin-top:24px;">
- Not owner? <a href="javascript:void(0)" onclick="goToMainSite()">← Back to RIDDIM</a></div></div></div></div><div class="screen" id="screenPortal"><header class="portal-header"><div class="portal-nav-inner"><div class="portal-brand"><span class="portal-wordmark">RIDDIM</span><span class="portal-divider"></span><span class="portal-role-badge">Owner Portal</span></div><nav class="portal-tabs"><button class="portal-tab portal-tab-back" onclick="goToMainSite()">← Main Site</button><button class="portal-tab active" data-tab="dashboard">◈ Dashboard</button><button class="portal-tab" data-tab="inquiries">✉ Inquiries <span id="inquiriesNewBadge" style="display:none;background:var(--gold-warm);color:#000;font-family:var(--font-label);font-size:10px;letter-spacing:0.1em;padding:2px 6px;border-radius:10px;margin-left:4px;"></span></button><button class="portal-tab" data-tab="reservations">◇ Reservations <span id="ownerResPendingBadge" style="display:none;background:var(--gold-warm);color:#000;font-family:var(--font-label);font-size:10px;letter-spacing:0.1em;padding:2px 6px;border-radius:10px;margin-left:4px;"></span></button><button class="portal-tab" data-tab="vipcomp">◆ VIP &amp; Comp</button><button class="portal-tab" data-tab="events">◆ Events</button><button class="portal-tab" data-tab="gallery">◻ Gallery</button><button class="portal-tab" data-tab="analytics">▣ Analytics</button><button class="portal-tab" data-tab="reporting">◑ Reporting</button><button class="portal-tab" data-tab="members">◉ Members</button><button class="portal-tab" data-tab="employees">◎ Employees</button><button class="portal-tab" data-tab="scheduling">⊞ Scheduling</button><button class="portal-tab staff-view-tab" data-tab="staffview">⬡ Staff View</button><button class="portal-tab" data-tab="tables">⊟ Tables</button></nav><div class="portal-user"><div><div class="portal-user-name">AG Entertainment</div><div class="portal-user-role">Owner Access</div></div><div class="avatar" id="navAvatar">AG
- <div class="avatar-menu" id="avatarMenu"><button class="avatar-menu-item danger" onclick="logout()">Sign Out</button></div></div></div></div></header><main class="portal-main" id="portalMain"><div class="tab-panel active" id="tab-dashboard"><div id="dashErrorBanner"></div><div class="page-header"><p class="page-eyebrow">AG Entertainment · RIDDIM</p><h1 class="page-title">Owner Dashboard</h1><p class="page-sub" id="dashDate">—</p></div><div class="kpi-row"><div class="kpi-card highlight"><span class="kpi-watermark">$</span><div class="kpi-eyebrow">Tonight Est. Revenue</div><div class="kpi-value">$12,480</div><div class="kpi-sub">Based on covers + bar</div><span class="kpi-delta up">↑ 18% vs last Friday</span></div><div class="kpi-card"><div class="kpi-eyebrow">Total Members</div><div class="kpi-value" id="kpiMembers">—</div><div class="kpi-sub">Active memberships</div><span class="kpi-delta up">↑ 12 this month</span></div><div class="kpi-card"><div class="kpi-eyebrow">Avg Visit Spend</div><div class="kpi-value">$187</div><div class="kpi-sub">Members vs $134 walk-in</div><span class="kpi-delta up">↑ $22 YoY</span></div><div class="kpi-card"><div class="kpi-eyebrow">Points Outstanding</div><div class="kpi-value" id="kpiPoints">—</div><div class="kpi-sub">Across all members</div><span class="kpi-delta down">Potential liability</span></div></div><div class="panel" style="margin-bottom:20px;"><div class="panel-eyebrow">Revenue</div><div class="panel-title">Month-to-Date Breakdown</div><div class="rev-row"><div class="rev-item"><div class="rev-label">Food & Beverage</div><div class="rev-value">$84,200</div><div class="rev-sub">↑ 9% vs prior month</div></div><div class="rev-item"><div class="rev-label">Hookah Service</div><div class="rev-value">$18,640</div><div class="rev-sub">↑ 15% vs prior month</div></div><div class="rev-item"><div class="rev-label">Private Events</div><div class="rev-value">$22,000</div><div class="rev-sub">2 bookings this month</div></div></div></div><div class="analytics-grid"><div class="panel"><div class="panel-eyebrow">Visits</div><div class="panel-title">Weekly Check-Ins (Last 8 Weeks)</div><div class="bar-chart" id="barChart"></div></div><div class="panel"><div class="panel-eyebrow">Membership</div><div class="panel-title">Tier Distribution</div><div class="donut-wrap"><svg class="donut-svg" width="130" height="130" viewBox="0 0 130 130" id="donutChart"></svg></div><div class="donut-legend" id="donutLegend"></div></div></div></div><div class="tab-panel" id="tab-members"><div class="page-header"><p class="page-eyebrow">Management</p><h1 class="page-title">Member Management</h1></div><div class="member-mgmt-header"><div class="search-bar"><input class="search-input" id="memberSearchInput" type="text" placeholder="Search members…" oninput="filterMembersTable()" /></div><div style="font-size:13px;color:var(--ash);" id="memberCount">— members</div></div><div class="panel" style="padding:0;overflow:hidden;"><table class="members-table" id="membersTable"><thead><tr><th>Member</th><th>ID</th><th>Tier</th><th>Points</th><th>Visits</th><th>Since</th><th>Enrolled By</th><th>Actions</th></tr></thead><tbody id="membersTableBody"></tbody></table></div></div><div class="tab-panel" id="tab-reservations"><div id="resErrorBanner"></div><div class="page-header"><p class="page-eyebrow">Bookings</p><h1 class="page-title">Reservations</h1></div><div class="panel" style="margin-bottom:20px;padding:16px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;"><button onclick="resCalChangeMonth(-1)" style="background:none;border:1px solid var(--graphite);color:var(--mist);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:16px;">‹</button><div id="resCalMonthLabel" style="font-family:var(--font-label);font-size:16px;letter-spacing:0.2em;color:var(--ivory);"></div><button onclick="resCalChangeMonth(1)" style="background:none;border:1px solid var(--graphite);color:var(--mist);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:16px;">›</button></div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;"><div style="text-align:center;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;color:var(--ash);padding:4px 0;">SUN</div><div style="text-align:center;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;color:var(--ash);padding:4px 0;">MON</div><div style="text-align:center;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;color:var(--ash);padding:4px 0;">TUE</div><div style="text-align:center;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;color:var(--ash);padding:4px 0;">WED</div><div style="text-align:center;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;color:var(--ash);padding:4px 0;">THU</div><div style="text-align:center;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;color:var(--ash);padding:4px 0;">FRI</div><div style="text-align:center;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;color:var(--ash);padding:4px 0;">SAT</div></div><div id="resCalGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;"></div><div style="margin-top:8px;font-size:11px;color:var(--ash);">Click a date to filter reservations. <button onclick="clearResCalFilter()" style="background:none;border:none;color:var(--gold-warm);cursor:pointer;font-size:11px;padding:0;text-decoration:underline;">Clear</button></div></div><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;"><div class="res-filters" style="margin-bottom:0;"><button class="res-filter active" onclick="ownerResTabFilter(this,'all')">All</button><button class="res-filter" onclick="ownerResTabFilter(this,'pending')">Pending</button><button class="res-filter" onclick="ownerResTabFilter(this,'confirmed')">Confirmed</button><button class="res-filter" onclick="ownerResTabFilter(this,'seated')">Seated</button><button class="res-filter" onclick="ownerResTabFilter(this,'cancelled')">Cancelled</button></div><div style="display:flex;gap:8px;align-items:center;"><input type="date" id="resTabDateFilter" style="background:var(--void);border:1px solid var(--graphite);color:var(--mist);padding:6px 10px;border-radius:6px;font-family:var(--font-body);font-size:13px;" onchange="renderResTab()" /><button class="res-btn confirm" style="padding:6px 14px;" onclick="document.getElementById('resTabDateFilter').value='';renderResTab();">Clear Date</button></div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;"><div class="panel" style="padding:16px;text-align:center;"><div style="font-family:var(--font-display);font-size:28px;font-weight:300;color:var(--ivory);" id="resStatTotal">—</div><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-top:4px;">TOTAL</div></div><div class="panel" style="padding:16px;text-align:center;"><div style="font-family:var(--font-display);font-size:28px;font-weight:300;color:#81C784;" id="resStatConfirmed">—</div><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-top:4px;">CONFIRMED</div></div><div class="panel" style="padding:16px;text-align:center;"><div style="font-family:var(--font-display);font-size:28px;font-weight:300;color:var(--gold-warm);" id="resStatPending">—</div><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-top:4px;">PENDING</div></div></div><div class="res-grid" id="ownerResTabGrid"><div style="text-align:center;padding:40px;color:var(--ash);">Loading reservations…</div></div></div><div class="tab-panel" id="tab-vipcomp"><div class="page-header"><p class="page-eyebrow">Owner Operations</p><h1 class="page-title">VIP &amp; Comp</h1><p class="page-sub">Issue comp tables, entry passes, and comp tabs for VIP guests.</p></div><div style="display:flex;gap:12px;margin-bottom:32px;flex-wrap:wrap;"><button class="btn-vipcomp-create" onclick="openVIPModal('comp_table')"><span style="font-size:18px;margin-bottom:4px;display:block;">⊞</span>Comp Table</button><button class="btn-vipcomp-create" onclick="openVIPModal('entry')"><span style="font-size:18px;margin-bottom:4px;display:block;">◈</span>Entry Pass</button><button class="btn-vipcomp-create" onclick="openVIPModal('comp_tab')"><span style="font-size:18px;margin-bottom:4px;display:block;">◉</span>Comp Tab</button></div><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;"><div><p style="font-family:var(--font-label);font-size:11px;letter-spacing:0.3em;color:var(--owner-gold);margin-bottom:2px;">ACTIVE PASSES</p><p style="font-size:13px;color:var(--ash);">All passes for today and upcoming dates</p></div><button onclick="loadVIPPasses()" style="background:none;border:1px solid var(--graphite);border-radius:6px;padding:7px 14px;color:var(--ash);font-family:var(--font-body);font-size:12px;cursor:pointer;">↺ Refresh</button></div><div id="vipPassList"><div style="text-align:center;padding:48px;color:var(--ash);">Loading passes…</div></div></div><div class="tab-panel" id="tab-events"><div id="eventsErrorBanner"></div><div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;"><div><p class="page-eyebrow">Calendar</p><h1 class="page-title">Events</h1></div><div style="display:flex;gap:10px;align-items:center;margin-top:8px;"><div style="display:flex;border:1px solid var(--graphite);border-radius:6px;overflow:hidden;"><button id="eventsViewCal" onclick="setEventsView('calendar')" style="padding:6px 14px;font-family:var(--font-body);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;background:rgba(218,165,32,0.12);color:var(--owner-gold);border:none;cursor:pointer;">Calendar</button><button id="eventsViewList" onclick="setEventsView('list')" style="padding:6px 14px;font-family:var(--font-body);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;background:none;color:var(--ash);border:none;cursor:pointer;">List</button><button id="eventsViewGuests" onclick="setEventsView('guests')" style="padding:6px 14px;font-family:var(--font-body);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;background:none;color:var(--ash);border:none;cursor:pointer;">Guests</button></div><button class="btn-add-emp" onclick="openAddEventModal()">+ Add Event</button></div></div><div id="eventsCalendarView"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;"><button onclick="changeCalMonth(-1)" style="background:none;border:1px solid var(--graphite);color:var(--mist);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:16px;">‹</button><div id="calMonthLabel" style="font-family:var(--font-label);font-size:20px;letter-spacing:0.2em;color:var(--ivory);"></div><button onclick="changeCalMonth(1)" style="background:none;border:1px solid var(--graphite);color:var(--mist);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:16px;">›</button></div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;" id="calDayHeaders"><div style="text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:var(--ash);padding:6px 0;">SUN</div><div style="text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:var(--ash);padding:6px 0;">MON</div><div style="text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:var(--ash);padding:6px 0;">TUE</div><div style="text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:var(--ash);padding:6px 0;">WED</div><div style="text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:var(--ash);padding:6px 0;">THU</div><div style="text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:var(--ash);padding:6px 0;">FRI</div><div style="text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:var(--ash);padding:6px 0;">SAT</div></div><div id="calGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;"></div><div style="display:flex;gap:16px;margin-top:12px;flex-wrap:wrap;"><span style="font-size:11px;color:var(--ash);display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:#81C784;display:inline-block;"></span>Scheduled</span><span style="font-size:11px;color:var(--ash);display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:#4A7FC1;display:inline-block;"></span>Live</span><span style="font-size:11px;color:var(--ash);display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:var(--gold-warm);display:inline-block;"></span>Sold Out</span><span style="font-size:11px;color:var(--ash);display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:#E57373;display:inline-block;"></span>Cancelled</span><span style="font-size:11px;color:var(--ash);display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:var(--graphite);display:inline-block;"></span>Completed</span><span style="font-size:11px;color:var(--gold-warm);margin-left:auto;">Click any day to add an event</span></div></div><div id="eventsListView" style="display:none;"><div class="res-filters" style="margin-bottom:20px;"><button class="res-filter active" onclick="eventsTabFilter(this,'all')">All</button><button class="res-filter" onclick="eventsTabFilter(this,'scheduled')">Scheduled</button><button class="res-filter" onclick="eventsTabFilter(this,'live')">Live</button><button class="res-filter" onclick="eventsTabFilter(this,'sold_out')">Sold Out</button><button class="res-filter" onclick="eventsTabFilter(this,'completed')">Completed</button><button class="res-filter" onclick="eventsTabFilter(this,'cancelled')">Cancelled</button></div><div id="eventsGrid" style="display:flex;flex-direction:column;gap:12px;"><div style="text-align:center;padding:40px;color:var(--ash);">Loading events…</div></div></div><div id="eventsGuestsView" style="display:none;"><div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;"><div style="display:flex;align-items:center;gap:8px;"><label style="font-family:var(--font-label);font-size:11px;letter-spacing:0.15em;color:var(--ash);text-transform:uppercase;">Event Date</label><input type="date" id="guestListDateFilter"
+ Not owner? <a href="javascript:void(0)" onclick="goToMainSite()">← Back to RIDDIM</a></div></div></div></div><div class="screen" id="screenPortal"><header class="portal-header"><div class="portal-nav-inner"><div class="portal-brand"><span class="portal-wordmark">RIDDIM</span><span class="portal-divider"></span><span class="portal-role-badge">Owner Portal</span></div><nav class="portal-tabs"><button class="portal-tab portal-tab-back" onclick="goToMainSite()">← Main Site</button><button class="portal-tab active" data-tab="dashboard">◈ Dashboard</button><button class="portal-tab" data-tab="inquiries">✉ Inquiries <span id="inquiriesNewBadge" style="display:none;background:var(--gold-warm);color:#000;font-family:var(--font-label);font-size:10px;letter-spacing:0.1em;padding:2px 6px;border-radius:10px;margin-left:4px;"></span></button><button class="portal-tab" data-tab="reservations">◇ Reservations <span id="ownerResPendingBadge" style="display:none;background:var(--gold-warm);color:#000;font-family:var(--font-label);font-size:10px;letter-spacing:0.1em;padding:2px 6px;border-radius:10px;margin-left:4px;"></span></button><button class="portal-tab" data-tab="vipcomp">◆ VIP &amp; Comp</button><button class="portal-tab" data-tab="tablebookings">⊡ Table Bookings <span id="tblBookingBadge" style="display:none;background:var(--gold-warm);color:#000;font-family:var(--font-label);font-size:10px;letter-spacing:0.1em;padding:2px 6px;border-radius:10px;margin-left:4px;"></span></button><button class="portal-tab" data-tab="events">◆ Events</button><button class="portal-tab" data-tab="gallery">◻ Gallery</button><button class="portal-tab" data-tab="analytics">▣ Analytics</button><button class="portal-tab" data-tab="reporting">◑ Reporting</button><button class="portal-tab" data-tab="members">◉ Members</button><button class="portal-tab" data-tab="employees">◎ Employees</button><button class="portal-tab" data-tab="scheduling">⊞ Scheduling</button><button class="portal-tab staff-view-tab" data-tab="staffview">⬡ Staff View</button><button class="portal-tab" data-tab="tables">⊟ Tables</button></nav><div class="portal-user"><div><div class="portal-user-name">AG Entertainment</div><div class="portal-user-role">Owner Access</div></div><div class="avatar" id="navAvatar">AG
+ <div class="avatar-menu" id="avatarMenu"><button class="avatar-menu-item danger" onclick="logout()">Sign Out</button></div></div></div></div></header><main class="portal-main" id="portalMain"><div class="tab-panel active" id="tab-dashboard"><div id="dashErrorBanner"></div><div class="page-header"><p class="page-eyebrow">AG Entertainment · RIDDIM</p><h1 class="page-title">Owner Dashboard</h1><p class="page-sub" id="dashDate">—</p></div><div class="kpi-row"><div class="kpi-card highlight"><span class="kpi-watermark">$</span><div class="kpi-eyebrow">Tonight Est. Revenue</div><div class="kpi-value">$12,480</div><div class="kpi-sub">Based on covers + bar</div><span class="kpi-delta up">↑ 18% vs last Friday</span></div><div class="kpi-card"><div class="kpi-eyebrow">Total Members</div><div class="kpi-value" id="kpiMembers">—</div><div class="kpi-sub">Active memberships</div><span class="kpi-delta up">↑ 12 this month</span></div><div class="kpi-card"><div class="kpi-eyebrow">Avg Visit Spend</div><div class="kpi-value">$187</div><div class="kpi-sub">Members vs $134 walk-in</div><span class="kpi-delta up">↑ $22 YoY</span></div><div class="kpi-card"><div class="kpi-eyebrow">Points Outstanding</div><div class="kpi-value" id="kpiPoints">—</div><div class="kpi-sub">Across all members</div><span class="kpi-delta down">Potential liability</span></div></div><div class="panel" style="margin-bottom:20px;"><div class="panel-eyebrow">Revenue</div><div class="panel-title">Month-to-Date Breakdown</div><div class="rev-row"><div class="rev-item"><div class="rev-label">Food & Beverage</div><div class="rev-value">$84,200</div><div class="rev-sub">↑ 9% vs prior month</div></div><div class="rev-item"><div class="rev-label">Hookah Service</div><div class="rev-value">$18,640</div><div class="rev-sub">↑ 15% vs prior month</div></div><div class="rev-item"><div class="rev-label">Private Events</div><div class="rev-value">$22,000</div><div class="rev-sub">2 bookings this month</div></div></div></div><div class="analytics-grid"><div class="panel"><div class="panel-eyebrow">Visits</div><div class="panel-title">Weekly Check-Ins (Last 8 Weeks)</div><div class="bar-chart" id="barChart"></div></div><div class="panel"><div class="panel-eyebrow">Membership</div><div class="panel-title">Tier Distribution</div><div class="donut-wrap"><svg class="donut-svg" width="130" height="130" viewBox="0 0 130 130" id="donutChart"></svg></div><div class="donut-legend" id="donutLegend"></div></div></div></div><div class="tab-panel" id="tab-members"><div class="page-header"><p class="page-eyebrow">Management</p><h1 class="page-title">Member Management</h1></div><div class="member-mgmt-header"><div class="search-bar"><input class="search-input" id="memberSearchInput" type="text" placeholder="Search members…" oninput="filterMembersTable()" /></div><div style="font-size:13px;color:var(--ash);" id="memberCount">— members</div></div><div class="panel" style="padding:0;overflow:hidden;"><table class="members-table" id="membersTable"><thead><tr><th>Member</th><th>ID</th><th>Tier</th><th>Points</th><th>Visits</th><th>Since</th><th>Enrolled By</th><th>Actions</th></tr></thead><tbody id="membersTableBody"></tbody></table></div></div><div class="tab-panel" id="tab-reservations"><div id="resErrorBanner"></div><div class="page-header"><p class="page-eyebrow">Bookings</p><h1 class="page-title">Reservations</h1></div><div class="panel" style="margin-bottom:20px;padding:16px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;"><button onclick="resCalChangeMonth(-1)" style="background:none;border:1px solid var(--graphite);color:var(--mist);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:16px;">‹</button><div id="resCalMonthLabel" style="font-family:var(--font-label);font-size:16px;letter-spacing:0.2em;color:var(--ivory);"></div><button onclick="resCalChangeMonth(1)" style="background:none;border:1px solid var(--graphite);color:var(--mist);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:16px;">›</button></div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;"><div style="text-align:center;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;color:var(--ash);padding:4px 0;">SUN</div><div style="text-align:center;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;color:var(--ash);padding:4px 0;">MON</div><div style="text-align:center;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;color:var(--ash);padding:4px 0;">TUE</div><div style="text-align:center;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;color:var(--ash);padding:4px 0;">WED</div><div style="text-align:center;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;color:var(--ash);padding:4px 0;">THU</div><div style="text-align:center;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;color:var(--ash);padding:4px 0;">FRI</div><div style="text-align:center;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;color:var(--ash);padding:4px 0;">SAT</div></div><div id="resCalGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;"></div><div style="margin-top:8px;font-size:11px;color:var(--ash);">Click a date to filter reservations. <button onclick="clearResCalFilter()" style="background:none;border:none;color:var(--gold-warm);cursor:pointer;font-size:11px;padding:0;text-decoration:underline;">Clear</button></div></div><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;"><div class="res-filters" style="margin-bottom:0;"><button class="res-filter active" onclick="ownerResTabFilter(this,'all')">All</button><button class="res-filter" onclick="ownerResTabFilter(this,'pending')">Pending</button><button class="res-filter" onclick="ownerResTabFilter(this,'confirmed')">Confirmed</button><button class="res-filter" onclick="ownerResTabFilter(this,'seated')">Seated</button><button class="res-filter" onclick="ownerResTabFilter(this,'cancelled')">Cancelled</button></div><div style="display:flex;gap:8px;align-items:center;"><input type="date" id="resTabDateFilter" style="background:var(--void);border:1px solid var(--graphite);color:var(--mist);padding:6px 10px;border-radius:6px;font-family:var(--font-body);font-size:13px;" onchange="renderResTab()" /><button class="res-btn confirm" style="padding:6px 14px;" onclick="document.getElementById('resTabDateFilter').value='';renderResTab();">Clear Date</button></div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;"><div class="panel" style="padding:16px;text-align:center;"><div style="font-family:var(--font-display);font-size:28px;font-weight:300;color:var(--ivory);" id="resStatTotal">—</div><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-top:4px;">TOTAL</div></div><div class="panel" style="padding:16px;text-align:center;"><div style="font-family:var(--font-display);font-size:28px;font-weight:300;color:#81C784;" id="resStatConfirmed">—</div><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-top:4px;">CONFIRMED</div></div><div class="panel" style="padding:16px;text-align:center;"><div style="font-family:var(--font-display);font-size:28px;font-weight:300;color:var(--gold-warm);" id="resStatPending">—</div><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-top:4px;">PENDING</div></div></div><div class="res-grid" id="ownerResTabGrid"><div style="text-align:center;padding:40px;color:var(--ash);">Loading reservations…</div></div></div><div class="tab-panel" id="tab-vipcomp"><div class="page-header"><p class="page-eyebrow">Owner Operations</p><h1 class="page-title">VIP &amp; Comp</h1><p class="page-sub">Issue comp tables, entry passes, and comp tabs for VIP guests.</p></div><div style="display:flex;gap:12px;margin-bottom:32px;flex-wrap:wrap;"><button class="btn-vipcomp-create" onclick="openVIPModal('comp_table')"><span style="font-size:18px;margin-bottom:4px;display:block;">⊞</span>Comp Table</button><button class="btn-vipcomp-create" onclick="openVIPModal('entry')"><span style="font-size:18px;margin-bottom:4px;display:block;">◈</span>Entry Pass</button><button class="btn-vipcomp-create" onclick="openVIPModal('comp_tab')"><span style="font-size:18px;margin-bottom:4px;display:block;">◉</span>Comp Tab</button></div><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;"><div><p style="font-family:var(--font-label);font-size:11px;letter-spacing:0.3em;color:var(--owner-gold);margin-bottom:2px;">ACTIVE PASSES</p><p style="font-size:13px;color:var(--ash);">All passes for today and upcoming dates</p></div><button onclick="loadVIPPasses()" style="background:none;border:1px solid var(--graphite);border-radius:6px;padding:7px 14px;color:var(--ash);font-family:var(--font-body);font-size:12px;cursor:pointer;">↺ Refresh</button></div><div id="vipPassList"><div style="text-align:center;padding:48px;color:var(--ash);">Loading passes…</div></div></div><div class="tab-panel" id="tab-tablebookings">
+  <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+    <div>
+      <p class="page-eyebrow">Nightlife</p>
+      <h1 class="page-title">Table Bookings</h1>
+      <p class="page-sub">Paid table requests with minimum spends — submitted via reserve.html or members portal.</p>
+    </div>
+    <button onclick="loadTableBookings()" style="padding:9px 18px;border:1px solid var(--graphite);background:none;border-radius:6px;color:var(--ash);font-family:var(--font-body);font-size:12px;cursor:pointer;margin-top:8px;">↺ Refresh</button>
+  </div>
+  <!-- Filters -->
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+    <div class="res-filters" style="margin-bottom:0;">
+      <button class="res-filter active" onclick="tblBookingFilter(this,'all')">All</button>
+      <button class="res-filter" onclick="tblBookingFilter(this,'pending')">Pending</button>
+      <button class="res-filter" onclick="tblBookingFilter(this,'confirmed')">Confirmed</button>
+      <button class="res-filter" onclick="tblBookingFilter(this,'seated')">Seated</button>
+      <button class="res-filter" onclick="tblBookingFilter(this,'cancelled')">Cancelled</button>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <select id="tblBookingEventFilter" onchange="renderTableBookings()" style="background:var(--void);border:1px solid var(--graphite);color:var(--mist);padding:6px 10px;border-radius:6px;font-family:var(--font-body);font-size:13px;">
+        <option value="">All Events</option>
+      </select>
+    </div>
+  </div>
+  <!-- Stats -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px;">
+    <div class="panel" style="padding:16px;text-align:center;"><div style="font-family:var(--font-display);font-size:28px;font-weight:300;color:var(--ivory);" id="tblBkStatTotal">—</div><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-top:4px;">TOTAL</div></div>
+    <div class="panel" style="padding:16px;text-align:center;"><div style="font-family:var(--font-display);font-size:28px;font-weight:300;color:var(--gold-warm);" id="tblBkStatPending">—</div><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-top:4px;">PENDING</div></div>
+    <div class="panel" style="padding:16px;text-align:center;"><div style="font-family:var(--font-display);font-size:28px;font-weight:300;color:#81C784;" id="tblBkStatConfirmed">—</div><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-top:4px;">CONFIRMED</div></div>
+    <div class="panel" style="padding:16px;text-align:center;"><div style="font-family:var(--font-display);font-size:28px;font-weight:300;color:var(--gold-bright);" id="tblBkStatRevenue">—</div><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-top:4px;">MIN SPEND TOTAL</div></div>
+  </div>
+  <div id="tblBookingGrid" style="display:flex;flex-direction:column;gap:12px;"><div style="text-align:center;padding:40px;color:var(--ash);">Loading bookings…</div></div>
+</div>
+<div class="tab-panel" id="tab-events"><div id="eventsErrorBanner"></div><div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;"><div><p class="page-eyebrow">Calendar</p><h1 class="page-title">Events</h1></div><div style="display:flex;gap:10px;align-items:center;margin-top:8px;"><div style="display:flex;border:1px solid var(--graphite);border-radius:6px;overflow:hidden;"><button id="eventsViewCal" onclick="setEventsView('calendar')" style="padding:6px 14px;font-family:var(--font-body);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;background:rgba(218,165,32,0.12);color:var(--owner-gold);border:none;cursor:pointer;">Calendar</button><button id="eventsViewList" onclick="setEventsView('list')" style="padding:6px 14px;font-family:var(--font-body);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;background:none;color:var(--ash);border:none;cursor:pointer;">List</button><button id="eventsViewGuests" onclick="setEventsView('guests')" style="padding:6px 14px;font-family:var(--font-body);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;background:none;color:var(--ash);border:none;cursor:pointer;">Guests</button></div><button class="btn-add-emp" onclick="openAddEventModal()">+ Add Event</button></div></div><div id="eventsCalendarView"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;"><button onclick="changeCalMonth(-1)" style="background:none;border:1px solid var(--graphite);color:var(--mist);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:16px;">‹</button><div id="calMonthLabel" style="font-family:var(--font-label);font-size:20px;letter-spacing:0.2em;color:var(--ivory);"></div><button onclick="changeCalMonth(1)" style="background:none;border:1px solid var(--graphite);color:var(--mist);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:16px;">›</button></div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;" id="calDayHeaders"><div style="text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:var(--ash);padding:6px 0;">SUN</div><div style="text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:var(--ash);padding:6px 0;">MON</div><div style="text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:var(--ash);padding:6px 0;">TUE</div><div style="text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:var(--ash);padding:6px 0;">WED</div><div style="text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:var(--ash);padding:6px 0;">THU</div><div style="text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:var(--ash);padding:6px 0;">FRI</div><div style="text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:var(--ash);padding:6px 0;">SAT</div></div><div id="calGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;"></div><div style="display:flex;gap:16px;margin-top:12px;flex-wrap:wrap;"><span style="font-size:11px;color:var(--ash);display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:#81C784;display:inline-block;"></span>Scheduled</span><span style="font-size:11px;color:var(--ash);display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:#4A7FC1;display:inline-block;"></span>Live</span><span style="font-size:11px;color:var(--ash);display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:var(--gold-warm);display:inline-block;"></span>Sold Out</span><span style="font-size:11px;color:var(--ash);display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:#E57373;display:inline-block;"></span>Cancelled</span><span style="font-size:11px;color:var(--ash);display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:var(--graphite);display:inline-block;"></span>Completed</span><span style="font-size:11px;color:var(--gold-warm);margin-left:auto;">Click any day to add an event</span></div></div><div id="eventsListView" style="display:none;"><div class="res-filters" style="margin-bottom:20px;"><button class="res-filter active" onclick="eventsTabFilter(this,'all')">All</button><button class="res-filter" onclick="eventsTabFilter(this,'scheduled')">Scheduled</button><button class="res-filter" onclick="eventsTabFilter(this,'live')">Live</button><button class="res-filter" onclick="eventsTabFilter(this,'sold_out')">Sold Out</button><button class="res-filter" onclick="eventsTabFilter(this,'completed')">Completed</button><button class="res-filter" onclick="eventsTabFilter(this,'cancelled')">Cancelled</button></div><div id="eventsGrid" style="display:flex;flex-direction:column;gap:12px;"><div style="text-align:center;padding:40px;color:var(--ash);">Loading events…</div></div></div><div id="eventsGuestsView" style="display:none;"><div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;"><div style="display:flex;align-items:center;gap:8px;"><label style="font-family:var(--font-label);font-size:11px;letter-spacing:0.15em;color:var(--ash);text-transform:uppercase;">Event Date</label><input type="date" id="guestListDateFilter"
  style="background:var(--deep);border:1px solid var(--graphite);color:var(--ivory);padding:7px 12px;border-radius:6px;font-family:var(--font-body);font-size:13px;cursor:pointer;"
  onchange="loadGuestsByEvent()" /></div><div style="display:flex;gap:8px;margin-left:auto;"><button onclick="setGuestDateToday()" style="padding:6px 14px;font-family:var(--font-body);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;background:rgba(218,165,32,0.12);color:var(--owner-gold);border:1px solid rgba(218,165,32,0.3);border-radius:6px;cursor:pointer;">Today</button><button onclick="exportGuestListPrint()" style="padding:6px 14px;font-family:var(--font-body);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;background:rgba(76,175,80,0.12);color:#81C784;border:1px solid rgba(76,175,80,0.3);border-radius:6px;cursor:pointer;">⬇ Print List</button></div></div><div id="guestEventSelectorWrap" style="margin-bottom:20px;display:none;"><label style="font-family:var(--font-label);font-size:11px;letter-spacing:0.15em;color:var(--ash);text-transform:uppercase;display:block;margin-bottom:6px;">Event</label><select id="guestEventSelector" onchange="renderGuestListView()"
  style="background:var(--deep);border:1px solid var(--graphite);color:var(--ivory);padding:8px 12px;border-radius:6px;font-family:var(--font-body);font-size:13px;width:100%;max-width:420px;cursor:pointer;"></select></div><div id="guestStatsRow" style="display:none;gap:12px;margin-bottom:20px;flex-wrap:wrap;"></div><div id="guestListTableWrap"><div style="text-align:center;padding:60px;color:var(--ash);"><div style="font-size:32px;margin-bottom:12px;opacity:0.3;">◆</div>
@@ -216,7 +267,7 @@
     </div>
   </div>
 </div>
-</main><div class="mobile-tab-bar"><div class="mobile-tabs"><button class="mobile-tab active" data-tab="dashboard"><span class="mobile-tab-icon">◈</span><span class="mobile-tab-label">Dash</span></button><button class="mobile-tab" data-tab="inquiries"><span class="mobile-tab-icon">✉</span><span class="mobile-tab-label">Inquiries</span></button><button class="mobile-tab" data-tab="reservations"><span class="mobile-tab-icon">◇</span><span class="mobile-tab-label">Reservations</span></button><button class="mobile-tab" data-tab="vipcomp"><span class="mobile-tab-icon">◆</span><span class="mobile-tab-label">VIP &amp; Comp</span></button><button class="mobile-tab" data-tab="events"><span class="mobile-tab-icon">◆</span><span class="mobile-tab-label">Events</span></button><button class="mobile-tab" data-tab="gallery"><span class="mobile-tab-icon">◻</span><span class="mobile-tab-label">Gallery</span></button><button class="mobile-tab" data-tab="analytics"><span class="mobile-tab-icon">▣</span><span class="mobile-tab-label">Analytics</span></button><button class="mobile-tab" data-tab="reporting"><span class="mobile-tab-icon">◑</span><span class="mobile-tab-label">Reporting</span></button><button class="mobile-tab" data-tab="members"><span class="mobile-tab-icon">◉</span><span class="mobile-tab-label">Members</span></button><button class="mobile-tab" data-tab="employees"><span class="mobile-tab-icon">◎</span><span class="mobile-tab-label">Employees</span></button><button class="mobile-tab" data-tab="scheduling"><span class="mobile-tab-icon">⊞</span><span class="mobile-tab-label">Schedule</span></button><button class="mobile-tab" data-tab="tables"><span class="mobile-tab-icon">⊟</span><span class="mobile-tab-label">Tables</span></button><button class="mobile-tab staff-view-tab" data-tab="staffview"><span class="mobile-tab-icon">⬡</span><span class="mobile-tab-label">Staff</span></button></div></div></div><div class="gallery-modal-overlay" id="galleryCreateModal"><div class="gallery-modal"><div class="gallery-modal-header"><div class="gallery-modal-title" id="galleryModalTitle">New Gallery</div><button class="gallery-modal-close" onclick="closeCreateGalleryModal()">&#x2715;</button></div><input type="hidden" id="galleryEditId"><div class="gallery-form-row"><label class="gallery-form-label">Gallery Title *</label><input type="text" class="gallery-form-input" id="galleryTitleInput" placeholder="e.g. Saturday Night — Feb 22"></div><div class="gallery-form-row-half"><div><label class="gallery-form-label">Date *</label><input type="date" class="gallery-form-input" id="galleryDateInput"></div><div><label class="gallery-form-label">Link to Event (optional)</label><select class="gallery-form-select" id="galleryEventSelect"><option value="">No event linked</option></select></div></div><div class="gallery-toggle-row"><div><div class="gallery-toggle-label">Private Gallery</div><div class="gallery-toggle-sub">Private galleries are visible to staff only, not members</div></div><label class="gallery-toggle"><input type="checkbox" id="galleryPrivateToggle"><span class="gallery-toggle-slider"></span></label></div><div id="galleryUploadSection"><label class="gallery-form-label">Photos</label><div class="gallery-upload-sources"><button class="gallery-source-btn" onclick="document.getElementById('galleryFileInput').click()"><span>&#x1F4BB;</span> Device
+</main><div class="mobile-tab-bar"><div class="mobile-tabs"><button class="mobile-tab active" data-tab="dashboard"><span class="mobile-tab-icon">◈</span><span class="mobile-tab-label">Dash</span></button><button class="mobile-tab" data-tab="inquiries"><span class="mobile-tab-icon">✉</span><span class="mobile-tab-label">Inquiries</span></button><button class="mobile-tab" data-tab="reservations"><span class="mobile-tab-icon">◇</span><span class="mobile-tab-label">Reservations</span></button><button class="mobile-tab" data-tab="vipcomp"><span class="mobile-tab-icon">◆</span><span class="mobile-tab-label">VIP &amp; Comp</span></button><button class="mobile-tab" data-tab="tablebookings"><span class="mobile-tab-icon">⊡</span><span class="mobile-tab-label">Bookings</span></button><button class="mobile-tab" data-tab="events"><span class="mobile-tab-icon">◆</span><span class="mobile-tab-label">Events</span></button><button class="mobile-tab" data-tab="gallery"><span class="mobile-tab-icon">◻</span><span class="mobile-tab-label">Gallery</span></button><button class="mobile-tab" data-tab="analytics"><span class="mobile-tab-icon">▣</span><span class="mobile-tab-label">Analytics</span></button><button class="mobile-tab" data-tab="reporting"><span class="mobile-tab-icon">◑</span><span class="mobile-tab-label">Reporting</span></button><button class="mobile-tab" data-tab="members"><span class="mobile-tab-icon">◉</span><span class="mobile-tab-label">Members</span></button><button class="mobile-tab" data-tab="employees"><span class="mobile-tab-icon">◎</span><span class="mobile-tab-label">Employees</span></button><button class="mobile-tab" data-tab="scheduling"><span class="mobile-tab-icon">⊞</span><span class="mobile-tab-label">Schedule</span></button><button class="mobile-tab" data-tab="tables"><span class="mobile-tab-icon">⊟</span><span class="mobile-tab-label">Tables</span></button><button class="mobile-tab staff-view-tab" data-tab="staffview"><span class="mobile-tab-icon">⬡</span><span class="mobile-tab-label">Staff</span></button></div></div></div><div class="gallery-modal-overlay" id="galleryCreateModal"><div class="gallery-modal"><div class="gallery-modal-header"><div class="gallery-modal-title" id="galleryModalTitle">New Gallery</div><button class="gallery-modal-close" onclick="closeCreateGalleryModal()">&#x2715;</button></div><input type="hidden" id="galleryEditId"><div class="gallery-form-row"><label class="gallery-form-label">Gallery Title *</label><input type="text" class="gallery-form-input" id="galleryTitleInput" placeholder="e.g. Saturday Night — Feb 22"></div><div class="gallery-form-row-half"><div><label class="gallery-form-label">Date *</label><input type="date" class="gallery-form-input" id="galleryDateInput"></div><div><label class="gallery-form-label">Link to Event (optional)</label><select class="gallery-form-select" id="galleryEventSelect"><option value="">No event linked</option></select></div></div><div class="gallery-toggle-row"><div><div class="gallery-toggle-label">Private Gallery</div><div class="gallery-toggle-sub">Private galleries are visible to staff only, not members</div></div><label class="gallery-toggle"><input type="checkbox" id="galleryPrivateToggle"><span class="gallery-toggle-slider"></span></label></div><div id="galleryUploadSection"><label class="gallery-form-label">Photos</label><div class="gallery-upload-sources"><button class="gallery-source-btn" onclick="document.getElementById('galleryFileInput').click()"><span>&#x1F4BB;</span> Device
  </button><button class="gallery-source-btn" onclick="openGooglePicker('create')"><span>&#x1F535;</span> Google Drive
  </button><button class="gallery-source-btn" onclick="openDropboxChooser('create')"><span>&#x1F4E6;</span> Dropbox
  </button></div><div class="gallery-drop-zone" id="galleryDropZone"><input type="file" id="galleryFileInput" multiple accept="image/jpeg,image/png,image/webp,image/heic" onchange="handleFileSelect(event)"><div class="gallery-drop-icon">&#x1F4F8;</div><div class="gallery-drop-text">Drop photos here or click to select</div><div class="gallery-drop-sub">JPEG, PNG, WebP, HEIC &middot; Max 10MB each</div></div><div class="gallery-upload-preview" id="galleryUploadPreview"></div></div><div class="gallery-status" id="galleryModalStatus"></div><div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--graphite);"><div class="gallery-form-label" style="margin-bottom:10px;font-size:11px;letter-spacing:.08em;color:var(--owner-gold);">PHOTO METADATA <span style="color:var(--ash);font-weight:300;">(applied to all uploaded photos)</span></div><div class="gallery-form-row-half" style="gap:10px;"><div><label class="gallery-form-label">Venue Name</label><input type="text" class="gallery-form-input" id="metaVenueName" value="RIDDIM Supper Club" placeholder="RIDDIM Supper Club"></div><div><label class="gallery-form-label">Location</label><input type="text" class="gallery-form-input" id="metaLocation" placeholder="Atlanta, GA"></div></div><div class="gallery-form-row-half" style="gap:10px;margin-top:10px;"><div><label class="gallery-form-label">Photographer Credit</label><input type="text" class="gallery-form-input" id="metaPhotographer" placeholder="e.g. @riddimshots"></div><div><label class="gallery-form-label">Date Taken</label><input type="date" class="gallery-form-input" id="metaDateTaken"></div></div><div style="margin-top:10px;"><label class="gallery-form-label">Caption / Description <span style="color:var(--ash);font-weight:300;">(optional)</span></label><textarea class="gallery-form-input" id="metaCaption" rows="2" placeholder="e.g. Friday night energy on the patio…" style="resize:vertical;min-height:52px;"></textarea></div></div><button class="gallery-save-btn" id="gallerySaveBtn" onclick="saveGallery()">Create Gallery</button></div></div><div class="gallery-lightbox" id="galleryLightbox"><button class="gallery-lightbox-close" onclick="closeLightbox()">&#x2715;</button><button class="gallery-lightbox-prev" onclick="lightboxNav(-1)">&#x2039;</button><img class="gallery-lightbox-img" id="galleryLightboxImg" src="" alt=""><button class="gallery-lightbox-next" onclick="lightboxNav(1)">&#x203A;</button><div class="gallery-lightbox-counter" id="galleryLightboxCounter"></div><button onclick="openPhotoMetaModal()" style="position:absolute;top:16px;right:56px;background:rgba(0,0,0,0.5);border:1px solid rgba(212,168,67,0.4);color:var(--owner-gold);font-size:11px;font-family:var(--font-body);letter-spacing:.06em;padding:5px 12px;border-radius:4px;cursor:pointer;">✎ EDIT INFO</button><div id="galleryLightboxMeta" style="position:absolute;bottom:48px;left:0;right:0;padding:10px 20px;background:linear-gradient(transparent,rgba(0,0,0,0.75));text-align:left;pointer-events:none;display:none;"><div id="galleryLightboxCaption" style="font-family:var(--font-display);font-size:15px;font-weight:300;color:var(--ivory);margin-bottom:4px;"></div><div id="galleryLightboxMetaRow" style="font-size:11px;color:rgba(255,255,255,0.55);display:flex;flex-wrap:wrap;gap:12px;"></div></div></div><div class="modal-overlay" id="photoMetaModal" style="z-index:10001;"><div class="modal-card" style="max-width:480px;"><div class="modal-title">Edit Photo Info</div><div class="modal-sub" id="photoMetaFilename" style="font-size:11px;color:var(--ash);margin-bottom:16px;"></div><div class="field"><label>Caption</label><textarea id="pmCaption" rows="2" style="width:100%;background:var(--void);border:1px solid var(--graphite);color:var(--ivory);padding:10px 12px;border-radius:6px;font-family:var(--font-body);font-size:14px;resize:vertical;"></textarea></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"><div class="field"><label>Photographer</label><input type="text" id="pmPhotographer" placeholder="@riddimshots" /></div><div class="field"><label>Date Taken</label><input type="date" id="pmDateTaken" /></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"><div class="field"><label>Venue Name</label><input type="text" id="pmVenueName" placeholder="RIDDIM Supper Club" /></div><div class="field"><label>Location</label><input type="text" id="pmLocation" placeholder="Atlanta, GA" /></div></div><div class="auth-error" id="photoMetaError" style="text-align:left;margin-bottom:8px;"></div><div class="modal-actions"><button class="btn-primary" onclick="savePhotoMeta()">Save</button><button class="btn-ghost" onclick="document.getElementById('photoMetaModal').classList.remove('open')">Cancel</button></div></div></div><div class="modal-overlay" id="memberDetailModal"><div class="modal-card" style="max-width:420px;"><button onclick="closeMemberDetailModal()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:var(--ash);font-size:18px;cursor:pointer;">&#x2715;</button><div style="text-align:center;margin-bottom:20px;"><div style="font-family:var(--font-display);font-size:28px;font-weight:300;color:var(--ivory);" id="mdName"></div><div style="margin-top:6px;" id="mdTier"></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;"><div class="panel" style="padding:12px;text-align:center;"><div style="font-family:var(--font-display);font-size:22px;color:var(--gold-warm);" id="mdPoints"></div><div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-top:3px;">POINTS</div></div><div class="panel" style="padding:12px;text-align:center;"><div style="font-family:var(--font-display);font-size:22px;color:var(--ivory);" id="mdVisits"></div><div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-top:3px;">VISITS</div></div></div><div style="margin-bottom:12px;"><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:6px;">PHONE</div><div style="font-size:15px;color:var(--mist);" id="mdPhone">—</div></div><div style="margin-bottom:12px;"><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:6px;">MEMBER ID</div><div style="font-family:var(--font-label);letter-spacing:0.15em;font-size:13px;color:var(--ash);" id="mdId"></div></div><div style="margin-bottom:20px;text-align:center;"><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:10px;">MEMBER QR</div><div id="mdQrWrap" style="background:white;padding:14px;border-radius:10px;display:inline-block;line-height:0;"></div></div><div style="margin-bottom:8px;"><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:6px;">MEMBER SINCE</div><div style="font-size:13px;color:var(--ash);" id="mdSince"></div></div><div class="modal-actions" style="margin-top:20px;"><button class="btn-primary" onclick="closeMemberDetailModal();openEditModal(window._mdCurrentId)">Edit Points</button><button class="btn-ghost" onclick="closeMemberDetailModal()">Close</button></div></div></div><div class="modal-overlay" id="editModal"><div class="modal-card"><div class="modal-title" id="editModalTitle">Edit Points</div><div class="modal-sub" id="editModalSub">Adjust this member's point balance</div><div class="field"><label for="editPointsInput">New Point Total</label><input type="number" id="editPointsInput" placeholder="e.g. 2500" /></div><div class="field"><label for="editNoteInput">Note (internal)</label><input type="text" id="editNoteInput" placeholder="Reason for adjustment…" /></div><div class="modal-actions"><button class="btn-primary" onclick="savePointEdit()">Save Changes</button><button class="btn-ghost" onclick="closeModal()">Cancel</button></div></div></div><div class="modal-overlay" id="schedExportModal"><div class="modal-card" style="max-width:400px;"><div class="modal-title">Export Schedule</div><div class="modal-sub">Select a date range to export</div><div class="field"><label for="schedExportFrom">From</label><input type="date" id="schedExportFrom" /></div><div class="field"><label for="schedExportTo">To</label><input type="date" id="schedExportTo" /></div><div class="field"><label>Format</label><div style="display:flex;gap:10px;margin-top:4px;"><label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="radio" name="schedExportFmt" value="print" checked> Print / PDF</label><label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="radio" name="schedExportFmt" value="csv"> CSV (Google Sheets)</label></div></div><div class="modal-actions"><button class="btn-primary" onclick="runSchedExport()">Export</button><button class="btn-ghost" onclick="closeSchedExportModal()">Cancel</button></div></div></div><div class="modal-overlay" id="inquiryDetailModal" style="display:none;align-items:flex-start;padding-top:60px;"><div class="modal-card" style="max-width:560px;width:100%;max-height:80vh;overflow-y:auto;position:relative;"><button onclick="closeInquiryModal()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:var(--ash);font-size:18px;cursor:pointer;line-height:1;">&#x2715;</button><div class="modal-title" id="inquiryModalTitle">Inquiry</div><div id="inquiryModalMeta" style="font-size:12px;color:var(--ash);margin-bottom:20px;display:flex;gap:16px;flex-wrap:wrap;"></div><div style="margin-bottom:24px;"><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:8px;">STATUS</div><div style="display:flex;gap:8px;flex-wrap:wrap;" id="inquiryStatusBtns"></div></div><div id="inquiryDetailRows" style="display:grid;gap:12px;"></div><div style="margin-top:24px;"><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:8px;">OWNER NOTES</div><textarea id="inquiryNotesInput" rows="4" placeholder="Add internal notes…"
@@ -964,7 +1015,7 @@ ${e.start_time ? e.start_time.slice(0,5) : ''} ${e.end_time ? '– '+e.end_time.
 ${e.capacity ? ` · Capacity: ${e.capacity}` : ''}
 </div>
 ${e.description ? `<div style="font-size:13px;color:var(--mist);margin-top:6px;">${e.description}</div>` : ''}
-</div><div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;"><button class="res-btn confirm" style="white-space:nowrap;" onclick="openEditEventModal('${e.id}')">Edit</button><button class="res-btn cancel" style="white-space:nowrap;" onclick="deleteEvent('${e.id}')">Delete</button></div></div>`;
+</div><div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;"><button class="res-btn confirm" style="white-space:nowrap;" onclick="openEditEventModal('${e.id}')">Edit</button><button class="res-btn seat" style="white-space:nowrap;border-color:rgba(218,165,32,0.4);color:var(--owner-gold);" onclick="openPricingModal('${e.id}','${e.title.replace(/'/g,"\\'")}','${e.event_date}')">$ Pricing</button><button class="res-btn cancel" style="white-space:nowrap;" onclick="deleteEvent('${e.id}')">Delete</button></div></div>`;
 }).join('');
 }
 function openAddEventModal() {
@@ -3092,6 +3143,297 @@ document.querySelectorAll('.portal-tab,.mobile-tab').forEach(btn => {
 /* ─── END F06 VIP PASS OWNER JS ─────────────────────────────── */
 
 /* ═══════════════════════════════════════════════════════════════
+   TABLE BOOKINGS — Paid nightlife table requests
+   ═══════════════════════════════════════════════════════════════ */
+let _allTableBookings = [];
+let _tblBookingStatusFilter = 'all';
+let _tblBookingEventFilter = '';
+
+// Wire tab open
+(function patchGoToTabBookings() {
+  const _prev = window.goToTab;
+  window.goToTab = function(tabId) {
+    if (typeof _prev === 'function') _prev(tabId);
+    if (tabId === 'tablebookings') loadTableBookings();
+  };
+})();
+
+async function loadTableBookings() {
+  const grid = document.getElementById('tblBookingGrid');
+  if (grid) grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--ash);">Loading…</div>';
+  if (!LIVE_DATA || !supabaseClient) { renderTableBookings(); return; }
+  try {
+    const { data, error } = await supabaseClient
+      .from('table_bookings')
+      .select('*, events(id, title, event_date)')
+      .order('requested_at', { ascending: false });
+    if (error) throw error;
+    _allTableBookings = data || [];
+    // Populate event filter
+    const evSel = document.getElementById('tblBookingEventFilter');
+    if (evSel) {
+      const seen = new Set();
+      let opts = '<option value="">All Events</option>';
+      _allTableBookings.forEach(b => {
+        if (b.events && !seen.has(b.event_id)) {
+          seen.add(b.event_id);
+          const d = b.events.event_date ? new Date(b.events.event_date + 'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '';
+          opts += `<option value="${b.event_id}">${b.events.title}${d ? ' — ' + d : ''}</option>`;
+        }
+      });
+      evSel.innerHTML = opts;
+    }
+  } catch(e) {
+    console.error('Table bookings fetch:', e);
+    _allTableBookings = [];
+  }
+  renderTableBookings();
+  updateTblBookingBadge();
+}
+
+function tblBookingFilter(btn, status) {
+  _tblBookingStatusFilter = status;
+  document.querySelectorAll('#tab-tablebookings .res-filter').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTableBookings();
+}
+
+function renderTableBookings() {
+  const grid = document.getElementById('tblBookingGrid');
+  if (!grid) return;
+  const evFilter = document.getElementById('tblBookingEventFilter')?.value || '';
+  let data = _allTableBookings.filter(b => {
+    const statusOk = _tblBookingStatusFilter === 'all' || b.status === _tblBookingStatusFilter;
+    const evOk = !evFilter || b.event_id === evFilter;
+    return statusOk && evOk;
+  });
+
+  // Stats
+  const pending = _allTableBookings.filter(b => b.status === 'pending').length;
+  const confirmed = _allTableBookings.filter(b => b.status === 'confirmed').length;
+  const revenue = _allTableBookings
+    .filter(b => ['confirmed','seated'].includes(b.status))
+    .reduce((s, b) => s + (parseFloat(b.minimum_spend_required) || 0), 0);
+  document.getElementById('tblBkStatTotal').textContent = _allTableBookings.length;
+  document.getElementById('tblBkStatPending').textContent = pending;
+  document.getElementById('tblBkStatConfirmed').textContent = confirmed;
+  document.getElementById('tblBkStatRevenue').textContent = '$' + revenue.toLocaleString();
+
+  if (!data.length) {
+    grid.innerHTML = '<div style="text-align:center;padding:60px;color:var(--ash);"><div style="font-size:32px;margin-bottom:12px;opacity:0.3;">⊡</div>No bookings match this filter.</div>';
+    return;
+  }
+
+  const SECTION_LABELS = { front:'Front Booths', mid:'Mid Row', center:'Center Cluster', second:'Second Row', top:'Top Row + Lounge' };
+  grid.innerHTML = data.map(b => {
+    const evTitle = b.events?.title || '—';
+    const evDate = b.events?.event_date ? new Date(b.events.event_date + 'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}) : '—';
+    const sectionLabel = SECTION_LABELS[b.section_name] || b.section_name;
+    const minSpend = b.minimum_spend_required ? `$${parseFloat(b.minimum_spend_required).toLocaleString()}` : '—';
+    const acked = b.minimum_spend_acknowledged
+      ? '<span style="color:#81C784;font-size:11px;">✓ Acknowledged</span>'
+      : '<span style="color:var(--ember);font-size:11px;">Not acknowledged</span>';
+    const depPaid = b.deposit_paid
+      ? `<span style="color:#81C784;font-size:11px;">Deposit paid</span>`
+      : b.deposit_amount ? `<span style="color:var(--gold-warm);font-size:11px;">Deposit $${parseFloat(b.deposit_amount).toFixed(0)} pending</span>` : '';
+    const statusColors = { pending:'var(--gold-warm)', confirmed:'#81C784', seated:'var(--staff-light)', cancelled:'var(--ash)' };
+    const color = statusColors[b.status] || 'var(--ash)';
+    const isMember = !!b.member_id;
+
+    return `<div class="panel" style="display:flex;align-items:flex-start;gap:20px;padding:20px 24px;border-left:3px solid ${color};">
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap;">
+          <span style="font-family:var(--font-display);font-size:19px;font-weight:300;color:var(--ivory);">${escTbl(b.guest_name)}</span>
+          ${isMember ? `<span style="font-family:var(--font-label);font-size:9px;letter-spacing:0.15em;color:var(--owner-gold);background:rgba(218,165,32,0.1);border:1px solid rgba(218,165,32,0.3);padding:2px 8px;border-radius:3px;">MEMBER</span>` : ''}
+          <span style="font-family:var(--font-label);font-size:9px;letter-spacing:0.15em;color:${color};border:1px solid ${color};padding:2px 8px;border-radius:3px;">${b.status.toUpperCase()}</span>
+        </div>
+        <div style="font-size:12px;color:var(--ash);line-height:2;margin-bottom:10px;">
+          <strong style="color:var(--mist);">Event:</strong> ${escTbl(evTitle)} · ${evDate}<br>
+          <strong style="color:var(--mist);">Section:</strong> ${sectionLabel}${b.table_number ? ' · Table ' + b.table_number : ''}<br>
+          <strong style="color:var(--mist);">Party:</strong> ${b.party_size} guests &nbsp;·&nbsp;
+          <strong style="color:var(--mist);">Min Spend:</strong> ${minSpend} &nbsp;${acked}<br>
+          ${b.guest_phone ? `<strong style="color:var(--mist);">Phone:</strong> ${escTbl(b.guest_phone)}<br>` : ''}
+          ${depPaid ? depPaid + '<br>' : ''}
+          ${b.notes ? `<em style="color:var(--ash);">${escTbl(b.notes)}</em>` : ''}
+        </div>
+        <div style="font-size:11px;color:var(--ash);">Requested ${new Date(b.requested_at || b.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;flex-shrink:0;">
+        ${b.status === 'pending' ? `<button class="res-btn confirm" onclick="tblBookingUpdate('${b.id}','confirmed')">Confirm</button>` : ''}
+        ${b.status === 'confirmed' ? `<button class="res-btn seat" onclick="tblBookingUpdate('${b.id}','seated')">Seat</button>` : ''}
+        ${!['seated','cancelled'].includes(b.status) ? `<button class="res-btn cancel" onclick="tblBookingUpdate('${b.id}','cancelled')">Cancel</button>` : ''}
+        ${b.status === 'confirmed' && !b.deposit_paid ? `<button class="table-action-btn" onclick="tblBookingMarkDeposit('${b.id}')">Mark Deposit Paid</button>` : ''}
+        ${b.status === 'confirmed' ? `<button class="table-action-btn" style="border-color:rgba(218,165,32,0.35);color:var(--owner-gold);" onclick="openVIPModal('comp_table')">Issue Comp Table</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function tblBookingUpdate(id, status) {
+  if (!LIVE_DATA || !supabaseClient) return;
+  const { error } = await supabaseClient.from('table_bookings').update({ status }).eq('id', id);
+  if (error) { showToast('Error updating booking.'); return; }
+  const b = _allTableBookings.find(b => b.id === id);
+  if (b) b.status = status;
+  renderTableBookings();
+  updateTblBookingBadge();
+  showToast(`Booking ${status}`, 'gold');
+  // Also refresh today's reservations cache so floor plan seat modal shows it
+  loadTodayReservations();
+}
+
+async function tblBookingMarkDeposit(id) {
+  if (!LIVE_DATA || !supabaseClient) return;
+  const { error } = await supabaseClient.from('table_bookings').update({ deposit_paid: true }).eq('id', id);
+  if (error) { showToast('Error updating deposit.'); return; }
+  const b = _allTableBookings.find(b => b.id === id);
+  if (b) b.deposit_paid = true;
+  renderTableBookings();
+  showToast('Deposit marked as paid', 'gold');
+}
+
+function updateTblBookingBadge() {
+  const pending = _allTableBookings.filter(b => b.status === 'pending').length;
+  const badge = document.getElementById('tblBookingBadge');
+  if (!badge) return;
+  if (pending > 0) { badge.textContent = pending; badge.style.display = 'inline'; }
+  else { badge.style.display = 'none'; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TABLE PRICING — Per-event section pricing rules
+   ═══════════════════════════════════════════════════════════════ */
+let _pricingEventId = null;
+let _pricingEventRules = [];
+let _pricingSelectedSection = null;
+
+function openPricingModal(eventId, eventTitle, eventDate) {
+  _pricingEventId = eventId;
+  _pricingEventRules = [];
+  _pricingSelectedSection = null;
+  document.getElementById('pricingModalEventTitle').textContent = eventTitle;
+  const d = eventDate ? new Date(eventDate + 'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}) : '—';
+  document.getElementById('pricingModalEventDate').textContent = d;
+  document.getElementById('pricingAmount').value = '';
+  document.getElementById('pricingTables').value = '';
+  document.getElementById('pricingAddError').textContent = '';
+  document.querySelectorAll('.pricing-section-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('pricingModalOverlay').classList.add('open');
+  loadPricingRules(eventId);
+}
+
+function closePricingModal() {
+  document.getElementById('pricingModalOverlay').classList.remove('open');
+  _pricingEventId = null;
+  _pricingSelectedSection = null;
+}
+
+function selectPricingSection(btn) {
+  document.querySelectorAll('.pricing-section-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  _pricingSelectedSection = { section: btn.dataset.section, tables: btn.dataset.tables };
+  document.getElementById('pricingTables').placeholder = 'e.g. ' + btn.dataset.tables.split(',').slice(0,3).join(',') + ' or blank for all';
+}
+
+async function loadPricingRules(eventId) {
+  const list = document.getElementById('pricingRulesList');
+  list.innerHTML = '<div style="font-size:13px;color:var(--ash);">Loading…</div>';
+  if (!LIVE_DATA || !supabaseClient) { list.innerHTML = '<p style="font-size:13px;color:var(--ash);font-style:italic;padding:8px 0;">No pricing set yet.</p>'; return; }
+  const { data } = await supabaseClient.from('table_minimums').select('*').eq('event_id', eventId).order('section_name');
+  _pricingEventRules = data || [];
+  renderPricingRules();
+}
+
+function renderPricingRules() {
+  const list = document.getElementById('pricingRulesList');
+  if (!_pricingEventRules.length) {
+    list.innerHTML = '<p style="font-size:13px;color:var(--ash);font-style:italic;padding:8px 0;">No pricing set for this event yet.</p>';
+    return;
+  }
+  const SECTION_LABELS = { front:'Front Booths', mid:'Mid Row', center:'Center Cluster', second:'Second Row', top:'Top Row + Lounge' };
+  list.innerHTML = _pricingEventRules.map(r => `
+    <div class="pricing-rule-card">
+      <div class="pricing-rule-section">${SECTION_LABELS[r.section_name] || r.section_name}</div>
+      <div class="pricing-rule-amount">$${parseFloat(r.minimum_spend).toLocaleString()}</div>
+      <div class="pricing-rule-tables">${r.table_numbers ? 'Tables ' + r.table_numbers : 'All tables in section'}</div>
+      <button class="del-btn" onclick="deletePricingRule('${r.id}')">Remove</button>
+    </div>`).join('');
+}
+
+async function addPricingRule() {
+  const errEl = document.getElementById('pricingAddError');
+  errEl.textContent = '';
+  if (!_pricingSelectedSection) { errEl.textContent = 'Select a section first.'; return; }
+  const amount = parseFloat(document.getElementById('pricingAmount').value);
+  if (!amount || amount <= 0) { errEl.textContent = 'Enter a valid minimum spend amount.'; return; }
+  const tablesRaw = document.getElementById('pricingTables').value.trim();
+  // Validate table numbers if provided
+  if (tablesRaw) {
+    const nums = tablesRaw.split(',').map(t => parseInt(t.trim()));
+    const sectionTables = _pricingSelectedSection.tables.split(',').map(Number);
+    const invalid = nums.filter(n => isNaN(n) || !sectionTables.includes(n));
+    if (invalid.length) { errEl.textContent = `Tables ${invalid.join(', ')} are not in this section. Section tables: ${_pricingSelectedSection.tables}`; return; }
+  }
+  const payload = {
+    event_id: _pricingEventId,
+    section_name: _pricingSelectedSection.section,
+    minimum_spend: amount,
+    minimum_type: 'total',
+    party_size_min: 1,
+    party_size_max: 25,
+    table_numbers: tablesRaw || null,
+    is_active: true,
+  };
+  if (LIVE_DATA && supabaseClient) {
+    const { data, error } = await supabaseClient.from('table_minimums').insert(payload).select().single();
+    if (error) { errEl.textContent = 'Could not save: ' + (error.message || 'Try again.'); return; }
+    _pricingEventRules.push(data);
+  } else {
+    _pricingEventRules.push({ ...payload, id: 'local-' + Date.now() });
+  }
+  renderPricingRules();
+  document.getElementById('pricingAmount').value = '';
+  document.getElementById('pricingTables').value = '';
+  document.querySelectorAll('.pricing-section-btn').forEach(b => b.classList.remove('selected'));
+  _pricingSelectedSection = null;
+  showToast('Pricing rule added', 'gold');
+}
+
+async function deletePricingRule(ruleId) {
+  if (!confirm('Remove this pricing rule?')) return;
+  if (LIVE_DATA && supabaseClient) {
+    const { error } = await supabaseClient.from('table_minimums').delete().eq('id', ruleId);
+    if (error) { showToast('Could not remove rule.'); return; }
+  }
+  _pricingEventRules = _pricingEventRules.filter(r => r.id !== ruleId);
+  renderPricingRules();
+  showToast('Rule removed');
+}
+
+/* ── Load table_bookings into seat modal sidebar ── */
+let _todayTableBookings = [];
+
+async function loadTodayTableBookings() {
+  if (!LIVE_DATA || !supabaseClient) return;
+  const today = new Date().toISOString().split('T')[0];
+  const { data } = await supabaseClient
+    .from('table_bookings')
+    .select('*, events(title, event_date)')
+    .eq('events.event_date', today)
+    .in('status', ['confirmed','pending'])
+    .not('table_number', 'is', null);
+  _todayTableBookings = data || [];
+}
+
+// Extend initTablesTab to also load today's bookings
+const _origInitTablesTab = window.initTablesTab;
+window.initTablesTab = async function() {
+  document.getElementById('tblStatTotal').textContent = TOTAL_TABLES;
+  await Promise.all([loadTableSessions(), loadTableStaff(), loadTodayReservations(), loadTodayTableBookings()]);
+};
+
+/* ═══ END TABLE BOOKINGS / PRICING ═══════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════
    TABLE MANAGEMENT — Owner Portal
    ═══════════════════════════════════════════════════════════════ */
 let _tableSessions = {};        // { tableNum: session_row | null }
@@ -3382,6 +3724,8 @@ function openSeatModal(tableNum) {
       <button class="btn-seat-primary" onclick="confirmSeatTable()">✦ Seat Table</button>
       <button class="btn-seat-ghost" onclick="closeSeatModal()">Cancel</button>`;
   }
+  // Show linked bookings + comp passes for this table number
+  _renderSeatModalLinks(tableNum);
   document.getElementById('seatModalOverlay').classList.add('open');
 }
 
@@ -3509,6 +3853,42 @@ async function closeTableSession(tableNum) {
   closeSeatModal();
   showToast(`Table ${tableNum} closed`, 'success');
 }
+/* ── Seat modal: show linked bookings + comp passes for table ── */
+function _renderSeatModalLinks(tableNum) {
+  let linksEl = document.getElementById('seatModalLinks');
+  if (!linksEl) return;
+  const bookings = _todayTableBookings.filter(b => b.table_number === tableNum);
+  const compPasses = Object.values(_tableSessions)
+    .filter(s => s && s.table_number === tableNum && s.reservation_id);
+  // Also check vip_passes in memory — those loaded via loadVIPPasses won't be here
+  // so we just show table_bookings and note comp tables from vip_passes
+  if (!bookings.length) {
+    linksEl.style.display = 'none';
+    return;
+  }
+  linksEl.style.display = 'block';
+  const SECTION_LABELS = { front:'Front Booths', mid:'Mid Row', center:'Center Cluster', second:'Second Row', top:'Top Row + Lounge' };
+  linksEl.innerHTML = `
+    <div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--owner-gold);margin-bottom:10px;">LINKED BOOKINGS FOR TABLE ${tableNum}</div>
+    ${bookings.map(b => {
+      const evTitle = b.events?.title || 'Event';
+      const evDate = b.events?.event_date ? new Date(b.events.event_date + 'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—';
+      const section = SECTION_LABELS[b.section_name] || b.section_name;
+      const statusColor = b.status === 'confirmed' ? '#81C784' : b.status === 'pending' ? 'var(--gold-warm)' : 'var(--ash)';
+      return `<div style="padding:10px 12px;background:var(--void);border:1px solid var(--graphite);border-radius:6px;margin-bottom:8px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <span style="font-family:var(--font-display);font-size:15px;font-weight:300;color:var(--ivory);">${escTbl(b.guest_name)}</span>
+          <span style="font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;color:${statusColor};border:1px solid ${statusColor};padding:2px 7px;border-radius:3px;">${b.status.toUpperCase()}</span>
+        </div>
+        <div style="font-size:11px;color:var(--ash);line-height:1.7;">
+          ${evTitle} · ${evDate}<br>
+          ${section} · Party of ${b.party_size} · Min $${parseFloat(b.minimum_spend_required||0).toLocaleString()}
+          ${b.guest_phone ? '<br>' + escTbl(b.guest_phone) : ''}
+        </div>
+      </div>`;
+    }).join('')}`;
+}
+
 /* ═══ END TABLE MANAGEMENT ═══════════════════════════════════════════ */
 
 </script>
@@ -3586,6 +3966,8 @@ async function closeTableSession(tableNum) {
       <button class="btn-seat-ghost" onclick="closeSeatModal()">Cancel</button>
     </div>
     <div id="seatModalError" style="font-size:13px;color:var(--ember);text-align:center;margin-top:8px;min-height:18px;"></div>
+    <!-- Linked table bookings + comp passes -->
+    <div id="seatModalLinks" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--graphite);"></div>
   </div>
 </div>
 <!-- F06 VIP Creation Modal -->
@@ -3616,6 +3998,56 @@ async function closeTableSession(tableNum) {
       <div class="vip-qr-result-meta" id="vipQrResultMeta"></div>
       <div class="vip-qr-wrap"><div id="vipQrWrap"></div></div>
       <div class="vip-qr-actions"><button class="btn-vip-sms" id="btnVIPSms">&#x2709; Send via SMS</button><button class="btn-vip-copy" id="btnVIPCopyLink">&#x29C9; Copy Link</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- TABLE PRICING MODAL -->
+<div class="pricing-modal-overlay" id="pricingModalOverlay" onclick="if(event.target===this)closePricingModal()">
+  <div class="pricing-modal-card">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px;">
+      <div>
+        <p style="font-family:var(--font-label);font-size:10px;letter-spacing:0.3em;color:var(--owner-gold);margin-bottom:4px;">TABLE PRICING</p>
+        <div style="font-family:var(--font-display);font-size:24px;font-weight:300;font-style:italic;color:var(--ivory);" id="pricingModalEventTitle">Event</div>
+      </div>
+      <button onclick="closePricingModal()" style="background:none;border:none;color:var(--ash);font-size:22px;cursor:pointer;line-height:1;padding:4px;margin-left:12px;">&#x2715;</button>
+    </div>
+    <p style="font-size:12px;color:var(--ash);margin-bottom:24px;" id="pricingModalEventDate">—</p>
+    <div>
+      <p style="font-family:var(--font-label);font-size:10px;letter-spacing:0.25em;color:var(--owner-gold);margin-bottom:12px;">CURRENT PRICING RULES</p>
+      <div id="pricingRulesList"><p style="font-size:13px;color:var(--ash);font-style:italic;padding:8px 0;">No pricing set for this event yet.</p></div>
+    </div>
+    <div style="height:1px;background:var(--graphite);margin:20px 0;"></div>
+    <p style="font-family:var(--font-label);font-size:10px;letter-spacing:0.25em;color:var(--owner-gold);margin-bottom:12px;">ADD PRICING RULE</p>
+    <div style="margin-bottom:14px;">
+      <label style="display:block;font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:8px;">SELECT SECTION</label>
+      <div class="pricing-section-grid">
+        <button class="pricing-section-btn" data-section="front" data-tables="1,2,3,4,5,6" onclick="selectPricingSection(this)"><span style="font-weight:500;">Front Booths</span><br><span style="font-size:11px;opacity:0.6;">Tables 1–6</span></button>
+        <button class="pricing-section-btn" data-section="mid" data-tables="7,8,9,10,11" onclick="selectPricingSection(this)"><span style="font-weight:500;">Mid Row</span><br><span style="font-size:11px;opacity:0.6;">Tables 7–11</span></button>
+        <button class="pricing-section-btn" data-section="center" data-tables="12,13,14,15,16,17,18,19" onclick="selectPricingSection(this)"><span style="font-weight:500;">Center Cluster</span><br><span style="font-size:11px;opacity:0.6;">Tables 12–19</span></button>
+        <button class="pricing-section-btn" data-section="second" data-tables="20,21,22,23,24" onclick="selectPricingSection(this)"><span style="font-weight:500;">Second Row</span><br><span style="font-size:11px;opacity:0.6;">Tables 20–24</span></button>
+        <button class="pricing-section-btn" data-section="top" data-tables="25,26,27,28,29,30,31" onclick="selectPricingSection(this)"><span style="font-weight:500;">Top Row + Lounge</span><br><span style="font-size:11px;opacity:0.6;">Tables 25–31</span></button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+      <div>
+        <label style="display:block;font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--owner-gold);margin-bottom:6px;">MINIMUM SPEND ($)</label>
+        <input type="number" id="pricingAmount" placeholder="e.g. 750" min="0" step="50"
+          style="width:100%;background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:12px 14px;color:var(--ivory);font-family:var(--font-body);font-size:15px;outline:none;transition:border-color 150ms;"
+          onfocus="this.style.borderColor='var(--owner-gold)'" onblur="this.style.borderColor='var(--graphite)'"/>
+      </div>
+      <div>
+        <label style="display:block;font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--owner-gold);margin-bottom:6px;">SPECIFIC TABLES <span style="color:var(--ash);font-size:9px;">(optional — blank = all)</span></label>
+        <input type="text" id="pricingTables" placeholder="e.g. 1,3,5"
+          style="width:100%;background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:12px 14px;color:var(--ivory);font-family:var(--font-body);font-size:14px;outline:none;transition:border-color 150ms;"
+          onfocus="this.style.borderColor='var(--owner-gold)'" onblur="this.style.borderColor='var(--graphite)'"/>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--ash);margin-bottom:16px;">Leave "Specific Tables" blank to apply this price to the entire section.</p>
+    <div id="pricingAddError" style="font-size:13px;color:var(--ember);margin-bottom:10px;min-height:18px;"></div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="addPricingRule()" style="flex:1;padding:13px;border-radius:6px;background:linear-gradient(135deg,var(--owner-accent),var(--owner-gold));border:none;color:var(--ivory);font-family:var(--font-label);font-size:13px;letter-spacing:0.15em;cursor:pointer;">+ Add Rule</button>
+      <button onclick="closePricingModal()" style="padding:13px 20px;border-radius:6px;background:none;border:1px solid var(--graphite);color:var(--ash);font-family:var(--font-body);font-size:13px;cursor:pointer;">Done</button>
     </div>
   </div>
 </div>
