@@ -2495,7 +2495,7 @@ async function staffInitTablesTab(){
   const contentEl = document.getElementById('tablesContent');
   if(lockEl) lockEl.style.display = 'none';
   if(contentEl) contentEl.style.display = 'block';
-  await Promise.all([staffLoadTableSessions(), staffLoadTableStaff(), staffLoadTodayRes()]);
+  await Promise.all([staffLoadTableSessions(), staffLoadTableStaff(), staffLoadTodayRes(null)]);
   } catch(e) { console.error('staffInitTablesTab error:', e); }
 }
 
@@ -2520,18 +2520,33 @@ async function staffLoadTableStaff(){
   sel.innerHTML='<option value="">— Select server —</option>'+_staffTableStaff.map(s=>`<option value="${s.id}">${s.first_name} ${s.last_name} (${s.role})</option>`).join('');
 }
 
-async function staffLoadTodayRes(){
+// Store all today's bookings for section filtering
+let _staffTodayBookings = [];
+let _staffTodayReservations = [];
+
+async function staffLoadTodayRes(tableNum){
   if(!LIVE_DATA||!supabaseClient) return;
   const today=new Date().toISOString().split('T')[0];
   const [resResult, bkResult] = await Promise.all([
-    supabaseClient.from('reservations').select('id,member_name,party_size,status').eq('event_date',today).in('status',['confirmed','pending']),
-    supabaseClient.from('table_bookings').select('id,guest_name,party_size,status,section_name,events(title,event_date)').eq('events.event_date',today).in('status',['confirmed','pending'])
+    supabaseClient.from('reservations').select('id,member_name,party_size,status,notes').eq('event_date',today).in('status',['confirmed','pending']),
+    supabaseClient.from('table_bookings').select('id,guest_name,party_size,status,section_name,minimum_spend_required,minimum_spend_acknowledged,deposit_amount,deposit_paid,notes,events(title,event_date)').in('status',['confirmed','pending'])
   ]);
-  const sel=document.getElementById('staffSeatResSelect');
-  if(!sel) return;
-  const resOpts = (resResult.data||[]).map(r=>`<option value="RES:${r.id}">🍽 ${r.member_name||'Guest'} — ${r.party_size||'?'} guests (${r.status})</option>`).join('');
+  _staffTodayReservations = resResult.data || [];
+  _staffTodayBookings = bkResult.data || [];
+  staffRebuildResSelect(tableNum);
+}
+
+function staffRebuildResSelect(tableNum) {
+  const sel = document.getElementById('staffSeatResSelect');
+  if (!sel) return;
+  // Determine section for this table
+  const TABLE_SECTION_MAP = {front:[1,2,3,4,5,6],mid:[7,8,9,10,11],center:[12,13,14,15,16,17,18,19],second:[20,21,22,23,24],top:[25,26,27,28,29,30,31]};
+  const tableSection = tableNum ? Object.keys(TABLE_SECTION_MAP).find(s => TABLE_SECTION_MAP[s].includes(tableNum)) : null;
   const SECTION_LABELS = { front:'Front Booths', mid:'Mid Row', center:'Center Cluster', second:'Second Row', top:'Top Row + Lounge' };
-  const bkOpts = (bkResult.data||[]).map(b=>`<option value="TBK:${b.id}">🌙 ${b.guest_name||'Guest'} — ${b.party_size||'?'} guests · ${SECTION_LABELS[b.section_name]||b.section_name} (${b.status})</option>`).join('');
+  const resOpts = _staffTodayReservations.map(r=>`<option value="RES:${r.id}">🍽 ${r.member_name||'Guest'} — ${r.party_size||'?'} guests (${r.status})</option>`).join('');
+  const bkOpts = _staffTodayBookings
+    .filter(b => !tableSection || b.section_name === tableSection)
+    .map(b=>`<option value="TBK:${b.id}">🌙 ${b.guest_name||'Guest'} — ${b.party_size||'?'} guests · ${SECTION_LABELS[b.section_name]||b.section_name} (${b.status})</option>`).join('');
   sel.innerHTML='<option value="">— None —</option>'+resOpts+bkOpts;
 }
 
@@ -2588,8 +2603,12 @@ function staffOpenSeatModal(tableNum, opts){
   document.getElementById('staffSeatServerSelect').value='';
   document.getElementById('staffSeatResSelect').value='';
   if(document.getElementById('staffSeatNotesInput')) document.getElementById('staffSeatNotesInput').value='';
+  if(document.getElementById('staffSeatDepositInput')) document.getElementById('staffSeatDepositInput').value='';
+  if(document.getElementById('staffSeatCompInput')) document.getElementById('staffSeatCompInput').value='';
   const _strip=document.getElementById('staffSeatBookingStrip'); if(_strip) _strip.style.display='none';
   const _warn=document.getElementById('staffSeatBookingUsedWarn'); if(_warn) _warn.style.display='none';
+  // Rebuild dropdown scoped to this table's section
+  staffRebuildResSelect(tableNum || null);
 
   // Show/hide table picker — needed when no table assigned yet (booking or comp scan)
   const needsPicker = !tableNum;
@@ -2743,10 +2762,11 @@ function staffSeatResAutofill(val) {
 
   // Find in cached arrays
   let rec = null;
-  if (isBooking && typeof _allTableBookings !== 'undefined') {
-    rec = _allTableBookings.find(b => b.id === id);
-  } else if (isRes && typeof _todayReservations !== 'undefined') {
-    rec = _todayReservations.find(r => r.id === id);
+  if (isBooking) {
+    rec = _staffTodayBookings.find(b => b.id === id);
+    if (!rec && typeof _allTableBookings !== 'undefined') rec = _allTableBookings.find(b => b.id === id);
+  } else if (isRes) {
+    rec = _staffTodayReservations.find(r => r.id === id);
   }
   if (!rec) return;
 
@@ -2783,6 +2803,12 @@ function staffSeatResAutofill(val) {
     document.getElementById('staffSeatNotesInput').value = rec.notes;
   }
 
+  // Autofill deposit if already recorded on booking
+  if (isBooking && rec.deposit_paid && rec.deposit_amount) {
+    const dep = document.getElementById('staffSeatDepositInput');
+    if (dep && !dep.value) dep.value = parseFloat(rec.deposit_amount).toFixed(2);
+  }
+
   // Build booking info strip
   let stripHTML = '';
   if (isBooking) {
@@ -2809,12 +2835,15 @@ async function staffConfirmSeatTable(){
   const serverId=document.getElementById('staffSeatServerSelect').value;
   const resRaw=document.getElementById('staffSeatResSelect').value;
   const notes=document.getElementById('staffSeatNotesInput')?.value.trim()||'';
+  const deposit=parseFloat(document.getElementById('staffSeatDepositInput')?.value)||0;
+  const comp=parseFloat(document.getElementById('staffSeatCompInput')?.value)||0;
   const errEl=document.getElementById('staffSeatModalError');
 
   // Table number from picker if not pre-set from floor plan click
   const tablePickerEl = document.getElementById('staffSeatTablePicker');
   const effectiveTable = tableNum || (tablePickerEl ? parseInt(tablePickerEl.value)||null : null);
   if(!effectiveTable){ errEl.textContent='Please select a table number.'; return; }
+  if(!resRaw){ errEl.textContent='Please link a reservation or booking.'; return; }
   if(!guestName){ errEl.textContent='Please enter a guest name.'; return; }
   if(!partySize || isNaN(partySize)){ errEl.textContent='Please select a party size.'; return; }
   if(!serverId){ errEl.textContent='Please assign a server or waitress.'; return; }
@@ -2842,7 +2871,7 @@ async function staffConfirmSeatTable(){
     member_id:_staffSeatSelectedMember?_staffSeatSelectedMember.id:null,
     reservation_id:resId||null, status:'seated',
     seated_at:new Date().toISOString(),
-    deposit_applied:0, comp_applied:0,
+    deposit_applied:deposit, comp_applied:comp,
     notes: notes || null,
   };
   if(!LIVE_DATA||!supabaseClient){
@@ -2966,9 +2995,9 @@ function dismissTblBkOverlay() {
         </optgroup>
       </select>
     </div>
-    <!-- BOOKING LINK — first field, drives autofill -->
+    <!-- BOOKING LINK — first field, drives autofill, REQUIRED -->
     <div class="seat-field">
-      <label>Link to Reservation / Booking <span style="color:var(--ash);font-weight:normal;">(optional)</span></label>
+      <label>Link to Reservation / Booking <span style="color:var(--ember);font-size:11px;">*</span></label>
       <select id="staffSeatResSelect" onchange="staffSeatResAutofill(this.value)"><option value="">— None —</option></select>
       <!-- Booking status / deposit / comp strip -->
       <div id="staffSeatBookingStrip" style="display:none;margin-top:8px;padding:10px 12px;border-radius:6px;background:rgba(218,165,32,0.07);border:1px solid rgba(218,165,32,0.25);font-size:12px;line-height:1.8;"></div>
@@ -3000,6 +3029,20 @@ function dismissTblBkOverlay() {
     <div class="seat-field">
       <label>Assign Server / Waitress <span style="color:var(--ember);font-size:11px;">*</span></label>
       <select id="staffSeatServerSelect"><option value="">— Select server —</option></select>
+    </div>
+    <!-- Deposit + Comp — visible to staff -->
+    <div class="seat-field">
+      <label style="color:var(--gold-warm);">✦ APPLY PAYMENT / COMP</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <label style="font-size:10px;letter-spacing:0.2em;color:var(--ash);display:block;margin-bottom:4px;">DEPOSIT PAID ($)</label>
+          <input type="number" id="staffSeatDepositInput" placeholder="0.00" min="0" step="0.01" style="width:100%;background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:10px 12px;color:var(--ivory);font-family:var(--font-body);font-size:14px;outline:none;"/>
+        </div>
+        <div>
+          <label style="font-size:10px;letter-spacing:0.2em;color:var(--ash);display:block;margin-bottom:4px;">COMP AMOUNT ($)</label>
+          <input type="number" id="staffSeatCompInput" placeholder="0.00" min="0" step="0.01" style="width:100%;background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:10px 12px;color:var(--ivory);font-family:var(--font-body);font-size:14px;outline:none;"/>
+        </div>
+      </div>
     </div>
     <div class="seat-field">
       <label>Tab Notes (internal)</label>
