@@ -4030,7 +4030,9 @@ async function confirmSeatTable() {
   const serverId = document.getElementById('seatServerSelect').value;
   const _resRaw = document.getElementById('seatResSelect').value;
   if (!_resRaw) { document.getElementById('seatModalError').textContent = 'Please link a reservation or booking.'; return; }
-  const resId = _resRaw && !_resRaw.startsWith('TBK:') ? (_resRaw.startsWith('RES:') ? _resRaw.slice(4) : _resRaw) : null;
+  const isBooking = _resRaw && _resRaw.startsWith('TBK:');
+  const resId = _resRaw && !isBooking ? (_resRaw.startsWith('RES:') ? _resRaw.slice(4) : _resRaw) : null;
+  const tbkIdFromRes = isBooking ? _resRaw.slice(4) : null;
   const deposit = parseFloat(document.getElementById('seatDepositInput').value) || 0;
   const comp = parseFloat(document.getElementById('seatCompInput').value) || 0;
   const payment = parseFloat(document.getElementById('seatPaymentInput')?.value) || 0;
@@ -4061,7 +4063,7 @@ async function confirmSeatTable() {
     server_id: serverId || null,
     server_name: serverName,
     member_id: _seatSelectedMember ? _seatSelectedMember.id : null,
-    reservation_id: resId || null,  // resId is already stripped of prefix
+    reservation_id: resId || tbkIdFromRes || null,  // bare UUID — TBK or RES
     deposit_applied: deposit,
     comp_applied: comp,
     payment_amount: payment,
@@ -4117,17 +4119,18 @@ async function closeTableSession(tableNum) {
       .update({ status:'closed', closed_at: new Date().toISOString() })
       .eq('id', existing.id);
 
-    // 2. If linked to a booking — query directly (not from cache which only has confirmed/pending)
-    const bookingId = existing.reservation_id || null;
-    if (bookingId) {
-      // Fetch the booking fresh to get current deposit_amount
+    // 2. If linked to a booking — determine TBK vs RES, query directly
+    const linkedId = existing.reservation_id || null;
+    if (linkedId) {
+      // Try table_bookings first (TBK link)
       const { data: bk } = await supabaseClient
         .from('table_bookings')
         .select('id,minimum_spend_required,deposit_amount,deposit_paid')
-        .eq('id', bookingId)
+        .eq('id', linkedId)
         .maybeSingle();
 
       if (bk) {
+        // It's a table booking
         const dep = parseFloat(bk.deposit_amount || 0);
         const comp = parseFloat(existing.comp_applied || 0);
         const pay = parseFloat(existing.payment_amount || 0);
@@ -4139,9 +4142,9 @@ async function closeTableSession(tableNum) {
         await supabaseClient.from('table_bookings').update({
           status: 'closed',
           payment_amount: pay,
-        }).eq('id', bookingId);
+        }).eq('id', linkedId);
 
-        // 3. Write guest history to points_ledger if member linked
+        // Write guest history to points_ledger if member linked
         if (existing.member_id) {
           const note = `Table ${tableNum} closed — $${total.toLocaleString(undefined,{maximumFractionDigits:0})} total` +
             ` (dep:$${dep.toLocaleString()}, comp:$${comp.toLocaleString()}, pay:$${pay.toLocaleString()})` +
@@ -4154,6 +4157,9 @@ async function closeTableSession(tableNum) {
             balance_after: null
           }).catch(() => {});
         }
+      } else {
+        // It's a dinner reservation (RES link) — mark as closed
+        await supabaseClient.from('reservations').update({ status: 'closed' }).eq('id', linkedId).catch(() => {});
       }
     }
   }

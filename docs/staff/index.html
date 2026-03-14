@@ -2889,7 +2889,7 @@ async function staffConfirmSeatTable(){
 
   // Parse res/booking type from prefixed value
   const isBooking = resRaw.startsWith('TBK:');
-  const resId = resRaw.startsWith('RES:') ? resRaw.slice(4) : (resRaw.startsWith('TBK:') ? null : resRaw || null);
+  const resId = resRaw.startsWith('RES:') ? resRaw.slice(4) : (isBooking ? null : resRaw || null);
   const bookingId = isBooking ? resRaw.slice(4) : null;
 
   const serverObj=_staffTableStaff.find(s=>s.id===serverId);
@@ -2898,7 +2898,7 @@ async function staffConfirmSeatTable(){
     table_number:effectiveTable, guest_name:guestName, party_size:partySize,
     server_id:serverId||null, server_name:serverName,
     member_id:_staffSeatSelectedMember?_staffSeatSelectedMember.id:null,
-    reservation_id:resId||null, status:'seated',
+    reservation_id:resId||bookingId||null, status:'seated',
     seated_at:new Date().toISOString(),
     deposit_applied:deposit, comp_applied:comp, payment_amount:payment,
     notes: notes || null,
@@ -2930,7 +2930,21 @@ async function staffCloseTableSession(tableNum){
   const existing=_staffTableSessions[tableNum];
   if(!existing) return;
   if(!confirm(`Close Table ${tableNum} for ${existing.guest_name}?`)) return;
-  if(LIVE_DATA&&supabaseClient&&existing.id) await supabaseClient.from('table_sessions').update({status:'closed',closed_at:new Date().toISOString()}).eq('id',existing.id);
+  if(LIVE_DATA&&supabaseClient&&existing.id){
+    await supabaseClient.from('table_sessions').update({status:'closed',closed_at:new Date().toISOString()}).eq('id',existing.id);
+    // Write payment + closed status back to linked booking
+    const linkedId = existing.reservation_id || null;
+    if(linkedId){
+      const pay = parseFloat(existing.payment_amount||0);
+      // Try table_bookings first
+      const {data:bk} = await supabaseClient.from('table_bookings').select('id,minimum_spend_required,deposit_amount').eq('id',linkedId).maybeSingle();
+      if(bk){
+        await supabaseClient.from('table_bookings').update({status:'closed', payment_amount:pay}).eq('id',linkedId);
+      } else {
+        await supabaseClient.from('reservations').update({status:'closed'}).eq('id',linkedId).catch(()=>{});
+      }
+    }
+  }
   delete _staffTableSessions[tableNum];
   staffRenderFloorPlan(_staffTableSessions);
   staffRenderActiveList(_staffTableSessions);
