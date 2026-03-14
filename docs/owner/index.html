@@ -82,6 +82,23 @@
 .seat-current-meta{font-size:12px;color:var(--ash);margin-top:3px;}
 .deposit-section{background:rgba(212,168,67,0.04);border:1px solid rgba(212,168,67,0.2);border-radius:8px;padding:16px;margin-bottom:14px;}
 .deposit-section-label{font-family:var(--font-label);font-size:10px;letter-spacing:0.25em;color:var(--owner-gold);margin-bottom:10px;}
+/* ── Table filter bar ── */
+.tbl-filter-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
+.tbl-filter-btn{padding:5px 14px;border-radius:999px;background:none;border:1px solid var(--graphite);color:var(--ash);font-family:var(--font-body);font-size:12px;cursor:pointer;transition:all 150ms;}
+.tbl-filter-btn:hover{border-color:var(--owner-gold);color:var(--owner-gold);}
+.tbl-filter-btn.active{border-color:var(--owner-gold);color:var(--owner-gold);background:rgba(212,168,67,0.1);}
+.tbl-filter-btn.active-blue{border-color:#6B9FE4;color:#6B9FE4;background:rgba(74,127,193,0.1);}
+.tbl-filter-sep{width:1px;height:20px;background:var(--graphite);margin:0 4px;}
+/* ── Booking info strip in seat modal ── */
+.booking-info-strip{background:rgba(74,127,193,0.06);border:1px solid rgba(74,127,193,0.3);border-radius:8px;padding:12px 14px;margin-bottom:14px;display:none;}
+.booking-info-strip.visible{display:block;}
+.booking-info-strip-label{font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:#6B9FE4;margin-bottom:8px;}
+.booking-info-row{display:flex;gap:16px;flex-wrap:wrap;}
+.booking-info-item{font-size:12px;color:var(--mist);}
+.booking-info-item strong{color:var(--ivory);font-weight:500;}
+.booking-min-notice{margin-top:8px;padding:7px 10px;background:rgba(212,168,67,0.08);border:1px solid rgba(212,168,67,0.25);border-radius:5px;font-size:12px;color:var(--gold-warm);}
+/* ── fp-table hidden by filter ── */
+.fp-table.fp-hidden{opacity:0.1;pointer-events:none;}
 /* ── END TABLE MANAGEMENT ─────────────────────────────────── */
 </style></head><body><div class="screen active" id="screenLogin"><div class="auth-wrap"><div class="auth-card"><div class="auth-logo"><span class="auth-wordmark">RIDDIM</span><div style="display:flex;justify-content:center;margin-top:8px;"><span class="auth-role"><span class="auth-role-dot"></span>Owner Portal</span></div></div><div class="auth-divider"></div><h1 class="auth-heading">Owner Access</h1><p class="auth-hint" style="margin-bottom:24px;">Sign in with your AG Entertainment account to continue</p><div class="auth-lock-badge" style="justify-content:center;text-align:center;"><span class="auth-lock-text">
  Restricted — unauthorized<br>accounts will be denied
@@ -104,6 +121,19 @@
   <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
     <div><p class="page-eyebrow">Floor Operations</p><h1 class="page-title">Table Management</h1><p class="page-sub">Live seating map — click any table to seat guests or close a table.</p></div>
     <button onclick="loadTableSessions()" style="padding:9px 18px;border:1px solid var(--graphite);background:none;border-radius:6px;color:var(--ash);font-family:var(--font-body);font-size:12px;cursor:pointer;margin-top:8px;">↺ Refresh</button>
+  </div>
+  <!-- Floor plan filter bar -->
+  <div class="tbl-filter-bar" id="tblFilterBar">
+    <button class="tbl-filter-btn active" onclick="tblSetFilter(this,'all')">All Tables</button>
+    <button class="tbl-filter-btn" onclick="tblSetFilter(this,'available')">Available</button>
+    <button class="tbl-filter-btn" onclick="tblSetFilter(this,'occupied')">Seated</button>
+    <button class="tbl-filter-btn active-blue" style="border-color:rgba(74,127,193,0.4);color:var(--ash);" onclick="tblSetFilter(this,'reserved')">Reserved</button>
+    <div class="tbl-filter-sep"></div>
+    <button class="tbl-filter-btn" onclick="tblSetSection(this,'front')" data-section="front">Front (1–6)</button>
+    <button class="tbl-filter-btn" onclick="tblSetSection(this,'mid')" data-section="mid">Mid (7–11)</button>
+    <button class="tbl-filter-btn" onclick="tblSetSection(this,'center')" data-section="center">Center (12–19)</button>
+    <button class="tbl-filter-btn" onclick="tblSetSection(this,'second')" data-section="second">Second (20–24)</button>
+    <button class="tbl-filter-btn" onclick="tblSetSection(this,'top')" data-section="top">Top (25–31)</button>
   </div>
   <div class="tables-layout">
     <!-- Floor Plan -->
@@ -3068,8 +3098,61 @@ let _tableSessions = {};        // { tableNum: session_row | null }
 let _seatModalTable = null;
 let _seatSelectedMember = null;
 let _tableStaff = [];           // servers/waitresses for dropdown
+let _todayReservations = [];    // full reservation objects cached for modal use
 
 const TOTAL_TABLES = 31;
+
+// Section map for filter bar
+const TABLE_SECTIONS = {
+  front:  [1,2,3,4,5,6],
+  mid:    [7,8,9,10,11],
+  center: [12,13,14,15,16,17,18,19],
+  second: [20,21,22,23,24],
+  top:    [25,26,27,28,29,30,31],
+};
+
+let _tblStatusFilter = 'all';
+let _tblSectionFilter = null;
+
+// ── Filter bar handlers ────────────────────────────────────────
+function tblSetFilter(btn, status) {
+  _tblStatusFilter = status;
+  document.querySelectorAll('.tbl-filter-bar .tbl-filter-btn:not([data-section])').forEach(b => {
+    b.classList.remove('active','active-blue');
+  });
+  btn.classList.add(status === 'reserved' ? 'active-blue' : 'active');
+  applyFloorPlanFilter();
+}
+
+function tblSetSection(btn, section) {
+  if (_tblSectionFilter === section) {
+    // toggle off
+    _tblSectionFilter = null;
+    document.querySelectorAll('.tbl-filter-bar .tbl-filter-btn[data-section]').forEach(b => b.classList.remove('active'));
+  } else {
+    _tblSectionFilter = section;
+    document.querySelectorAll('.tbl-filter-bar .tbl-filter-btn[data-section]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  applyFloorPlanFilter();
+}
+
+function applyFloorPlanFilter() {
+  document.querySelectorAll('#floorPlanSvg .fp-table').forEach(el => {
+    const num = parseInt(el.dataset.table);
+    const session = _tableSessions[num];
+    const statusClass = session ? (session.reservation_id ? 'reserved' : 'occupied') : 'available';
+
+    // Status filter
+    let statusMatch = _tblStatusFilter === 'all' || statusClass === _tblStatusFilter;
+
+    // Section filter
+    let sectionMatch = !_tblSectionFilter ||
+      (TABLE_SECTIONS[_tblSectionFilter] && TABLE_SECTIONS[_tblSectionFilter].includes(num));
+
+    el.classList.toggle('fp-hidden', !(statusMatch && sectionMatch));
+  });
+}
 
 // Init on tab open
 (function patchGoToTab() {
@@ -3087,7 +3170,6 @@ async function initTablesTab() {
 
 async function loadTableSessions() {
   if (!LIVE_DATA || !supabaseClient) { renderFloorPlan({}); return; }
-  const today = new Date().toISOString().split('T')[0];
   const { data, error } = await supabaseClient
     .from('table_sessions')
     .select('*')
@@ -3120,13 +3202,77 @@ async function loadTodayReservations() {
   const today = new Date().toISOString().split('T')[0];
   const { data } = await supabaseClient
     .from('reservations')
-    .select('id, member_name, party_size, event_date, status')
+    .select('id, member_name, member_phone, party_size, event_date, status, occasion, service_period, minimum_spend_required, minimum_spend_acknowledged')
     .eq('event_date', today)
-    .in('status', ['confirmed','pending']);
+    .in('status', ['confirmed','pending','seated']);
+  _todayReservations = data || [];
+  _rebuildResSelect();
+}
+
+function _rebuildResSelect() {
   const sel = document.getElementById('seatResSelect');
   if (!sel) return;
   sel.innerHTML = '<option value="">— None —</option>' +
-    (data || []).map(r => `<option value="${r.id}">${r.member_name||'Guest'} — Party of ${r.party_size||'?'} (${r.status})</option>`).join('');
+    _todayReservations.map(r => {
+      const period = r.service_period ? ` · ${r.service_period === 'nightlife' ? '🌙 Nightlife' : '🍽 Dinner'}` : '';
+      const statusLabel = r.status === 'seated' ? ' (seated)' : r.status === 'confirmed' ? ' ✓' : ' (pending)';
+      return `<option value="${r.id}">${r.member_name || 'Guest'} — ${r.party_size || '?'} guests${period}${statusLabel}</option>`;
+    }).join('');
+}
+
+// Called when the reservation dropdown changes
+function onSeatResChange() {
+  const resId = document.getElementById('seatResSelect').value;
+  const strip = document.getElementById('seatBookingInfoStrip');
+  const infoRow = document.getElementById('seatBookingInfoRow');
+  const minNotice = document.getElementById('seatMinSpendNotice');
+
+  if (!resId) {
+    strip.classList.remove('visible');
+    return;
+  }
+
+  const r = _todayReservations.find(r => r.id === resId);
+  if (!r) { strip.classList.remove('visible'); return; }
+
+  // Auto-fill guest name if field is empty
+  const guestInput = document.getElementById('seatGuestInput');
+  if (!guestInput.value.trim() && r.member_name) {
+    guestInput.value = r.member_name;
+    document.getElementById('seatMemberBadge').style.display = 'none';
+  }
+
+  // Auto-fill party size
+  if (r.party_size) {
+    const sel = document.getElementById('seatPartySize');
+    // Set to closest available option
+    const opts = Array.from(sel.options).map(o => parseInt(o.value));
+    const closest = opts.reduce((prev, cur) =>
+      Math.abs(cur - r.party_size) < Math.abs(prev - r.party_size) ? cur : prev
+    );
+    sel.value = String(closest);
+  }
+
+  // Build info strip
+  const parts = [];
+  if (r.occasion) parts.push(`<span class="booking-info-item"><strong>Occasion</strong> ${escTbl(r.occasion)}</span>`);
+  if (r.service_period) parts.push(`<span class="booking-info-item"><strong>Period</strong> ${r.service_period === 'nightlife' ? '🌙 Nightlife' : '🍽 Dinner'}</span>`);
+  if (r.party_size) parts.push(`<span class="booking-info-item"><strong>Party</strong> ${r.party_size} guests</span>`);
+  if (r.member_phone) parts.push(`<span class="booking-info-item"><strong>Phone</strong> ${escTbl(r.member_phone)}</span>`);
+  if (r.status) parts.push(`<span class="booking-info-item"><strong>Status</strong> ${escTbl(r.status)}</span>`);
+
+  infoRow.innerHTML = parts.join('');
+
+  // Minimum spend notice
+  if (r.minimum_spend_required && parseFloat(r.minimum_spend_required) > 0) {
+    const acked = r.minimum_spend_acknowledged ? ' <span style="color:#81C784;">✓ Acknowledged</span>' : ' <span style="color:var(--ember);">Not yet acknowledged</span>';
+    minNotice.innerHTML = `Minimum spend: <strong>$${parseFloat(r.minimum_spend_required).toFixed(2)}</strong>${acked}`;
+    minNotice.style.display = 'block';
+  } else {
+    minNotice.style.display = 'none';
+  }
+
+  strip.classList.add('visible');
 }
 
 function renderFloorPlan(map) {
@@ -3134,12 +3280,13 @@ function renderFloorPlan(map) {
     const num = parseInt(el.dataset.table);
     el.classList.remove('available','occupied','reserved');
     if (map[num]) {
-      // Check if linked to a reservation (reserved) vs directly seated (occupied)
       el.classList.add(map[num].reservation_id ? 'reserved' : 'occupied');
     } else {
       el.classList.add('available');
     }
   });
+  // Re-apply filter after state update
+  applyFloorPlanFilter();
 }
 
 function renderActiveTablesList(map) {
@@ -3150,17 +3297,23 @@ function renderActiveTablesList(map) {
   wrap.innerHTML = occupied.map(([num, s]) => {
     const type = s.reservation_id ? 'reserved' : 'occupied';
     const seatedAt = new Date(s.seated_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+    // Find linked reservation data
+    const linkedRes = s.reservation_id ? _todayReservations.find(r => r.id === s.reservation_id) : null;
+    const occasionLine = linkedRes?.occasion ? `<div class="active-table-meta" style="color:var(--gold-warm);margin-top:2px;">${escTbl(linkedRes.occasion)}</div>` : '';
+    const periodLine = linkedRes?.service_period ? `<div style="font-size:10px;font-family:var(--font-label);letter-spacing:0.1em;color:var(--ash);margin-top:2px;">${linkedRes.service_period === 'nightlife' ? '🌙 NIGHTLIFE' : '🍽 DINNER'}</div>` : '';
     const depositInfo = (s.deposit_applied > 0 || s.comp_applied > 0)
       ? `<div style="font-size:11px;color:var(--gold-warm);margin-top:3px;">
           ${s.deposit_applied > 0 ? `Deposit: $${parseFloat(s.deposit_applied).toFixed(2)}` : ''}
           ${s.comp_applied > 0 ? ` · Comp: $${parseFloat(s.comp_applied).toFixed(2)}` : ''}
         </div>` : '';
+    const minSpend = linkedRes?.minimum_spend_required > 0
+      ? `<div style="font-size:11px;color:var(--ash);margin-top:2px;">Min spend: $${parseFloat(linkedRes.minimum_spend_required).toFixed(2)}</div>` : '';
     return `<div class="active-table-row ${type}" onclick="openSeatModal(${num})">
       <div class="active-table-num">TABLE ${num}</div>
       <div class="active-table-guest">${escTbl(s.guest_name || '—')}</div>
       <div class="active-table-meta">Party of ${s.party_size} · Seated ${seatedAt}</div>
       ${s.server_name ? `<div class="active-table-server">Server: ${escTbl(s.server_name)}</div>` : ''}
-      ${depositInfo}
+      ${occasionLine}${periodLine}${depositInfo}${minSpend}
     </div>`;
   }).join('');
 }
@@ -3183,7 +3336,12 @@ function openSeatModal(tableNum) {
   document.getElementById('seatModalError').textContent = '';
   document.getElementById('seatMemberBadge').style.display = 'none';
   document.getElementById('seatMemberResults').classList.remove('open');
-  document.getElementById('seatDepositSection').style.display = 'block'; // owner always sees
+  document.getElementById('seatDepositSection').style.display = 'block';
+  document.getElementById('seatBookingInfoStrip').classList.remove('visible');
+
+  // Always re-populate the reservation dropdown from cache on each open
+  _rebuildResSelect();
+
   // Reset fields
   document.getElementById('seatGuestInput').value = '';
   document.getElementById('seatPartySize').value = '4';
@@ -3192,6 +3350,7 @@ function openSeatModal(tableNum) {
   document.getElementById('seatDepositInput').value = '';
   document.getElementById('seatCompInput').value = '';
   document.getElementById('seatNotesInput').value = '';
+
   if (existing) {
     document.getElementById('seatModalTitle').textContent = 'Manage Table';
     document.getElementById('seatModalSub').textContent = 'Update seating or close this table.';
@@ -3199,13 +3358,18 @@ function openSeatModal(tableNum) {
     document.getElementById('seatCurrentGuest').textContent = existing.guest_name || '—';
     document.getElementById('seatCurrentMeta').textContent =
       `Party of ${existing.party_size}${existing.server_name ? ' · Server: ' + existing.server_name : ''}`;
-    // Pre-fill
+    // Pre-fill all fields
     document.getElementById('seatGuestInput').value = existing.guest_name || '';
     document.getElementById('seatPartySize').value = String(existing.party_size || 4);
     if (existing.server_id) document.getElementById('seatServerSelect').value = existing.server_id;
     if (existing.deposit_applied) document.getElementById('seatDepositInput').value = existing.deposit_applied;
     if (existing.comp_applied) document.getElementById('seatCompInput').value = existing.comp_applied;
     if (existing.notes) document.getElementById('seatNotesInput').value = existing.notes;
+    // Re-link the reservation dropdown and trigger booking info display
+    if (existing.reservation_id) {
+      document.getElementById('seatResSelect').value = existing.reservation_id;
+      onSeatResChange();
+    }
     document.getElementById('seatModalActions').innerHTML = `
       <button class="btn-seat-primary" onclick="confirmSeatTable()">✦ Update</button>
       <button class="btn-seat-close" onclick="closeTableSession(${tableNum})">✕ Close Table</button>
@@ -3224,6 +3388,7 @@ function openSeatModal(tableNum) {
 function closeSeatModal() {
   document.getElementById('seatModalOverlay').classList.remove('open');
   document.getElementById('seatMemberResults').classList.remove('open');
+  document.getElementById('seatBookingInfoStrip').classList.remove('visible');
   _seatModalTable = null;
   _seatSelectedMember = null;
 }
@@ -3300,7 +3465,6 @@ async function confirmSeatTable() {
     seated_at: new Date().toISOString()
   };
   if (!LIVE_DATA || !supabaseClient) {
-    // Offline preview
     _tableSessions[tableNum] = payload;
     renderFloorPlan(_tableSessions);
     renderActiveTablesList(_tableSessions);
@@ -3309,7 +3473,7 @@ async function confirmSeatTable() {
     showToast(`Table ${tableNum} seated — ${guestName}`, 'gold');
     return;
   }
-  // Upsert: close any existing open session first
+  // Close any existing open session first
   const existing = _tableSessions[tableNum];
   if (existing && existing.id) {
     await supabaseClient.from('table_sessions').update({ status:'closed', closed_at: new Date().toISOString() }).eq('id', existing.id);
@@ -3320,9 +3484,12 @@ async function confirmSeatTable() {
   renderFloorPlan(_tableSessions);
   renderActiveTablesList(_tableSessions);
   updateTableStats(_tableSessions);
-  // If linked reservation → mark as seated
+  // If linked reservation → mark as seated, refresh reservation cache
   if (resId) {
     await supabaseClient.from('reservations').update({ status:'seated' }).eq('id', resId);
+    const resObj = _todayReservations.find(r => r.id === resId);
+    if (resObj) resObj.status = 'seated';
+    _rebuildResSelect();
   }
   closeSeatModal();
   showToast(`Table ${tableNum} seated — ${guestName}`, 'gold');
@@ -3388,7 +3555,13 @@ async function closeTableSession(tableNum) {
     <!-- Reservation link (optional) -->
     <div class="seat-field">
       <label>Link to Reservation (optional)</label>
-      <select id="seatResSelect"><option value="">— None —</option></select>
+      <select id="seatResSelect" onchange="onSeatResChange()"><option value="">— None —</option></select>
+    </div>
+    <!-- Booking info strip — shown when a reservation with booking data is linked -->
+    <div class="booking-info-strip" id="seatBookingInfoStrip">
+      <div class="booking-info-strip-label">◇ RESERVATION DETAILS</div>
+      <div class="booking-info-row" id="seatBookingInfoRow"></div>
+      <div class="booking-min-notice" id="seatMinSpendNotice" style="display:none;"></div>
     </div>
     <!-- Owner-only: deposit + comp -->
     <div class="deposit-section" id="seatDepositSection">
