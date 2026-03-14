@@ -3262,8 +3262,13 @@ function renderTableBookings() {
         ${b.status === 'pending' ? `<button class="res-btn confirm" onclick="tblBookingUpdate('${b.id}','confirmed')">Confirm</button>` : ''}
         ${b.status === 'confirmed' ? `<button class="res-btn seat" onclick="tblBookingUpdate('${b.id}','seated')">Seat</button>` : ''}
         ${!['seated','cancelled'].includes(b.status) ? `<button class="res-btn cancel" onclick="tblBookingUpdate('${b.id}','cancelled')">Cancel</button>` : ''}
-        ${b.status === 'confirmed' && !b.deposit_paid ? `<button class="table-action-btn" onclick="tblBookingMarkDeposit('${b.id}')">Mark Deposit Paid</button>` : ''}
-        ${b.status === 'confirmed' ? `<button class="table-action-btn" style="border-color:rgba(218,165,32,0.35);color:var(--owner-gold);" onclick="openVIPModal('comp_table')">Issue Comp Table</button>` : ''}
+        ${b.status === 'confirmed' && !b.deposit_paid ? `
+          <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
+            <input type="number" id="depositAmt_${b.id}" placeholder="Deposit $" min="1" style="width:110px;background:var(--void);border:1px solid var(--graphite);color:var(--ivory);padding:5px 8px;border-radius:6px;font-family:var(--font-body);font-size:12px;" />
+            <button class="table-action-btn" onclick="tblBookingMarkDeposit('${b.id}')">Mark Paid</button>
+          </div>` : ''}
+        ${b.deposit_paid ? `<span style="color:#81C784;font-size:11px;">✓ Deposit paid</span>` : ''}
+        ${b.status === 'confirmed' ? `<button class="table-action-btn" style="border-color:rgba(218,165,32,0.35);color:var(--owner-gold);" onclick="openVIPModal('comp_tab')">Issue Comp Tab</button>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -3284,12 +3289,15 @@ async function tblBookingUpdate(id, status) {
 
 async function tblBookingMarkDeposit(id) {
   if (!LIVE_DATA || !supabaseClient) return;
-  const { error } = await supabaseClient.from('table_bookings').update({ deposit_paid: true }).eq('id', id);
+  const amtInput = document.getElementById('depositAmt_' + id);
+  const amt = amtInput ? parseFloat(amtInput.value) : null;
+  if (!amt || amt <= 0) { showToast('Enter a deposit amount first.'); return; }
+  const { error } = await supabaseClient.from('table_bookings').update({ deposit_paid: true, deposit_amount: amt }).eq('id', id);
   if (error) { showToast('Error updating deposit.'); return; }
   const b = _allTableBookings.find(b => b.id === id);
-  if (b) b.deposit_paid = true;
+  if (b) { b.deposit_paid = true; b.deposit_amount = amt; }
   renderTableBookings();
-  showToast('Deposit marked as paid', 'gold');
+  showToast('Deposit of $' + amt.toLocaleString() + ' marked as paid', 'gold');
 }
 
 function updateTblBookingBadge() {
