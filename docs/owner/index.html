@@ -140,9 +140,12 @@
       <button class="res-filter" onclick="tblBookingFilter(this,'pending')">Pending</button>
       <button class="res-filter" onclick="tblBookingFilter(this,'confirmed')">Confirmed</button>
       <button class="res-filter" onclick="tblBookingFilter(this,'seated')">Seated</button>
+      <button class="res-filter" onclick="tblBookingFilter(this,'closed')">Closed</button>
       <button class="res-filter" onclick="tblBookingFilter(this,'cancelled')">Cancelled</button>
     </div>
     <div style="display:flex;gap:8px;align-items:center;">
+      <input type="date" id="tblBookingDateFilter" onchange="renderTableBookings()" style="background:var(--void);border:1px solid var(--graphite);color:var(--mist);padding:6px 10px;border-radius:6px;font-family:var(--font-body);font-size:13px;cursor:pointer;" title="Filter by date"/>
+      <button onclick="document.getElementById('tblBookingDateFilter').value='';renderTableBookings();" style="padding:6px 10px;border:1px solid var(--graphite);background:none;border-radius:6px;color:var(--ash);font-family:var(--font-body);font-size:11px;cursor:pointer;">Clear</button>
       <select id="tblBookingEventFilter" onchange="renderTableBookings()" style="background:var(--void);border:1px solid var(--graphite);color:var(--mist);padding:6px 10px;border-radius:6px;font-family:var(--font-body);font-size:13px;">
         <option value="">All Events</option>
       </select>
@@ -171,7 +174,14 @@
 <div class="tab-panel" id="tab-tables">
   <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
     <div><p class="page-eyebrow">Floor Operations</p><h1 class="page-title">Table Management</h1><p class="page-sub">Live seating map — click any table to seat guests or close a table.</p></div>
-    <button onclick="loadTableSessions()" style="padding:9px 18px;border:1px solid var(--graphite);background:none;border-radius:6px;color:var(--ash);font-family:var(--font-body);font-size:12px;cursor:pointer;margin-top:8px;">↺ Refresh</button>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <label style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--owner-gold);">DATE</label>
+        <input type="date" id="tblDateFilter" style="background:var(--void);border:1px solid var(--graphite);color:var(--mist);padding:6px 10px;border-radius:6px;font-family:var(--font-body);font-size:13px;cursor:pointer;" onchange="loadTableSessions()"/>
+        <button onclick="document.getElementById('tblDateFilter').value=new Date().toISOString().split('T')[0];loadTableSessions();" style="padding:6px 12px;border:1px solid var(--graphite);background:none;border-radius:6px;color:var(--ash);font-family:var(--font-body);font-size:11px;cursor:pointer;">Today</button>
+      </div>
+      <button onclick="loadTableSessions()" style="padding:9px 18px;border:1px solid var(--graphite);background:none;border-radius:6px;color:var(--ash);font-family:var(--font-body);font-size:12px;cursor:pointer;">↺ Refresh</button>
+    </div>
   </div>
   <!-- Floor plan filter bar -->
   <div class="tbl-filter-bar" id="tblFilterBar">
@@ -270,7 +280,7 @@
 </main><div class="mobile-tab-bar"><div class="mobile-tabs"><button class="mobile-tab active" data-tab="dashboard"><span class="mobile-tab-icon">◈</span><span class="mobile-tab-label">Dash</span></button><button class="mobile-tab" data-tab="inquiries"><span class="mobile-tab-icon">✉</span><span class="mobile-tab-label">Inquiries</span></button><button class="mobile-tab" data-tab="reservations"><span class="mobile-tab-icon">◇</span><span class="mobile-tab-label">Reservations</span></button><button class="mobile-tab" data-tab="vipcomp"><span class="mobile-tab-icon">◆</span><span class="mobile-tab-label">VIP &amp; Comp</span></button><button class="mobile-tab" data-tab="tablebookings"><span class="mobile-tab-icon">⊡</span><span class="mobile-tab-label">Bookings</span></button><button class="mobile-tab" data-tab="events"><span class="mobile-tab-icon">◆</span><span class="mobile-tab-label">Events</span></button><button class="mobile-tab" data-tab="gallery"><span class="mobile-tab-icon">◻</span><span class="mobile-tab-label">Gallery</span></button><button class="mobile-tab" data-tab="analytics"><span class="mobile-tab-icon">▣</span><span class="mobile-tab-label">Analytics</span></button><button class="mobile-tab" data-tab="reporting"><span class="mobile-tab-icon">◑</span><span class="mobile-tab-label">Reporting</span></button><button class="mobile-tab" data-tab="members"><span class="mobile-tab-icon">◉</span><span class="mobile-tab-label">Members</span></button><button class="mobile-tab" data-tab="employees"><span class="mobile-tab-icon">◎</span><span class="mobile-tab-label">Employees</span></button><button class="mobile-tab" data-tab="scheduling"><span class="mobile-tab-icon">⊞</span><span class="mobile-tab-label">Schedule</span></button><button class="mobile-tab" data-tab="tables"><span class="mobile-tab-icon">⊟</span><span class="mobile-tab-label">Tables</span></button><button class="mobile-tab staff-view-tab" data-tab="staffview"><span class="mobile-tab-icon">⬡</span><span class="mobile-tab-label">Staff</span></button></div></div></div><div class="gallery-modal-overlay" id="galleryCreateModal"><div class="gallery-modal"><div class="gallery-modal-header"><div class="gallery-modal-title" id="galleryModalTitle">New Gallery</div><button class="gallery-modal-close" onclick="closeCreateGalleryModal()">&#x2715;</button></div><input type="hidden" id="galleryEditId"><div class="gallery-form-row"><label class="gallery-form-label">Gallery Title *</label><input type="text" class="gallery-form-input" id="galleryTitleInput" placeholder="e.g. Saturday Night — Feb 22"></div><div class="gallery-form-row-half"><div><label class="gallery-form-label">Date *</label><input type="date" class="gallery-form-input" id="galleryDateInput"></div><div><label class="gallery-form-label">Link to Event (optional)</label><select class="gallery-form-select" id="galleryEventSelect"><option value="">No event linked</option></select></div></div><div class="gallery-toggle-row"><div><div class="gallery-toggle-label">Private Gallery</div><div class="gallery-toggle-sub">Private galleries are visible to staff only, not members</div></div><label class="gallery-toggle"><input type="checkbox" id="galleryPrivateToggle"><span class="gallery-toggle-slider"></span></label></div><div id="galleryUploadSection"><label class="gallery-form-label">Photos</label><div class="gallery-upload-sources"><button class="gallery-source-btn" onclick="document.getElementById('galleryFileInput').click()"><span>&#x1F4BB;</span> Device
  </button><button class="gallery-source-btn" onclick="openGooglePicker('create')"><span>&#x1F535;</span> Google Drive
  </button><button class="gallery-source-btn" onclick="openDropboxChooser('create')"><span>&#x1F4E6;</span> Dropbox
- </button></div><div class="gallery-drop-zone" id="galleryDropZone"><input type="file" id="galleryFileInput" multiple accept="image/jpeg,image/png,image/webp,image/heic" onchange="handleFileSelect(event)"><div class="gallery-drop-icon">&#x1F4F8;</div><div class="gallery-drop-text">Drop photos here or click to select</div><div class="gallery-drop-sub">JPEG, PNG, WebP, HEIC &middot; Max 10MB each</div></div><div class="gallery-upload-preview" id="galleryUploadPreview"></div></div><div class="gallery-status" id="galleryModalStatus"></div><div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--graphite);"><div class="gallery-form-label" style="margin-bottom:10px;font-size:11px;letter-spacing:.08em;color:var(--owner-gold);">PHOTO METADATA <span style="color:var(--ash);font-weight:300;">(applied to all uploaded photos)</span></div><div class="gallery-form-row-half" style="gap:10px;"><div><label class="gallery-form-label">Venue Name</label><input type="text" class="gallery-form-input" id="metaVenueName" value="RIDDIM Supper Club" placeholder="RIDDIM Supper Club"></div><div><label class="gallery-form-label">Location</label><input type="text" class="gallery-form-input" id="metaLocation" placeholder="Atlanta, GA"></div></div><div class="gallery-form-row-half" style="gap:10px;margin-top:10px;"><div><label class="gallery-form-label">Photographer Credit</label><input type="text" class="gallery-form-input" id="metaPhotographer" placeholder="e.g. @riddimshots"></div><div><label class="gallery-form-label">Date Taken</label><input type="date" class="gallery-form-input" id="metaDateTaken"></div></div><div style="margin-top:10px;"><label class="gallery-form-label">Caption / Description <span style="color:var(--ash);font-weight:300;">(optional)</span></label><textarea class="gallery-form-input" id="metaCaption" rows="2" placeholder="e.g. Friday night energy on the patio…" style="resize:vertical;min-height:52px;"></textarea></div></div><button class="gallery-save-btn" id="gallerySaveBtn" onclick="saveGallery()">Create Gallery</button></div></div><div class="gallery-lightbox" id="galleryLightbox"><button class="gallery-lightbox-close" onclick="closeLightbox()">&#x2715;</button><button class="gallery-lightbox-prev" onclick="lightboxNav(-1)">&#x2039;</button><img class="gallery-lightbox-img" id="galleryLightboxImg" src="" alt=""><button class="gallery-lightbox-next" onclick="lightboxNav(1)">&#x203A;</button><div class="gallery-lightbox-counter" id="galleryLightboxCounter"></div><button onclick="openPhotoMetaModal()" style="position:absolute;top:16px;right:56px;background:rgba(0,0,0,0.5);border:1px solid rgba(212,168,67,0.4);color:var(--owner-gold);font-size:11px;font-family:var(--font-body);letter-spacing:.06em;padding:5px 12px;border-radius:4px;cursor:pointer;">✎ EDIT INFO</button><div id="galleryLightboxMeta" style="position:absolute;bottom:48px;left:0;right:0;padding:10px 20px;background:linear-gradient(transparent,rgba(0,0,0,0.75));text-align:left;pointer-events:none;display:none;"><div id="galleryLightboxCaption" style="font-family:var(--font-display);font-size:15px;font-weight:300;color:var(--ivory);margin-bottom:4px;"></div><div id="galleryLightboxMetaRow" style="font-size:11px;color:rgba(255,255,255,0.55);display:flex;flex-wrap:wrap;gap:12px;"></div></div></div><div class="modal-overlay" id="photoMetaModal" style="z-index:10001;"><div class="modal-card" style="max-width:480px;"><div class="modal-title">Edit Photo Info</div><div class="modal-sub" id="photoMetaFilename" style="font-size:11px;color:var(--ash);margin-bottom:16px;"></div><div class="field"><label>Caption</label><textarea id="pmCaption" rows="2" style="width:100%;background:var(--void);border:1px solid var(--graphite);color:var(--ivory);padding:10px 12px;border-radius:6px;font-family:var(--font-body);font-size:14px;resize:vertical;"></textarea></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"><div class="field"><label>Photographer</label><input type="text" id="pmPhotographer" placeholder="@riddimshots" /></div><div class="field"><label>Date Taken</label><input type="date" id="pmDateTaken" /></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"><div class="field"><label>Venue Name</label><input type="text" id="pmVenueName" placeholder="RIDDIM Supper Club" /></div><div class="field"><label>Location</label><input type="text" id="pmLocation" placeholder="Atlanta, GA" /></div></div><div class="auth-error" id="photoMetaError" style="text-align:left;margin-bottom:8px;"></div><div class="modal-actions"><button class="btn-primary" onclick="savePhotoMeta()">Save</button><button class="btn-ghost" onclick="document.getElementById('photoMetaModal').classList.remove('open')">Cancel</button></div></div></div><div class="modal-overlay" id="memberDetailModal"><div class="modal-card" style="max-width:420px;"><button onclick="closeMemberDetailModal()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:var(--ash);font-size:18px;cursor:pointer;">&#x2715;</button><div style="text-align:center;margin-bottom:20px;"><div style="font-family:var(--font-display);font-size:28px;font-weight:300;color:var(--ivory);" id="mdName"></div><div style="margin-top:6px;" id="mdTier"></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;"><div class="panel" style="padding:12px;text-align:center;"><div style="font-family:var(--font-display);font-size:22px;color:var(--gold-warm);" id="mdPoints"></div><div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-top:3px;">POINTS</div></div><div class="panel" style="padding:12px;text-align:center;"><div style="font-family:var(--font-display);font-size:22px;color:var(--ivory);" id="mdVisits"></div><div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-top:3px;">VISITS</div></div></div><div style="margin-bottom:12px;"><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:6px;">PHONE</div><div style="font-size:15px;color:var(--mist);" id="mdPhone">—</div></div><div style="margin-bottom:12px;"><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:6px;">MEMBER ID</div><div style="font-family:var(--font-label);letter-spacing:0.15em;font-size:13px;color:var(--ash);" id="mdId"></div></div><div style="margin-bottom:20px;text-align:center;"><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:10px;">MEMBER QR</div><div id="mdQrWrap" style="background:white;padding:14px;border-radius:10px;display:inline-block;line-height:0;"></div></div><div style="margin-bottom:8px;"><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:6px;">MEMBER SINCE</div><div style="font-size:13px;color:var(--ash);" id="mdSince"></div></div><div class="modal-actions" style="margin-top:20px;"><button class="btn-primary" onclick="closeMemberDetailModal();openEditModal(window._mdCurrentId)">Edit Points</button><button class="btn-ghost" onclick="closeMemberDetailModal()">Close</button></div></div></div><div class="modal-overlay" id="editModal"><div class="modal-card"><div class="modal-title" id="editModalTitle">Edit Points</div><div class="modal-sub" id="editModalSub">Adjust this member's point balance</div><div class="field"><label for="editPointsInput">New Point Total</label><input type="number" id="editPointsInput" placeholder="e.g. 2500" /></div><div class="field"><label for="editNoteInput">Note (internal)</label><input type="text" id="editNoteInput" placeholder="Reason for adjustment…" /></div><div class="modal-actions"><button class="btn-primary" onclick="savePointEdit()">Save Changes</button><button class="btn-ghost" onclick="closeModal()">Cancel</button></div></div></div><div class="modal-overlay" id="schedExportModal"><div class="modal-card" style="max-width:400px;"><div class="modal-title">Export Schedule</div><div class="modal-sub">Select a date range to export</div><div class="field"><label for="schedExportFrom">From</label><input type="date" id="schedExportFrom" /></div><div class="field"><label for="schedExportTo">To</label><input type="date" id="schedExportTo" /></div><div class="field"><label>Format</label><div style="display:flex;gap:10px;margin-top:4px;"><label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="radio" name="schedExportFmt" value="print" checked> Print / PDF</label><label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="radio" name="schedExportFmt" value="csv"> CSV (Google Sheets)</label></div></div><div class="modal-actions"><button class="btn-primary" onclick="runSchedExport()">Export</button><button class="btn-ghost" onclick="closeSchedExportModal()">Cancel</button></div></div></div><div class="modal-overlay" id="inquiryDetailModal" style="display:none;align-items:flex-start;padding-top:60px;"><div class="modal-card" style="max-width:560px;width:100%;max-height:80vh;overflow-y:auto;position:relative;"><button onclick="closeInquiryModal()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:var(--ash);font-size:18px;cursor:pointer;line-height:1;">&#x2715;</button><div class="modal-title" id="inquiryModalTitle">Inquiry</div><div id="inquiryModalMeta" style="font-size:12px;color:var(--ash);margin-bottom:20px;display:flex;gap:16px;flex-wrap:wrap;"></div><div style="margin-bottom:24px;"><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:8px;">STATUS</div><div style="display:flex;gap:8px;flex-wrap:wrap;" id="inquiryStatusBtns"></div></div><div id="inquiryDetailRows" style="display:grid;gap:12px;"></div><div style="margin-top:24px;"><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:8px;">OWNER NOTES</div><textarea id="inquiryNotesInput" rows="4" placeholder="Add internal notes…"
+ </button></div><div class="gallery-drop-zone" id="galleryDropZone"><input type="file" id="galleryFileInput" multiple accept="image/jpeg,image/png,image/webp,image/heic" onchange="handleFileSelect(event)"><div class="gallery-drop-icon">&#x1F4F8;</div><div class="gallery-drop-text">Drop photos here or click to select</div><div class="gallery-drop-sub">JPEG, PNG, WebP, HEIC &middot; Max 10MB each</div></div><div class="gallery-upload-preview" id="galleryUploadPreview"></div></div><div class="gallery-status" id="galleryModalStatus"></div><div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--graphite);"><div class="gallery-form-label" style="margin-bottom:10px;font-size:11px;letter-spacing:.08em;color:var(--owner-gold);">PHOTO METADATA <span style="color:var(--ash);font-weight:300;">(applied to all uploaded photos)</span></div><div class="gallery-form-row-half" style="gap:10px;"><div><label class="gallery-form-label">Venue Name</label><input type="text" class="gallery-form-input" id="metaVenueName" value="RIDDIM Supper Club" placeholder="RIDDIM Supper Club"></div><div><label class="gallery-form-label">Location</label><input type="text" class="gallery-form-input" id="metaLocation" placeholder="Atlanta, GA"></div></div><div class="gallery-form-row-half" style="gap:10px;margin-top:10px;"><div><label class="gallery-form-label">Photographer Credit</label><input type="text" class="gallery-form-input" id="metaPhotographer" placeholder="e.g. @riddimshots"></div><div><label class="gallery-form-label">Date Taken</label><input type="date" class="gallery-form-input" id="metaDateTaken"></div></div><div style="margin-top:10px;"><label class="gallery-form-label">Caption / Description <span style="color:var(--ash);font-weight:300;">(optional)</span></label><textarea class="gallery-form-input" id="metaCaption" rows="2" placeholder="e.g. Friday night energy on the patio…" style="resize:vertical;min-height:52px;"></textarea></div></div><button class="gallery-save-btn" id="gallerySaveBtn" onclick="saveGallery()">Create Gallery</button></div></div><div class="gallery-lightbox" id="galleryLightbox"><button class="gallery-lightbox-close" onclick="closeLightbox()">&#x2715;</button><button class="gallery-lightbox-prev" onclick="lightboxNav(-1)">&#x2039;</button><img class="gallery-lightbox-img" id="galleryLightboxImg" src="" alt=""><button class="gallery-lightbox-next" onclick="lightboxNav(1)">&#x203A;</button><div class="gallery-lightbox-counter" id="galleryLightboxCounter"></div><button onclick="openPhotoMetaModal()" style="position:absolute;top:16px;right:56px;background:rgba(0,0,0,0.5);border:1px solid rgba(212,168,67,0.4);color:var(--owner-gold);font-size:11px;font-family:var(--font-body);letter-spacing:.06em;padding:5px 12px;border-radius:4px;cursor:pointer;">✎ EDIT INFO</button><div id="galleryLightboxMeta" style="position:absolute;bottom:48px;left:0;right:0;padding:10px 20px;background:linear-gradient(transparent,rgba(0,0,0,0.75));text-align:left;pointer-events:none;display:none;"><div id="galleryLightboxCaption" style="font-family:var(--font-display);font-size:15px;font-weight:300;color:var(--ivory);margin-bottom:4px;"></div><div id="galleryLightboxMetaRow" style="font-size:11px;color:rgba(255,255,255,0.55);display:flex;flex-wrap:wrap;gap:12px;"></div></div></div><div class="modal-overlay" id="photoMetaModal" style="z-index:10001;"><div class="modal-card" style="max-width:480px;"><div class="modal-title">Edit Photo Info</div><div class="modal-sub" id="photoMetaFilename" style="font-size:11px;color:var(--ash);margin-bottom:16px;"></div><div class="field"><label>Caption</label><textarea id="pmCaption" rows="2" style="width:100%;background:var(--void);border:1px solid var(--graphite);color:var(--ivory);padding:10px 12px;border-radius:6px;font-family:var(--font-body);font-size:14px;resize:vertical;"></textarea></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"><div class="field"><label>Photographer</label><input type="text" id="pmPhotographer" placeholder="@riddimshots" /></div><div class="field"><label>Date Taken</label><input type="date" id="pmDateTaken" /></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"><div class="field"><label>Venue Name</label><input type="text" id="pmVenueName" placeholder="RIDDIM Supper Club" /></div><div class="field"><label>Location</label><input type="text" id="pmLocation" placeholder="Atlanta, GA" /></div></div><div class="auth-error" id="photoMetaError" style="text-align:left;margin-bottom:8px;"></div><div class="modal-actions"><button class="btn-primary" onclick="savePhotoMeta()">Save</button><button class="btn-ghost" onclick="document.getElementById('photoMetaModal').classList.remove('open')">Cancel</button></div></div></div><div class="modal-overlay" id="memberDetailModal"><div class="modal-card" style="max-width:420px;"><button onclick="closeMemberDetailModal()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:var(--ash);font-size:18px;cursor:pointer;">&#x2715;</button><div style="text-align:center;margin-bottom:20px;"><div style="font-family:var(--font-display);font-size:28px;font-weight:300;color:var(--ivory);" id="mdName"></div><div style="margin-top:6px;" id="mdTier"></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;"><div class="panel" style="padding:12px;text-align:center;"><div style="font-family:var(--font-display);font-size:22px;color:var(--gold-warm);" id="mdPoints"></div><div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-top:3px;">POINTS</div></div><div class="panel" style="padding:12px;text-align:center;"><div style="font-family:var(--font-display);font-size:22px;color:var(--ivory);" id="mdVisits"></div><div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-top:3px;">VISITS</div></div></div><div style="margin-bottom:12px;"><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:6px;">PHONE</div><div style="font-size:15px;color:var(--mist);" id="mdPhone">—</div></div><div style="margin-bottom:12px;"><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:6px;">MEMBER ID</div><div style="font-family:var(--font-label);letter-spacing:0.15em;font-size:13px;color:var(--ash);" id="mdId"></div></div><div style="margin-bottom:20px;text-align:center;"><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:10px;">MEMBER QR</div><div id="mdQrWrap" style="background:white;padding:14px;border-radius:10px;display:inline-block;line-height:0;"></div></div><div style="margin-bottom:8px;"><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:6px;">MEMBER SINCE</div><div style="font-size:13px;color:var(--ash);" id="mdSince"></div></div><div style="margin-bottom:16px;"><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--owner-gold);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(218,165,32,0.15);">VISIT &amp; SPEND HISTORY</div><div id="mdHistoryWrap" style="max-height:260px;overflow-y:auto;"></div></div><div class="modal-actions" style="margin-top:20px;"><button class="btn-primary" onclick="closeMemberDetailModal();openEditModal(window._mdCurrentId)">Edit Points</button><button class="btn-ghost" onclick="closeMemberDetailModal()">Close</button></div></div></div><div class="modal-overlay" id="editModal"><div class="modal-card"><div class="modal-title" id="editModalTitle">Edit Points</div><div class="modal-sub" id="editModalSub">Adjust this member's point balance</div><div class="field"><label for="editPointsInput">New Point Total</label><input type="number" id="editPointsInput" placeholder="e.g. 2500" /></div><div class="field"><label for="editNoteInput">Note (internal)</label><input type="text" id="editNoteInput" placeholder="Reason for adjustment…" /></div><div class="modal-actions"><button class="btn-primary" onclick="savePointEdit()">Save Changes</button><button class="btn-ghost" onclick="closeModal()">Cancel</button></div></div></div><div class="modal-overlay" id="schedExportModal"><div class="modal-card" style="max-width:400px;"><div class="modal-title">Export Schedule</div><div class="modal-sub">Select a date range to export</div><div class="field"><label for="schedExportFrom">From</label><input type="date" id="schedExportFrom" /></div><div class="field"><label for="schedExportTo">To</label><input type="date" id="schedExportTo" /></div><div class="field"><label>Format</label><div style="display:flex;gap:10px;margin-top:4px;"><label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="radio" name="schedExportFmt" value="print" checked> Print / PDF</label><label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="radio" name="schedExportFmt" value="csv"> CSV (Google Sheets)</label></div></div><div class="modal-actions"><button class="btn-primary" onclick="runSchedExport()">Export</button><button class="btn-ghost" onclick="closeSchedExportModal()">Cancel</button></div></div></div><div class="modal-overlay" id="inquiryDetailModal" style="display:none;align-items:flex-start;padding-top:60px;"><div class="modal-card" style="max-width:560px;width:100%;max-height:80vh;overflow-y:auto;position:relative;"><button onclick="closeInquiryModal()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:var(--ash);font-size:18px;cursor:pointer;line-height:1;">&#x2715;</button><div class="modal-title" id="inquiryModalTitle">Inquiry</div><div id="inquiryModalMeta" style="font-size:12px;color:var(--ash);margin-bottom:20px;display:flex;gap:16px;flex-wrap:wrap;"></div><div style="margin-bottom:24px;"><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:8px;">STATUS</div><div style="display:flex;gap:8px;flex-wrap:wrap;" id="inquiryStatusBtns"></div></div><div id="inquiryDetailRows" style="display:grid;gap:12px;"></div><div style="margin-top:24px;"><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:8px;">OWNER NOTES</div><textarea id="inquiryNotesInput" rows="4" placeholder="Add internal notes…"
  style="width:100%;background:var(--void);border:1px solid var(--graphite);color:var(--ivory);padding:10px 12px;border-radius:6px;font-family:var(--font-body);font-size:13px;resize:vertical;line-height:1.5;"></textarea><button onclick="saveInquiryNotes()" style="margin-top:8px;padding:8px 20px;background:var(--owner-gold);color:#000;border:none;border-radius:6px;font-family:var(--font-label);font-size:11px;letter-spacing:0.15em;cursor:pointer;">Save Notes</button><span id="inquiryNotesSaved" style="margin-left:10px;font-size:12px;color:var(--green);display:none;">Saved ✓</span></div>
 <!-- ── GUEST HISTORY PANEL ───────────────────────── -->
 <div class="gh-panel" id="guestHistoryPanel" style="display:none;">
@@ -746,7 +756,7 @@ closeModal();
 showToast(`✦ Points updated for ${m.first_name}`, 'gold');
 }
 window._mdCurrentId = null;
-function openMemberDetailModal(memberId) {
+async function openMemberDetailModal(memberId) {
 window._mdCurrentId = memberId;
 const m = MEMBERS.find(m => m.id === memberId);
 if (!m) return;
@@ -769,6 +779,80 @@ new QRCode(qrWrap, { text: qrUrl, width: 160, height: 160, colorDark:'#000', col
 qrWrap.innerHTML = `<div style="font-size:11px;color:#888;padding:8px;">QR unavailable</div>`;
 }
 });
+// Item 8 — load enriched member history
+if (document.getElementById('mdHistoryWrap')) {
+  document.getElementById('mdHistoryWrap').innerHTML = '<div style="font-size:12px;color:var(--ash);text-align:center;padding:12px;">Loading…</div>';
+}
+if (!LIVE_DATA || !supabaseClient) return;
+try {
+  const phone10 = (m.phone||'').replace(/\D/g,'').slice(-10);
+  const phoneE164 = '+1'+phone10;
+  const [ticketRes, compRes, bookingRes] = await Promise.all([
+    supabaseClient.from('tickets').select('id,quantity,price_paid,comped,events(title,event_date)').eq('member_id', m.id).order('purchased_at',{ascending:false}).limit(20),
+    supabaseClient.from('vip_passes').select('id,pass_type,valid_date,tab_limit,status').eq('guest_phone', phone10).in('status',['active','unused','closed']).order('valid_date',{ascending:false}).limit(20),
+    supabaseClient.from('table_bookings').select('id,guest_name,minimum_spend_required,deposit_amount,comp_applied,payment_amount,status,requested_at,events(title,event_date)').eq('guest_phone', phoneE164).order('requested_at',{ascending:false}).limit(20),
+  ]);
+  const tickets = ticketRes.data || [];
+  const comps = compRes.data || [];
+  const bookings = bookingRes.data || [];
+  // Calculate totals
+  const ticketCount = tickets.reduce((s,t)=>s+(t.quantity||1),0);
+  const compCount = comps.length;
+  let totalSpent = 0, totalOverage = 0;
+  bookings.filter(b=>b.status==='seated'||b.status==='closed').forEach(b=>{
+    const dep=parseFloat(b.deposit_amount||0), comp=parseFloat(b.comp_applied||0), pay=parseFloat(b.payment_amount||0);
+    const total=dep+comp+pay;
+    totalSpent+=total;
+    const min=parseFloat(b.minimum_spend_required||0);
+    if(min>0&&total>min) totalOverage+=(total-min);
+  });
+  const wrap = document.getElementById('mdHistoryWrap');
+  if (!wrap) return;
+  wrap.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;">
+      <div style="text-align:center;padding:10px 6px;background:var(--void);border:1px solid var(--graphite);border-radius:6px;">
+        <div style="font-family:var(--font-display);font-size:20px;font-weight:300;color:var(--gold-warm);">${ticketCount}</div>
+        <div style="font-size:9px;color:var(--ash);font-family:var(--font-label);letter-spacing:0.15em;margin-top:2px;">TICKETS</div>
+      </div>
+      <div style="text-align:center;padding:10px 6px;background:var(--void);border:1px solid var(--graphite);border-radius:6px;">
+        <div style="font-family:var(--font-display);font-size:20px;font-weight:300;color:var(--ivory);">${compCount}</div>
+        <div style="font-size:9px;color:var(--ash);font-family:var(--font-label);letter-spacing:0.15em;margin-top:2px;">COMPS</div>
+      </div>
+      <div style="text-align:center;padding:10px 6px;background:var(--void);border:1px solid var(--graphite);border-radius:6px;">
+        <div style="font-family:var(--font-display);font-size:20px;font-weight:300;color:var(--ivory);">$${totalSpent.toLocaleString(undefined,{maximumFractionDigits:0})}</div>
+        <div style="font-size:9px;color:var(--ash);font-family:var(--font-label);letter-spacing:0.15em;margin-top:2px;">TAB TOTAL</div>
+      </div>
+      <div style="text-align:center;padding:10px 6px;background:var(--void);border:1px solid var(--graphite);border-radius:6px;">
+        <div style="font-family:var(--font-display);font-size:20px;font-weight:300;color:#81C784;">$${totalOverage.toLocaleString(undefined,{maximumFractionDigits:0})}</div>
+        <div style="font-size:9px;color:var(--ash);font-family:var(--font-label);letter-spacing:0.15em;margin-top:2px;">OVERAGE</div>
+      </div>
+    </div>
+    ${bookings.length ? `<div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--owner-gold);margin-bottom:6px;">TABLE BOOKINGS</div>
+    ${bookings.map(b=>{
+      const evTitle=b.events?.title||'Event';
+      const evDate=b.events?.event_date?new Date(b.events.event_date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
+      const dep=parseFloat(b.deposit_amount||0),comp2=parseFloat(b.comp_applied||0),pay=parseFloat(b.payment_amount||0);
+      const tot=dep+comp2+pay;
+      const min=parseFloat(b.minimum_spend_required||0);
+      const ov=min>0&&tot>min?'<span style="color:#81C784;margin-left:6px;">+$'+(tot-min).toLocaleString(undefined,{maximumFractionDigits:0})+' over</span>':'';
+      const statusColor=b.status==='seated'||b.status==='closed'?'#81C784':b.status==='confirmed'?'var(--gold-warm)':'var(--ash)';
+      return `<div style="font-size:11px;color:var(--mist);padding:7px 10px;background:var(--void);border:1px solid var(--graphite);border-radius:5px;margin-bottom:5px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>${evTitle} · ${evDate}</span>
+          <span style="font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;color:${statusColor};">${b.status.toUpperCase()}</span>
+        </div>
+        <div style="color:var(--ash);margin-top:2px;">Min $${min.toLocaleString()} · Total $${tot.toLocaleString(undefined,{maximumFractionDigits:0})}${ov}</div>
+      </div>`;
+    }).join('')}` : ''}
+    ${comps.length ? `<div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--owner-gold);margin-top:10px;margin-bottom:6px;">COMP PASSES</div>
+    ${comps.map(c=>{
+      const d=c.valid_date?new Date(c.valid_date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
+      return `<div style="font-size:11px;color:var(--mist);padding:6px 10px;background:var(--void);border:1px solid var(--graphite);border-radius:5px;margin-bottom:4px;">${c.pass_type.replace('_',' ').toUpperCase()} · ${d} · ${c.status}</div>`;
+    }).join('')}` : ''}`;
+} catch(e) {
+  const wrap = document.getElementById('mdHistoryWrap');
+  if(wrap) wrap.innerHTML = '<div style="font-size:11px;color:var(--ash);padding:8px;">History unavailable</div>';
+}
 }
 function closeMemberDetailModal() {
 document.getElementById('memberDetailModal').classList.remove('open');
@@ -3202,10 +3286,13 @@ function renderTableBookings() {
   const grid = document.getElementById('tblBookingGrid');
   if (!grid) return;
   const evFilter = document.getElementById('tblBookingEventFilter')?.value || '';
+  const dateFilter = document.getElementById('tblBookingDateFilter')?.value || '';
   let data = _allTableBookings.filter(b => {
     const statusOk = _tblBookingStatusFilter === 'all' || b.status === _tblBookingStatusFilter;
     const evOk = !evFilter || b.event_id === evFilter;
-    return statusOk && evOk;
+    // Date filter: match against requested_at date
+    const dateOk = !dateFilter || (b.requested_at || '').slice(0,10) === dateFilter;
+    return statusOk && evOk && dateOk;
   });
 
   // Stats
@@ -3514,16 +3601,25 @@ function applyFloorPlanFilter() {
 })();
 
 async function initTablesTab() {
+  // Set date filter to today on first load
+  const df = document.getElementById('tblDateFilter');
+  if (df && !df.value) df.value = new Date().toISOString().split('T')[0];
   document.getElementById('tblStatTotal').textContent = TOTAL_TABLES;
   await Promise.all([loadTableSessions(), loadTableStaff(), loadTodayReservations()]);
 }
 
 async function loadTableSessions() {
   if (!LIVE_DATA || !supabaseClient) { renderFloorPlan({}); return; }
+  // Item 5/6 — load by selected date (default today), include seated + closed
+  const dateFilter = document.getElementById('tblDateFilter')?.value || new Date().toISOString().split('T')[0];
+  const startOfDay = dateFilter + 'T00:00:00.000Z';
+  const endOfDay = dateFilter + 'T23:59:59.999Z';
   const { data, error } = await supabaseClient
     .from('table_sessions')
     .select('*')
-    .eq('status', 'seated');
+    .in('status', ['seated','closed'])
+    .gte('seated_at', startOfDay)
+    .lte('seated_at', endOfDay);
   if (error) { console.warn('table_sessions fetch:', error.message); renderFloorPlan({}); return; }
   const map = {};
   (data || []).forEach(s => { map[s.table_number] = s; });
@@ -3725,12 +3821,22 @@ function renderActiveTablesList(map) {
         </div>` : '';
     const minSpend = linkedRes?.minimum_spend_required > 0
       ? `<div style="font-size:11px;color:var(--ash);margin-top:2px;">Min spend: $${parseFloat(linkedRes.minimum_spend_required).toFixed(2)}</div>` : '';
-    return `<div class="active-table-row ${type}" onclick="openSeatModal(${num})">
-      <div class="active-table-num">TABLE ${num}</div>
+    const isClosed = s.status === 'closed';
+    const closedAt = isClosed && s.closed_at ? new Date(s.closed_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}) : null;
+    const dep = parseFloat(s.deposit_applied||0);
+    const comp = parseFloat(s.comp_applied||0);
+    const pay = parseFloat(s.payment_amount||0);
+    const tabTotal = dep + comp + pay;
+    const tabSummary = tabTotal > 0 && isClosed
+      ? `<div style="font-size:11px;color:var(--gold-warm);margin-top:3px;">Tab: $${tabTotal.toLocaleString(undefined,{minimumFractionDigits:2})} · Dep $${dep.toLocaleString()} · Comp $${comp.toLocaleString()} · Pay $${pay.toLocaleString()}</div>` : '';
+    const closedStyle = isClosed ? 'opacity:0.65;border-left-color:var(--ash);' : '';
+    const closedBadge = isClosed ? `<span style="font-family:var(--font-label);font-size:9px;letter-spacing:0.15em;padding:2px 8px;border-radius:999px;border:1px solid var(--graphite);color:var(--ash);margin-left:8px;">CLOSED ${closedAt||''}</span>` : '';
+    return `<div class="active-table-row ${type}" style="${closedStyle}" onclick="${isClosed?'':'openSeatModal('+num+')'}">
+      <div class="active-table-num">TABLE ${num}${closedBadge}</div>
       <div class="active-table-guest">${escTbl(s.guest_name || '—')}</div>
       <div class="active-table-meta">Party of ${s.party_size} · Seated ${seatedAt}</div>
       ${s.server_name ? `<div class="active-table-server">Server: ${escTbl(s.server_name)}</div>` : ''}
-      ${occasionLine}${periodLine}${depositInfo}${minSpend}
+      ${occasionLine}${periodLine}${depositInfo}${minSpend}${tabSummary}
     </div>`;
   }).join('');
 }
@@ -3767,6 +3873,8 @@ function openSeatModal(tableNum) {
   document.getElementById('seatResSelect').value = '';
   document.getElementById('seatDepositInput').value = '';
   document.getElementById('seatCompInput').value = '';
+  if(document.getElementById('seatPaymentInput')) document.getElementById('seatPaymentInput').value = '';
+  const _tabStrip = document.getElementById('seatTabTotalStrip'); if(_tabStrip) _tabStrip.style.display='none';
   document.getElementById('seatNotesInput').value = '';
 
   if (existing) {
@@ -3782,10 +3890,10 @@ function openSeatModal(tableNum) {
     if (existing.server_id) document.getElementById('seatServerSelect').value = existing.server_id;
     if (existing.deposit_applied) document.getElementById('seatDepositInput').value = existing.deposit_applied;
     if (existing.comp_applied) document.getElementById('seatCompInput').value = existing.comp_applied;
+    if (existing.payment_amount) document.getElementById('seatPaymentInput') && (document.getElementById('seatPaymentInput').value = existing.payment_amount);
     if (existing.notes) document.getElementById('seatNotesInput').value = existing.notes;
-    // Re-link the reservation dropdown and trigger booking info display
+    // Item 3: permanently lock booking link once a session is linked
     if (existing.reservation_id) {
-      // Check if it's a TBK or RES link based on what's in the select options
       const sel = document.getElementById('seatResSelect');
       const tbkOpt = Array.from(sel.options).find(o => o.value === 'TBK:' + existing.reservation_id);
       const resOpt = Array.from(sel.options).find(o => o.value === 'RES:' + existing.reservation_id || o.value === existing.reservation_id);
@@ -3793,6 +3901,10 @@ function openSeatModal(tableNum) {
       else if (resOpt) sel.value = resOpt.value;
       else sel.value = 'RES:' + existing.reservation_id;
       onSeatResChange();
+      // Lock the dropdown — link is permanent once set
+      sel.disabled = true;
+      sel.style.opacity = '0.6';
+      sel.style.cursor = 'not-allowed';
     }
     document.getElementById('seatModalActions').innerHTML = `
       <button class="btn-seat-primary" onclick="confirmSeatTable()">✦ Update</button>
@@ -3817,6 +3929,38 @@ function closeSeatModal() {
   document.getElementById('seatBookingInfoStrip').classList.remove('visible');
   _seatModalTable = null;
   _seatSelectedMember = null;
+}
+
+// Item 4 — live tab total calculator
+function updateTabTotal() {
+  const dep = parseFloat(document.getElementById('seatDepositInput')?.value) || 0;
+  const comp = parseFloat(document.getElementById('seatCompInput')?.value) || 0;
+  const pay = parseFloat(document.getElementById('seatPaymentInput')?.value) || 0;
+  const total = dep + comp + pay;
+  const strip = document.getElementById('seatTabTotalStrip');
+  if (!strip) return;
+  if (dep > 0 || comp > 0 || pay > 0) {
+    strip.style.display = 'block';
+    document.getElementById('tabTotalDeposit').textContent = '$' + dep.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+    document.getElementById('tabTotalComp').textContent = '$' + comp.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+    document.getElementById('tabTotalPayment').textContent = '$' + pay.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+    document.getElementById('tabTotalAmount').textContent = '$' + total.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+    // Overage: check linked booking min spend
+    const bookingStrip = document.getElementById('seatBookingInfoStrip');
+    const minSpendEl = bookingStrip?.querySelector('[data-min-spend]');
+    const minSpend = minSpendEl ? parseFloat(minSpendEl.dataset.minSpend) : 0;
+    const overageEl = document.getElementById('tabOverageStrip');
+    if (overageEl && minSpend > 0) {
+      const overage = total - minSpend;
+      overageEl.style.display = 'block';
+      overageEl.textContent = overage >= 0
+        ? `✓ Min $${minSpend.toLocaleString()} met · $${overage.toLocaleString(undefined,{minimumFractionDigits:2})} over`
+        : `⚠ $${Math.abs(overage).toLocaleString(undefined,{minimumFractionDigits:2})} short of $${minSpend.toLocaleString()} minimum`;
+      overageEl.style.color = overage >= 0 ? '#81C784' : 'var(--gold-warm)';
+    }
+  } else {
+    strip.style.display = 'none';
+  }
 }
 document.addEventListener('DOMContentLoaded', function() {
   var _seatOverlay = document.getElementById('seatModalOverlay');
@@ -3848,12 +3992,29 @@ async function seatMemberSearch() {
   }, 250);
 }
 
-function selectSeatMember(memberId, memberName, displayId) {
+async function selectSeatMember(memberId, memberName, displayId) {
   _seatSelectedMember = { id: memberId, name: memberName };
   document.getElementById('seatGuestInput').value = memberName;
   document.getElementById('seatMemberResults').classList.remove('open');
   document.getElementById('seatMemberBadge').style.display = 'block';
   document.getElementById('seatMemberBadgeText').textContent = '✦ ' + memberName + ' · ' + displayId;
+  // Item 8 — show member spend context
+  const ctxEl = document.getElementById('seatMemberContext');
+  if (!ctxEl || !LIVE_DATA || !supabaseClient) return;
+  try {
+    const { data: mem } = await supabaseClient.from('members').select('total_points,total_visits,phone').eq('id', memberId).maybeSingle();
+    if (!mem) return;
+    const phone10 = (mem.phone||'').replace(/\D/g,'').slice(-10);
+    const phoneE164 = '+1'+phone10;
+    const [bkRes, compRes] = await Promise.all([
+      supabaseClient.from('table_bookings').select('deposit_amount,comp_applied,payment_amount,status').eq('guest_phone',phoneE164).in('status',['seated','closed']),
+      supabaseClient.from('vip_passes').select('id').eq('guest_phone',phone10).in('status',['active','unused','closed'])
+    ]);
+    let totalSpent = 0;
+    (bkRes.data||[]).forEach(b => { totalSpent += parseFloat(b.deposit_amount||0)+parseFloat(b.comp_applied||0)+parseFloat(b.payment_amount||0); });
+    ctxEl.style.display = 'block';
+    ctxEl.innerHTML = `<span style="font-size:11px;color:var(--ash);">${mem.total_visits} visits · ${(compRes.data||[]).length} comps · $${totalSpent.toLocaleString(undefined,{maximumFractionDigits:0})} lifetime spend</span>`;
+  } catch(e) { /* silent */ }
 }
 
 function clearSeatMember() {
@@ -3872,6 +4033,7 @@ async function confirmSeatTable() {
   const resId = _resRaw && !_resRaw.startsWith('TBK:') ? (_resRaw.startsWith('RES:') ? _resRaw.slice(4) : _resRaw) : null;
   const deposit = parseFloat(document.getElementById('seatDepositInput').value) || 0;
   const comp = parseFloat(document.getElementById('seatCompInput').value) || 0;
+  const payment = parseFloat(document.getElementById('seatPaymentInput')?.value) || 0;
   const notes = document.getElementById('seatNotesInput').value.trim();
   const errEl = document.getElementById('seatModalError');
   if (!guestName) { errEl.textContent = 'Please enter a guest name.'; return; }
@@ -3902,6 +4064,7 @@ async function confirmSeatTable() {
     reservation_id: resId || null,  // resId is already stripped of prefix
     deposit_applied: deposit,
     comp_applied: comp,
+    payment_amount: payment,
     notes: notes || null,
     status: 'seated',
     seated_at: new Date().toISOString()
@@ -3949,7 +4112,30 @@ async function closeTableSession(tableNum) {
   if (!existing) return;
   if (!confirm(`Close Table ${tableNum} for ${existing.guest_name}?`)) return;
   if (LIVE_DATA && supabaseClient && existing.id) {
-    await supabaseClient.from('table_sessions').update({ status:'closed', closed_at: new Date().toISOString() }).eq('id', existing.id);
+    const closePayload = { status:'closed', closed_at: new Date().toISOString() };
+    await supabaseClient.from('table_sessions').update(closePayload).eq('id', existing.id);
+    // Item 4 — write payment_amount back to table_bookings if linked
+    const bookingId = existing.reservation_id && _todayTableBookings.find(b => b.id === existing.reservation_id) ? existing.reservation_id : null;
+    if (bookingId && existing.payment_amount > 0) {
+      await supabaseClient.from('table_bookings').update({ payment_amount: existing.payment_amount }).eq('id', bookingId);
+    }
+    // Item 4 — write guest history summary if member linked
+    if (existing.member_id) {
+      const dep = parseFloat(existing.deposit_applied||0);
+      const comp = parseFloat(existing.comp_applied||0);
+      const pay = parseFloat(existing.payment_amount||0);
+      const total = dep + comp + pay;
+      const minSpend = bookingId ? (parseFloat((_todayTableBookings.find(b=>b.id===bookingId)||{}).minimum_spend_required||0)) : 0;
+      const overage = minSpend > 0 ? Math.max(0, total - minSpend) : 0;
+      const note = `Table ${tableNum} closed — $${total.toLocaleString()} total (dep:$${dep}, comp:$${comp}, pay:$${pay})${overage>0?' · $'+overage.toLocaleString()+' over min':''}`;
+      await supabaseClient.from('points_ledger').insert({
+        member_id: existing.member_id,
+        amount: 0,
+        type: 'table_close',
+        note: note,
+        balance_after: null
+      }).catch(()=>{});
+    }
   }
   delete _tableSessions[tableNum];
   renderFloorPlan(_tableSessions);
@@ -4029,7 +4215,8 @@ function _renderSeatModalLinks(tableNum) {
         <input type="text" id="seatGuestInput" placeholder="Search name, phone, or ID…" oninput="seatMemberSearch()" autocomplete="off"/>
         <div class="seat-member-results" id="seatMemberResults"></div>
       </div>
-      <div id="seatMemberBadge" style="display:none;">
+      <div id="seatMemberContext" style="display:none;margin-bottom:6px;"></div>
+    <div id="seatMemberBadge" style="display:none;">
         <div class="seat-member-badge" onclick="clearSeatMember()">
           <span id="seatMemberBadgeText">—</span> <span style="opacity:0.5;font-size:10px;">✕ clear</span>
         </div>
@@ -4051,18 +4238,36 @@ function _renderSeatModalLinks(tableNum) {
       <label>Assign Server / Waitress <span style="color:var(--ember);font-size:11px;">*</span></label>
       <select id="seatServerSelect"><option value="">— Select server —</option></select>
     </div>
-    <!-- Owner-only: deposit + comp -->
+    <!-- Owner-only: deposit + comp + payment -->
     <div class="deposit-section" id="seatDepositSection">
       <div class="deposit-section-label">✦ OWNER — APPLY PAYMENT / COMP</div>
       <div class="seat-deposit-row">
         <div class="seat-field" style="margin-bottom:0;">
           <label>Deposit Paid ($)</label>
-          <input type="number" id="seatDepositInput" placeholder="0.00" min="0" step="0.01"/>
+          <input type="number" id="seatDepositInput" placeholder="0.00" min="0" step="0.01" oninput="updateTabTotal()"/>
         </div>
         <div class="seat-field" style="margin-bottom:0;">
           <label>Comp Amount ($)</label>
-          <input type="number" id="seatCompInput" placeholder="0.00" min="0" step="0.01"/>
+          <input type="number" id="seatCompInput" placeholder="0.00" min="0" step="0.01" oninput="updateTabTotal()"/>
         </div>
+      </div>
+      <div class="seat-field" style="margin-top:10px;margin-bottom:0;">
+        <label>Payment Amount ($) <span style="font-size:10px;color:var(--ash);font-family:var(--font-body);letter-spacing:0;">(cash/card at close)</span></label>
+        <input type="number" id="seatPaymentInput" placeholder="0.00" min="0" step="0.01" oninput="updateTabTotal()"/>
+      </div>
+      <!-- Running tab total -->
+      <div id="seatTabTotalStrip" style="display:none;margin-top:12px;padding:10px 14px;background:rgba(212,168,67,0.07);border:1px solid rgba(212,168,67,0.25);border-radius:6px;">
+        <div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.25em;color:var(--owner-gold);margin-bottom:6px;">TAB SUMMARY</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--mist);">
+          <span>Deposit: <strong id="tabTotalDeposit" style="color:var(--ivory);">$0</strong></span>
+          <span>Comp: <strong id="tabTotalComp" style="color:var(--ivory);">$0</strong></span>
+          <span>Payment: <strong id="tabTotalPayment" style="color:var(--ivory);">$0</strong></span>
+        </div>
+        <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(212,168,67,0.2);display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--owner-gold);">TOTAL COLLECTED</span>
+          <span style="font-family:var(--font-display);font-size:20px;font-weight:300;color:var(--gold-bright);" id="tabTotalAmount">$0</span>
+        </div>
+        <div id="tabOverageStrip" style="display:none;margin-top:6px;font-size:11px;color:#81C784;"></div>
       </div>
       <div class="seat-field" style="margin-top:12px;margin-bottom:0;">
         <label>Notes (internal)</label>

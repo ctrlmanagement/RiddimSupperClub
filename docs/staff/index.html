@@ -2589,6 +2589,12 @@ function staffEsc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;'
 
 function staffOpenSeatModal(tableNum, opts){
   // opts: { prefillReservation, prefillComp, prefillBooking }
+  // Role gate — only elevated roles can seat tables
+  const SEAT_ALLOWED = ['manager','host','host_floor','vip_host','owner'];
+  if (!SEAT_ALLOWED.includes(currentStaff?.role || '')) {
+    showToast('⊘ Seating tables requires Host, Manager, or Owner access.');
+    return;
+  }
   _staffSeatModalTable = tableNum || null;
   _staffSeatSelectedMember = null;
   const existing = tableNum ? _staffTableSessions[tableNum] : null;
@@ -2603,8 +2609,7 @@ function staffOpenSeatModal(tableNum, opts){
   document.getElementById('staffSeatServerSelect').value='';
   document.getElementById('staffSeatResSelect').value='';
   if(document.getElementById('staffSeatNotesInput')) document.getElementById('staffSeatNotesInput').value='';
-  if(document.getElementById('staffSeatDepositInput')) document.getElementById('staffSeatDepositInput').value='';
-  if(document.getElementById('staffSeatCompInput')) document.getElementById('staffSeatCompInput').value='';
+  if(document.getElementById('staffSeatPaymentInput')) document.getElementById('staffSeatPaymentInput').value='';
   const _strip=document.getElementById('staffSeatBookingStrip'); if(_strip) _strip.style.display='none';
   const _warn=document.getElementById('staffSeatBookingUsedWarn'); if(_warn) _warn.style.display='none';
   // Rebuild dropdown scoped to this table's section
@@ -2689,6 +2694,30 @@ function staffOpenSeatModal(tableNum, opts){
     document.getElementById('staffSeatPartySize').value=String(existing.party_size||4);
     if(existing.server_id) document.getElementById('staffSeatServerSelect').value=existing.server_id;
     if(existing.notes && document.getElementById('staffSeatNotesInput')) document.getElementById('staffSeatNotesInput').value=existing.notes;
+    // Item 3: permanently lock the booking link once a session is linked
+    if(existing.reservation_id){
+      const resSel = document.getElementById('staffSeatResSelect');
+      if(resSel){
+        // Find matching option or set display text
+        let found = false;
+        for(let i=0;i<resSel.options.length;i++){
+          const v = resSel.options[i].value;
+          if(v==='TBK:'+existing.reservation_id || v==='RES:'+existing.reservation_id || v===existing.reservation_id){
+            resSel.selectedIndex=i; found=true; break;
+          }
+        }
+        if(!found){
+          const opt=document.createElement('option');
+          opt.value=existing.reservation_id;
+          opt.textContent='Linked — '+existing.reservation_id.slice(0,8);
+          resSel.appendChild(opt);
+          resSel.value=existing.reservation_id;
+        }
+        resSel.disabled=true;
+        resSel.style.opacity='0.6';
+        resSel.style.cursor='not-allowed';
+      }
+    }
     document.getElementById('staffSeatModalActions').innerHTML=`
       <button class="btn-seat-primary" onclick="staffConfirmSeatTable()">✦ Update</button>
       <button class="btn-seat-close" onclick="staffCloseTableSession(${tableNum})">✕ Close Table</button>
@@ -2835,8 +2864,8 @@ async function staffConfirmSeatTable(){
   const serverId=document.getElementById('staffSeatServerSelect').value;
   const resRaw=document.getElementById('staffSeatResSelect').value;
   const notes=document.getElementById('staffSeatNotesInput')?.value.trim()||'';
-  const deposit=parseFloat(document.getElementById('staffSeatDepositInput')?.value)||0;
-  const comp=parseFloat(document.getElementById('staffSeatCompInput')?.value)||0;
+  const payment=parseFloat(document.getElementById('staffSeatPaymentInput')?.value)||0;
+  const deposit=0, comp=0;
   const errEl=document.getElementById('staffSeatModalError');
 
   // Table number from picker if not pre-set from floor plan click
@@ -2871,7 +2900,7 @@ async function staffConfirmSeatTable(){
     member_id:_staffSeatSelectedMember?_staffSeatSelectedMember.id:null,
     reservation_id:resId||null, status:'seated',
     seated_at:new Date().toISOString(),
-    deposit_applied:deposit, comp_applied:comp,
+    deposit_applied:deposit, comp_applied:comp, payment_amount:payment,
     notes: notes || null,
   };
   if(!LIVE_DATA||!supabaseClient){
@@ -3030,18 +3059,12 @@ function dismissTblBkOverlay() {
       <label>Assign Server / Waitress <span style="color:var(--ember);font-size:11px;">*</span></label>
       <select id="staffSeatServerSelect"><option value="">— Select server —</option></select>
     </div>
-    <!-- Deposit + Comp — visible to staff -->
+    <!-- Staff: payment entry only — no comp or deposit (owner only) -->
     <div class="seat-field">
-      <label style="color:var(--gold-warm);">✦ APPLY PAYMENT / COMP</label>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <div>
-          <label style="font-size:10px;letter-spacing:0.2em;color:var(--ash);display:block;margin-bottom:4px;">DEPOSIT PAID ($)</label>
-          <input type="number" id="staffSeatDepositInput" placeholder="0.00" min="0" step="0.01" style="width:100%;background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:10px 12px;color:var(--ivory);font-family:var(--font-body);font-size:14px;outline:none;"/>
-        </div>
-        <div>
-          <label style="font-size:10px;letter-spacing:0.2em;color:var(--ash);display:block;margin-bottom:4px;">COMP AMOUNT ($)</label>
-          <input type="number" id="staffSeatCompInput" placeholder="0.00" min="0" step="0.01" style="width:100%;background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:10px 12px;color:var(--ivory);font-family:var(--font-body);font-size:14px;outline:none;"/>
-        </div>
+      <label style="color:var(--gold-warm);">✦ PAYMENT</label>
+      <div>
+        <label style="font-size:10px;letter-spacing:0.2em;color:var(--ash);display:block;margin-bottom:4px;">PAYMENT AMOUNT ($)</label>
+        <input type="number" id="staffSeatPaymentInput" placeholder="0.00" min="0" step="0.01" style="width:100%;background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:10px 12px;color:var(--ivory);font-family:var(--font-body);font-size:14px;outline:none;"/>
       </div>
     </div>
     <div class="seat-field">
