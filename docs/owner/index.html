@@ -4112,29 +4112,49 @@ async function closeTableSession(tableNum) {
   if (!existing) return;
   if (!confirm(`Close Table ${tableNum} for ${existing.guest_name}?`)) return;
   if (LIVE_DATA && supabaseClient && existing.id) {
-    const closePayload = { status:'closed', closed_at: new Date().toISOString() };
-    await supabaseClient.from('table_sessions').update(closePayload).eq('id', existing.id);
-    // Item 4 — write payment_amount back to table_bookings if linked
-    const bookingId = existing.reservation_id && _todayTableBookings.find(b => b.id === existing.reservation_id) ? existing.reservation_id : null;
-    if (bookingId && existing.payment_amount > 0) {
-      await supabaseClient.from('table_bookings').update({ payment_amount: existing.payment_amount }).eq('id', bookingId);
-    }
-    // Item 4 — write guest history summary if member linked
-    if (existing.member_id) {
-      const dep = parseFloat(existing.deposit_applied||0);
-      const comp = parseFloat(existing.comp_applied||0);
-      const pay = parseFloat(existing.payment_amount||0);
-      const total = dep + comp + pay;
-      const minSpend = bookingId ? (parseFloat((_todayTableBookings.find(b=>b.id===bookingId)||{}).minimum_spend_required||0)) : 0;
-      const overage = minSpend > 0 ? Math.max(0, total - minSpend) : 0;
-      const note = `Table ${tableNum} closed — $${total.toLocaleString()} total (dep:$${dep}, comp:$${comp}, pay:$${pay})${overage>0?' · $'+overage.toLocaleString()+' over min':''}`;
-      await supabaseClient.from('points_ledger').insert({
-        member_id: existing.member_id,
-        amount: 0,
-        type: 'table_close',
-        note: note,
-        balance_after: null
-      }).catch(()=>{});
+    // 1. Close the table session
+    await supabaseClient.from('table_sessions')
+      .update({ status:'closed', closed_at: new Date().toISOString() })
+      .eq('id', existing.id);
+
+    // 2. If linked to a booking — query directly (not from cache which only has confirmed/pending)
+    const bookingId = existing.reservation_id || null;
+    if (bookingId) {
+      // Fetch the booking fresh to get current deposit_amount
+      const { data: bk } = await supabaseClient
+        .from('table_bookings')
+        .select('id,minimum_spend_required,deposit_amount,deposit_paid')
+        .eq('id', bookingId)
+        .maybeSingle();
+
+      if (bk) {
+        const dep = parseFloat(bk.deposit_amount || 0);
+        const comp = parseFloat(existing.comp_applied || 0);
+        const pay = parseFloat(existing.payment_amount || 0);
+        const total = dep + comp + pay;
+        const minSpend = parseFloat(bk.minimum_spend_required || 0);
+        const overage = minSpend > 0 ? Math.max(0, total - minSpend) : 0;
+
+        // Write payment_amount + status:'closed' back to table_bookings
+        await supabaseClient.from('table_bookings').update({
+          status: 'closed',
+          payment_amount: pay,
+        }).eq('id', bookingId);
+
+        // 3. Write guest history to points_ledger if member linked
+        if (existing.member_id) {
+          const note = `Table ${tableNum} closed — $${total.toLocaleString(undefined,{maximumFractionDigits:0})} total` +
+            ` (dep:$${dep.toLocaleString()}, comp:$${comp.toLocaleString()}, pay:$${pay.toLocaleString()})` +
+            (overage > 0 ? ` · $${overage.toLocaleString(undefined,{maximumFractionDigits:0})} over $${minSpend.toLocaleString()} min` : '');
+          await supabaseClient.from('points_ledger').insert({
+            member_id: existing.member_id,
+            amount: 0,
+            type: 'table_close',
+            note: note,
+            balance_after: null
+          }).catch(() => {});
+        }
+      }
     }
   }
   delete _tableSessions[tableNum];
