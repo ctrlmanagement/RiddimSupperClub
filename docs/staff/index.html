@@ -2695,23 +2695,25 @@ function staffOpenSeatModal(tableNum, opts){
     if(existing.server_id) document.getElementById('staffSeatServerSelect').value=existing.server_id;
     if(existing.notes && document.getElementById('staffSeatNotesInput')) document.getElementById('staffSeatNotesInput').value=existing.notes;
     // Item 3: permanently lock the booking link once a session is linked
-    if(existing.reservation_id){
+    if(existing.booking_id || existing.reservation_id){
       const resSel = document.getElementById('staffSeatResSelect');
       if(resSel){
-        // Find matching option or set display text
+        const tbkId = existing.booking_id;
+        const resId2 = existing.reservation_id;
         let found = false;
         for(let i=0;i<resSel.options.length;i++){
           const v = resSel.options[i].value;
-          if(v==='TBK:'+existing.reservation_id || v==='RES:'+existing.reservation_id || v===existing.reservation_id){
+          if((tbkId && v==='TBK:'+tbkId) || (resId2 && (v==='RES:'+resId2||v===resId2))){
             resSel.selectedIndex=i; found=true; break;
           }
         }
         if(!found){
+          const linkedVal = tbkId ? 'TBK:'+tbkId : 'RES:'+resId2;
           const opt=document.createElement('option');
-          opt.value=existing.reservation_id;
-          opt.textContent='Linked — '+existing.reservation_id.slice(0,8);
+          opt.value=linkedVal;
+          opt.textContent='Linked — '+(tbkId||resId2).slice(0,8);
           resSel.appendChild(opt);
-          resSel.value=existing.reservation_id;
+          resSel.value=linkedVal;
         }
         resSel.disabled=true;
         resSel.style.opacity='0.6';
@@ -2898,7 +2900,9 @@ async function staffConfirmSeatTable(){
     table_number:effectiveTable, guest_name:guestName, party_size:partySize,
     server_id:serverId||null, server_name:serverName,
     member_id:_staffSeatSelectedMember?_staffSeatSelectedMember.id:null,
-    reservation_id:resId||bookingId||null, status:'seated',
+    reservation_id:resId||null,       // FK → reservations — RES only
+    booking_id:bookingId||null,        // FK → table_bookings — TBK only
+    status:'seated',
     seated_at:new Date().toISOString(),
     deposit_applied:deposit, comp_applied:comp, payment_amount:payment,
     notes: notes || null,
@@ -2933,16 +2937,15 @@ async function staffCloseTableSession(tableNum){
   if(LIVE_DATA&&supabaseClient&&existing.id){
     await supabaseClient.from('table_sessions').update({status:'closed',closed_at:new Date().toISOString()}).eq('id',existing.id);
     // Write payment + closed status back to linked booking
-    const linkedId = existing.reservation_id || null;
-    if(linkedId){
-      const pay = parseFloat(existing.payment_amount||0);
-      // Try table_bookings first
-      const {data:bk} = await supabaseClient.from('table_bookings').select('id,minimum_spend_required,deposit_amount').eq('id',linkedId).maybeSingle();
-      if(bk){
-        await supabaseClient.from('table_bookings').update({status:'closed', payment_amount:pay}).eq('id',linkedId);
-      } else {
-        await supabaseClient.from('reservations').update({status:'closed'}).eq('id',linkedId).catch(()=>{});
-      }
+    const bookingLinkedId = existing.booking_id || null;
+    const resLinkedId = existing.reservation_id || null;
+    const pay = parseFloat(existing.payment_amount||0);
+    if(bookingLinkedId){
+      // TBK link — write to table_bookings
+      await supabaseClient.from('table_bookings').update({status:'closed', payment_amount:pay}).eq('id',bookingLinkedId);
+    } else if(resLinkedId){
+      // RES link — write to reservations
+      await supabaseClient.from('reservations').update({status:'closed'}).eq('id',resLinkedId).catch(()=>{});
     }
   }
   delete _staffTableSessions[tableNum];
