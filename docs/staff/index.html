@@ -121,185 +121,7 @@
     <div class="tables-layout">
       <div>
         <div class="floor-plan-wrap">
-          <canvas id="staffFloorPlanCanvas" style="width:100%;max-width:700px;display:block;margin:0 auto;cursor:pointer;border-radius:4px;"></canvas>
-          <script>
-          (function(){
-            // ── Canvas Floor Plan ──────────────────────────────────────────
-            // Replaces SVG to avoid iOS Safari viewBox void bug.
-            // Preserves full staffOpenSeatModal() integration and
-            // staffRenderFloorPlan() state updates.
-
-            const VW=660, VH=500; // logical coords (trimmed from 580)
-            const canvas = document.getElementById('staffFloorPlanCanvas');
-
-            // Table definitions: [tableNum, x, y, w, h]
-            const TABLES = [
-              // Lounge / top-left
-              [31,  18, 14, 76, 56],
-              // Top row 25–30
-              [30, 118, 20, 56, 40],[29, 184, 20, 56, 40],[28, 250, 20, 56, 40],
-              [27, 316, 20, 56, 40],[26, 382, 20, 56, 40],[25, 448, 20, 56, 40],
-              // Row 20–24
-              [20, 128, 96, 60, 40],[21, 198, 96, 60, 40],[22, 268, 96, 60, 40],
-              [23, 338, 96, 60, 40],[24, 408, 96, 60, 40],
-              // Center 12–19
-              [19, 112,196, 52, 36],[18, 112,238, 52, 36],
-              [17, 178,196, 52, 36],[16, 178,238, 52, 36],
-              [15, 250,196, 52, 36],[14, 250,238, 52, 36],
-              [13, 320,196, 52, 36],[12, 320,238, 52, 36],
-              // Row 7–11
-              [ 7, 128,310, 60, 42],[ 8, 198,310, 60, 42],[ 9, 268,310, 60, 42],
-              [10, 338,310, 60, 42],[11, 408,310, 60, 42],
-              // Front row 1–6
-              [ 6, 108,390, 62, 50],[ 5, 180,390, 62, 50],[ 4, 252,390, 62, 50],
-              [ 3, 324,390, 62, 50],[ 2, 396,390, 62, 50],[ 1, 468,390, 62, 50],
-            ];
-
-            // State map: tableNum -> 'available'|'occupied'|'reserved'
-            const _fpState = {};
-            TABLES.forEach(([n])=>{ _fpState[n]='available'; });
-
-            function hexAlpha(hex,a){ // convert #RRGGBB to rgba
-              const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
-              return `rgba(${r},${g},${b},${a})`;
-            }
-
-            const COLORS = {
-              available:{ fill:'rgba(42,42,42,0.92)',  stroke:'rgba(136,136,136,0.5)', text:'rgba(204,204,204,0.9)' },
-              occupied: { fill:'rgba(212,168,67,0.18)', stroke:'rgba(212,168,67,0.85)', text:'#D4A843' },
-              reserved: { fill:'rgba(74,127,193,0.18)', stroke:'rgba(74,127,193,0.85)', text:'#6B9FE4' },
-              hover:    { fill:'rgba(80,80,80,0.95)',   stroke:'rgba(180,180,180,0.7)', text:'rgba(255,255,255,0.95)' },
-            };
-
-            let _hovered = null;
-            let _scale = 1;
-
-            function roundRect(ctx, x, y, w, h, r){
-              ctx.beginPath();
-              ctx.moveTo(x+r, y);
-              ctx.lineTo(x+w-r, y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
-              ctx.lineTo(x+w, y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
-              ctx.lineTo(x+r, y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
-              ctx.lineTo(x, y+r); ctx.quadraticCurveTo(x,y,x+r,y);
-              ctx.closePath();
-            }
-
-            function draw(){
-              const dpr = window.devicePixelRatio||1;
-              const cssW = canvas.parentElement.clientWidth > 700 ? 700 : canvas.parentElement.clientWidth;
-              _scale = cssW / VW;
-              const cssH = VH * _scale;
-              canvas.width  = cssW * dpr;
-              canvas.height = cssH * dpr;
-              canvas.style.width  = cssW + 'px';
-              canvas.style.height = cssH + 'px';
-
-              const ctx = canvas.getContext('2d');
-              ctx.scale(dpr * _scale, dpr * _scale);
-              ctx.clearRect(0,0,VW,VH);
-
-              // DJ booth
-              ctx.fillStyle='rgba(42,42,42,0.4)';
-              ctx.strokeStyle='rgba(136,136,136,0.2)';
-              ctx.lineWidth=1;
-              roundRect(ctx,18,80,76,30,4); ctx.fill(); ctx.stroke();
-              ctx.fillStyle='rgba(136,136,136,0.45)';
-              ctx.font='bold 9px "Bebas Neue",sans-serif';
-              ctx.letterSpacing='2px';
-              ctx.fillText('DJ',28,76);
-
-              // Divider rail top
-              ctx.strokeStyle='rgba(74,127,193,0.25)'; ctx.lineWidth=1;
-              roundRect(ctx,108,76,12,40,3); ctx.stroke();
-              ctx.fillStyle='rgba(74,127,193,0.1)'; ctx.fill();
-              roundRect(ctx,476,76,12,40,3); ctx.stroke(); ctx.fill();
-
-              // Bars
-              ctx.fillStyle='rgba(74,127,193,0.05)'; ctx.strokeStyle='rgba(74,127,193,0.22)'; ctx.lineWidth=1.5;
-              roundRect(ctx,6,178,88,100,6); ctx.fill(); ctx.stroke();
-              roundRect(ctx,556,178,88,100,6); ctx.fill(); ctx.stroke();
-              ctx.save();
-              ctx.fillStyle='rgba(74,127,193,0.5)';
-              ctx.font='bold 13px "Bebas Neue",sans-serif';
-              ctx.textAlign='center';
-              ctx.translate(50,228); ctx.rotate(-Math.PI/2);
-              ctx.fillText('BAR',0,5); ctx.restore();
-              ctx.save();
-              ctx.fillStyle='rgba(74,127,193,0.5)';
-              ctx.font='bold 13px "Bebas Neue",sans-serif';
-              ctx.textAlign='center';
-              ctx.translate(600,228); ctx.rotate(Math.PI/2);
-              ctx.fillText('BAR',0,5); ctx.restore();
-
-              // Centre divider rails
-              roundRect(ctx,108,290,12,42,3);
-              ctx.fillStyle='rgba(74,127,193,0.1)'; ctx.strokeStyle='rgba(74,127,193,0.25)'; ctx.lineWidth=1;
-              ctx.fill(); ctx.stroke();
-              roundRect(ctx,476,290,12,42,3); ctx.fill(); ctx.stroke();
-
-              // Horizontal separator
-              ctx.strokeStyle='rgba(136,136,136,0.18)'; ctx.lineWidth=1;
-              ctx.beginPath(); ctx.moveTo(104,282); ctx.lineTo(546,282); ctx.stroke();
-
-              // Tables
-              TABLES.forEach(([num,x,y,w,h])=>{
-                const state = _fpState[num]||'available';
-                const isHov = _hovered===num;
-                const c = isHov ? COLORS.hover : COLORS[state];
-                ctx.fillStyle = c.fill;
-                ctx.strokeStyle = c.stroke;
-                ctx.lineWidth = isHov ? 1.5 : 1;
-                roundRect(ctx,x,y,w,h,5);
-                ctx.fill(); ctx.stroke();
-                ctx.fillStyle = c.text;
-                ctx.font = '600 13px "Bebas Neue",sans-serif';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(String(num), x+w/2, y+h/2+1);
-              });
-            }
-
-            function hitTest(cx,cy){
-              // cx,cy in CSS pixels relative to canvas
-              const lx = cx/_scale, ly = cy/_scale;
-              for(const [num,x,y,w,h] of TABLES){
-                if(lx>=x&&lx<=x+w&&ly>=y&&ly<=y+h) return num;
-              }
-              return null;
-            }
-
-            canvas.addEventListener('mousemove',function(e){
-              const r=canvas.getBoundingClientRect();
-              const n=hitTest(e.clientX-r.left, e.clientY-r.top);
-              if(n!==_hovered){ _hovered=n; canvas.style.cursor=n?'pointer':'default'; draw(); }
-            });
-            canvas.addEventListener('mouseleave',function(){ _hovered=null; draw(); });
-            canvas.addEventListener('click',function(e){
-              const r=canvas.getBoundingClientRect();
-              const n=hitTest(e.clientX-r.left, e.clientY-r.top);
-              if(n) staffOpenSeatModal(n);
-            });
-            canvas.addEventListener('touchend',function(e){
-              e.preventDefault();
-              const t=e.changedTouches[0];
-              const r=canvas.getBoundingClientRect();
-              const n=hitTest(t.clientX-r.left, t.clientY-r.top);
-              if(n) staffOpenSeatModal(n);
-            },{passive:false});
-
-            // Expose state updater — replaces staffRenderFloorPlan SVG logic
-            window._fpCanvasUpdateState = function(map){
-              TABLES.forEach(([n])=>{
-                if(map[n]){ _fpState[n]=map[n].reservation_id?'reserved':'occupied'; }
-                else{ _fpState[n]='available'; }
-              });
-              draw();
-            };
-
-            draw();
-            window.addEventListener('resize', draw);
-          })();
-          </script>
+          <canvas id="staffFloorPlanCanvas" style="width:100%;display:block;border-radius:4px;"></canvas>
           <div class="fp-legend">
             <div class="fp-legend-item"><div class="fp-legend-dot available"></div> Available</div>
             <div class="fp-legend-item"><div class="fp-legend-dot occupied"></div> Seated</div>
@@ -2637,9 +2459,11 @@ async function staffLoadTodayRes(){
 }
 
 function staffRenderFloorPlan(map){
-  // Canvas-based floor plan — delegate to canvas state updater
-  if(typeof window._fpCanvasUpdateState==='function'){
-    window._fpCanvasUpdateState(map);
+  if(typeof window._fpDraw==='function'){
+    const s=window._fpState;
+    if(s){Object.keys(s).forEach(k=>{ s[k]='available'; });
+    Object.entries(map).forEach(([k,v])=>{ s[k]=v.reservation_id?'reserved':'occupied'; });}
+    window._fpDraw();
   }
 }
 
@@ -2894,4 +2718,150 @@ async function staffCloseTableSession(tableNum){
     <div id="staffSeatModalError" style="font-size:13px;color:var(--ember);text-align:center;margin-top:8px;min-height:18px;"></div>
   </div>
 </div>
+<script>
+(function(){
+  var VW=660,VH=500;
+  var TABLES=[
+    [31,18,14,76,56],
+    [30,118,20,56,40],[29,184,20,56,40],[28,250,20,56,40],
+    [27,316,20,56,40],[26,382,20,56,40],[25,448,20,56,40],
+    [20,128,96,60,40],[21,198,96,60,40],[22,268,96,60,40],
+    [23,338,96,60,40],[24,408,96,60,40],
+    [19,112,156,52,36],[18,112,198,52,36],
+    [17,178,156,52,36],[16,178,198,52,36],
+    [15,250,156,52,36],[14,250,198,52,36],
+    [13,320,156,52,36],[12,320,198,52,36],
+    [7,128,270,60,42],[8,198,270,60,42],[9,268,270,60,42],
+    [10,338,270,60,42],[11,408,270,60,42],
+    [6,108,348,62,50],[5,180,348,62,50],[4,252,348,62,50],
+    [3,324,348,62,50],[2,396,348,62,50],[1,468,348,62,50]
+  ];
+  var state={};
+  TABLES.forEach(function(t){state[t[0]]='available';});
+  window._fpState=state;
+
+  var C={
+    available:{fill:'rgba(42,42,42,0.92)',stroke:'rgba(136,136,136,0.5)',text:'rgba(200,200,200,0.9)'},
+    occupied: {fill:'rgba(212,168,67,0.18)',stroke:'rgba(212,168,67,0.85)',text:'#D4A843'},
+    reserved: {fill:'rgba(74,127,193,0.18)',stroke:'rgba(74,127,193,0.85)',text:'#6B9FE4'},
+    hover:    {fill:'rgba(70,70,70,0.95)',stroke:'rgba(180,180,180,0.7)',text:'rgba(255,255,255,0.95)'}
+  };
+  var hovered=null,scale=1;
+
+  function rr(ctx,x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);
+    ctx.arcTo(x,y,x+w,y,r);
+    ctx.closePath();
+  }
+
+  function draw(){
+    var canvas=document.getElementById('staffFloorPlanCanvas');
+    if(!canvas) return;
+    var wrap=canvas.parentElement;
+    var cssW=Math.min(wrap.clientWidth||320, 700);
+    if(cssW<10) cssW=320; // fallback if tab hidden
+    scale=cssW/VW;
+    var cssH=VH*scale;
+    var dpr=window.devicePixelRatio||1;
+    canvas.width=cssW*dpr;
+    canvas.height=cssH*dpr;
+    canvas.style.width=cssW+'px';
+    canvas.style.height=cssH+'px';
+    var ctx=canvas.getContext('2d');
+    ctx.scale(dpr*scale,dpr*scale);
+    ctx.clearRect(0,0,VW,VH);
+
+    // DJ label + booth
+    ctx.fillStyle='rgba(136,136,136,0.4)';
+    ctx.font='bold 9px sans-serif';
+    ctx.fillText('DJ',28,12);
+    ctx.fillStyle='rgba(42,42,42,0.5)';ctx.strokeStyle='rgba(100,100,100,0.3)';ctx.lineWidth=1;
+    rr(ctx,18,16,76,30,4);ctx.fill();ctx.stroke();
+
+    // Divider rails
+    ctx.fillStyle='rgba(74,127,193,0.1)';ctx.strokeStyle='rgba(74,127,193,0.3)';ctx.lineWidth=1;
+    rr(ctx,108,76,12,40,3);ctx.fill();ctx.stroke();
+    rr(ctx,476,76,12,40,3);ctx.fill();ctx.stroke();
+    rr(ctx,108,250,12,42,3);ctx.fill();ctx.stroke();
+    rr(ctx,476,250,12,42,3);ctx.fill();ctx.stroke();
+
+    // Bars
+    ctx.fillStyle='rgba(74,127,193,0.05)';ctx.strokeStyle='rgba(74,127,193,0.22)';ctx.lineWidth=1.5;
+    rr(ctx,6,138,88,100,6);ctx.fill();ctx.stroke();
+    rr(ctx,556,138,88,100,6);ctx.fill();ctx.stroke();
+    ctx.save();ctx.fillStyle='rgba(74,127,193,0.5)';ctx.font='bold 12px sans-serif';ctx.textAlign='center';
+    ctx.translate(50,188);ctx.rotate(-Math.PI/2);ctx.fillText('BAR',0,4);ctx.restore();
+    ctx.save();ctx.fillStyle='rgba(74,127,193,0.5)';ctx.font='bold 12px sans-serif';ctx.textAlign='center';
+    ctx.translate(600,188);ctx.rotate(Math.PI/2);ctx.fillText('BAR',0,4);ctx.restore();
+
+    // Centre divider line
+    ctx.strokeStyle='rgba(136,136,136,0.15)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(104,242);ctx.lineTo(546,242);ctx.stroke();
+
+    // Tables
+    TABLES.forEach(function(t){
+      var num=t[0],x=t[1],y=t[2],w=t[3],h=t[4];
+      var st=state[num]||'available';
+      var c=hovered===num?C.hover:C[st];
+      ctx.fillStyle=c.fill;ctx.strokeStyle=c.stroke;ctx.lineWidth=hovered===num?1.5:1;
+      rr(ctx,x,y,w,h,5);ctx.fill();ctx.stroke();
+      ctx.fillStyle=c.text;
+      ctx.font='600 12px "Bebas Neue",sans-serif';
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(String(num),x+w/2,y+h/2+1);
+    });
+  }
+  window._fpDraw=draw;
+
+  function hit(cx,cy){
+    var lx=cx/scale,ly=cy/scale;
+    for(var i=0;i<TABLES.length;i++){
+      var t=TABLES[i];
+      if(lx>=t[1]&&lx<=t[1]+t[3]&&ly>=t[2]&&ly<=t[2]+t[4]) return t[0];
+    }
+    return null;
+  }
+
+  function init(){
+    var canvas=document.getElementById('staffFloorPlanCanvas');
+    if(!canvas) return;
+    canvas.addEventListener('mousemove',function(e){
+      var r=canvas.getBoundingClientRect(),n=hit(e.clientX-r.left,e.clientY-r.top);
+      if(n!==hovered){hovered=n;canvas.style.cursor=n?'pointer':'default';draw();}
+    });
+    canvas.addEventListener('mouseleave',function(){hovered=null;draw();});
+    canvas.addEventListener('click',function(e){
+      var r=canvas.getBoundingClientRect(),n=hit(e.clientX-r.left,e.clientY-r.top);
+      if(n&&typeof staffOpenSeatModal==='function') staffOpenSeatModal(n);
+    });
+    canvas.addEventListener('touchend',function(e){
+      e.preventDefault();
+      var t=e.changedTouches[0],r=canvas.getBoundingClientRect();
+      var n=hit(t.clientX-r.left,t.clientY-r.top);
+      if(n&&typeof staffOpenSeatModal==='function') staffOpenSeatModal(n);
+    },{passive:false});
+    window.addEventListener('resize',draw);
+
+    // Also redraw whenever the Tables tab becomes visible
+    document.querySelectorAll('.mobile-tab[data-tab="tables"], .portal-tab[data-tab="tables"]').forEach(function(btn){
+      btn.addEventListener('click',function(){setTimeout(draw,50);});
+    });
+
+    draw();
+    // Extra draw after fonts load / layout settles
+    setTimeout(draw,200);
+    setTimeout(draw,600);
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',init);
+  } else {
+    init();
+  }
+})();
+</script>
 </body></html>
