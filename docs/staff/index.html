@@ -2584,10 +2584,12 @@ function staffOpenSeatModal(tableNum, opts){
   document.getElementById('staffSeatMemberBadge').style.display='none';
   document.getElementById('staffSeatMemberResults').classList.remove('open');
   document.getElementById('staffSeatGuestInput').value='';
-  document.getElementById('staffSeatPartySize').value='4';
+  document.getElementById('staffSeatPartySize').value='';
   document.getElementById('staffSeatServerSelect').value='';
   document.getElementById('staffSeatResSelect').value='';
   if(document.getElementById('staffSeatNotesInput')) document.getElementById('staffSeatNotesInput').value='';
+  const _strip=document.getElementById('staffSeatBookingStrip'); if(_strip) _strip.style.display='none';
+  const _warn=document.getElementById('staffSeatBookingUsedWarn'); if(_warn) _warn.style.display='none';
 
   // Show/hide table picker — needed when no table assigned yet (booking or comp scan)
   const needsPicker = !tableNum;
@@ -2609,6 +2611,7 @@ function staffOpenSeatModal(tableNum, opts){
     document.getElementById('staffSeatModalSub').textContent =
       `${b.guest_name||'Guest'} · ${b.party_size||'?'} guests · ${SECTION_LABELS[b.section_name]||b.section_name} · Min $${parseFloat(b.minimum_spend_required||0).toLocaleString()}`;
     if(b.notes && document.getElementById('staffSeatNotesInput')) document.getElementById('staffSeatNotesInput').value = b.notes;
+    staffSeatResAutofill(document.getElementById('staffSeatResSelect').value);
     document.getElementById('staffSeatCurrentInfo').style.display='none';
     document.getElementById('staffSeatModalActions').innerHTML=`
       <button class="btn-seat-primary" onclick="staffConfirmSeatTable()">✦ Seat Table</button>
@@ -2727,6 +2730,78 @@ function staffClearSeatMember(){
   document.getElementById('staffSeatMemberBadge').style.display='none';
 }
 
+function staffSeatResAutofill(val) {
+  const strip = document.getElementById('staffSeatBookingStrip');
+  const warn = document.getElementById('staffSeatBookingUsedWarn');
+  strip.style.display = 'none';
+  warn.style.display = 'none';
+  if (!val) return;
+
+  const isBooking = val.startsWith('TBK:');
+  const isRes = val.startsWith('RES:');
+  const id = isBooking ? val.slice(4) : (isRes ? val.slice(4) : val);
+
+  // Find in cached arrays
+  let rec = null;
+  if (isBooking && typeof _allTableBookings !== 'undefined') {
+    rec = _allTableBookings.find(b => b.id === id);
+  } else if (isRes && typeof _todayReservations !== 'undefined') {
+    rec = _todayReservations.find(r => r.id === id);
+  }
+  if (!rec) return;
+
+  // Used-once guard
+  if (rec.status === 'seated') {
+    warn.textContent = '⚠ This booking is already seated and cannot be linked again.';
+    warn.style.display = 'block';
+    return;
+  }
+  if (rec.status === 'cancelled') {
+    warn.textContent = '⊘ This booking has been cancelled.';
+    warn.style.display = 'block';
+    return;
+  }
+
+  // Autofill guest name, party size, notes
+  const guestName = rec.guest_name || rec.member_name || '';
+  if (guestName) document.getElementById('staffSeatGuestInput').value = guestName;
+  if (rec.party_size) {
+    const ps = document.getElementById('staffSeatPartySize');
+    // set closest matching option
+    let best = null;
+    Array.from(ps.options).forEach(o => {
+      if (parseInt(o.value) === rec.party_size) best = o.value;
+    });
+    if (best) ps.value = best;
+    else { // add dynamic option
+      const opt = document.createElement('option');
+      opt.value = rec.party_size; opt.textContent = rec.party_size;
+      ps.appendChild(opt); ps.value = rec.party_size;
+    }
+  }
+  if (rec.notes && document.getElementById('staffSeatNotesInput')) {
+    document.getElementById('staffSeatNotesInput').value = rec.notes;
+  }
+
+  // Build booking info strip
+  let stripHTML = '';
+  if (isBooking) {
+    const section = {front:'Front Booths',mid:'Mid Row',center:'Center Cluster',second:'Second Row',top:'Top Row + Lounge'}[rec.section_name] || rec.section_name;
+    const minSpend = rec.minimum_spend_required ? '$' + parseFloat(rec.minimum_spend_required).toLocaleString() : null;
+    stripHTML += `<div style="color:var(--gold-warm);font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;margin-bottom:4px;">🌙 TABLE BOOKING</div>`;
+    stripHTML += `<div><span style="color:var(--ash);">Section:</span> ${section}</div>`;
+    if (minSpend) stripHTML += `<div><span style="color:var(--ash);">Min Spend:</span> <span style="color:var(--gold-warm);">${minSpend}</span> ${rec.minimum_spend_acknowledged ? '<span style="color:#81C784;">✓ Acknowledged</span>' : '<span style="color:var(--ember);">Not acknowledged</span>'}</div>`;
+    if (rec.deposit_paid) stripHTML += `<div style="color:#81C784;">✓ Deposit paid — $${parseFloat(rec.deposit_amount||0).toLocaleString()}</div>`;
+    else if (rec.deposit_amount) stripHTML += `<div style="color:var(--gold-warm);">Deposit $${parseFloat(rec.deposit_amount).toLocaleString()} pending</div>`;
+  } else {
+    stripHTML += `<div style="color:var(--staff-light);font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;margin-bottom:4px;">🍽 DINNER RESERVATION</div>`;
+    const minSpend = rec.minimum_spend_required ? '$' + parseFloat(rec.minimum_spend_required).toLocaleString() : null;
+    if (minSpend) stripHTML += `<div><span style="color:var(--ash);">Min Spend:</span> <span style="color:var(--gold-warm);">${minSpend}</span></div>`;
+    if (rec.occasion) stripHTML += `<div><span style="color:var(--ash);">Occasion:</span> ${rec.occasion}</div>`;
+  }
+  if (stripHTML) { strip.innerHTML = stripHTML; strip.style.display = 'block'; }
+}
+
 async function staffConfirmSeatTable(){
   const tableNum=_staffSeatModalTable;
   const guestName=document.getElementById('staffSeatGuestInput').value.trim();
@@ -2741,6 +2816,17 @@ async function staffConfirmSeatTable(){
   const effectiveTable = tableNum || (tablePickerEl ? parseInt(tablePickerEl.value)||null : null);
   if(!effectiveTable){ errEl.textContent='Please select a table number.'; return; }
   if(!guestName){ errEl.textContent='Please enter a guest name.'; return; }
+  if(!partySize || isNaN(partySize)){ errEl.textContent='Please select a party size.'; return; }
+  if(!serverId){ errEl.textContent='Please assign a server or waitress.'; return; }
+
+  // Used-once guard — block if linked booking/reservation already seated
+  const isBookingLink = resRaw.startsWith('TBK:');
+  const isResLink = resRaw.startsWith('RES:');
+  if (isBookingLink && typeof _allTableBookings !== 'undefined') {
+    const linked = _allTableBookings.find(b => b.id === resRaw.slice(4));
+    if (linked && linked.status === 'seated') { errEl.textContent = 'This booking is already seated. Remove the link to continue.'; return; }
+    if (linked && linked.status === 'cancelled') { errEl.textContent = 'This booking has been cancelled.'; return; }
+  }
   errEl.textContent='';
 
   // Parse res/booking type from prefixed value
@@ -2880,6 +2966,15 @@ function dismissTblBkOverlay() {
         </optgroup>
       </select>
     </div>
+    <!-- BOOKING LINK — first field, drives autofill -->
+    <div class="seat-field">
+      <label>Link to Reservation / Booking <span style="color:var(--ash);font-weight:normal;">(optional)</span></label>
+      <select id="staffSeatResSelect" onchange="staffSeatResAutofill(this.value)"><option value="">— None —</option></select>
+      <!-- Booking status / deposit / comp strip -->
+      <div id="staffSeatBookingStrip" style="display:none;margin-top:8px;padding:10px 12px;border-radius:6px;background:rgba(218,165,32,0.07);border:1px solid rgba(218,165,32,0.25);font-size:12px;line-height:1.8;"></div>
+      <!-- Already-used warning -->
+      <div id="staffSeatBookingUsedWarn" style="display:none;margin-top:6px;padding:8px 12px;border-radius:6px;background:rgba(207,74,74,0.1);border:1px solid rgba(207,74,74,0.4);font-size:12px;color:var(--ember);"></div>
+    </div>
     <div class="seat-field">
       <label>Guest / Member</label>
       <div class="seat-member-lookup-wrap">
@@ -2893,21 +2988,18 @@ function dismissTblBkOverlay() {
       </div>
     </div>
     <div class="seat-field">
-      <label>Party Size</label>
+      <label>Party Size <span style="color:var(--ember);font-size:11px;">*</span></label>
       <select id="staffSeatPartySize">
+        <option value="">— Select —</option>
         <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-        <option value="4" selected>4</option><option value="5">5</option><option value="6">6</option>
+        <option value="4">4</option><option value="5">5</option><option value="6">6</option>
         <option value="7">7</option><option value="8">8</option><option value="10">10</option>
         <option value="12">12</option><option value="15">15</option><option value="20">20</option><option value="25">25</option>
       </select>
     </div>
     <div class="seat-field">
-      <label>Assign Server / Waitress</label>
+      <label>Assign Server / Waitress <span style="color:var(--ember);font-size:11px;">*</span></label>
       <select id="staffSeatServerSelect"><option value="">— Select server —</option></select>
-    </div>
-    <div class="seat-field">
-      <label>Link to Reservation / Booking (optional)</label>
-      <select id="staffSeatResSelect"><option value="">— None —</option></select>
     </div>
     <div class="seat-field">
       <label>Tab Notes (internal)</label>
