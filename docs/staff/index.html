@@ -2988,14 +2988,22 @@ function showTableBookingOverlay(bk, onSeat) {
   const statusEl = document.getElementById('tblBkOverlayStatus');
   if(bk.status === 'seated'){
     statusEl.innerHTML = '<div class="vip-status-used">✓ ALREADY SEATED</div>';
+    document.getElementById('tblBkOverlay').classList.add('active');
   } else if(bk.status === 'cancelled'){
     statusEl.innerHTML = '<div class="vip-status-used">⊘ BOOKING CANCELLED</div>';
+    document.getElementById('tblBkOverlay').classList.add('active');
+  } else if(bk.status === 'closed'){
+    statusEl.innerHTML = '<div class="vip-status-used">⊘ BOOKING CLOSED</div>';
+    document.getElementById('tblBkOverlay').classList.add('active');
   } else {
-    statusEl.innerHTML = `
-      <button class="btn-vip-primary" onclick="tblBkOverlayConfirm()">✦ Proceed to Seat Table</button>
-      <button style="margin-top:10px;width:100%;padding:12px;border-radius:6px;background:none;border:1px solid var(--graphite);color:var(--ash);font-family:var(--font-label);font-size:12px;letter-spacing:0.15em;cursor:pointer;" onclick="dismissTblBkOverlay()">Dismiss</button>`;
+    // Auto-proceed: show overlay briefly then open seat modal
+    statusEl.innerHTML = '<div style="color:#81C784;font-family:var(--font-label);font-size:13px;letter-spacing:0.15em;">✦ OPENING SEAT MODAL…</div>';
+    document.getElementById('tblBkOverlay').classList.add('active');
+    setTimeout(() => {
+      dismissTblBkOverlay();
+      if(typeof _tblBookingOverlayCb === 'function') _tblBookingOverlayCb();
+    }, 1200);
   }
-  document.getElementById('tblBkOverlay').classList.add('active');
 }
 
 function tblBkOverlayConfirm() {

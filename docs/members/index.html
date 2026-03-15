@@ -1764,7 +1764,7 @@ async function loadTableBookings(phoneE164) {
         <div class="wpass-qr-wrap">
           <div style="background:#fff;padding:6px;border-radius:6px;width:92px;height:92px;display:flex;align-items:center;justify-content:center" id="${qrId}"></div>
           <p class="wpass-qr-label" style="color:#C07820">Show to staff</p>
-          <a href="sms:?body=${encodeURIComponent('RIDDIM Table Booking — ' + evTitle + ', ' + fmtDate(evDate) + ', ' + (b.party_size||'?') + ' guests, ' + sectionLabel + '. View your booking pass: https://portal.ctrlmanagement.com/members/index.html')}" style="margin-top:6px;display:flex;align-items:center;gap:4px;padding:5px 8px;border:1px solid rgba(240,140,30,0.35);border-radius:4px;color:#F09840;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;text-decoration:none;white-space:nowrap;">📲 SHARE</a>
+          <a href="sms:?body=${encodeURIComponent('Your RIDDIM table booking is confirmed — ' + fmtDate(evDate) + ', ' + (b.party_size||'?') + ' guests, ' + sectionLabel + '. View & show your booking QR at the door: https://portal.ctrlmanagement.com/tbk.html?token=' + token)}" style="margin-top:6px;display:flex;align-items:center;gap:4px;padding:5px 8px;border:1px solid rgba(240,140,30,0.35);border-radius:4px;color:#F09840;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;text-decoration:none;white-space:nowrap;">📲 SHARE</a>
         </div>`;
       listEl.appendChild(div);
       makeQR(qrId, 'TBK:' + token, 80);
