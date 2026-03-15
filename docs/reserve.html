@@ -1135,22 +1135,35 @@ dateInput.addEventListener('change', async function() {
   hidePricingUI();
   if (!dateVal || !supabaseClient) return;
 
-  // Determine current time to decide dinner vs nightlife routing
+  // Determine routing based on SELECTED TIME (not wall clock)
+  // Before 9 PM → dinner reservation path
+  // 9:00–9:30 PM → blackout window
+  // 10:00 PM+ → nightlife table booking path
+  const selectedTime = document.getElementById('time').value;
+  let selectedHour = -1;
+  let selectedMinute = 0;
+  if (selectedTime) {
+    const match = selectedTime.match(/(\d+):(\d+)\s*(AM|PM)/i);
+    if (match) {
+      selectedHour = parseInt(match[1]);
+      selectedMinute = parseInt(match[2]);
+      if (match[3].toUpperCase() === 'PM' && selectedHour !== 12) selectedHour += 12;
+      if (match[3].toUpperCase() === 'AM' && selectedHour === 12) selectedHour = 0;
+    }
+  }
+  // Also check current wall clock for same-day booking restrictions
   const now = new Date();
-  const hour = now.getHours();
-  // Selected date is today and time is past 9 PM → nightlife path
   const today = now.toISOString().split('T')[0];
   const isToday = dateVal === today;
-  const isPastCutoff = isToday && hour >= 21; // 9 PM cutoff
-  const isBlackout = isToday && hour >= 21 && hour < 22; // 9–10 blackout
-  const isNightlifeWindow = isToday && hour >= 22; // after 10 PM → VIP pass route only
+  const currentHour = now.getHours();
 
-  if (isNightlifeWindow) {
-    showReserveCutoffNotice('Dinner reservations close at 9 PM. After 10 PM, table bookings are available via VIP Pass only. <a href="vip.html" style="color:var(--color-gold-warm);">Request a VIP Pass →</a>');
+  // If today and current time is past 10 PM, block dinner entirely
+  if (isToday && currentHour >= 22) {
+    showReserveCutoffNotice('Dinner reservations are closed for tonight. <a href="vip.html" style="color:var(--color-gold-warm);">Request a VIP Pass →</a>');
     return;
   }
-
-  if (isBlackout) {
+  // If today and current time is 9–10 PM blackout
+  if (isToday && currentHour >= 21 && currentHour < 22) {
     showReserveCutoffNotice('Reservations are not available between 9–10 PM. Dinner service ends at 9 PM. Nightlife VIP table bookings open after 10 PM.');
     return;
   }
@@ -1174,11 +1187,18 @@ dateInput.addEventListener('change', async function() {
       _eventPricingRules = rules || [];
       if (_eventPricingRules.length) {
         showPricingUI();
+        // Nightlife event — show nightlife times, hide dinner times
+        updateTimeDropdown('nightlife');
+      } else {
+        // Dinner only on this date — show dinner times
+        updateTimeDropdown('dinner');
       }
     }
   } catch(e) {
     console.warn('Event/pricing lookup failed:', e);
   }
+  // If no event found, default to dinner times
+  if (!_activeEvent) updateTimeDropdown('dinner');
 });
 
 function showReserveCutoffNotice(msg) {
@@ -1199,6 +1219,38 @@ function hidePricingUI() {
   document.getElementById('reserveFormFields').style.display = 'block';
   _selectedSection = null;
   _selectedMinSpend = 0;
+}
+
+function updateTimeDropdown(mode) {
+  const sel = document.getElementById('time');
+  if (!sel) return;
+  const currentVal = sel.value;
+  sel.innerHTML = '<option value="">Select time</option>';
+  if (mode === 'dinner') {
+    // Dinner times: 6 PM – 8:30 PM (must end before 9 PM cutoff)
+    const dinnerTimes = ['6:00 PM','6:30 PM','7:00 PM','7:30 PM','8:00 PM','8:30 PM'];
+    dinnerTimes.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t; opt.textContent = t;
+      if (t === currentVal) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    // Show time field for dinner
+    const timeRow = sel.closest('.form-row') || sel.parentElement;
+    if (timeRow) timeRow.style.display = '';
+  } else if (mode === 'nightlife') {
+    // Nightlife times: 10 PM – 1:30 AM
+    const nightTimes = ['10:00 PM','10:30 PM','11:00 PM','11:30 PM','12:00 AM','12:30 AM','1:00 AM','1:30 AM'];
+    nightTimes.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t; opt.textContent = t;
+      if (t === currentVal) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    // Show time field for nightlife
+    const timeRow = sel.closest('.form-row') || sel.parentElement;
+    if (timeRow) timeRow.style.display = '';
+  }
 }
 
 function showPricingUI() {
