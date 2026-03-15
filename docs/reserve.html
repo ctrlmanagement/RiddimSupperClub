@@ -1153,7 +1153,8 @@ dateInput.addEventListener('change', async function() {
   }
   // Also check current wall clock for same-day booking restrictions
   const now = new Date();
-  const today = now.toISOString().split('T')[0];
+  // Use LOCAL date (not UTC) so 8 PM EDT doesn't become March 15 UTC
+  const today = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
   const isToday = dateVal === today;
   const currentHour = now.getHours();
 
