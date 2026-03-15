@@ -178,7 +178,7 @@
       <div style="display:flex;align-items:center;gap:8px;">
         <label style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--owner-gold);">DATE</label>
         <input type="date" id="tblDateFilter" style="background:var(--void);border:1px solid var(--graphite);color:var(--mist);padding:6px 10px;border-radius:6px;font-family:var(--font-body);font-size:13px;cursor:pointer;" onchange="loadTableSessions()"/>
-        <button onclick="document.getElementById('tblDateFilter').value=new Date().toISOString().split('T')[0];loadTableSessions();" style="padding:6px 12px;border:1px solid var(--graphite);background:none;border-radius:6px;color:var(--ash);font-family:var(--font-body);font-size:11px;cursor:pointer;">Today</button>
+        <button onclick="document.getElementById('tblDateFilter').value=localDateStr();loadTableSessions();" style="padding:6px 12px;border:1px solid var(--graphite);background:none;border-radius:6px;color:var(--ash);font-family:var(--font-body);font-size:11px;cursor:pointer;">Today</button>
       </div>
       <button onclick="loadTableSessions()" style="padding:9px 18px;border:1px solid var(--graphite);background:none;border-radius:6px;color:var(--ash);font-family:var(--font-body);font-size:12px;cursor:pointer;">↺ Refresh</button>
     </div>
@@ -307,6 +307,11 @@
 .inq-guest-badge{display:inline-flex;align-items:center;font-family:var(--font-label);font-size:9px;letter-spacing:0.15em;padding:2px 7px;border-radius:3px;background:rgba(184,134,11,0.1);border:1px solid rgba(184,134,11,0.3);color:var(--owner-gold);margin-left:6px;vertical-align:middle;}
 </style><div class="toast" id="toast"></div><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>const SUPABASE_URL = 'https://cbvryfgrqzdvbqigyrgh.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_fQlHFhC7tPkZNRl1djnvcA_68LpKQpv';
+// Utility: get date string in local timezone (not UTC)
+function localDateStr(d) {
+  const dt = d || new Date();
+  return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+}
 const LIVE_DATA = true;
 let supabaseClient = null;
 try {
@@ -3291,7 +3296,9 @@ function renderTableBookings() {
     const statusOk = _tblBookingStatusFilter === 'all' || b.status === _tblBookingStatusFilter;
     const evOk = !evFilter || b.event_id === evFilter;
     // Date filter: match against requested_at date
-    const dateOk = !dateFilter || (b.requested_at || '').slice(0,10) === dateFilter;
+    // Convert UTC requested_at to local date for comparison
+  const bLocalDate = b.requested_at ? localDateStr(new Date(b.requested_at)) : '';
+  const dateOk = !dateFilter || bLocalDate === dateFilter;
     return statusOk && evOk && dateOk;
   });
 
@@ -3621,7 +3628,7 @@ function applyFloorPlanFilter() {
 async function initTablesTab() {
   // Set date filter to today on first load
   const df = document.getElementById('tblDateFilter');
-  if (df && !df.value) df.value = new Date().toISOString().split('T')[0];
+  if (df && !df.value) df.value = localDateStr();
   document.getElementById('tblStatTotal').textContent = TOTAL_TABLES;
   await Promise.all([loadTableSessions(), loadTableStaff(), loadTodayReservations()]);
 }
@@ -3629,9 +3636,16 @@ async function initTablesTab() {
 async function loadTableSessions() {
   if (!LIVE_DATA || !supabaseClient) { renderFloorPlan({}); return; }
   // Item 5/6 — load by selected date (default today), include seated + closed
-  const dateFilter = document.getElementById('tblDateFilter')?.value || new Date().toISOString().split('T')[0];
-  const startOfDay = dateFilter + 'T00:00:00.000Z';
-  const endOfDay = dateFilter + 'T23:59:59.999Z';
+  const dateFilter = document.getElementById('tblDateFilter')?.value || localDateStr();
+  // Use local midnight boundaries — offset UTC by timezone
+  // seated_at is stored as UTC; local EDT = UTC-4, so local midnight = 04:00 UTC
+  // Build range: dateFilter local 00:00 to 23:59 in UTC
+  const tzOffset = new Date().getTimezoneOffset(); // minutes behind UTC (e.g. 240 for EDT)
+  const offsetMs = tzOffset * 60 * 1000;
+  const localMidnight = new Date(dateFilter + 'T00:00:00');
+  const localEndOfDay = new Date(dateFilter + 'T23:59:59');
+  const startOfDay = new Date(localMidnight.getTime() + offsetMs).toISOString();
+  const endOfDay = new Date(localEndOfDay.getTime() + offsetMs).toISOString();
   const { data, error } = await supabaseClient
     .from('table_sessions')
     .select('*')

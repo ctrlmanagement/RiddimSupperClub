@@ -202,6 +202,11 @@
 </main><div id="staffEvtDayModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:500;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)closeStaffEvtDayModal()"><div style="background:#1A1A1A;border:1px solid rgba(212,168,67,0.3);border-radius:14px;padding:24px;width:100%;max-width:480px;max-height:80vh;overflow-y:auto;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;"><div id="staffEvtDayModalTitle" style="font-family:var(--font-label);font-size:13px;letter-spacing:0.18em;color:var(--gold-warm);"></div><button onclick="closeStaffEvtDayModal()" style="background:none;border:none;color:rgba(245,240,232,0.4);font-size:22px;cursor:pointer;line-height:1;padding:0 4px;">✕</button></div><div id="staffEvtDayModalBody" style="display:flex;flex-direction:column;gap:12px;"></div></div></div><div class="staff-lightbox" id="staffLightbox"><button class="staff-lightbox-close" onclick="closeStaffLightbox()">✕</button><button class="staff-lightbox-prev" onclick="staffLightboxNav(-1)">‹</button><img class="staff-lightbox-img" id="staffLightboxImg" src="" alt=""><button class="staff-lightbox-next" onclick="staffLightboxNav(1)">›</button><div class="staff-lightbox-toolbar"><button class="staff-lightbox-dl-btn instagram" onclick="downloadInstagramCrop()">📸 Instagram (1080×1080)</button><button class="staff-lightbox-dl-btn original" id="staffLightboxOriginalDl" onclick="downloadOriginalPhoto()">↓ Original</button><span class="staff-lightbox-counter-txt" id="staffLightboxCounter"></span></div></div><div class="staff-ig-processing" id="staffIgProcessing"><div style="font-size:32px;">📸</div><div class="staff-ig-processing-text">Preparing Instagram photo...</div></div><canvas id="staffIgCanvas" style="display:none;" width="1080" height="1080"></canvas><div class="mobile-tab-bar"><div class="mobile-tabs"><button class="mobile-tab active" data-tab="checkin"><span class="mobile-tab-icon">⬡</span><span class="mobile-tab-label">Check-In</span></button><button class="mobile-tab" data-tab="reservations"><span class="mobile-tab-icon">◈</span><span class="mobile-tab-label">Reservations</span></button><button class="mobile-tab" data-tab="tables"><span class="mobile-tab-icon">⊟</span><span class="mobile-tab-label">Tables</span></button><button class="mobile-tab" data-tab="members"><span class="mobile-tab-icon">◉</span><span class="mobile-tab-label">Members</span></button><button class="mobile-tab" data-tab="guests"><span class="mobile-tab-icon">✦</span><span class="mobile-tab-label">Guests</span></button><button class="mobile-tab" data-tab="schedule"><span class="mobile-tab-icon">⊞</span><span class="mobile-tab-label">Schedule</span></button><button class="mobile-tab" data-tab="referrals"><span class="mobile-tab-icon">★</span><span class="mobile-tab-label">Referrals</span></button><button class="mobile-tab" data-tab="gallery"><span class="mobile-tab-icon">📷</span><span class="mobile-tab-label">Gallery</span></button><button class="mobile-tab" data-tab="events"><span class="mobile-tab-icon">📅</span><span class="mobile-tab-label">Events</span></button></div></div></div></div><div class="toast" id="toast"></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script><script>const SUPABASE_URL = 'https://cbvryfgrqzdvbqigyrgh.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_fQlHFhC7tPkZNRl1djnvcA_68LpKQpv';
 const DEV_MODE = true; 
+// Utility: get date string in local timezone (not UTC)
+function localDateStr(d) {
+  const dt = d || new Date();
+  return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+}
 const LIVE_DATA = true;
 
 // ── Reach tracking helper (F01/F03/F04)
@@ -465,7 +470,7 @@ async function loadLiveData() {
 if (LIVE_DATA) {
 const { data: mData } = await supabaseClient.from('members').select('*').order('first_name');
 if (mData) liveMembers = mData;
-const today = new Date().toISOString().slice(0,10);
+const today = localDateStr();
 const { data: rData } = await supabaseClient
 .from('reservations')
 .select('*')
@@ -2066,7 +2071,7 @@ cancelled: '#E57373', completed: 'rgba(255,255,255,0.2)'
 };
 const eventMap = {};
 STAFF_EVENTS.forEach(e => { eventMap[e.event_date] = e; });
-const today = new Date().toISOString().slice(0,10);
+const today = localDateStr();
 const firstDay = new Date(staffEvtYear, staffEvtMonth, 1).getDay();
 const daysInMonth = new Date(staffEvtYear, staffEvtMonth+1, 0).getDate();
 let cells = '';
@@ -2174,7 +2179,7 @@ async function processVIPPass(token, setStatus) {
   }
   currentVIPPass = pass;
   // Validate date
-  const today = new Date().toISOString().slice(0,10);
+  const today = localDateStr();
   if (pass.valid_date !== today) {
     setStatus('error', `✕ Pass is not valid today. Valid date: ${formatPassDate(pass.valid_date)}.`);
     return;
@@ -2313,7 +2318,7 @@ const STATUS_COLORS = {
 scheduled: '#81C784', live: '#4A7FC1', sold_out: 'var(--gold-warm)',
 cancelled: '#E57373', completed: 'rgba(255,255,255,0.2)'
 };
-const today = new Date().toISOString().slice(0,10);
+const today = localDateStr();
 const featured = STAFF_EVENTS.filter(e => e.event_date >= today).slice(0, 10);
 if (!featured.length) {
 el.innerHTML = '<p style="color:rgba(245,240,232,0.3);font-size:13px;text-align:center;padding:20px 0;">No upcoming events.</p>';
@@ -2526,7 +2531,7 @@ let _staffTodayReservations = [];
 
 async function staffLoadTodayRes(tableNum){
   if(!LIVE_DATA||!supabaseClient) return;
-  const today=new Date().toISOString().split('T')[0];
+  const today=localDateStr();
   const [resResult, bkResult] = await Promise.all([
     supabaseClient.from('reservations').select('id,member_name,party_size,status,notes').eq('event_date',today).in('status',['confirmed','pending']),
     supabaseClient.from('table_bookings').select('id,guest_name,party_size,status,section_name,minimum_spend_required,minimum_spend_acknowledged,deposit_amount,deposit_paid,notes,events(title,event_date)').in('status',['confirmed','pending'])
@@ -2802,8 +2807,8 @@ function staffSeatResAutofill(val) {
   if (!rec) return;
 
   // Used-once guard
-  if (rec.status === 'seated') {
-    warn.textContent = '⚠ This booking is already seated and cannot be linked again.';
+  if (rec.status === 'seated' || rec.status === 'closed') {
+    warn.textContent = '⚠ This booking is already seated or closed and cannot be linked again.';
     warn.style.display = 'block';
     return;
   }
