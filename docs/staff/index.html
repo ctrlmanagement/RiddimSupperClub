@@ -2489,7 +2489,6 @@ const STAFF_SEAT_ROLES = ['manager','host','host_floor','vip_host','waitress','o
 let _staffTableSessions = {};
 let _staffSeatModalTable = null;
 let _staffSeatSelectedMember = null;
-let _staffSeatPrefillBookingId = null; // set when seat modal opened from TBK scan — bypasses dropdown timing
 let _staffTableStaff = [];
 
 
@@ -2605,7 +2604,6 @@ function staffOpenSeatModal(tableNum, opts){
   }
   _staffSeatModalTable = tableNum || null;
   _staffSeatSelectedMember = null;
-  _staffSeatPrefillBookingId = null;
   const existing = tableNum ? _staffTableSessions[tableNum] : null;
   const labelEl = document.getElementById('staffSeatModalTableLabel');
   if(labelEl) labelEl.textContent = tableNum ? 'TABLE '+tableNum : 'SELECT TABLE';
@@ -2632,7 +2630,6 @@ function staffOpenSeatModal(tableNum, opts){
   // --- prefillBooking: table_booking scan ---
   if(opts && opts.prefillBooking){
     const b = opts.prefillBooking;
-    _staffSeatPrefillBookingId = b.id; // store for staffConfirmSeatTable — bypasses dropdown timing
     const SECTION_LABELS = { front:'Front Booths', mid:'Mid Row', center:'Center Cluster', second:'Second Row', top:'Top Row + Lounge' };
     document.getElementById('staffSeatGuestInput').value = b.guest_name||'';
     if(b.party_size) document.getElementById('staffSeatPartySize').value = String(b.party_size);
@@ -2750,7 +2747,6 @@ function staffCloseSeatModal(){
   document.getElementById('staffSeatMemberResults').classList.remove('open');
   _staffSeatModalTable=null;
   _staffSeatSelectedMember=null;
-  _staffSeatPrefillBookingId=null;
 }
 document.addEventListener('DOMContentLoaded',function(){
   const overlay=document.getElementById('staffSeatModalOverlay');
@@ -2885,29 +2881,25 @@ async function staffConfirmSeatTable(){
   const tablePickerEl = document.getElementById('staffSeatTablePicker');
   const effectiveTable = tableNum || (tablePickerEl ? parseInt(tablePickerEl.value)||null : null);
   if(!effectiveTable){ errEl.textContent='Please select a table number.'; return; }
-
-  // Booking/res link — allow prefill scan bypass when dropdown hasn't populated yet
-  const effectiveRes = resRaw || (_staffSeatPrefillBookingId ? 'TBK:'+_staffSeatPrefillBookingId : '');
-  if(!effectiveRes){ errEl.textContent='Please link a reservation or booking.'; return; }
-
+  if(!resRaw){ errEl.textContent='Please link a reservation or booking.'; return; }
   if(!guestName){ errEl.textContent='Please enter a guest name.'; return; }
   if(!partySize || isNaN(partySize)){ errEl.textContent='Please select a party size.'; return; }
   if(!serverId){ errEl.textContent='Please assign a server or waitress.'; return; }
 
   // Used-once guard — block if linked booking/reservation already seated
-  const isBookingLink = effectiveRes.startsWith('TBK:');
-  const isResLink = effectiveRes.startsWith('RES:');
+  const isBookingLink = resRaw.startsWith('TBK:');
+  const isResLink = resRaw.startsWith('RES:');
   if (isBookingLink && typeof _allTableBookings !== 'undefined') {
-    const linked = _allTableBookings.find(b => b.id === effectiveRes.slice(4));
+    const linked = _allTableBookings.find(b => b.id === resRaw.slice(4));
     if (linked && linked.status === 'seated') { errEl.textContent = 'This booking is already seated. Remove the link to continue.'; return; }
     if (linked && linked.status === 'cancelled') { errEl.textContent = 'This booking has been cancelled.'; return; }
   }
   errEl.textContent='';
 
   // Parse res/booking type from prefixed value
-  const isBooking = effectiveRes.startsWith('TBK:');
-  const resId = effectiveRes.startsWith('RES:') ? effectiveRes.slice(4) : (isBooking ? null : effectiveRes || null);
-  const bookingId = isBooking ? effectiveRes.slice(4) : null;
+  const isBooking = resRaw.startsWith('TBK:');
+  const resId = resRaw.startsWith('RES:') ? resRaw.slice(4) : (isBooking ? null : resRaw || null);
+  const bookingId = isBooking ? resRaw.slice(4) : null;
 
   const serverObj=_staffTableStaff.find(s=>s.id===serverId);
   const serverName=serverObj?`${serverObj.first_name} ${serverObj.last_name}`:null;
