@@ -784,7 +784,21 @@ try {
             const pay  = parseFloat(b.payment_amount||0);
             const tot  = dep + comp + pay;
             const min  = parseFloat(b.minimum_spend_required||0);
-            const ov   = min > 0 && tot > min ? `<span style="color:#81C784;margin-left:6px;">+$${(tot-min).toLocaleString(undefined,{maximumFractionDigits:0})} over</span>` : '';
+            const ovAmt = min > 0 && tot > min ? tot - min : 0;
+            const ovLabel = ovAmt > 0 ? `<span style="color:#81C784;margin-left:6px;">+$${ovAmt.toLocaleString(undefined,{maximumFractionDigits:0})} over min</span>` : '';
+            const isClosed = b.status === 'closed' || b.status === 'seated';
+            const tabLine = isClosed && tot > 0
+              ? `<p class="visit-meta" style="margin-top:3px;padding:5px 8px;background:rgba(255,255,255,0.03);border-radius:4px;border:1px solid rgba(255,255,255,0.06);">
+                  <span style="color:var(--color-ash);">Deposit</span> <strong style="color:var(--color-ivory);">$${dep.toLocaleString(undefined,{maximumFractionDigits:0})}</strong>
+                  &nbsp;·&nbsp;
+                  <span style="color:var(--color-ash);">Comp</span> <strong style="color:var(--color-ivory);">$${comp.toLocaleString(undefined,{maximumFractionDigits:0})}</strong>
+                  &nbsp;·&nbsp;
+                  <span style="color:var(--color-ash);">Payment</span> <strong style="color:var(--color-ivory);">$${pay.toLocaleString(undefined,{maximumFractionDigits:0})}</strong>
+                  &nbsp;·&nbsp;
+                  <span style="color:var(--color-ash);">Total</span> <strong style="color:var(--color-gold-warm);">$${tot.toLocaleString(undefined,{maximumFractionDigits:0})}</strong>
+                  ${ovLabel}
+                </p>`
+              : (min > 0 ? `<p class="visit-meta">Min spend <strong>$${min.toLocaleString()}</strong></p>` : '');
             const statusColors = { confirmed:'var(--color-gold-warm)', seated:'#81C784', closed:'var(--color-ash)', pending:'var(--color-ash)', cancelled:'var(--color-ember)' };
             const sColor = statusColors[b.status] || 'var(--color-ash)';
             const section = SECTION_LABELS[b.section_name] || b.section_name || '—';
@@ -793,7 +807,7 @@ try {
               <div class="visit-info">
                 <p class="visit-title">${escHtml(evTitle)} · ${section}</p>
                 <p class="visit-meta">${evDate}${b.party_size ? ' · Party of '+b.party_size : ''}</p>
-                ${min > 0 ? `<p class="visit-meta">Min $${min.toLocaleString()} · Total $${tot.toLocaleString(undefined,{maximumFractionDigits:0})}${ov}</p>` : ''}
+                ${tabLine}
               </div>
               <div>
                 <p class="visit-points" style="color:${sColor};font-size:10px;">${b.status.toUpperCase()}</p>

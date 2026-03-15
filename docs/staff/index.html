@@ -2437,8 +2437,10 @@ function startCheckinScanner() {
               .update({ scanned_at: new Date().toISOString() })
               .eq('id', bk.id);
             // Show booking alert overlay then open seat modal
-            showTableBookingOverlay(bk, () => {
+            showTableBookingOverlay(bk, async () => {
               goToTab('tables');
+              // Wait for staffInitTablesTab to complete before opening seat modal
+              await staffInitTablesTab();
               staffOpenSeatModal(bk.table_number || null, { prefillBooking: bk });
             });
           })();
@@ -2546,14 +2548,14 @@ async function staffLoadTodayRes(tableNum){
   const today=localDateStr();
   const [resResult, bkResult] = await Promise.all([
     supabaseClient.from('reservations').select('id,member_name,party_size,status,notes').eq('event_date',today).in('status',['confirmed','pending']),
-    supabaseClient.from('table_bookings').select('id,guest_name,party_size,status,section_name,minimum_spend_required,minimum_spend_acknowledged,deposit_amount,deposit_paid,notes,requested_at').in('status',['confirmed','pending'])
+    supabaseClient.from('table_bookings').select('id,guest_name,party_size,status,section_name,minimum_spend_required,minimum_spend_acknowledged,deposit_amount,deposit_paid,notes,requested_at,scanned_at').in('status',['confirmed','pending'])
   ]);
   _staffTodayReservations = resResult.data || [];
   _staffTodayBookings = bkResult.data || [];
   staffRebuildResSelect(tableNum);
 }
 
-function staffRebuildResSelect(tableNum) {
+function staffRebuildResSelect(tableNum, allowUnscannedBookingId) {
   const sel = document.getElementById('staffSeatResSelect');
   if (!sel) return;
   // Determine section for this table
@@ -2561,9 +2563,20 @@ function staffRebuildResSelect(tableNum) {
   const tableSection = tableNum ? Object.keys(TABLE_SECTION_MAP).find(s => TABLE_SECTION_MAP[s].includes(tableNum)) : null;
   const SECTION_LABELS = { front:'Front Booths', mid:'Mid Row', center:'Center Cluster', second:'Second Row', top:'Top Row + Lounge' };
   const resOpts = _staffTodayReservations.map(r=>`<option value="RES:${r.id}">🍽 ${r.member_name||'Guest'} — ${r.party_size||'?'} guests (${r.status})</option>`).join('');
+  // TBK bookings: only show in dropdown if scanned_at is set (guest checked in via QR)
+  // Exception: if this modal was opened by a QR scan, allowUnscannedBookingId passes that booking's id through
   const bkOpts = _staffTodayBookings
-    .filter(b => !tableSection || b.section_name === tableSection)
-    .map(b=>`<option value="TBK:${b.id}">🌙 ${b.guest_name||'Guest'} — ${b.party_size||'?'} guests · ${SECTION_LABELS[b.section_name]||b.section_name} (${b.status})</option>`).join('');
+    .filter(b => {
+      if (!tableSection || b.section_name === tableSection) {
+        // Allow if scanned, or if this is the booking that just got scanned right now
+        return b.scanned_at || b.id === allowUnscannedBookingId;
+      }
+      return false;
+    })
+    .map(b => {
+      const scannedLabel = b.scanned_at ? ' ✓ Checked In' : ' · QR Scanned';
+      return `<option value="TBK:${b.id}">🌙 ${b.guest_name||'Guest'} — ${b.party_size||'?'} guests · ${SECTION_LABELS[b.section_name]||b.section_name}${scannedLabel}</option>`;
+    }).join('');
   sel.innerHTML='<option value="">— None —</option>'+resOpts+bkOpts;
 }
 
@@ -2631,8 +2644,8 @@ function staffOpenSeatModal(tableNum, opts){
   if(document.getElementById('staffSeatDepositDisplay')) document.getElementById('staffSeatDepositDisplay').style.display='none';
   const _strip=document.getElementById('staffSeatBookingStrip'); if(_strip) _strip.style.display='none';
   const _warn=document.getElementById('staffSeatBookingUsedWarn'); if(_warn) _warn.style.display='none';
-  // Rebuild dropdown scoped to this table's section
-  staffRebuildResSelect(tableNum || null);
+  // Rebuild dropdown scoped to this table's section — floor plan click (no QR scan)
+  staffRebuildResSelect(tableNum || null, null);
 
   // Show/hide table picker — needed when no table assigned yet (booking or comp scan)
   const needsPicker = !tableNum;
@@ -2680,7 +2693,8 @@ function staffOpenSeatModal(tableNum, opts){
       if(depInput) depInput.value = '0';
     }
 
-    // Pre-select in dropdown
+    // Pre-select in dropdown — pass b.id so it appears even if scanned_at races with cache
+    staffRebuildResSelect(null, b.id);
     setTimeout(()=>{
       const sel = document.getElementById('staffSeatResSelect');
       if(sel){ for(let i=0;i<sel.options.length;i++){ if(sel.options[i].value==='TBK:'+b.id){ sel.selectedIndex=i; staffSeatResAutofill('TBK:'+b.id); break; } } }
