@@ -795,7 +795,7 @@ try {
   const [ticketRes, compRes, bookingRes, sessionRes] = await Promise.all([
     supabaseClient.from('tickets').select('id,quantity,price_paid,comped,events(title,event_date)').eq('member_id', m.id).order('purchased_at',{ascending:false}).limit(20),
     supabaseClient.from('vip_passes').select('id,pass_type,valid_date,tab_limit,status,owner_note').eq('guest_phone', phone10).in('status',['active','unused','closed']).order('valid_date',{ascending:false}).limit(20),
-    supabaseClient.from('table_bookings').select('id,guest_name,section_name,minimum_spend_required,deposit_amount,comp_applied,payment_amount,status,requested_at,events(title,event_date)').eq('guest_phone', phoneE164).order('requested_at',{ascending:false}).limit(20),
+    supabaseClient.from('table_bookings').select('id,guest_name,section_name,minimum_spend_required,deposit_amount,comp_applied,payment_amount,status,requested_at').eq('guest_phone', phoneE164).order('requested_at',{ascending:false}).limit(20),
     supabaseClient.from('table_sessions').select('id,table_number,status,comp_applied,payment_amount,deposit_applied,seated_at,closed_at').eq('member_id', m.id).order('seated_at',{ascending:false}).limit(20),
   ]);
   const tickets  = ticketRes.data  || [];
@@ -841,8 +841,8 @@ try {
     </div>
   </div>`;
   const bookingsHTML = bookings.length ? `<div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--owner-gold);margin-bottom:6px;">TABLE BOOKINGS</div>` + bookings.map(b=>{
-    const evTitle=b.events?.title||'Event';
-    const evDate=b.events?.event_date?new Date(b.events.event_date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
+    const evTitle='Table Booking';
+    const evDate=b.requested_at?new Date(b.requested_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
     const section=SECTION_LBL[b.section_name]||b.section_name||'—';
     const dep=parseFloat(b.deposit_amount||0),comp2=parseFloat(b.comp_applied||0),pay=parseFloat(b.payment_amount||0);
     const tot=dep+comp2+pay;

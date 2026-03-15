@@ -725,7 +725,7 @@ try {
   const [ticketRes, compRes, bookingRes] = await Promise.all([
     supabaseClient.from('tickets').select('id,quantity,price_paid,comped,events(title,event_date)').eq('member_id', currentMember.id).order('purchased_at',{ascending:false}),
     supabaseClient.from('vip_passes').select('id,pass_type,valid_date,status').eq('guest_phone', phone10).order('valid_date',{ascending:false}),
-    supabaseClient.from('table_bookings').select('id,section_name,party_size,minimum_spend_required,deposit_amount,comp_applied,payment_amount,status,requested_at,events(title,event_date)').eq('guest_phone', phoneE164).order('requested_at',{ascending:false}),
+    supabaseClient.from('table_bookings').select('id,section_name,party_size,minimum_spend_required,deposit_amount,comp_applied,payment_amount,status,requested_at').eq('guest_phone', phoneE164).order('requested_at',{ascending:false}),
   ]);
 
   const tickets  = ticketRes.data || [];
@@ -776,8 +776,8 @@ try {
         <p class="panel-eyebrow" style="margin-bottom:var(--space-4)">Table Booking History</p>
         <div class="visit-list">
           ${bookings.map(b => {
-            const evTitle  = b.events?.title || 'RIDDIM Event';
-            const evDate   = b.events?.event_date ? new Date(b.events.event_date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
+            const evTitle  = 'Table Booking';
+            const evDate   = b.requested_at ? new Date(b.requested_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
             const dep = parseFloat(b.deposit_amount||0);
             const comp = parseFloat(b.comp_applied||0);
             const pay  = parseFloat(b.payment_amount||0);
@@ -1720,7 +1720,7 @@ async function loadTableBookings(phoneE164) {
     const today = new Date().toISOString().split('T')[0];
     const { data, error } = await supabaseClient
       .from('table_bookings')
-      .select('id,qr_token,guest_name,party_size,section_name,minimum_spend_required,deposit_amount,deposit_paid,notes,status,requested_at,events(id,title,event_date)')
+      .select('id,qr_token,guest_name,party_size,section_name,minimum_spend_required,deposit_amount,deposit_paid,notes,status,requested_at')
       .eq('guest_phone', phoneE164)
       .in('status', ['confirmed','seated'])
       .order('requested_at', { ascending: false });
@@ -1737,8 +1737,8 @@ async function loadTableBookings(phoneE164) {
     filtered.forEach((b, i) => {
       const qrId = `tbk-qr-${i}`;
       const token = b.qr_token || b.id;
-      const evTitle = b.events?.title || 'RIDDIM Event';
-      const evDate = b.events?.event_date || null;
+      const evTitle = 'RIDDIM Event';
+      const evDate = b.requested_at || null;
       const sectionLabel = SECTION_LABELS[b.section_name] || b.section_name || '—';
       const minSpend = parseFloat(b.minimum_spend_required || 0);
       const dep = parseFloat(b.deposit_amount || 0);
@@ -1750,7 +1750,7 @@ async function loadTableBookings(phoneE164) {
           <p class="wpass-eyebrow">🌙 Table Booking · RIDDIM</p>
           <p class="wpass-name">${escHtml(evTitle)}</p>
           <div class="wpass-meta">
-            <span class="wpass-meta-item">Date <strong>${fmtDate(evDate)}</strong></span>
+            <span class="wpass-meta-item">Date <strong>${fmtDate(evDate ? evDate.split('T')[0] : null)}</strong></span>
             ${b.party_size ? `<span class="wpass-meta-item">Party of <strong>${b.party_size}</strong></span>` : ''}
             <span class="wpass-meta-item">Section <strong>${escHtml(sectionLabel)}</strong></span>
             ${minSpend > 0 ? `<span class="wpass-meta-item">Min spend <strong>$${minSpend.toLocaleString()}</strong></span>` : ''}
