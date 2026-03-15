@@ -2412,16 +2412,18 @@ function startCheckinScanner() {
           })();
           return;
         }
-        // Route: TBK:<uuid> → gold booking alert, then tables tab seat modal
+        // Route: TBK:<qr_token> → gold booking alert, then tables tab seat modal
+        // NOTE: wallet encodes TBK:<qr_token> not TBK:<id> — must lookup by qr_token
+        // NOTE: events join on table_bookings causes 400 RLS block — never use it (Principle 153)
         if (/^TBK:/i.test(decoded)) {
-          const bookingId = decoded.slice(4).trim();
+          const qrToken = decoded.slice(4).trim();
           showToast('⊟ Loading table booking…', 'blue');
           (async () => {
             if (!LIVE_DATA || !supabaseClient) { showToast('Live data required.'); return; }
             const { data: bk } = await supabaseClient
               .from('table_bookings')
-              .select('*, events(title, event_date)')
-              .eq('id', bookingId)
+              .select('id,guest_name,guest_phone,party_size,section_name,table_number,minimum_spend_required,minimum_spend_acknowledged,deposit_amount,deposit_paid,payment_amount,status,notes,qr_token,requested_at')
+              .eq('qr_token', qrToken)
               .maybeSingle();
             if (!bk) { showToast('Table booking not found.'); return; }
             // Show booking alert overlay then open seat modal
@@ -2534,7 +2536,7 @@ async function staffLoadTodayRes(tableNum){
   const today=localDateStr();
   const [resResult, bkResult] = await Promise.all([
     supabaseClient.from('reservations').select('id,member_name,party_size,status,notes').eq('event_date',today).in('status',['confirmed','pending']),
-    supabaseClient.from('table_bookings').select('id,guest_name,party_size,status,section_name,minimum_spend_required,minimum_spend_acknowledged,deposit_amount,deposit_paid,notes,events(title,event_date)').in('status',['confirmed','pending'])
+    supabaseClient.from('table_bookings').select('id,guest_name,party_size,status,section_name,minimum_spend_required,minimum_spend_acknowledged,deposit_amount,deposit_paid,notes,requested_at').in('status',['confirmed','pending'])
   ]);
   _staffTodayReservations = resResult.data || [];
   _staffTodayBookings = bkResult.data || [];
@@ -2965,8 +2967,11 @@ let _tblBookingOverlayCb = null;
 function showTableBookingOverlay(bk, onSeat) {
   _tblBookingOverlayCb = onSeat;
   const SECTION_LABELS = { front:'Front Booths (1–6)', mid:'Mid Row (7–11)', center:'Center Cluster (12–19)', second:'Second Row (20–24)', top:'Top Row + Lounge (25–31)' };
-  const evTitle = bk.events?.title || 'Tonight\'s Event';
-  const evDate = bk.events?.event_date ? new Date(bk.events.event_date+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}) : '—';
+  // events join removed (causes 400 RLS block — Principle 153); use requested_at as fallback
+  const evTitle = '🌙 Table Booking';
+  const evDate = bk.requested_at
+    ? new Date(bk.requested_at).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})
+    : '—';
   const section = SECTION_LABELS[bk.section_name] || bk.section_name;
   const minSpend = bk.minimum_spend_required ? '$'+parseFloat(bk.minimum_spend_required).toLocaleString() : '—';
   const acked = bk.minimum_spend_acknowledged ? '<span style="color:#81C784;">✓ Acknowledged</span>' : '<span style="color:var(--ember);">Not acknowledged</span>';
