@@ -792,18 +792,21 @@ if (!LIVE_DATA || !supabaseClient) return;
 try {
   const phone10 = (m.phone||'').replace(/\D/g,'').slice(-10);
   const phoneE164 = '+1'+phone10;
-  const [ticketRes, compRes, bookingRes] = await Promise.all([
+  const [ticketRes, compRes, bookingRes, sessionRes] = await Promise.all([
     supabaseClient.from('tickets').select('id,quantity,price_paid,comped,events(title,event_date)').eq('member_id', m.id).order('purchased_at',{ascending:false}).limit(20),
-    supabaseClient.from('vip_passes').select('id,pass_type,valid_date,tab_limit,status').eq('guest_phone', phone10).in('status',['active','unused','closed']).order('valid_date',{ascending:false}).limit(20),
-    supabaseClient.from('table_bookings').select('id,guest_name,minimum_spend_required,deposit_amount,comp_applied,payment_amount,status,requested_at,events(title,event_date)').eq('guest_phone', phoneE164).order('requested_at',{ascending:false}).limit(20),
+    supabaseClient.from('vip_passes').select('id,pass_type,valid_date,tab_limit,status,owner_note').eq('guest_phone', phone10).in('status',['active','unused','closed']).order('valid_date',{ascending:false}).limit(20),
+    supabaseClient.from('table_bookings').select('id,guest_name,section_name,minimum_spend_required,deposit_amount,comp_applied,payment_amount,status,requested_at,events(title,event_date)').eq('guest_phone', phoneE164).order('requested_at',{ascending:false}).limit(20),
+    supabaseClient.from('table_sessions').select('id,table_number,status,comp_applied,payment_amount,deposit_applied,seated_at,closed_at').eq('member_id', m.id).order('seated_at',{ascending:false}).limit(20),
   ]);
-  const tickets = ticketRes.data || [];
-  const comps = compRes.data || [];
+  const tickets  = ticketRes.data  || [];
+  const comps    = compRes.data    || [];
   const bookings = bookingRes.data || [];
-  // Calculate totals
+  const sessions = sessionRes.data || [];
+  // Calculate totals — from table_bookings (authoritative payment stack)
   const ticketCount = tickets.reduce((s,t)=>s+(t.quantity||1),0);
   const compCount = comps.length;
   let totalSpent = 0, totalOverage = 0;
+  const SECTION_LBL = { front:'Front Booths (1-6)', mid:'Mid Row (7-11)', center:'Center Cluster (12-19)', second:'Second Row (20-24)', top:'Top Row + Lounge (25-31)' };
   bookings.filter(b=>b.status==='seated'||b.status==='closed').forEach(b=>{
     const dep=parseFloat(b.deposit_amount||0), comp=parseFloat(b.comp_applied||0), pay=parseFloat(b.payment_amount||0);
     const total=dep+comp+pay;
@@ -811,49 +814,63 @@ try {
     const min=parseFloat(b.minimum_spend_required||0);
     if(min>0&&total>min) totalOverage+=(total-min);
   });
+  // Add session spend for walk-in sessions (no linked booking)
+  sessions.forEach(s=>{
+    const pay=parseFloat(s.payment_amount||0), comp3=parseFloat(s.comp_applied||0), dep3=parseFloat(s.deposit_applied||0);
+    totalSpent += dep3+comp3+pay;
+  });
   const wrap = document.getElementById('mdHistoryWrap');
   if (!wrap) return;
-  wrap.innerHTML = `
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;">
-      <div style="text-align:center;padding:10px 6px;background:var(--void);border:1px solid var(--graphite);border-radius:6px;">
-        <div style="font-family:var(--font-display);font-size:20px;font-weight:300;color:var(--gold-warm);">${ticketCount}</div>
-        <div style="font-size:9px;color:var(--ash);font-family:var(--font-label);letter-spacing:0.15em;margin-top:2px;">TICKETS</div>
-      </div>
-      <div style="text-align:center;padding:10px 6px;background:var(--void);border:1px solid var(--graphite);border-radius:6px;">
-        <div style="font-family:var(--font-display);font-size:20px;font-weight:300;color:var(--ivory);">${compCount}</div>
-        <div style="font-size:9px;color:var(--ash);font-family:var(--font-label);letter-spacing:0.15em;margin-top:2px;">COMPS</div>
-      </div>
-      <div style="text-align:center;padding:10px 6px;background:var(--void);border:1px solid var(--graphite);border-radius:6px;">
-        <div style="font-family:var(--font-display);font-size:20px;font-weight:300;color:var(--ivory);">$${totalSpent.toLocaleString(undefined,{maximumFractionDigits:0})}</div>
-        <div style="font-size:9px;color:var(--ash);font-family:var(--font-label);letter-spacing:0.15em;margin-top:2px;">TAB TOTAL</div>
-      </div>
-      <div style="text-align:center;padding:10px 6px;background:var(--void);border:1px solid var(--graphite);border-radius:6px;">
-        <div style="font-family:var(--font-display);font-size:20px;font-weight:300;color:#81C784;">$${totalOverage.toLocaleString(undefined,{maximumFractionDigits:0})}</div>
-        <div style="font-size:9px;color:var(--ash);font-family:var(--font-label);letter-spacing:0.15em;margin-top:2px;">OVERAGE</div>
-      </div>
+  // Build HTML sections separately for clarity
+  const statsGrid = `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;">
+    <div style="text-align:center;padding:10px 6px;background:var(--void);border:1px solid var(--graphite);border-radius:6px;">
+      <div style="font-family:var(--font-display);font-size:20px;font-weight:300;color:var(--gold-warm);">${ticketCount}</div>
+      <div style="font-size:9px;color:var(--ash);font-family:var(--font-label);letter-spacing:0.15em;margin-top:2px;">TICKETS</div>
     </div>
-    ${bookings.length ? `<div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--owner-gold);margin-bottom:6px;">TABLE BOOKINGS</div>
-    ${bookings.map(b=>{
-      const evTitle=b.events?.title||'Event';
-      const evDate=b.events?.event_date?new Date(b.events.event_date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
-      const dep=parseFloat(b.deposit_amount||0),comp2=parseFloat(b.comp_applied||0),pay=parseFloat(b.payment_amount||0);
-      const tot=dep+comp2+pay;
-      const min=parseFloat(b.minimum_spend_required||0);
-      const ov=min>0&&tot>min?'<span style="color:#81C784;margin-left:6px;">+$'+(tot-min).toLocaleString(undefined,{maximumFractionDigits:0})+' over</span>':'';
-      const statusColor=b.status==='seated'||b.status==='closed'?'#81C784':b.status==='confirmed'?'var(--gold-warm)':'var(--ash)';
-      return `<div style="font-size:11px;color:var(--mist);padding:7px 10px;background:var(--void);border:1px solid var(--graphite);border-radius:5px;margin-bottom:5px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <span>${evTitle} · ${evDate}</span>
-          <span style="font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;color:${statusColor};">${b.status.toUpperCase()}</span>
-        </div>
-        <div style="color:var(--ash);margin-top:2px;">Min $${min.toLocaleString()} · Total $${tot.toLocaleString(undefined,{maximumFractionDigits:0})}${ov}</div>
-      </div>`;
-    }).join('')}` : ''}
-    ${comps.length ? `<div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--owner-gold);margin-top:10px;margin-bottom:6px;">COMP PASSES</div>
-    ${comps.map(c=>{
-      const d=c.valid_date?new Date(c.valid_date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
-      return `<div style="font-size:11px;color:var(--mist);padding:6px 10px;background:var(--void);border:1px solid var(--graphite);border-radius:5px;margin-bottom:4px;">${c.pass_type.replace('_',' ').toUpperCase()} · ${d} · ${c.status}</div>`;
-    }).join('')}` : ''}`;
+    <div style="text-align:center;padding:10px 6px;background:var(--void);border:1px solid var(--graphite);border-radius:6px;">
+      <div style="font-family:var(--font-display);font-size:20px;font-weight:300;color:var(--ivory);">${compCount}</div>
+      <div style="font-size:9px;color:var(--ash);font-family:var(--font-label);letter-spacing:0.15em;margin-top:2px;">COMPS</div>
+    </div>
+    <div style="text-align:center;padding:10px 6px;background:var(--void);border:1px solid var(--graphite);border-radius:6px;">
+      <div style="font-family:var(--font-display);font-size:20px;font-weight:300;color:var(--ivory);">$${totalSpent.toLocaleString(undefined,{maximumFractionDigits:0})}</div>
+      <div style="font-size:9px;color:var(--ash);font-family:var(--font-label);letter-spacing:0.15em;margin-top:2px;">LIFETIME SPEND</div>
+    </div>
+    <div style="text-align:center;padding:10px 6px;background:var(--void);border:1px solid var(--graphite);border-radius:6px;">
+      <div style="font-family:var(--font-display);font-size:20px;font-weight:300;color:#81C784;">$${totalOverage.toLocaleString(undefined,{maximumFractionDigits:0})}</div>
+      <div style="font-size:9px;color:var(--ash);font-family:var(--font-label);letter-spacing:0.15em;margin-top:2px;">OVERAGE</div>
+    </div>
+  </div>`;
+  const bookingsHTML = bookings.length ? `<div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--owner-gold);margin-bottom:6px;">TABLE BOOKINGS</div>` + bookings.map(b=>{
+    const evTitle=b.events?.title||'Event';
+    const evDate=b.events?.event_date?new Date(b.events.event_date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
+    const section=SECTION_LBL[b.section_name]||b.section_name||'—';
+    const dep=parseFloat(b.deposit_amount||0),comp2=parseFloat(b.comp_applied||0),pay=parseFloat(b.payment_amount||0);
+    const tot=dep+comp2+pay;
+    const min=parseFloat(b.minimum_spend_required||0);
+    const ov=min>0&&tot>min?'<span style="color:#81C784;margin-left:6px;">+$'+(tot-min).toLocaleString(undefined,{maximumFractionDigits:0})+' over</span>':'';
+    const statusColor=b.status==='seated'||b.status==='closed'?'#81C784':b.status==='confirmed'?'var(--gold-warm)':'var(--ash)';
+    return `<div style="font-size:11px;color:var(--mist);padding:7px 10px;background:var(--void);border:1px solid var(--graphite);border-radius:5px;margin-bottom:5px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;"><span>${evTitle} · ${evDate}</span><span style="font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;color:${statusColor};">${b.status.toUpperCase()}</span></div>
+      <div style="color:var(--ash);margin-top:2px;">${section} · Min $${min.toLocaleString()} · Total $${tot.toLocaleString(undefined,{maximumFractionDigits:0})}${ov}</div>
+    </div>`;
+  }).join('') : '';
+  const sessionsHTML = sessions.length ? `<div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--owner-gold);margin-top:10px;margin-bottom:6px;">TABLE SESSIONS</div>` + sessions.map(s=>{
+    const seatedAt=s.seated_at?new Date(s.seated_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
+    const pay=parseFloat(s.payment_amount||0),comp4=parseFloat(s.comp_applied||0),dep4=parseFloat(s.deposit_applied||0);
+    const stot=dep4+comp4+pay;
+    const isClosed=s.status==='closed';
+    return `<div style="font-size:11px;color:var(--mist);padding:6px 10px;background:var(--void);border:1px solid var(--graphite);border-radius:5px;margin-bottom:4px;">
+      <div style="display:flex;justify-content:space-between;"><span>Table ${s.table_number||'—'} · ${seatedAt}</span><span style="font-family:var(--font-label);font-size:9px;color:${isClosed?'var(--ash)':'#81C784'};">${s.status.toUpperCase()}</span></div>
+      ${stot>0?`<div style="color:var(--ash);margin-top:2px;">Dep $${dep4.toLocaleString()} · Comp $${comp4.toLocaleString()} · Pay $${pay.toLocaleString()} = $${stot.toLocaleString(undefined,{maximumFractionDigits:0})}</div>`:''}
+    </div>`;
+  }).join('') : '';
+  const compsHTML = comps.length ? `<div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--owner-gold);margin-top:10px;margin-bottom:6px;">VIP / COMP PASSES</div>` + comps.map(c=>{
+    const d=c.valid_date?new Date(c.valid_date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
+    const tabStr=c.tab_limit?` · Tab $${c.tab_limit}`:'';
+    const noteStr=c.owner_note?`<div style="color:var(--ash);font-style:italic;margin-top:2px;">"${c.owner_note}"</div>`:'';
+    return `<div style="font-size:11px;color:var(--mist);padding:6px 10px;background:var(--void);border:1px solid var(--graphite);border-radius:5px;margin-bottom:4px;">${c.pass_type.replace(/_/g,' ').toUpperCase()} · ${d} · ${c.status}${tabStr}${noteStr}</div>`;
+  }).join('') : '';
+  wrap.innerHTML = statsGrid + bookingsHTML + sessionsHTML + compsHTML;
 } catch(e) {
   const wrap = document.getElementById('mdHistoryWrap');
   if(wrap) wrap.innerHTML = '<div style="font-size:11px;color:var(--ash);padding:8px;">History unavailable</div>';

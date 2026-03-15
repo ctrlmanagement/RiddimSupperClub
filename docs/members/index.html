@@ -39,6 +39,13 @@
 .wpass-ticket .wpass-badge{color:#B8AFEA;border-color:rgba(124,111,205,0.5);background:rgba(124,111,205,0.1);}
 .wpass-ticket .wpass-qr-label{color:#9B8FD4;}
 
+/* TABLE BOOKING — amber/nightlife */
+.wpass-tbk{background:linear-gradient(135deg,#120A00,#1C1200,#120A00);border:1px solid rgba(240,140,30,0.4);box-shadow:0 8px 40px rgba(0,0,0,0.5),0 0 32px rgba(240,140,30,0.06);}
+.wpass-tbk .wpass-eyebrow{color:#C07820;}
+.wpass-tbk .wpass-glow{background:radial-gradient(circle,rgba(240,140,30,0.14) 0%,transparent 65%);}
+.wpass-tbk .wpass-badge{color:#F09840;border-color:rgba(240,140,30,0.5);background:rgba(240,140,30,0.1);}
+.wpass-tbk .wpass-qr-label{color:#C07820;}
+
 /* voided / used state */
 .wpass-voided{opacity:0.45;filter:grayscale(0.6);}
 .wpass-status-void{font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--color-ember);background:rgba(192,57,43,0.12);border:1px solid rgba(192,57,43,0.3);padding:3px 10px;border-radius:var(--radius-sm);}
@@ -104,10 +111,30 @@
   <div id="walletTicketList" style="display:flex;flex-direction:column;gap:var(--space-4)"></div>
 </div>
 
+<!-- TABLE BOOKINGS SECTION -->
+<div style="margin-top:var(--space-8)">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-4)">
+    <div><p class="panel-eyebrow" style="margin-bottom:2px">Nightlife reservations</p><h3 style="font-family:var(--font-display);font-size:22px;font-weight:300;color:var(--color-ivory)">Table Bookings</h3></div>
+  </div>
+  <div id="walletTbkLoading" class="loading-wrap" style="min-height:80px"><div class="spinner"></div></div>
+  <div id="walletTbkEmpty" style="display:none;padding:var(--space-8);text-align:center;background:var(--color-carbon);border:1px solid var(--color-graphite);border-radius:var(--radius-md)"><p style="font-size:13px;color:var(--color-ash)">No confirmed table bookings.</p><button class="action-btn" style="margin:var(--space-4) auto 0;display:inline-flex" onclick="goToTab('events')"><span class="action-icon">◈</span> Book a Table</button></div>
+  <div id="walletTbkList" style="display:flex;flex-direction:column;gap:var(--space-4)"></div>
+</div>
+
 <!-- TIER BENEFITS SECTION -->
 <div class="panel" style="margin-top:var(--space-8);margin-bottom:var(--space-8)"><p class="panel-eyebrow">Your Tier Benefits</p><h3 class="panel-title" style="margin-bottom:var(--space-6)">What you unlock</h3><div class="perk-list" id="tierPerkList"></div></div>
 
-</div></div><div class="tab-panel" id="tab-history"><div><div class="history-header"><div><p class="panel-eyebrow">Your Record</p><h2 style="font-family:var(--font-display);font-size:36px;font-weight:300;font-style:italic;color:var(--color-ivory)">Visit History</h2></div><div class="history-summary"><div class="history-stat"><div class="history-stat-value" id="histTotalVisits">—</div><div class="history-stat-label">Total Visits</div></div><div class="history-stat"><div class="history-stat-value" id="histTotalPts">—</div><div class="history-stat-label">Total Points</div></div></div></div><div class="panel"><p class="panel-eyebrow" style="margin-bottom:var(--space-6)">Points Ledger</p><div class="visit-list" id="visitList"></div></div></div></div><div class="tab-panel" id="tab-gallery"><div class="member-gallery-wrap"><div id="memberGalleryList"><div class="member-gallery-header"><div class="member-gallery-title">Our <span>Gallery</span></div><div class="member-gallery-sub">Members-only photos from RIDDIM events</div></div><div class="member-galleries-grid" id="memberGalleriesGrid"><div style="color:rgba(245,240,232,0.3);font-size:13px;">Loading...</div></div><div class="member-gallery-empty" id="memberGalleryEmpty" style="display:none;"><div class="member-gallery-empty-icon">📷</div><div class="member-gallery-empty-text">No galleries yet — check back after your next visit</div></div></div><div id="memberGalleryViewer" class="member-gallery-viewer"><div class="member-gallery-viewer-header"><button class="member-gallery-back-btn" onclick="showMemberGalleryList()">← Back</button><div class="member-gallery-viewer-title" id="memberViewerTitle"></div></div><div class="member-photo-grid" id="memberPhotoGrid"></div><div class="member-gallery-empty" id="memberPhotoEmpty" style="display:none;"><div class="member-gallery-empty-icon">🖼️</div><div class="member-gallery-empty-text">No photos in this gallery yet</div></div></div></div></div><div class="member-lightbox" id="memberLightbox"><button class="member-lightbox-close" onclick="closeMemberLightbox()">✕</button><button class="member-lightbox-prev" onclick="memberLightboxNav(-1)">‹</button><img class="member-lightbox-img" id="memberLightboxImg" src="" alt=""><button class="member-lightbox-next" onclick="memberLightboxNav(1)">›</button><div class="member-lightbox-toolbar"><button class="member-lightbox-dl-ig" onclick="memberDownloadInstagram()">📸 Instagram (1080×1080)</button><button class="member-lightbox-download" id="memberLightboxDownload" onclick="memberDownloadOriginal()">↓ Original</button><span class="member-lightbox-counter-txt" id="memberLightboxCounter"></span></div></div><div class="member-ig-processing" id="memberIgProcessing"><div style="font-size:32px;">📸</div><div>Preparing Instagram photo...</div></div><canvas id="memberIgCanvas" style="display:none;"></canvas><div class="mobile-tab-bar"><div class="mobile-tabs"><button class="mobile-tab active" data-tab="tonight"><span class="mobile-tab-icon">✦</span><span class="mobile-tab-label">Tonight</span></button><button class="mobile-tab" data-tab="events"><span class="mobile-tab-icon">◈</span><span class="mobile-tab-label">Events</span></button><button class="mobile-tab" data-tab="wallet"><span class="mobile-tab-icon">▣</span><span class="mobile-tab-label">Wallet</span></button><button class="mobile-tab" data-tab="history"><span class="mobile-tab-icon">◎</span><span class="mobile-tab-label">History</span></button><button class="mobile-tab" data-tab="gallery"><span class="mobile-tab-icon">📷</span><span class="mobile-tab-label">Gallery</span></button></div></div></div><div class="toast" id="toast"></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</div></div><div class="tab-panel" id="tab-history"><div><div class="history-header"><div><p class="panel-eyebrow">Your Record</p><h2 style="font-family:var(--font-display);font-size:36px;font-weight:300;font-style:italic;color:var(--color-ivory)">Visit History</h2></div><div class="history-summary"><div class="history-stat"><div class="history-stat-value" id="histTotalVisits">—</div><div class="history-stat-label">Total Visits</div></div><div class="history-stat"><div class="history-stat-value" id="histTotalPts">—</div><div class="history-stat-label">Total Points</div></div></div></div>
+
+<!-- Enriched stats grid (Item 9) -->
+<div id="histEnrichedStats" style="display:none;margin-bottom:var(--space-6);"></div>
+
+<div class="panel"><p class="panel-eyebrow" style="margin-bottom:var(--space-6)">Points Ledger</p><div class="visit-list" id="visitList"></div></div>
+
+<!-- Table booking history (Item 9) -->
+<div id="histTableBookingsPanel" style="display:none;margin-top:var(--space-6);"></div>
+
+</div></div><div class="tab-panel" id="tab-gallery"><div class="member-gallery-wrap"><div id="memberGalleryList"><div class="member-gallery-header"><div class="member-gallery-title">Our <span>Gallery</span></div><div class="member-gallery-sub">Members-only photos from RIDDIM events</div></div><div class="member-galleries-grid" id="memberGalleriesGrid"><div style="color:rgba(245,240,232,0.3);font-size:13px;">Loading...</div></div><div class="member-gallery-empty" id="memberGalleryEmpty" style="display:none;"><div class="member-gallery-empty-icon">📷</div><div class="member-gallery-empty-text">No galleries yet — check back after your next visit</div></div></div><div id="memberGalleryViewer" class="member-gallery-viewer"><div class="member-gallery-viewer-header"><button class="member-gallery-back-btn" onclick="showMemberGalleryList()">← Back</button><div class="member-gallery-viewer-title" id="memberViewerTitle"></div></div><div class="member-photo-grid" id="memberPhotoGrid"></div><div class="member-gallery-empty" id="memberPhotoEmpty" style="display:none;"><div class="member-gallery-empty-icon">🖼️</div><div class="member-gallery-empty-text">No photos in this gallery yet</div></div></div></div></div><div class="member-lightbox" id="memberLightbox"><button class="member-lightbox-close" onclick="closeMemberLightbox()">✕</button><button class="member-lightbox-prev" onclick="memberLightboxNav(-1)">‹</button><img class="member-lightbox-img" id="memberLightboxImg" src="" alt=""><button class="member-lightbox-next" onclick="memberLightboxNav(1)">›</button><div class="member-lightbox-toolbar"><button class="member-lightbox-dl-ig" onclick="memberDownloadInstagram()">📸 Instagram (1080×1080)</button><button class="member-lightbox-download" id="memberLightboxDownload" onclick="memberDownloadOriginal()">↓ Original</button><span class="member-lightbox-counter-txt" id="memberLightboxCounter"></span></div></div><div class="member-ig-processing" id="memberIgProcessing"><div style="font-size:32px;">📸</div><div>Preparing Instagram photo...</div></div><canvas id="memberIgCanvas" style="display:none;"></canvas><div class="mobile-tab-bar"><div class="mobile-tabs"><button class="mobile-tab active" data-tab="tonight"><span class="mobile-tab-icon">✦</span><span class="mobile-tab-label">Tonight</span></button><button class="mobile-tab" data-tab="events"><span class="mobile-tab-icon">◈</span><span class="mobile-tab-label">Events</span></button><button class="mobile-tab" data-tab="wallet"><span class="mobile-tab-icon">▣</span><span class="mobile-tab-label">Wallet</span></button><button class="mobile-tab" data-tab="history"><span class="mobile-tab-icon">◎</span><span class="mobile-tab-label">History</span></button><button class="mobile-tab" data-tab="gallery"><span class="mobile-tab-icon">📷</span><span class="mobile-tab-label">Gallery</span></button></div></div></div><div class="toast" id="toast"></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>const SUPABASE_URL = 'https://cbvryfgrqzdvbqigyrgh.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_fQlHFhC7tPkZNRl1djnvcA_68LpKQpv';
@@ -675,10 +702,111 @@ const { data } = await supabaseClient
 .limit(30);
 if (data && data.length) ledger = data;
 }
-const icons = { visit: '✦', bonus: '◈', redemption: '▣' };
+const icons = { visit: '✦', bonus: '◈', redemption: '▣', table_close: '🌙' };
 document.getElementById('visitList').innerHTML = ledger.map(entry => `
 <div class="visit-item"><div class="visit-icon">${icons[entry.type] || '◎'}</div><div class="visit-info"><p class="visit-title">${entry.note || entry.type}</p><p class="visit-meta">${formatDate(entry.created_at)}</p></div><div><p class="visit-points">+${entry.amount} pts</p><p class="visit-points-label">${entry.balance_after.toLocaleString()} total</p></div></div>
 `).join('');
+// Load enriched stats alongside ledger
+loadEnrichedHistory();
+}
+
+async function loadEnrichedHistory() {
+if (!LIVE_DATA || !supabaseClient || !currentMember) return;
+const statsEl = document.getElementById('histEnrichedStats');
+const tbkPanel = document.getElementById('histTableBookingsPanel');
+if (!statsEl) return;
+
+const rawPhone = currentMember.phone || '';
+let phone10 = rawPhone.replace(/\D/g,'');
+if (phone10.length === 11 && phone10.startsWith('1')) phone10 = phone10.slice(1);
+const phoneE164 = rawPhone.startsWith('+') ? rawPhone : '+1' + phone10;
+
+try {
+  const [ticketRes, compRes, bookingRes] = await Promise.all([
+    supabaseClient.from('tickets').select('id,quantity,price_paid,comped,events(title,event_date)').eq('member_id', currentMember.id).order('purchased_at',{ascending:false}),
+    supabaseClient.from('vip_passes').select('id,pass_type,valid_date,status').eq('guest_phone', phone10).order('valid_date',{ascending:false}),
+    supabaseClient.from('table_bookings').select('id,section_name,party_size,minimum_spend_required,deposit_amount,comp_applied,payment_amount,status,requested_at,events(title,event_date)').eq('guest_phone', phoneE164).order('requested_at',{ascending:false}),
+  ]);
+
+  const tickets  = ticketRes.data || [];
+  const comps    = compRes.data || [];
+  const bookings = bookingRes.data || [];
+
+  const ticketCount = tickets.reduce((s,t) => s + (t.quantity||1), 0);
+  const compCount   = comps.length;
+  let totalSpent = 0, totalOverage = 0;
+  bookings.filter(b => b.status === 'seated' || b.status === 'closed').forEach(b => {
+    const dep = parseFloat(b.deposit_amount||0);
+    const comp = parseFloat(b.comp_applied||0);
+    const pay  = parseFloat(b.payment_amount||0);
+    const tot  = dep + comp + pay;
+    totalSpent += tot;
+    const min = parseFloat(b.minimum_spend_required||0);
+    if (min > 0 && tot > min) totalOverage += (tot - min);
+  });
+
+  const SECTION_LABELS = { front:'Front Booths', mid:'Mid Row', center:'Center Cluster', second:'Second Row', top:'Top Row' };
+
+  // Stats grid
+  statsEl.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-3);margin-bottom:var(--space-6);">
+      <div class="stat-card" style="text-align:center;padding:var(--space-4);">
+        <div class="stat-value" style="font-size:28px;color:var(--color-gold-warm);">${ticketCount}</div>
+        <div class="stat-label">Tickets</div>
+      </div>
+      <div class="stat-card" style="text-align:center;padding:var(--space-4);">
+        <div class="stat-value" style="font-size:28px;">${compCount}</div>
+        <div class="stat-label">Comps</div>
+      </div>
+      <div class="stat-card" style="text-align:center;padding:var(--space-4);">
+        <div class="stat-value" style="font-size:28px;">$${totalSpent.toLocaleString(undefined,{maximumFractionDigits:0})}</div>
+        <div class="stat-label">Tab Total</div>
+      </div>
+      <div class="stat-card" style="text-align:center;padding:var(--space-4);">
+        <div class="stat-value" style="font-size:28px;color:#81C784;">$${totalOverage.toLocaleString(undefined,{maximumFractionDigits:0})}</div>
+        <div class="stat-label">Overage</div>
+      </div>
+    </div>`;
+  statsEl.style.display = 'block';
+
+  // Table bookings history panel
+  if (tbkPanel && bookings.length) {
+    tbkPanel.innerHTML = `
+      <div class="panel">
+        <p class="panel-eyebrow" style="margin-bottom:var(--space-4)">Table Booking History</p>
+        <div class="visit-list">
+          ${bookings.map(b => {
+            const evTitle  = b.events?.title || 'RIDDIM Event';
+            const evDate   = b.events?.event_date ? new Date(b.events.event_date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
+            const dep = parseFloat(b.deposit_amount||0);
+            const comp = parseFloat(b.comp_applied||0);
+            const pay  = parseFloat(b.payment_amount||0);
+            const tot  = dep + comp + pay;
+            const min  = parseFloat(b.minimum_spend_required||0);
+            const ov   = min > 0 && tot > min ? `<span style="color:#81C784;margin-left:6px;">+$${(tot-min).toLocaleString(undefined,{maximumFractionDigits:0})} over</span>` : '';
+            const statusColors = { confirmed:'var(--color-gold-warm)', seated:'#81C784', closed:'var(--color-ash)', pending:'var(--color-ash)', cancelled:'var(--color-ember)' };
+            const sColor = statusColors[b.status] || 'var(--color-ash)';
+            const section = SECTION_LABELS[b.section_name] || b.section_name || '—';
+            return `<div class="visit-item">
+              <div class="visit-icon">🌙</div>
+              <div class="visit-info">
+                <p class="visit-title">${escHtml(evTitle)} · ${section}</p>
+                <p class="visit-meta">${evDate}${b.party_size ? ' · Party of '+b.party_size : ''}</p>
+                ${min > 0 ? `<p class="visit-meta">Min $${min.toLocaleString()} · Total $${tot.toLocaleString(undefined,{maximumFractionDigits:0})}${ov}</p>` : ''}
+              </div>
+              <div>
+                <p class="visit-points" style="color:${sColor};font-size:10px;">${b.status.toUpperCase()}</p>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    tbkPanel.style.display = 'block';
+  }
+} catch(e) {
+  console.warn('loadEnrichedHistory failed:', e);
+  if (statsEl) statsEl.style.display = 'none';
+}
 }
 function openReserveForm(eventTitle, dateStr) {
 document.getElementById('reserveInlineTitle').textContent = `Reserve for ${eventTitle}`;
@@ -697,6 +825,30 @@ const occasion = document.getElementById('resOccasion').value.trim() || null;
 const notes = document.getElementById('resNotes').value.trim() || null;
 if (!date) { showToast('Please select a date.'); return; }
 if (!currentMember) { showToast('Please log in to request a reservation.'); return; }
+
+// ── Time-based routing (Principle 127)
+const now = new Date();
+const localTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+const today = now.toLocaleDateString('en-CA', { timeZone: localTZ }); // YYYY-MM-DD
+const isToday = date === today;
+const currentHour = now.getHours();
+
+// Wall-clock checks only apply to same-day bookings
+if (isToday) {
+  if (currentHour >= 21 && currentHour < 22) {
+    showToast('9–10 PM blackout — reservations unavailable right now.'); return;
+  }
+  if (currentHour >= 22) {
+    // After 10 PM → nightlife table booking path
+    await submitTableBooking(date, party, occasion, notes);
+    return;
+  }
+  if (currentHour >= 21) {
+    showToast('Dinner reservations closed at 9 PM.'); return;
+  }
+}
+
+// ── Dinner path → reservations
 if (LIVE_DATA && supabaseClient) {
   const { error } = await supabaseClient.from('reservations').insert({
     member_id: currentMember.id,
@@ -707,6 +859,7 @@ if (LIVE_DATA && supabaseClient) {
     occasion: occasion,
     notes: notes,
     status: 'pending',
+    service_period: 'dinner',
     requested_at: new Date().toISOString(),
   });
   if (error) {
@@ -716,7 +869,48 @@ if (LIVE_DATA && supabaseClient) {
   }
 }
 closeReserveForm();
-showToast('✦ Reservation request sent!', 'gold');
+showToast('✦ Dinner reservation request sent!', 'gold');
+walletPassesLoaded = false;
+}
+
+async function submitTableBooking(date, party, occasion, notes) {
+// After 10 PM on event nights → try to find event + section pricing
+// For simplicity in the member portal, insert as pending table_booking without section
+// The owner will assign section when confirming
+if (!LIVE_DATA || !supabaseClient) { closeReserveForm(); showToast('✦ Request sent!', 'gold'); return; }
+
+// Look up event for this date
+let eventId = null;
+try {
+  const { data: evts } = await supabaseClient
+    .from('events')
+    .select('id')
+    .eq('event_date', date)
+    .in('status', ['scheduled','live'])
+    .limit(1);
+  if (evts && evts.length) eventId = evts[0].id;
+} catch(e) { console.warn('Event lookup for table booking:', e); }
+
+const { error } = await supabaseClient.from('table_bookings').insert({
+  event_id: eventId || undefined,
+  guest_name: `${currentMember.first_name} ${currentMember.last_name}`,
+  guest_phone: currentMember.phone,
+  member_id: currentMember.id,
+  party_size: party,
+  section_name: null,
+  minimum_spend_required: 0,
+  minimum_spend_acknowledged: false,
+  notes: [occasion ? `Occasion: ${occasion}` : '', notes || ''].filter(Boolean).join(' · ') || null,
+  status: 'pending',
+  requested_at: new Date().toISOString(),
+});
+if (error) {
+  console.error('Table booking insert error:', error);
+  showToast('Could not submit — please try again.');
+  return;
+}
+closeReserveForm();
+showToast('🌙 Table booking request sent!', 'gold');
 walletPassesLoaded = false;
 }
 function goToTab(tabId) {
@@ -1340,7 +1534,8 @@ async function loadWalletPasses() {
   await Promise.all([
     loadVipPasses(phone10),
     loadReservations(phoneE164),
-    loadTickets(phone10)
+    loadTickets(phone10),
+    loadTableBookings(phoneE164)
   ]);
 }
 
@@ -1439,7 +1634,7 @@ async function loadReservations(phone) {
           <a href="sms:?body=${encodeURIComponent('RIDDIM reservation — ' + fmtDate(r.event_date) + ', party of ' + (r.party_size||'?') + '. Ref: RES-' + r.id.slice(0,8).toUpperCase())}" style="margin-top:6px;display:flex;align-items:center;gap:4px;padding:5px 8px;border:1px solid rgba(42,157,116,0.35);border-radius:4px;color:#4ABFA0;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;text-decoration:none;white-space:nowrap;">📲 SHARE</a>
         </div>`;
       listEl.appendChild(div);
-      makeQR(qrId, 'RES:' + r.id, 80);
+      makeQR(qrId, 'RES:' + (r.qr_token || r.id), 80);
     });
   } catch(e) {
     loadEl.style.display = 'none';
@@ -1513,6 +1708,69 @@ async function incrementReach(table, id) {
     await supabaseClient.rpc('increment_reach', { p_table: table, p_id: id });
   } catch(e) {
     // Silently ignore — reach column may not exist yet
+  }
+}
+
+async function loadTableBookings(phoneE164) {
+  const loadEl = document.getElementById('walletTbkLoading');
+  const emptyEl = document.getElementById('walletTbkEmpty');
+  const listEl = document.getElementById('walletTbkList');
+  try {
+    if (!LIVE_DATA || !supabaseClient) throw new Error('no client');
+    const today = new Date().toISOString().split('T')[0];
+    const { data, error } = await supabaseClient
+      .from('table_bookings')
+      .select('id,qr_token,guest_name,party_size,section_name,minimum_spend_required,deposit_amount,deposit_paid,notes,status,requested_at,events(id,title,event_date)')
+      .eq('guest_phone', phoneE164)
+      .in('status', ['confirmed','seated'])
+      .order('requested_at', { ascending: false });
+    if (error) throw error;
+    // Filter: only show if event date is today or future
+    const filtered = (data || []).filter(b => {
+      if (!b.events) return true; // no event ref, show anyway
+      return b.events.event_date >= today;
+    });
+    if (loadEl) loadEl.style.display = 'none';
+    if (!filtered.length) { if (emptyEl) emptyEl.style.display = 'block'; return; }
+    listEl.innerHTML = '';
+    const SECTION_LABELS = { front:'Front Booths (1–6)', mid:'Mid Row (7–11)', center:'Center Cluster (12–19)', second:'Second Row (20–24)', top:'Top Row + Lounge (25–31)' };
+    filtered.forEach((b, i) => {
+      const qrId = `tbk-qr-${i}`;
+      const token = b.qr_token || b.id;
+      const evTitle = b.events?.title || 'RIDDIM Event';
+      const evDate = b.events?.event_date || null;
+      const sectionLabel = SECTION_LABELS[b.section_name] || b.section_name || '—';
+      const minSpend = parseFloat(b.minimum_spend_required || 0);
+      const dep = parseFloat(b.deposit_amount || 0);
+      const div = document.createElement('div');
+      div.className = 'wpass wpass-tbk';
+      div.innerHTML = `
+        <div class="wpass-glow"></div>
+        <div class="wpass-body">
+          <p class="wpass-eyebrow">🌙 Table Booking · RIDDIM</p>
+          <p class="wpass-name">${escHtml(evTitle)}</p>
+          <div class="wpass-meta">
+            <span class="wpass-meta-item">Date <strong>${fmtDate(evDate)}</strong></span>
+            ${b.party_size ? `<span class="wpass-meta-item">Party of <strong>${b.party_size}</strong></span>` : ''}
+            <span class="wpass-meta-item">Section <strong>${escHtml(sectionLabel)}</strong></span>
+            ${minSpend > 0 ? `<span class="wpass-meta-item">Min spend <strong>$${minSpend.toLocaleString()}</strong></span>` : ''}
+            ${dep > 0 && b.deposit_paid ? `<span class="wpass-meta-item" style="color:#81C784">✓ Deposit <strong>$${dep.toLocaleString()}</strong></span>` : ''}
+          </div>
+          <span class="wpass-badge">${b.status.toUpperCase()}</span>
+          ${b.notes ? `<p class="wpass-note">${escHtml(b.notes)}</p>` : ''}
+        </div>
+        <div class="wpass-qr-wrap">
+          <div style="background:#fff;padding:6px;border-radius:6px;width:92px;height:92px;display:flex;align-items:center;justify-content:center" id="${qrId}"></div>
+          <p class="wpass-qr-label" style="color:#C07820">Show to staff</p>
+          <a href="sms:?body=${encodeURIComponent('RIDDIM Table Booking — ' + evTitle + ' on ' + fmtDate(evDate) + ', ' + (b.party_size||'?') + ' guests, ' + sectionLabel + '. Ref: TBK-' + token.slice(0,8).toUpperCase())}" style="margin-top:6px;display:flex;align-items:center;gap:4px;padding:5px 8px;border:1px solid rgba(240,140,30,0.35);border-radius:4px;color:#F09840;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;text-decoration:none;white-space:nowrap;">📲 SHARE</a>
+        </div>`;
+      listEl.appendChild(div);
+      makeQR(qrId, 'TBK:' + token, 80);
+    });
+  } catch(e) {
+    if (loadEl) loadEl.style.display = 'none';
+    if (emptyEl) emptyEl.style.display = 'block';
+    console.warn('Table bookings wallet load failed:', e);
   }
 }
 
