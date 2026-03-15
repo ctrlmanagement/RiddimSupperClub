@@ -307,10 +307,10 @@
 .inq-guest-badge{display:inline-flex;align-items:center;font-family:var(--font-label);font-size:9px;letter-spacing:0.15em;padding:2px 7px;border-radius:3px;background:rgba(184,134,11,0.1);border:1px solid rgba(184,134,11,0.3);color:var(--owner-gold);margin-left:6px;vertical-align:middle;}
 </style><div class="toast" id="toast"></div><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>const SUPABASE_URL = 'https://cbvryfgrqzdvbqigyrgh.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_fQlHFhC7tPkZNRl1djnvcA_68LpKQpv';
-// Utility: get date string in local timezone (not UTC)
+// Utility: get date string in local timezone using Intl API (handles DST correctly)
 function localDateStr(d) {
   const dt = d || new Date();
-  return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+  return dt.toLocaleDateString('en-CA', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone });
 }
 const LIVE_DATA = true;
 let supabaseClient = null;
