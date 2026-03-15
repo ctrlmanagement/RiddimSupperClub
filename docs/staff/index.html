@@ -2941,7 +2941,7 @@ async function staffCloseTableSession(tableNum){
   const existing=_staffTableSessions[tableNum];
   if(!existing) return;
 
-  // --- Payment prompt modal ---
+  // Payment prompt modal — staff must enter payment before closing
   const overlay = document.createElement('div');
   overlay.id = 'staffClosePayOverlay';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:3000;display:flex;align-items:center;justify-content:center;padding:16px;';
@@ -2989,12 +2989,11 @@ async function staffClosePayConfirm(tableNum){
   if(btn){ btn.disabled=true; btn.textContent='Closing…'; }
 
   if(LIVE_DATA&&supabaseClient&&existing.id){
-    // 1. Update table_sessions: close it and record the payment amount
+    // 1. Close table_sessions and write the payment amount collected
     await supabaseClient.from('table_sessions')
       .update({status:'closed', closed_at:new Date().toISOString(), payment_amount:pay})
       .eq('id',existing.id);
-
-    // 2. Write status + payment back to linked table_booking (TBK)
+    // 2. Sync status + payment back to linked table_booking or reservation
     const bookingLinkedId = existing.booking_id || null;
     const resLinkedId     = existing.reservation_id || null;
     if(bookingLinkedId){
