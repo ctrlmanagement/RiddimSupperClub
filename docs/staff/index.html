@@ -2489,6 +2489,7 @@ const STAFF_SEAT_ROLES = ['manager','host','host_floor','vip_host','waitress','o
 let _staffTableSessions = {};
 let _staffSeatModalTable = null;
 let _staffSeatSelectedMember = null;
+let _staffSeatPrefillBookingId = null; // set when seat modal opened from TBK scan — bypasses dropdown timing
 let _staffTableStaff = [];
 
 
@@ -2604,6 +2605,7 @@ function staffOpenSeatModal(tableNum, opts){
   }
   _staffSeatModalTable = tableNum || null;
   _staffSeatSelectedMember = null;
+  _staffSeatPrefillBookingId = null;
   const existing = tableNum ? _staffTableSessions[tableNum] : null;
   const labelEl = document.getElementById('staffSeatModalTableLabel');
   if(labelEl) labelEl.textContent = tableNum ? 'TABLE '+tableNum : 'SELECT TABLE';
@@ -2630,6 +2632,7 @@ function staffOpenSeatModal(tableNum, opts){
   // --- prefillBooking: table_booking scan ---
   if(opts && opts.prefillBooking){
     const b = opts.prefillBooking;
+    _staffSeatPrefillBookingId = b.id; // store for staffConfirmSeatTable — bypasses dropdown timing
     const SECTION_LABELS = { front:'Front Booths', mid:'Mid Row', center:'Center Cluster', second:'Second Row', top:'Top Row + Lounge' };
     document.getElementById('staffSeatGuestInput').value = b.guest_name||'';
     if(b.party_size) document.getElementById('staffSeatPartySize').value = String(b.party_size);
@@ -2747,6 +2750,7 @@ function staffCloseSeatModal(){
   document.getElementById('staffSeatMemberResults').classList.remove('open');
   _staffSeatModalTable=null;
   _staffSeatSelectedMember=null;
+  _staffSeatPrefillBookingId=null;
 }
 document.addEventListener('DOMContentLoaded',function(){
   const overlay=document.getElementById('staffSeatModalOverlay');
@@ -2881,25 +2885,29 @@ async function staffConfirmSeatTable(){
   const tablePickerEl = document.getElementById('staffSeatTablePicker');
   const effectiveTable = tableNum || (tablePickerEl ? parseInt(tablePickerEl.value)||null : null);
   if(!effectiveTable){ errEl.textContent='Please select a table number.'; return; }
-  if(!resRaw){ errEl.textContent='Please link a reservation or booking.'; return; }
+
+  // Booking/res link — allow prefill scan bypass when dropdown hasn't populated yet
+  const effectiveRes = resRaw || (_staffSeatPrefillBookingId ? 'TBK:'+_staffSeatPrefillBookingId : '');
+  if(!effectiveRes){ errEl.textContent='Please link a reservation or booking.'; return; }
+
   if(!guestName){ errEl.textContent='Please enter a guest name.'; return; }
   if(!partySize || isNaN(partySize)){ errEl.textContent='Please select a party size.'; return; }
   if(!serverId){ errEl.textContent='Please assign a server or waitress.'; return; }
 
   // Used-once guard — block if linked booking/reservation already seated
-  const isBookingLink = resRaw.startsWith('TBK:');
-  const isResLink = resRaw.startsWith('RES:');
+  const isBookingLink = effectiveRes.startsWith('TBK:');
+  const isResLink = effectiveRes.startsWith('RES:');
   if (isBookingLink && typeof _allTableBookings !== 'undefined') {
-    const linked = _allTableBookings.find(b => b.id === resRaw.slice(4));
+    const linked = _allTableBookings.find(b => b.id === effectiveRes.slice(4));
     if (linked && linked.status === 'seated') { errEl.textContent = 'This booking is already seated. Remove the link to continue.'; return; }
     if (linked && linked.status === 'cancelled') { errEl.textContent = 'This booking has been cancelled.'; return; }
   }
   errEl.textContent='';
 
   // Parse res/booking type from prefixed value
-  const isBooking = resRaw.startsWith('TBK:');
-  const resId = resRaw.startsWith('RES:') ? resRaw.slice(4) : (isBooking ? null : resRaw || null);
-  const bookingId = isBooking ? resRaw.slice(4) : null;
+  const isBooking = effectiveRes.startsWith('TBK:');
+  const resId = effectiveRes.startsWith('RES:') ? effectiveRes.slice(4) : (isBooking ? null : effectiveRes || null);
+  const bookingId = isBooking ? effectiveRes.slice(4) : null;
 
   const serverObj=_staffTableStaff.find(s=>s.id===serverId);
   const serverName=serverObj?`${serverObj.first_name} ${serverObj.last_name}`:null;
@@ -2940,27 +2948,81 @@ async function staffConfirmSeatTable(){
 async function staffCloseTableSession(tableNum){
   const existing=_staffTableSessions[tableNum];
   if(!existing) return;
-  if(!confirm(`Close Table ${tableNum} for ${existing.guest_name}?`)) return;
+
+  // --- Payment prompt modal ---
+  const overlay = document.createElement('div');
+  overlay.id = 'staffClosePayOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:3000;display:flex;align-items:center;justify-content:center;padding:16px;';
+
+  const depositAmt = parseFloat(existing.deposit_applied||0);
+  const compAmt    = parseFloat(existing.comp_applied||0);
+
+  overlay.innerHTML = `
+    <div style="width:100%;max-width:420px;background:var(--carbon);border:1px solid rgba(192,57,43,0.4);border-radius:12px;padding:28px 24px;box-shadow:0 8px 48px rgba(0,0,0,0.7);">
+      <div style="font-family:var(--font-label);font-size:11px;letter-spacing:0.3em;color:#E57373;margin-bottom:6px;">CLOSE TABLE ${tableNum}</div>
+      <div style="font-family:var(--font-display);font-size:22px;font-weight:300;font-style:italic;color:var(--ivory);margin-bottom:4px;">${staffEsc(existing.guest_name||'Guest')}</div>
+      <div style="font-size:12px;color:var(--ash);margin-bottom:20px;">Party of ${existing.party_size||'?'}${existing.server_name?' · '+staffEsc(existing.server_name):''}</div>
+      ${depositAmt>0?`<div style="font-size:12px;color:#81C784;margin-bottom:8px;">✓ Deposit on file — $${depositAmt.toLocaleString()}</div>`:''}
+      ${compAmt>0?`<div style="font-size:12px;color:var(--gold-warm);margin-bottom:8px;">✦ Comp applied — $${compAmt.toLocaleString()}</div>`:''}
+      <div style="margin-bottom:20px;">
+        <label style="font-family:var(--font-label);font-size:10px;letter-spacing:0.25em;color:var(--gold-warm);display:block;margin-bottom:6px;">PAYMENT COLLECTED AT TABLE ($) <span style="color:var(--ember);">*</span></label>
+        <input id="staffClosePayInput" type="number" min="0" step="0.01" placeholder="0.00"
+          style="width:100%;background:var(--void);border:1px solid rgba(212,168,67,0.4);border-radius:6px;padding:13px 14px;color:var(--ivory);font-family:var(--font-body);font-size:18px;outline:none;"/>
+        <div id="staffClosePayError" style="font-size:12px;color:var(--ember);margin-top:6px;min-height:16px;"></div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button id="staffClosePayConfirmBtn" onclick="staffClosePayConfirm(${tableNum})"
+          style="flex:1;padding:14px;border-radius:6px;background:rgba(192,57,43,0.15);border:1px solid rgba(192,57,43,0.5);color:#E57373;font-family:var(--font-label);font-size:13px;letter-spacing:0.15em;cursor:pointer;">
+          ✕ Close &amp; Record Payment
+        </button>
+        <button onclick="document.getElementById('staffClosePayOverlay').remove()"
+          style="padding:14px 18px;border-radius:6px;background:none;border:1px solid var(--graphite);color:var(--ash);font-family:var(--font-body);font-size:13px;cursor:pointer;">
+          Cancel
+        </button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  setTimeout(()=>{ const el=document.getElementById('staffClosePayInput'); if(el) el.focus(); },100);
+}
+
+async function staffClosePayConfirm(tableNum){
+  const existing=_staffTableSessions[tableNum];
+  if(!existing) return;
+  const payInput = document.getElementById('staffClosePayInput');
+  const errEl    = document.getElementById('staffClosePayError');
+  const pay = parseFloat(payInput?.value);
+  if(isNaN(pay)||pay<0){ errEl.textContent='Please enter a valid payment amount (enter 0 if none).'; return; }
+
+  const btn = document.getElementById('staffClosePayConfirmBtn');
+  if(btn){ btn.disabled=true; btn.textContent='Closing…'; }
+
   if(LIVE_DATA&&supabaseClient&&existing.id){
-    await supabaseClient.from('table_sessions').update({status:'closed',closed_at:new Date().toISOString()}).eq('id',existing.id);
-    // Write payment + closed status back to linked booking
+    // 1. Update table_sessions: close it and record the payment amount
+    await supabaseClient.from('table_sessions')
+      .update({status:'closed', closed_at:new Date().toISOString(), payment_amount:pay})
+      .eq('id',existing.id);
+
+    // 2. Write status + payment back to linked table_booking (TBK)
     const bookingLinkedId = existing.booking_id || null;
-    const resLinkedId = existing.reservation_id || null;
-    const pay = parseFloat(existing.payment_amount||0);
+    const resLinkedId     = existing.reservation_id || null;
     if(bookingLinkedId){
-      // TBK link — write to table_bookings
-      await supabaseClient.from('table_bookings').update({status:'closed', payment_amount:pay}).eq('id',bookingLinkedId);
+      await supabaseClient.from('table_bookings')
+        .update({status:'closed', payment_amount:pay})
+        .eq('id',bookingLinkedId);
     } else if(resLinkedId){
-      // RES link — write to reservations
-      await supabaseClient.from('reservations').update({status:'closed'}).eq('id',resLinkedId).catch(()=>{});
+      await supabaseClient.from('reservations')
+        .update({status:'closed'})
+        .eq('id',resLinkedId).catch(()=>{});
     }
   }
+
+  document.getElementById('staffClosePayOverlay')?.remove();
   delete _staffTableSessions[tableNum];
   staffRenderFloorPlan(_staffTableSessions);
   staffRenderActiveList(_staffTableSessions);
   staffUpdateStats(_staffTableSessions);
   staffCloseSeatModal();
-  showToast(`Table ${tableNum} closed`,'success');
+  showToast(`Table ${tableNum} closed · $${pay.toLocaleString('en-US',{minimumFractionDigits:2})} recorded`,'success');
 }
 /* ── Table booking scan alert overlay ── */
 let _tblBookingOverlayCb = null;
