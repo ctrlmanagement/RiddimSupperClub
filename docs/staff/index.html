@@ -2422,10 +2422,20 @@ function startCheckinScanner() {
             if (!LIVE_DATA || !supabaseClient) { showToast('Live data required.'); return; }
             const { data: bk } = await supabaseClient
               .from('table_bookings')
-              .select('id,guest_name,guest_phone,party_size,section_name,table_number,minimum_spend_required,minimum_spend_acknowledged,deposit_amount,deposit_paid,payment_amount,status,notes,qr_token,requested_at')
+              .select('id,guest_name,guest_phone,party_size,section_name,table_number,minimum_spend_required,minimum_spend_acknowledged,deposit_amount,deposit_paid,payment_amount,status,notes,qr_token,requested_at,scanned_at')
               .eq('qr_token', qrToken)
               .maybeSingle();
             if (!bk) { showToast('Table booking not found.'); return; }
+            // One-time scan check (Option B): if already scanned, block re-entry
+            if (bk.scanned_at) {
+              const scannedTime = new Date(bk.scanned_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+              showTableBookingOverlay(bk, null, `Already checked in at ${scannedTime}`);
+              return;
+            }
+            // Write scanned_at immediately — marks QR as used
+            await supabaseClient.from('table_bookings')
+              .update({ scanned_at: new Date().toISOString() })
+              .eq('id', bk.id);
             // Show booking alert overlay then open seat modal
             showTableBookingOverlay(bk, () => {
               goToTab('tables');
@@ -2617,6 +2627,8 @@ function staffOpenSeatModal(tableNum, opts){
   document.getElementById('staffSeatResSelect').value='';
   if(document.getElementById('staffSeatNotesInput')) document.getElementById('staffSeatNotesInput').value='';
   if(document.getElementById('staffSeatPaymentInput')) document.getElementById('staffSeatPaymentInput').value='';
+  if(document.getElementById('staffSeatDepositInput')) document.getElementById('staffSeatDepositInput').value='0';
+  if(document.getElementById('staffSeatDepositDisplay')) document.getElementById('staffSeatDepositDisplay').style.display='none';
   const _strip=document.getElementById('staffSeatBookingStrip'); if(_strip) _strip.style.display='none';
   const _warn=document.getElementById('staffSeatBookingUsedWarn'); if(_warn) _warn.style.display='none';
   // Rebuild dropdown scoped to this table's section
@@ -2631,18 +2643,53 @@ function staffOpenSeatModal(tableNum, opts){
   if(opts && opts.prefillBooking){
     const b = opts.prefillBooking;
     const SECTION_LABELS = { front:'Front Booths', mid:'Mid Row', center:'Center Cluster', second:'Second Row', top:'Top Row + Lounge' };
+    const TABLE_SECTION_MAP = { front:[1,2,3,4,5,6], mid:[7,8,9,10,11], center:[12,13,14,15,16,17,18,19], second:[20,21,22,23,24], top:[25,26,27,28,29,30,31] };
     document.getElementById('staffSeatGuestInput').value = b.guest_name||'';
     if(b.party_size) document.getElementById('staffSeatPartySize').value = String(b.party_size);
+
+    // Pre-select table picker to first table in purchased section
+    if(b.section_name && TABLE_SECTION_MAP[b.section_name]) {
+      const picker = document.getElementById('staffSeatTablePicker');
+      if(picker) {
+        const sectionTables = TABLE_SECTION_MAP[b.section_name];
+        // Find first available table in section (not currently occupied)
+        const firstAvail = sectionTables.find(t => !_staffTableSessions[t]) || sectionTables[0];
+        picker.value = String(firstAvail);
+        // Scroll the correct optgroup into view by selecting it
+        Array.from(picker.options).forEach(opt => {
+          if(parseInt(opt.value) === firstAvail) opt.selected = true;
+        });
+      }
+    }
+
+    // Deposit pre-applied display
+    const dep = parseFloat(b.deposit_amount || 0);
+    const depDisplay = document.getElementById('staffSeatDepositDisplay');
+    const depInput = document.getElementById('staffSeatDepositInput');
+    if(dep > 0 && depDisplay) {
+      depDisplay.textContent = b.deposit_paid
+        ? `✓ Deposit on file — $${dep.toLocaleString()} (paid)`
+        : `⚠ Deposit pending — $${dep.toLocaleString()} (not yet collected)`;
+      depDisplay.style.background = b.deposit_paid ? 'rgba(76,175,80,0.08)' : 'rgba(212,168,67,0.08)';
+      depDisplay.style.borderColor = b.deposit_paid ? 'rgba(76,175,80,0.3)' : 'rgba(212,168,67,0.3)';
+      depDisplay.style.color = b.deposit_paid ? '#81C784' : 'var(--gold-warm)';
+      depDisplay.style.display = 'block';
+      if(depInput) depInput.value = dep;
+    } else if(depDisplay) {
+      depDisplay.style.display = 'none';
+      if(depInput) depInput.value = '0';
+    }
+
     // Pre-select in dropdown
     setTimeout(()=>{
       const sel = document.getElementById('staffSeatResSelect');
-      if(sel){ for(let i=0;i<sel.options.length;i++){ if(sel.options[i].value==='TBK:'+b.id){ sel.selectedIndex=i; break; } } }
+      if(sel){ for(let i=0;i<sel.options.length;i++){ if(sel.options[i].value==='TBK:'+b.id){ sel.selectedIndex=i; staffSeatResAutofill('TBK:'+b.id); break; } } }
     }, 400);
     document.getElementById('staffSeatModalTitle').textContent = '🌙 Seat Table Booking';
+    const sectionLabel = SECTION_LABELS[b.section_name] || b.section_name || '—';
     document.getElementById('staffSeatModalSub').textContent =
-      `${b.guest_name||'Guest'} · ${b.party_size||'?'} guests · ${SECTION_LABELS[b.section_name]||b.section_name} · Min $${parseFloat(b.minimum_spend_required||0).toLocaleString()}`;
+      `${b.guest_name||'Guest'} · ${b.party_size||'?'} guests · ${sectionLabel} · Min $${parseFloat(b.minimum_spend_required||0).toLocaleString()}`;
     if(b.notes && document.getElementById('staffSeatNotesInput')) document.getElementById('staffSeatNotesInput').value = b.notes;
-    staffSeatResAutofill(document.getElementById('staffSeatResSelect').value);
     document.getElementById('staffSeatCurrentInfo').style.display='none';
     document.getElementById('staffSeatModalActions').innerHTML=`
       <button class="btn-seat-primary" onclick="staffConfirmSeatTable()">✦ Seat Table</button>
@@ -2874,7 +2921,8 @@ async function staffConfirmSeatTable(){
   const resRaw=document.getElementById('staffSeatResSelect').value;
   const notes=document.getElementById('staffSeatNotesInput')?.value.trim()||'';
   const payment=parseFloat(document.getElementById('staffSeatPaymentInput')?.value)||0;
-  const deposit=0, comp=0;
+  const deposit = parseFloat(document.getElementById('staffSeatDepositInput')?.value) || 0;
+  const comp = 0;
   const errEl=document.getElementById('staffSeatModalError');
 
   // Table number from picker if not pre-set from floor plan click
@@ -3017,28 +3065,38 @@ async function staffClosePayConfirm(tableNum){
 }
 /* ── Table booking scan alert overlay ── */
 let _tblBookingOverlayCb = null;
-function showTableBookingOverlay(bk, onSeat) {
+function showTableBookingOverlay(bk, onSeat, alreadyScannedMsg) {
   _tblBookingOverlayCb = onSeat;
   const SECTION_LABELS = { front:'Front Booths (1–6)', mid:'Mid Row (7–11)', center:'Center Cluster (12–19)', second:'Second Row (20–24)', top:'Top Row + Lounge (25–31)' };
   // events join removed (causes 400 RLS block — Principle 153); use requested_at as fallback
-  const evTitle = '🌙 Table Booking';
   const evDate = bk.requested_at
     ? new Date(bk.requested_at).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})
     : '—';
-  const section = SECTION_LABELS[bk.section_name] || bk.section_name;
+  const section = SECTION_LABELS[bk.section_name] || bk.section_name || '—';
   const minSpend = bk.minimum_spend_required ? '$'+parseFloat(bk.minimum_spend_required).toLocaleString() : '—';
   const acked = bk.minimum_spend_acknowledged ? '<span style="color:#81C784;">✓ Acknowledged</span>' : '<span style="color:var(--ember);">Not acknowledged</span>';
+  const dep = parseFloat(bk.deposit_amount || 0);
+  const depLine = dep > 0
+    ? `<div class="vip-detail full-width"><div class="vip-detail-label">DEPOSIT</div><div class="vip-detail-val" style="color:${bk.deposit_paid?'#81C784':'var(--gold-warm)'};">${bk.deposit_paid ? '✓ Paid' : 'Pending'} — $${dep.toLocaleString()}</div></div>`
+    : '';
 
   document.getElementById('tblBkOverlayGuestName').textContent = bk.guest_name || '—';
   document.getElementById('tblBkOverlayDetails').innerHTML = `
-    <div class="vip-detail"><div class="vip-detail-label">EVENT</div><div class="vip-detail-val">${staffEsc(evTitle)}</div></div>
     <div class="vip-detail"><div class="vip-detail-label">DATE</div><div class="vip-detail-val">${evDate}</div></div>
-    <div class="vip-detail"><div class="vip-detail-label">SECTION</div><div class="vip-detail-val">${section}</div></div>
+    <div class="vip-detail"><div class="vip-detail-label">SECTION</div><div class="vip-detail-val">${staffEsc(section)}</div></div>
     <div class="vip-detail"><div class="vip-detail-label">PARTY SIZE</div><div class="vip-detail-val">${bk.party_size||'?'} guests</div></div>
     <div class="vip-detail full-width"><div class="vip-detail-label">MIN SPEND</div><div class="vip-detail-val" style="color:var(--gold-warm);">${minSpend} &nbsp;${acked}</div></div>
+    ${depLine}
     ${bk.notes ? `<div class="vip-detail full-width"><div class="vip-detail-label">NOTES</div><div class="vip-detail-val" style="color:var(--mist);">${staffEsc(bk.notes)}</div></div>` : ''}`;
 
   const statusEl = document.getElementById('tblBkOverlayStatus');
+
+  // One-time scan: QR already used
+  if (alreadyScannedMsg) {
+    statusEl.innerHTML = `<div class="vip-status-used">⚑ QR ALREADY SCANNED — ${staffEsc(alreadyScannedMsg)}</div>`;
+    document.getElementById('tblBkOverlay').classList.add('active');
+    return;
+  }
   if(bk.status === 'seated'){
     statusEl.innerHTML = '<div class="vip-status-used">✓ ALREADY SEATED</div>';
     document.getElementById('tblBkOverlay').classList.add('active');
@@ -3049,7 +3107,7 @@ function showTableBookingOverlay(bk, onSeat) {
     statusEl.innerHTML = '<div class="vip-status-used">⊘ BOOKING CLOSED</div>';
     document.getElementById('tblBkOverlay').classList.add('active');
   } else {
-    // Auto-proceed: show overlay briefly then open seat modal
+    // confirmed/pending: auto-proceed to seat modal
     statusEl.innerHTML = '<div style="color:#81C784;font-family:var(--font-label);font-size:13px;letter-spacing:0.15em;">✦ OPENING SEAT MODAL…</div>';
     document.getElementById('tblBkOverlay').classList.add('active');
     setTimeout(() => {
@@ -3147,13 +3205,17 @@ function dismissTblBkOverlay() {
       <label>Assign Server / Waitress <span style="color:var(--ember);font-size:11px;">*</span></label>
       <select id="staffSeatServerSelect"><option value="">— Select server —</option></select>
     </div>
-    <!-- Staff: payment entry only — no comp or deposit (owner only) -->
+    <!-- Staff: payment entry — deposit shown as read-only pre-applied info -->
     <div class="seat-field">
       <label style="color:var(--gold-warm);">✦ PAYMENT</label>
+      <!-- Deposit pre-applied display (read-only, auto-filled from booking) -->
+      <div id="staffSeatDepositDisplay" style="display:none;margin-bottom:8px;padding:8px 12px;border-radius:6px;background:rgba(76,175,80,0.08);border:1px solid rgba(76,175,80,0.3);font-size:12px;color:#81C784;"></div>
       <div>
         <label style="font-size:10px;letter-spacing:0.2em;color:var(--ash);display:block;margin-bottom:4px;">PAYMENT AMOUNT ($)</label>
         <input type="number" id="staffSeatPaymentInput" placeholder="0.00" min="0" step="0.01" style="width:100%;background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:10px 12px;color:var(--ivory);font-family:var(--font-body);font-size:14px;outline:none;"/>
       </div>
+      <!-- Hidden deposit tracking -->
+      <input type="hidden" id="staffSeatDepositInput" value="0"/>
     </div>
     <div class="seat-field">
       <label>Tab Notes (internal)</label>
