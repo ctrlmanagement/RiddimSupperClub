@@ -3595,6 +3595,7 @@ function renderTableBookings() {
           </div>` : ''}
         ${b.deposit_paid ? `<span style="color:#81C784;font-size:11px;">✓ Deposit paid</span>` : ''}
         ${b.status === 'confirmed' ? `<button class="table-action-btn" style="border-color:rgba(218,165,32,0.35);color:var(--owner-gold);" onclick="openVIPModal('comp_tab')">Issue Comp Tab</button>` : ''}
+        ${b.status === 'confirmed' && b.booking_source === 'owner' && !b.scanned_at ? `<button class="res-btn cancel" style="border-color:rgba(229,115,115,0.6);color:#E57373;" onclick="tblBookingOwnerRemove('${b.id}')">✕ Remove Booking</button>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -3624,6 +3625,31 @@ async function tblBookingMarkDeposit(id) {
   if (b) { b.deposit_paid = true; b.deposit_amount = amt; }
   renderTableBookings();
   showToast('Deposit of $' + amt.toLocaleString() + ' marked as paid', 'gold');
+}
+
+async function tblBookingOwnerRemove(id) {
+  if (!LIVE_DATA || !supabaseClient) return;
+  const b = _allTableBookings.find(b => b.id === id);
+  if (!b) return;
+  const name = b.guest_name || 'this booking';
+  if (!confirm(`Remove owner booking for ${name}? This will hard-delete the record and release the table.`)) return;
+  // Hard delete — only allowed for owner-created, confirmed, unscanned bookings
+  const { error } = await supabaseClient
+    .from('table_bookings')
+    .delete()
+    .eq('id', id)
+    .eq('booking_source', 'owner')
+    .eq('status', 'confirmed')
+    .is('scanned_at', null);
+  if (error) { showToast('Error removing booking.'); return; }
+  // Remove from local cache
+  _allTableBookings = _allTableBookings.filter(b => b.id !== id);
+  // Also remove from floor plan cache so table unlocks immediately
+  _floorOwnerBookings = _floorOwnerBookings.filter(b => b.id !== id);
+  renderTableBookings();
+  updateTblBookingBadge();
+  renderFloorPlan(_tableSessions);
+  showToast(`Booking for ${name} removed — table released`, 'gold');
 }
 
 function updateTblBookingBadge() {
@@ -3763,6 +3789,40 @@ async function loadTodayTableBookings() {
   _todayTableBookings = all.filter(b => (b.events?.event_date || '') === dateFilter);
   // Owner bookings for floor plan coloring — confirmed/seated on this date
   _floorOwnerBookings = _todayTableBookings.filter(b => b.booking_source === 'owner');
+
+  // AUTO-RELEASE — cancel confirmed owner bookings whose event date is past today
+  // Runs silently on every floor plan load (Principle S54)
+  await autoReleaseStaleOwnerBookings();
+}
+
+async function autoReleaseStaleOwnerBookings() {
+  if (!LIVE_DATA || !supabaseClient) return;
+  const today = localDateStr();
+  // Fetch confirmed owner bookings with past event dates (events join safe here — owner portal only)
+  const { data, error } = await supabaseClient
+    .from('table_bookings')
+    .select('id, events(event_date)')
+    .eq('booking_source', 'owner')
+    .eq('status', 'confirmed')
+    .is('scanned_at', null);
+  if (error || !data) return;
+  const staleIds = data
+    .filter(b => b.events?.event_date && b.events.event_date < today)
+    .map(b => b.id);
+  if (!staleIds.length) return;
+  // Batch cancel
+  const { error: upErr } = await supabaseClient
+    .from('table_bookings')
+    .update({ status: 'cancelled' })
+    .in('id', staleIds);
+  if (upErr) { console.error('Auto-release error:', upErr); return; }
+  // Update local cache — mark as cancelled so floor plan & list reflect immediately
+  staleIds.forEach(id => {
+    const b = _allTableBookings.find(b => b.id === id);
+    if (b) b.status = 'cancelled';
+  });
+  _floorOwnerBookings = _floorOwnerBookings.filter(b => !staleIds.includes(b.id));
+  console.log(`Auto-released ${staleIds.length} stale owner booking(s).`);
 }
 
 // Extend initTablesTab to also load date-scoped bookings
