@@ -3579,7 +3579,14 @@ function renderTableBookings() {
       </div>
       <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;flex-shrink:0;">
         ${b.status === 'pending' ? `<button class="res-btn confirm" onclick="tblBookingUpdate('${b.id}','confirmed')">Confirm</button>` : ''}
-        ${b.status === 'confirmed' ? `<button class="res-btn seat" onclick="tblBookingUpdate('${b.id}','seated')">Seat</button>` : ''}
+        ${(() => {
+          const _evDate = b.events?.event_date || '';
+          const _today = localDateStr();
+          const _isToday = _evDate === _today;
+          if (b.status === 'confirmed' && _isToday) return `<button class="res-btn seat" onclick="tblBookingUpdate('${b.id}','seated')">Seat</button>`;
+          if (b.status === 'confirmed' && !_isToday) return `<span style="font-size:11px;color:var(--ash);">${_evDate ? new Date(_evDate+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}) : 'Future event'}</span>`;
+          return '';
+        })()}
         ${!['seated','cancelled','closed'].includes(b.status) ? `<button class="res-btn cancel" onclick="tblBookingUpdate('${b.id}','cancelled')">Cancel</button>` : ''}
         ${b.status === 'confirmed' && !b.deposit_paid ? `
           <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
@@ -4028,10 +4035,18 @@ function onSeatResChange() {
 }
 
 function renderFloorPlan(map) {
-  // Build set of owner-booked table numbers from _allTableBookings
+  // Filter owner-booked by the same date shown on the floor plan (tblDateFilter)
+  const floorDate = document.getElementById('tblDateFilter')?.value || localDateStr();
   const ownerBookedTables = new Set(
     (_allTableBookings || [])
-      .filter(b => b.booking_source === 'owner' && ['confirmed','seated'].includes(b.status) && b.table_number)
+      .filter(b => {
+        if (b.booking_source !== 'owner') return false;
+        if (!['confirmed','seated'].includes(b.status)) return false;
+        if (!b.table_number) return false;
+        // Match event date to floor plan date
+        const evDate = b.events?.event_date || '';
+        return evDate === floorDate;
+      })
       .map(b => parseInt(b.table_number))
   );
   document.querySelectorAll('#floorPlanSvg .fp-table').forEach(el => {
