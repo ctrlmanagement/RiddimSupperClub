@@ -25,6 +25,9 @@
 .fp-legend-dot.available{background:rgba(42,42,42,0.9);border:1px solid rgba(136,136,136,0.45);}
 .fp-legend-dot.occupied{background:rgba(212,168,67,0.3);border:1px solid rgba(212,168,67,0.8);}
 .fp-legend-dot.reserved{background:rgba(74,127,193,0.3);border:1px solid rgba(74,127,193,0.8);}
+.fp-table.owner-booked rect{fill:rgba(34,197,94,0.25);stroke:rgba(34,197,94,0.9);}
+.fp-table.owner-booked .fp-table-num{fill:#86efac;}
+.fp-legend-dot.owner-booked{background:rgba(34,197,94,0.35);border:1px solid rgba(34,197,94,0.9);}
 .tables-stat-row{display:flex;gap:10px;margin-bottom:20px;}
 .tables-stat{flex:1;text-align:center;background:var(--carbon);border:1px solid var(--graphite);border-radius:8px;padding:14px 8px;}
 .tables-stat-val{font-family:var(--font-display);font-size:28px;font-weight:300;color:var(--ivory);}
@@ -191,6 +194,7 @@
             <div class="fp-legend-item"><div class="fp-legend-dot available"></div> Available</div>
             <div class="fp-legend-item"><div class="fp-legend-dot occupied"></div> Seated</div>
             <div class="fp-legend-item"><div class="fp-legend-dot reserved"></div> Reserved</div>
+            <div class="fp-legend-item"><div class="fp-legend-dot owner-booked"></div> Owner Booked</div>
           </div>
         </div>
       </div>
@@ -2536,25 +2540,45 @@ async function staffInitTablesTab(){
   } catch(e) { console.error('staffInitTablesTab error:', e); }
 }
 
+let _staffOwnerBookings = [];  // Owner-created confirmed bookings for selected date
+
 async function staffLoadTableSessions(){
   if(!LIVE_DATA || !supabaseClient){ staffRenderFloorPlan({}); return; }
-  // Filter sessions by the selected date (default today)
   const dateFilter = document.getElementById('staffTblDateFilter')?.value || localDateStr();
   const tzOffset = new Date().getTimezoneOffset();
   const offsetMs = tzOffset * 60 * 1000;
   const startOfDay = new Date(new Date(dateFilter + 'T00:00:00').getTime() + offsetMs).toISOString();
   const endOfDay   = new Date(new Date(dateFilter + 'T23:59:59').getTime() + offsetMs).toISOString();
+
+  // Load table sessions for the selected date
   const {data, error} = await supabaseClient
     .from('table_sessions')
     .select('*')
     .in('status', ['seated','closed'])
     .gte('seated_at', startOfDay)
     .lte('seated_at', endOfDay);
-  if(error){ console.warn('table_sessions:', error.message); staffRenderFloorPlan({}); return; }
-  // Only show currently seated on floor plan (not closed)
+  if(error){ console.warn('table_sessions:', error.message); }
+
   const map={};
   (data||[]).filter(s => s.status === 'seated').forEach(s=>{ map[s.table_number]=s; });
-  _staffTableSessions=map;
+  _staffTableSessions = map;
+
+  // Load owner-created confirmed bookings for the selected date (for green floor plan blocks)
+  // These are scoped by event_date via the events join
+  try {
+    const { data: bkData } = await supabaseClient
+      .from('table_bookings')
+      .select('id,table_number,status,booking_source,guest_name,party_size,events(event_date)')
+      .eq('booking_source', 'owner')
+      .in('status', ['confirmed','seated'])
+      .not('table_number', 'is', null);
+    // Filter to selected date via events.event_date
+    _staffOwnerBookings = (bkData || []).filter(b => (b.events?.event_date || '') === dateFilter);
+  } catch(e) {
+    console.warn('staffLoadOwnerBookings error:', e);
+    _staffOwnerBookings = [];
+  }
+
   staffRenderFloorPlan(map);
   staffRenderActiveList(map);
   staffUpdateStats(map);
@@ -2611,11 +2635,20 @@ function staffRebuildResSelect(tableNum, allowUnscannedBookingId) {
 }
 
 function staffRenderFloorPlan(map){
+  // Owner-booked tables for this date — green, blocked from available inventory
+  const ownerBooked = new Set(
+    (_staffOwnerBookings || []).filter(b => b.table_number).map(b => parseInt(b.table_number))
+  );
   document.querySelectorAll('#staffFloorPlanSvg .fp-table').forEach(el=>{
     const num=parseInt(el.dataset.table);
-    el.classList.remove('available','occupied','reserved');
-    if(map[num]){ el.classList.add(map[num].reservation_id?'reserved':'occupied'); }
-    else{ el.classList.add('available'); }
+    el.classList.remove('available','occupied','reserved','owner-booked');
+    if(map[num]){
+      el.classList.add(map[num].reservation_id ? 'reserved' : 'occupied');
+    } else if(ownerBooked.has(num)){
+      el.classList.add('owner-booked');
+    } else {
+      el.classList.add('available');
+    }
   });
 }
 
