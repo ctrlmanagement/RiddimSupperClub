@@ -118,21 +118,21 @@
 /* ── fp-table hidden by filter ── */
 .fp-table.fp-hidden{opacity:0.1;pointer-events:none;}
 /* ── Owner-created bookings: purple floor plan ── */
-.fp-table.owner-booked rect{fill:rgba(139,92,246,0.25);stroke:rgba(139,92,246,0.9);}
-.fp-table.owner-booked .fp-table-num{fill:#c4b5fd;}
-.fp-legend-dot.owner-booked{background:rgba(139,92,246,0.35);border:1px solid rgba(139,92,246,0.9);}
+.fp-table.owner-booked rect{fill:rgba(34,197,94,0.25);stroke:rgba(34,197,94,0.9);}
+.fp-table.owner-booked .fp-table-num{fill:#86efac;}
+.fp-legend-dot.owner-booked{background:rgba(34,197,94,0.35);border:1px solid rgba(34,197,94,0.9);}
 /* ── Create Booking form panel ── */
-.cbk-panel{background:var(--carbon);border:1px solid rgba(139,92,246,0.4);border-radius:10px;padding:28px 24px;margin-bottom:28px;display:none;}
+.cbk-panel{background:var(--carbon);border:1px solid rgba(34,197,94,0.4);border-radius:10px;padding:28px 24px;margin-bottom:28px;display:none;}
 .cbk-panel.open{display:block;}
-.cbk-section-title{font-family:var(--font-label);font-size:10px;letter-spacing:0.3em;color:#a78bfa;margin-bottom:14px;}
+.cbk-section-title{font-family:var(--font-label);font-size:10px;letter-spacing:0.3em;color:#4ade80;margin-bottom:14px;}
 .cbk-type-row{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
 .cbk-type-btn{flex:1;min-width:100px;padding:12px 10px;border-radius:8px;border:1px solid var(--graphite);background:none;color:var(--ash);font-family:var(--font-label);font-size:11px;letter-spacing:0.18em;cursor:pointer;transition:all 150ms;text-align:center;}
-.cbk-type-btn:hover{border-color:#a78bfa;color:#a78bfa;}
-.cbk-type-btn.active{border-color:#a78bfa;background:rgba(139,92,246,0.1);color:#c4b5fd;}
+.cbk-type-btn:hover{border-color:#4ade80;color:#4ade80;}
+.cbk-type-btn.active{border-color:#4ade80;background:rgba(34,197,94,0.1);color:#86efac;}
 .cbk-field{margin-bottom:14px;}
-.cbk-field label{display:block;font-family:var(--font-label);font-size:10px;letter-spacing:0.22em;color:#a78bfa;margin-bottom:6px;}
+.cbk-field label{display:block;font-family:var(--font-label);font-size:10px;letter-spacing:0.22em;color:#4ade80;margin-bottom:6px;}
 .cbk-field input,.cbk-field select{width:100%;background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:11px 14px;color:var(--ivory);font-family:var(--font-body);font-size:14px;outline:none;transition:border-color 150ms;}
-.cbk-field input:focus,.cbk-field select:focus{border-color:#a78bfa;box-shadow:0 0 0 3px rgba(139,92,246,0.12);}
+.cbk-field input:focus,.cbk-field select:focus{border-color:#4ade80;box-shadow:0 0 0 3px rgba(34,197,94,0.12);}
 .cbk-field input::placeholder{color:var(--ash);}
 .cbk-field select option{background:var(--carbon);}
 .cbk-field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
@@ -141,39 +141,39 @@
 .cbk-amount-fields.visible{display:block;}
 .cbk-zone-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;}
 .cbk-zone-btn{padding:7px 14px;border-radius:999px;border:1px solid var(--graphite);background:none;color:var(--ash);font-family:var(--font-body);font-size:12px;cursor:pointer;transition:all 150ms;}
-.cbk-zone-btn:hover{border-color:#a78bfa;color:#a78bfa;}
-.cbk-zone-btn.active{border-color:#a78bfa;background:rgba(139,92,246,0.1);color:#c4b5fd;}
+.cbk-zone-btn:hover{border-color:#4ade80;color:#4ade80;}
+.cbk-zone-btn.active{border-color:#4ade80;background:rgba(34,197,94,0.1);color:#86efac;}
 .cbk-table-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;min-height:40px;}
 .cbk-table-btn{width:48px;height:48px;border-radius:8px;border:1px solid var(--graphite);background:var(--void);color:var(--mist);font-family:var(--font-label);font-size:13px;cursor:pointer;transition:all 150ms;display:flex;align-items:center;justify-content:center;}
-.cbk-table-btn:hover:not(.blocked){border-color:#a78bfa;background:rgba(139,92,246,0.1);color:#c4b5fd;}
-.cbk-table-btn.selected{border-color:#a78bfa;background:rgba(139,92,246,0.25);color:#c4b5fd;box-shadow:0 0 0 2px rgba(139,92,246,0.35);}
+.cbk-table-btn:hover:not(.blocked){border-color:#4ade80;background:rgba(34,197,94,0.1);color:#86efac;}
+.cbk-table-btn.selected{border-color:#4ade80;background:rgba(34,197,94,0.25);color:#86efac;box-shadow:0 0 0 2px rgba(34,197,94,0.35);}
 .cbk-table-btn.blocked{border-color:rgba(192,57,43,0.35);background:rgba(192,57,43,0.07);color:rgba(192,57,43,0.5);cursor:not-allowed;}
 .cbk-table-legend{display:flex;gap:14px;margin-top:8px;flex-wrap:wrap;}
 .cbk-table-legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ash);}
 .cbk-table-legend-dot{width:10px;height:10px;border-radius:2px;}
 .cbk-phone-lookup-row{display:flex;gap:8px;}
 .cbk-phone-lookup-row input{flex:1;}
-.cbk-lookup-btn{padding:11px 16px;border-radius:6px;background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.4);color:#c4b5fd;font-family:var(--font-label);font-size:11px;letter-spacing:0.12em;cursor:pointer;transition:all 150ms;white-space:nowrap;}
-.cbk-lookup-btn:hover{background:rgba(139,92,246,0.25);}
-.cbk-member-found{display:none;padding:10px 14px;background:rgba(139,92,246,0.07);border:1px solid rgba(139,92,246,0.3);border-radius:6px;margin-top:8px;}
+.cbk-lookup-btn{padding:11px 16px;border-radius:6px;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);color:#86efac;font-family:var(--font-label);font-size:11px;letter-spacing:0.12em;cursor:pointer;transition:all 150ms;white-space:nowrap;}
+.cbk-lookup-btn:hover{background:rgba(34,197,94,0.25);}
+.cbk-member-found{display:none;padding:10px 14px;background:rgba(34,197,94,0.07);border:1px solid rgba(34,197,94,0.3);border-radius:6px;margin-top:8px;}
 .cbk-member-found.visible{display:flex;align-items:center;gap:10px;}
-.cbk-member-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6d28d9,#a78bfa);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#fff;flex-shrink:0;}
+.cbk-member-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#15803d,#4ade80);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#fff;flex-shrink:0;}
 .cbk-member-name{font-size:13px;color:var(--ivory);}
-.cbk-member-id{font-size:11px;color:#a78bfa;margin-top:1px;}
-.cbk-qr-result{display:none;background:var(--void);border:1px solid rgba(139,92,246,0.4);border-radius:10px;padding:24px;text-align:center;margin-top:20px;}
+.cbk-member-id{font-size:11px;color:#4ade80;margin-top:1px;}
+.cbk-qr-result{display:none;background:var(--void);border:1px solid rgba(34,197,94,0.4);border-radius:10px;padding:24px;text-align:center;margin-top:20px;}
 .cbk-qr-result.visible{display:block;}
 .cbk-qr-result-name{font-family:var(--font-display);font-size:20px;font-weight:300;font-style:italic;color:var(--ivory);margin-bottom:4px;}
 .cbk-qr-result-meta{font-size:12px;color:var(--ash);margin-bottom:16px;}
 .cbk-qr-wrap{width:180px;height:180px;background:#fff;border-radius:8px;padding:8px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;}
 .cbk-actions-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
-.btn-cbk-primary{flex:1;min-width:120px;padding:14px;border-radius:6px;background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;color:#fff;font-family:var(--font-label);font-size:13px;letter-spacing:0.15em;cursor:pointer;transition:opacity 150ms;}
+.btn-cbk-primary{flex:1;min-width:120px;padding:14px;border-radius:6px;background:linear-gradient(135deg,#166534,#16a34a);border:none;color:#fff;font-family:var(--font-label);font-size:13px;letter-spacing:0.15em;cursor:pointer;transition:opacity 150ms;}
 .btn-cbk-primary:hover{opacity:0.85;}
 .btn-cbk-ghost{padding:14px 20px;border-radius:6px;background:none;border:1px solid var(--graphite);color:var(--ash);font-family:var(--font-body);font-size:13px;cursor:pointer;transition:all 150ms;}
 .btn-cbk-ghost:hover{color:var(--mist);}
-.btn-cbk-sms{padding:10px 20px;border-radius:6px;background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.4);color:#c4b5fd;font-family:var(--font-label);font-size:11px;letter-spacing:0.15em;cursor:pointer;transition:all 150ms;}
-.btn-cbk-sms:hover{background:rgba(139,92,246,0.25);}
+.btn-cbk-sms{padding:10px 20px;border-radius:6px;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);color:#86efac;font-family:var(--font-label);font-size:11px;letter-spacing:0.15em;cursor:pointer;transition:all 150ms;}
+.btn-cbk-sms:hover{background:rgba(34,197,94,0.25);}
 .btn-cbk-copy{padding:10px 20px;border-radius:6px;background:none;border:1px solid var(--graphite);color:var(--ash);font-family:var(--font-label);font-size:11px;letter-spacing:0.15em;cursor:pointer;transition:all 150ms;}
-.btn-cbk-copy:hover{border-color:#a78bfa;color:#a78bfa;}
+.btn-cbk-copy:hover{border-color:#4ade80;color:#4ade80;}
 .cbk-error{font-size:13px;color:var(--ember);margin-top:8px;min-height:18px;}
 /* ── END TABLE MANAGEMENT ─────────────────────────────────── */
 </style></head><body><div class="screen active" id="screenLogin"><div class="auth-wrap"><div class="auth-card"><div class="auth-logo"><span class="auth-wordmark">RIDDIM</span><div style="display:flex;justify-content:center;margin-top:8px;"><span class="auth-role"><span class="auth-role-dot"></span>Owner Portal</span></div></div><div class="auth-divider"></div><h1 class="auth-heading">Owner Access</h1><p class="auth-hint" style="margin-bottom:24px;">Sign in with your AG Entertainment account to continue</p><div class="auth-lock-badge" style="justify-content:center;text-align:center;"><span class="auth-lock-text">
@@ -190,7 +190,7 @@
       <p class="page-sub">Paid table requests with minimum spends — submitted via reserve.html or members portal.</p>
     </div>
     <div style="display:flex;gap:10px;align-items:center;margin-top:8px;">
-      <button onclick="openCreateBookingPanel()" id="btnOpenCreateBooking" style="padding:9px 18px;background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;border-radius:6px;color:#fff;font-family:var(--font-label);font-size:12px;letter-spacing:0.12em;cursor:pointer;">+ Create Booking</button>
+      <button onclick="openCreateBookingPanel()" id="btnOpenCreateBooking" style="padding:9px 18px;background:linear-gradient(135deg,#166534,#16a34a);border:none;border-radius:6px;color:#fff;font-family:var(--font-label);font-size:12px;letter-spacing:0.12em;cursor:pointer;">+ Create Booking</button>
       <button onclick="loadTableBookings()" style="padding:9px 18px;border:1px solid var(--graphite);background:none;border-radius:6px;color:var(--ash);font-family:var(--font-body);font-size:12px;cursor:pointer;">↺ Refresh</button>
     </div>
   </div>
@@ -268,7 +268,7 @@
         <div class="cbk-table-legend" id="cbkTableLegend" style="display:none;">
           <div class="cbk-table-legend-item"><div class="cbk-table-legend-dot" style="background:rgba(42,42,42,0.9);border:1px solid rgba(136,136,136,0.45);"></div>Available</div>
           <div class="cbk-table-legend-item"><div class="cbk-table-legend-dot" style="background:rgba(192,57,43,0.2);border:1px solid rgba(192,57,43,0.6);"></div>Blocked</div>
-          <div class="cbk-table-legend-item"><div class="cbk-table-legend-dot" style="background:rgba(139,92,246,0.25);border:1px solid rgba(139,92,246,0.9);"></div>Selected</div>
+          <div class="cbk-table-legend-item"><div class="cbk-table-legend-dot" style="background:rgba(34,197,94,0.25);border:1px solid rgba(34,197,94,0.9);"></div>Selected</div>
         </div>
       </div>
     </div>
@@ -303,7 +303,7 @@
     </div>
     <!-- QR result after creation -->
     <div class="cbk-qr-result" id="cbkQrResult">
-      <div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.3em;color:#a78bfa;margin-bottom:10px;">BOOKING CONFIRMED ✦</div>
+      <div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.3em;color:#4ade80;margin-bottom:10px;">BOOKING CONFIRMED ✦</div>
       <div class="cbk-qr-result-name" id="cbkQrResultName"></div>
       <div class="cbk-qr-result-meta" id="cbkQrResultMeta"></div>
       <div class="cbk-qr-wrap"><div id="cbkQrWrap"></div></div>
@@ -470,7 +470,7 @@
   <div class="gh-title">GUEST HISTORY</div>
   <div id="guestHistoryContent"><div class="gh-loading">Looking up guest history…</div></div>
 </div>
-</div></div></div><style>.inq-status{display:inline-flex;align-items:center;gap:5px;font-family:var(--font-label);font-size:10px;letter-spacing:0.18em;padding:3px 10px;border-radius:999px;border:1px solid;}.inq-status.new{color:#60a5fa;border-color:rgba(96,165,250,0.4);background:rgba(96,165,250,0.08);}.inq-status.reviewed{color:var(--gold-warm);border-color:rgba(212,168,67,0.4);background:rgba(212,168,67,0.08);}.inq-status.quoted{color:#a78bfa;border-color:rgba(167,139,250,0.4);background:rgba(167,139,250,0.08);}.inq-status.booked{color:var(--green);border-color:rgba(76,175,80,0.4);background:rgba(76,175,80,0.08);}.inq-status.declined{color:var(--ember);border-color:rgba(192,57,43,0.4);background:rgba(192,57,43,0.08);}.inq-type-chip{display:inline-block;font-family:var(--font-label);font-size:10px;letter-spacing:0.18em;padding:3px 10px;border-radius:999px;background:rgba(218,165,32,0.1);border:1px solid rgba(218,165,32,0.25);color:var(--owner-gold);}.inq-status-btn{padding:5px 14px;border-radius:999px;border:1px solid var(--graphite);background:none;color:var(--ash);font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;cursor:pointer;transition:all 150ms;}.inq-status-btn:hover{border-color:var(--owner-gold);color:var(--owner-gold);}.inq-status-btn.active-new{border-color:#60a5fa;color:#60a5fa;background:rgba(96,165,250,0.1);}.inq-status-btn.active-reviewed{border-color:var(--gold-warm);color:var(--gold-warm);background:rgba(212,168,67,0.1);}.inq-status-btn.active-quoted{border-color:#a78bfa;color:#a78bfa;background:rgba(167,139,250,0.1);}.inq-status-btn.active-booked{border-color:var(--green);color:var(--green);background:rgba(76,175,80,0.1);}.inq-status-btn.active-declined{border-color:var(--ember);color:var(--ember);background:rgba(192,57,43,0.1);}.inq-detail-row{display:grid;grid-template-columns:140px 1fr;gap:8px;padding:10px 0;border-bottom:1px solid rgba(42,42,42,0.5);font-size:13px;}.inq-detail-label{font-family:var(--font-label);font-size:10px;letter-spacing:0.18em;color:var(--ash);padding-top:2px;}.inq-detail-value{color:var(--mist);line-height:1.5;}
+</div></div></div><style>.inq-status{display:inline-flex;align-items:center;gap:5px;font-family:var(--font-label);font-size:10px;letter-spacing:0.18em;padding:3px 10px;border-radius:999px;border:1px solid;}.inq-status.new{color:#60a5fa;border-color:rgba(96,165,250,0.4);background:rgba(96,165,250,0.08);}.inq-status.reviewed{color:var(--gold-warm);border-color:rgba(212,168,67,0.4);background:rgba(212,168,67,0.08);}.inq-status.quoted{color:#4ade80;border-color:rgba(167,139,250,0.4);background:rgba(167,139,250,0.08);}.inq-status.booked{color:var(--green);border-color:rgba(76,175,80,0.4);background:rgba(76,175,80,0.08);}.inq-status.declined{color:var(--ember);border-color:rgba(192,57,43,0.4);background:rgba(192,57,43,0.08);}.inq-type-chip{display:inline-block;font-family:var(--font-label);font-size:10px;letter-spacing:0.18em;padding:3px 10px;border-radius:999px;background:rgba(218,165,32,0.1);border:1px solid rgba(218,165,32,0.25);color:var(--owner-gold);}.inq-status-btn{padding:5px 14px;border-radius:999px;border:1px solid var(--graphite);background:none;color:var(--ash);font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;cursor:pointer;transition:all 150ms;}.inq-status-btn:hover{border-color:var(--owner-gold);color:var(--owner-gold);}.inq-status-btn.active-new{border-color:#60a5fa;color:#60a5fa;background:rgba(96,165,250,0.1);}.inq-status-btn.active-reviewed{border-color:var(--gold-warm);color:var(--gold-warm);background:rgba(212,168,67,0.1);}.inq-status-btn.active-quoted{border-color:#4ade80;color:#4ade80;background:rgba(167,139,250,0.1);}.inq-status-btn.active-booked{border-color:var(--green);color:var(--green);background:rgba(76,175,80,0.1);}.inq-status-btn.active-declined{border-color:var(--ember);color:var(--ember);background:rgba(192,57,43,0.1);}.inq-detail-row{display:grid;grid-template-columns:140px 1fr;gap:8px;padding:10px 0;border-bottom:1px solid rgba(42,42,42,0.5);font-size:13px;}.inq-detail-label{font-family:var(--font-label);font-size:10px;letter-spacing:0.18em;color:var(--ash);padding-top:2px;}.inq-detail-value{color:var(--mist);line-height:1.5;}
 .gh-panel{margin-top:24px;padding-top:20px;border-top:1px solid rgba(42,42,42,0.6);}
 .gh-title{font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:12px;}
 .gh-loading{font-size:12px;color:var(--ash);padding:12px 0;}
@@ -3206,7 +3206,7 @@ async function loadGuestHistory(rawPhone, knownStatus) {
     // Past inquiries (exclude current)
     (iRes.data || []).filter(i => i.id !== currentInquiryId).slice(0,5).forEach(i => {
       const d = new Date(i.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-      const statusColor = i.status === 'booked' ? 'var(--green)' : i.status === 'declined' ? 'var(--ember)' : i.status === 'quoted' ? '#a78bfa' : 'var(--ash)';
+      const statusColor = i.status === 'booked' ? 'var(--green)' : i.status === 'declined' ? 'var(--ember)' : i.status === 'quoted' ? '#4ade80' : 'var(--ash)';
       touchpoints.push({ icon: '📩', title: `Inquiry — ${i.inquiry_type || 'general'}`, meta: d, tag: i.status, tagColor: statusColor, date: i.created_at });
     });
 
@@ -4690,14 +4690,44 @@ async function submitCreateBooking() {
   if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Creating…'; }
 
   if (LIVE_DATA && supabaseClient) {
-    const { data, error } = await supabaseClient.from('table_bookings').insert(payload).select().single();
+    // NEVER use select('*,...events(...)') on table_bookings — causes 400 RLS block (Principle 153)
+    // Also strip any columns not present on the table to avoid Bad Request
+    const safePayload = {
+      event_id:                    payload.event_id,
+      guest_name:                  payload.guest_name,
+      guest_phone:                 payload.guest_phone,
+      party_size:                  payload.party_size,
+      table_number:                payload.table_number,
+      section_name:                payload.section_name,
+      deposit_amount:              payload.deposit_amount,
+      minimum_spend_required:      payload.minimum_spend_required,
+      comp_applied:                payload.comp_applied,
+      payment_amount:              payload.payment_amount,
+      notes:                       payload.notes,
+      status:                      payload.status,
+      booking_source:              payload.booking_source,
+      qr_token:                    payload.qr_token,
+      member_id:                   payload.member_id,
+      requested_at:                payload.requested_at,
+      minimum_spend_acknowledged:  payload.minimum_spend_acknowledged,
+      deposit_paid:                payload.deposit_paid,
+    };
+    // Add optional columns only if they exist (avoids 400 on missing columns)
+    if (payload.booking_type !== undefined) safePayload.booking_type = payload.booking_type;
+    if (payload.valid_date   !== undefined) safePayload.valid_date   = payload.valid_date;
+    const { data, error } = await supabaseClient
+      .from('table_bookings')
+      .insert(safePayload)
+      .select('id,qr_token,guest_name,guest_phone,table_number,section_name,deposit_amount,minimum_spend_required,comp_applied,payment_amount,booking_source,booking_type,status,requested_at,party_size,notes,member_id,valid_date')
+      .single();
     if (error) {
       errEl.textContent = 'Could not create booking: ' + (error.message || 'Try again.');
       if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = '✦ Create Booking'; }
       return;
     }
-    _cbkCreatedBooking = data;
-    _allTableBookings.unshift(data);
+    // Merge booking_type back in case column doesn't exist in DB yet
+    _cbkCreatedBooking = { ...data, booking_type: payload.booking_type };
+    _allTableBookings.unshift(_cbkCreatedBooking);
   } else {
     _cbkCreatedBooking = { ...payload, id: 'local-' + Date.now() };
     _allTableBookings.unshift(_cbkCreatedBooking);
