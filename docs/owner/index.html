@@ -4693,34 +4693,33 @@ async function submitCreateBooking() {
     compApplied = parseFloat(document.getElementById('cbkCompAmount').value) || 0;
   }
 
-  // Get event date for valid_date
   const evtSel = document.getElementById('cbkEventSelect');
-  const evtOpt = evtSel.options[evtSel.selectedIndex];
-  const validDate = evtOpt?.dataset?.date || new Date().toISOString().slice(0,10);
-
   const qrToken = crypto.randomUUID();
 
+  // Store comp amount in notes since comp_applied column doesn't exist yet
+  const compNote = compApplied > 0 ? `[Comp: $${compApplied}]` : '';
+  const fullNotes = [compNote, notes].filter(Boolean).join(' — ') || null;
+
   const payload = {
-    event_id: eventId,
-    guest_name: guestName,
-    guest_phone: phoneE164,
-    party_size: partySize,
-    table_number: _cbkSelectedTable,
-    section_name: sectionName,
-    deposit_amount: depositAmount,
-    minimum_spend_required: minSpend,
-    comp_applied: compApplied,
-    payment_amount: 0,
-    notes: notes || null,
-    status: 'confirmed',
-    booking_source: 'owner',
-    qr_token: qrToken,
-    booking_type: _cbkType,
-    member_id: _cbkLinkedMemberId || null,
-    requested_at: new Date().toISOString(),
+    event_id:                   eventId,
+    guest_name:                 guestName,
+    guest_phone:                phoneE164,
+    party_size:                 partySize,
+    table_number:               _cbkSelectedTable,
+    section_name:               sectionName,
+    deposit_amount:             depositAmount,
+    minimum_spend_required:     minSpend,
+    payment_amount:             0,
+    notes:                      fullNotes,
+    status:                     'confirmed',
+    booking_source:             'owner',
+    qr_token:                   qrToken,
+    member_id:                  _cbkLinkedMemberId || null,
+    requested_at:               new Date().toISOString(),
     minimum_spend_acknowledged: true,
-    deposit_paid: depositAmount > 0,
-    valid_date: validDate,
+    deposit_paid:               depositAmount > 0,
+    // _cbkType stored in memory only — not sent to DB (column doesn't exist)
+    _cbkBookingType:            _cbkType,
   };
 
   // Disable submit button
@@ -4730,6 +4729,7 @@ async function submitCreateBooking() {
   if (LIVE_DATA && supabaseClient) {
     // NEVER use select('*,...events(...)') on table_bookings — causes 400 RLS block (Principle 153)
     // Also strip any columns not present on the table to avoid Bad Request
+    // Only include columns that exist on table_bookings (verified from schema)
     const safePayload = {
       event_id:                    payload.event_id,
       guest_name:                  payload.guest_name,
@@ -4739,7 +4739,6 @@ async function submitCreateBooking() {
       section_name:                payload.section_name,
       deposit_amount:              payload.deposit_amount,
       minimum_spend_required:      payload.minimum_spend_required,
-      comp_applied:                payload.comp_applied,
       payment_amount:              payload.payment_amount,
       notes:                       payload.notes,
       status:                      payload.status,
@@ -4750,12 +4749,11 @@ async function submitCreateBooking() {
       minimum_spend_acknowledged:  payload.minimum_spend_acknowledged,
       deposit_paid:                payload.deposit_paid,
     };
-    // Add valid_date only if column exists (avoids 400 on missing columns)
-    if (payload.valid_date !== undefined) safePayload.valid_date = payload.valid_date;
+    // comp_applied, valid_date, booking_type do NOT exist in schema — never send them
     const { data, error } = await supabaseClient
       .from('table_bookings')
       .insert(safePayload)
-      .select('id,qr_token,guest_name,guest_phone,table_number,section_name,deposit_amount,minimum_spend_required,comp_applied,payment_amount,booking_source,status,requested_at,party_size,notes,member_id,valid_date')
+      .select('id,qr_token,guest_name,guest_phone,table_number,section_name,deposit_amount,minimum_spend_required,payment_amount,booking_source,status,requested_at,party_size,notes,member_id')
       .single();
     if (error) {
       errEl.textContent = 'Could not create booking: ' + (error.message || 'Try again.');
@@ -4799,7 +4797,7 @@ function cbkShowQrResult(booking) {
   ];
   if (booking.deposit_amount > 0) meta.push('Deposit $' + parseFloat(booking.deposit_amount).toLocaleString());
   if (booking.minimum_spend_required > 0) meta.push('Min $' + parseFloat(booking.minimum_spend_required).toLocaleString());
-  if (booking.comp_applied > 0) meta.push('Comp $' + parseFloat(booking.comp_applied).toLocaleString());
+  // Comp amount shown in notes field — booking_source:'owner' identifies it as comp
 
   document.getElementById('cbkQrResultName').textContent = booking.guest_name;
   document.getElementById('cbkQrResultMeta').textContent = meta.join(' · ');
