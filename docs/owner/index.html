@@ -272,25 +272,26 @@
         </div>
       </div>
     </div>
-    <!-- Amount fields -->
-    <div id="cbkAmountPaid" class="cbk-amount-fields" style="margin-top:4px;">
+    <!-- Amount fields — always visible, all three types can use any combination -->
+    <div style="margin-top:4px;">
       <div class="cbk-field-row">
         <div class="cbk-field" style="margin-bottom:0;">
-          <label>DEPOSIT AMOUNT ($)</label>
+          <label>DEPOSIT AMOUNT ($) <span style="font-size:9px;color:var(--ash);font-family:var(--font-body);letter-spacing:0;">Paid</span></label>
           <input type="number" id="cbkDepositAmount" placeholder="e.g. 200" min="0" step="50" />
         </div>
         <div class="cbk-field" style="margin-bottom:0;">
-          <label>MIN SPEND REQUIRED ($)</label>
+          <label>MIN SPEND REQUIRED ($) <span style="font-size:9px;color:var(--ash);font-family:var(--font-body);letter-spacing:0;">Paid</span></label>
           <input type="number" id="cbkMinSpend" placeholder="e.g. 750" min="0" step="50" />
         </div>
       </div>
-    </div>
-    <div id="cbkAmountComp" class="cbk-amount-fields" style="margin-top:4px;">
-      <div class="cbk-field">
-        <label>COMP AMOUNT ($)</label>
+      <div class="cbk-field" style="margin-top:12px;margin-bottom:0;">
+        <label>COMP AMOUNT ($) <span style="font-size:9px;color:var(--ash);font-family:var(--font-body);letter-spacing:0;">Comp / owner-issued, no charge to guest</span></label>
         <input type="number" id="cbkCompAmount" placeholder="e.g. 500" min="0" step="50" />
       </div>
     </div>
+    <!-- Legacy hidden divs kept for JS toggle compatibility — now unused -->
+    <div id="cbkAmountPaid" style="display:none;"></div>
+    <div id="cbkAmountComp" style="display:none;"></div>
     <!-- Notes -->
     <div class="cbk-field" style="margin-top:4px;">
       <label>NOTES <span style="font-size:9px;color:var(--ash);font-family:var(--font-body);letter-spacing:0;">(internal, optional)</span></label>
@@ -4493,9 +4494,7 @@ function cbkSetType(btn, type) {
   _cbkType = type;
   document.querySelectorAll('.cbk-type-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  // Show/hide amount fields
-  document.getElementById('cbkAmountPaid').classList.toggle('visible', type === 'paid');
-  document.getElementById('cbkAmountComp').classList.toggle('visible', type === 'comp');
+  // Amount fields are always visible — no toggle needed
 }
 
 // ── Phone normalisation — same standard as private-events F02
@@ -4684,14 +4683,10 @@ async function submitCreateBooking() {
   const zone = Object.keys(CBK_SECTION_MAP).find(z => CBK_SECTION_MAP[z].tables.includes(_cbkSelectedTable));
   const sectionName = zone || 'front';
 
-  // Amount fields
-  let depositAmount = 0, minSpend = 0, compApplied = 0;
-  if (_cbkType === 'paid') {
-    depositAmount = parseFloat(document.getElementById('cbkDepositAmount').value) || 0;
-    minSpend = parseFloat(document.getElementById('cbkMinSpend').value) || 0;
-  } else if (_cbkType === 'comp') {
-    compApplied = parseFloat(document.getElementById('cbkCompAmount').value) || 0;
-  }
+  // Always read all three amount fields — owner can use any combination
+  const depositAmount = parseFloat(document.getElementById('cbkDepositAmount').value) || 0;
+  const minSpend      = parseFloat(document.getElementById('cbkMinSpend').value)      || 0;
+  const compApplied   = parseFloat(document.getElementById('cbkCompAmount').value)    || 0;
 
   const evtSel = document.getElementById('cbkEventSelect');
   const qrToken = crypto.randomUUID();
@@ -4855,8 +4850,7 @@ function resetCreateBookingForm() {
   document.getElementById('cbkCompAmount').value = '';
   document.getElementById('cbkError').textContent = '';
   document.getElementById('cbkMemberFound').classList.remove('visible');
-  document.getElementById('cbkAmountPaid').classList.remove('visible');
-  document.getElementById('cbkAmountComp').classList.remove('visible');
+  // Amount fields always visible — no toggle state to reset
   document.getElementById('cbkQrResult').classList.remove('visible');
   document.getElementById('cbkQrWrap').innerHTML = '';
 
