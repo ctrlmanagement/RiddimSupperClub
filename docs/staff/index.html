@@ -485,7 +485,7 @@ resData = [...MOCK_RESERVATIONS];
 renderReservations();
 renderMembersList();
 }
-function goToTab(tabId) {
+function goToTab(tabId, skipTablesInit) {
 window.scrollTo(0,0);
 document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id===`tab-${tabId}`));
 document.querySelectorAll('.portal-tab,.mobile-tab').forEach(btn=>btn.classList.toggle('active',btn.dataset.tab===tabId));
@@ -493,7 +493,7 @@ const activeBtn = document.querySelector(`.mobile-tab[data-tab="${tabId}"]`);
 if (activeBtn) activeBtn.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
 if (tabId === 'gallery') loadStaffGalleries();
 if (tabId === 'events') { loadStaffEvents().then(() => { staffEvtRenderCalendar(); staffEvtRenderFeatured(); }); }
-if (tabId === 'tables') staffInitTablesTab();
+if (tabId === 'tables' && !skipTablesInit) staffInitTablesTab();
 }
 document.querySelectorAll('.portal-tab,.mobile-tab').forEach(btn=>{ if(btn.dataset.tab) btn.addEventListener('click',()=>goToTab(btn.dataset.tab)); });
 document.getElementById('navAvatar').addEventListener('click',e=>{ e.stopPropagation(); document.getElementById('avatarMenu').classList.toggle('open'); });
@@ -2438,8 +2438,7 @@ function startCheckinScanner() {
               .eq('id', bk.id);
             // Show booking alert overlay then open seat modal
             showTableBookingOverlay(bk, async () => {
-              goToTab('tables');
-              // Wait for staffInitTablesTab to complete before opening seat modal
+              goToTab('tables', true); // skipTablesInit — we await it ourselves below
               await staffInitTablesTab();
               staffOpenSeatModal(bk.table_number || null, { prefillBooking: bk });
             });
