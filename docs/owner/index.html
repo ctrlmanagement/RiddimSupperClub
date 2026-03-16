@@ -808,7 +808,75 @@ document.getElementById('loginError').textContent = '';
 resetGoogleBtn();
 document.getElementById('portalMain').classList.remove('visible');
 goScreen('screenLogin');
+stopOwnerPolling();
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   AUTO-REFRESH — 30s polling (S54)
+   Polls the active tab only. Pauses when page hidden.
+   ═══════════════════════════════════════════════════════════════ */
+const OWNER_POLL_MS = 30000;
+let _ownerPollTimer = null;
+let _ownerActiveTab = 'dashboard';
+
+function _ownerPollTick() {
+  if (document.hidden) return; // page not visible — skip
+  if (!LIVE_DATA || !supabaseClient) return;
+  switch (_ownerActiveTab) {
+    case 'tables':
+      // Silently reload floor plan + today's bookings
+      Promise.all([loadTableSessions(), loadTodayReservations(), loadTodayTableBookings()]);
+      break;
+    case 'tablebookings':
+      loadTableBookings();
+      break;
+    case 'reservations':
+      if (typeof loadOwnerReservations === 'function') loadOwnerReservations();
+      break;
+    case 'vipcomp':
+      loadVIPPasses();
+      break;
+  }
+}
+
+function startOwnerPolling() {
+  stopOwnerPolling();
+  _ownerPollTimer = setInterval(_ownerPollTick, OWNER_POLL_MS);
+}
+
+function stopOwnerPolling() {
+  if (_ownerPollTimer) { clearInterval(_ownerPollTimer); _ownerPollTimer = null; }
+}
+
+// Track active tab for targeted polling
+(function patchGoToTabPolling() {
+  const _prevGoToTab = window.goToTab;
+  window.goToTab = function(tabId) {
+    _ownerActiveTab = tabId;
+    if (typeof _prevGoToTab === 'function') _prevGoToTab(tabId);
+  };
+})();
+
+// Pause/resume on visibility change
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    stopOwnerPolling();
+  } else {
+    startOwnerPolling();
+    _ownerPollTick(); // immediate tick on return
+  }
+});
+
+// Start polling after login — hook into portal show
+(function patchGoScreenPolling() {
+  const _prevGoScreen = window.goScreen;
+  window.goScreen = function(id) {
+    if (typeof _prevGoScreen === 'function') _prevGoScreen(id);
+    if (id === 'screenPortal') startOwnerPolling();
+    if (id === 'screenLogin') stopOwnerPolling();
+  };
+})();
+/* ═══ END AUTO-REFRESH ══════════════════════════════════════════ */
 function renderBarChart() {
 const max = Math.max(...WEEKLY_VISITS);
 document.getElementById('barChart').innerHTML = WEEKLY_VISITS.map((v,i)=>`

@@ -960,7 +960,59 @@ goScreen('screenLogin');
 clearOtp();
 phoneInput.value = '';
 showToast('Signed out');
+stopMemberPolling();
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   AUTO-REFRESH — 30s polling (S54)
+   Refreshes wallet when on wallet tab. Pauses when page hidden.
+   ═══════════════════════════════════════════════════════════════ */
+const MEMBER_POLL_MS = 30000;
+let _memberPollTimer = null;
+let _memberActiveTab = 'tonight';
+
+function _memberPollTick() {
+  if (document.hidden) return;
+  if (!currentMember || !LIVE_DATA || !supabaseClient) return;
+  if (_memberActiveTab === 'wallet') loadWalletPasses();
+}
+
+function startMemberPolling() {
+  stopMemberPolling();
+  _memberPollTimer = setInterval(_memberPollTick, MEMBER_POLL_MS);
+}
+
+function stopMemberPolling() {
+  if (_memberPollTimer) { clearInterval(_memberPollTimer); _memberPollTimer = null; }
+}
+
+// Track active tab
+(function patchMemberGoToTab() {
+  const _prevGoToTab = window.goToTab;
+  window.goToTab = function(tabId) {
+    _memberActiveTab = tabId;
+    if (typeof _prevGoToTab === 'function') _prevGoToTab(tabId);
+  };
+})();
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    stopMemberPolling();
+  } else {
+    startMemberPolling();
+    _memberPollTick();
+  }
+});
+
+(function patchMemberGoScreen() {
+  const _prevGoScreen = window.goScreen;
+  window.goScreen = function(id) {
+    if (typeof _prevGoScreen === 'function') _prevGoScreen(id);
+    if (id === 'screenPortal') startMemberPolling();
+    if (id === 'screenLogin') stopMemberPolling();
+  };
+})();
+/* ═══ END AUTO-REFRESH ══════════════════════════════════════════ */
 function animatePoints(target, duration = 1800, delay = 500) {
 const el = document.getElementById('pointsDisplay');
 let raf;

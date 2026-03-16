@@ -549,7 +549,70 @@ document.getElementById('referralCountSms').textContent = '—';
 document.getElementById('portalMain').classList.remove('visible');
 goScreen('screenLogin');
 showToast('Signed out');
+stopStaffPolling();
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   AUTO-REFRESH — 30s polling (S54)
+   Polls the active tab only. Pauses when page hidden.
+   ═══════════════════════════════════════════════════════════════ */
+const STAFF_POLL_MS = 30000;
+let _staffPollTimer = null;
+let _staffActiveTab = 'checkin';
+
+function _staffPollTick() {
+  if (document.hidden) return;
+  if (!LIVE_DATA || !supabaseClient) return;
+  switch (_staffActiveTab) {
+    case 'tables':
+      staffInitTablesTab();
+      break;
+    case 'reservations':
+      if (typeof loadStaffReservations === 'function') loadStaffReservations();
+      else if (typeof renderResGrid === 'function') renderResGrid();
+      break;
+    case 'guests':
+      if (typeof loadGuestList === 'function') loadGuestList();
+      break;
+  }
+}
+
+function startStaffPolling() {
+  stopStaffPolling();
+  _staffPollTimer = setInterval(_staffPollTick, STAFF_POLL_MS);
+}
+
+function stopStaffPolling() {
+  if (_staffPollTimer) { clearInterval(_staffPollTimer); _staffPollTimer = null; }
+}
+
+// Track active tab
+(function patchStaffGoToTab() {
+  const _prevGoToTab = window.goToTab;
+  window.goToTab = function(tabId) {
+    _staffActiveTab = tabId;
+    if (typeof _prevGoToTab === 'function') _prevGoToTab(tabId);
+  };
+})();
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    stopStaffPolling();
+  } else {
+    startStaffPolling();
+    _staffPollTick();
+  }
+});
+
+(function patchStaffGoScreen() {
+  const _prevGoScreen = window.goScreen;
+  window.goScreen = function(id) {
+    if (typeof _prevGoScreen === 'function') _prevGoScreen(id);
+    if (id === 'screenPortal') startStaffPolling();
+    if (id === 'screenLogin') stopStaffPolling();
+  };
+})();
+/* ═══ END AUTO-REFRESH ══════════════════════════════════════════ */
 let foundMember = null;
 function lookupMember() {
 const q = document.getElementById('memberSearch').value.trim().toLowerCase();
