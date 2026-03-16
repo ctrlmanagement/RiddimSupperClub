@@ -1562,11 +1562,13 @@ async function loadVipPasses(phone) {
   const listEl = document.getElementById('walletVipList');
   try {
     if (!LIVE_DATA || !supabaseClient) throw new Error('no client');
+    const today = new Date().toISOString().slice(0,10);
     const { data, error } = await supabaseClient
       .from('vip_passes')
       .select('*')
       .eq('guest_phone', phone)
       .in('status', ['active', 'unused'])
+      .gte('valid_date', today)
       .order('valid_date', { ascending: true });
     if (error) throw error;
     loadEl.style.display = 'none';
