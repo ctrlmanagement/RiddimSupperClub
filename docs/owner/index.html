@@ -3746,20 +3746,26 @@ async function deletePricingRule(ruleId) {
 
 /* ── Load table_bookings into seat modal sidebar ── */
 let _todayTableBookings = [];
+// Owner bookings for the current floor plan date — populated by loadTableSessions
+let _floorOwnerBookings = [];
 
 async function loadTodayTableBookings() {
   if (!LIVE_DATA || !supabaseClient) return;
-  const today = new Date().toISOString().split('T')[0];
+  // Use tblDateFilter date (same as floor plan) — not hardcoded today
+  const dateFilter = document.getElementById('tblDateFilter')?.value || localDateStr();
   const { data } = await supabaseClient
     .from('table_bookings')
-    .select('*, events(title, event_date)')
-    .eq('events.event_date', today)
-    .in('status', ['confirmed','pending'])
+    .select('id,guest_name,guest_phone,table_number,section_name,party_size,minimum_spend_required,deposit_amount,deposit_paid,status,booking_source,event_id,requested_at,events(title,event_date)')
+    .in('status', ['confirmed','pending','seated'])
     .not('table_number', 'is', null);
-  _todayTableBookings = data || [];
+  // Filter to the floor plan date via the events join
+  const all = data || [];
+  _todayTableBookings = all.filter(b => (b.events?.event_date || '') === dateFilter);
+  // Owner bookings for floor plan coloring — confirmed/seated on this date
+  _floorOwnerBookings = _todayTableBookings.filter(b => b.booking_source === 'owner');
 }
 
-// Extend initTablesTab to also load today's bookings
+// Extend initTablesTab to also load date-scoped bookings
 const _origInitTablesTab = window.initTablesTab;
 window.initTablesTab = async function() {
   document.getElementById('tblStatTotal').textContent = TOTAL_TABLES;
@@ -3870,6 +3876,8 @@ async function loadTableSessions() {
   const map = {};
   (data || []).forEach(s => { map[s.table_number] = s; });
   _tableSessions = map;
+  // Reload owner bookings for this date then render — ensures green blocks are date-accurate
+  await loadTodayTableBookings();
   renderFloorPlan(map);
   renderActiveTablesList(map);
   updateTableStats(map);
@@ -4035,19 +4043,19 @@ function onSeatResChange() {
 }
 
 function renderFloorPlan(map) {
-  // Filter owner-booked by the same date shown on the floor plan (tblDateFilter)
+  // Use _floorOwnerBookings — pre-filtered to floor plan date by loadTodayTableBookings
+  // Falls back to _allTableBookings date-filtered if _floorOwnerBookings is empty
   const floorDate = document.getElementById('tblDateFilter')?.value || localDateStr();
-  const ownerBookedTables = new Set(
-    (_allTableBookings || [])
-      .filter(b => {
+  const ownerSource = (_floorOwnerBookings && _floorOwnerBookings.length > 0)
+    ? _floorOwnerBookings
+    : (_allTableBookings || []).filter(b => {
         if (b.booking_source !== 'owner') return false;
         if (!['confirmed','seated'].includes(b.status)) return false;
-        if (!b.table_number) return false;
-        // Match event date to floor plan date
         const evDate = b.events?.event_date || '';
         return evDate === floorDate;
-      })
-      .map(b => parseInt(b.table_number))
+      });
+  const ownerBookedTables = new Set(
+    ownerSource.filter(b => b.table_number).map(b => parseInt(b.table_number))
   );
   document.querySelectorAll('#floorPlanSvg .fp-table').forEach(el => {
     const num = parseInt(el.dataset.table);
