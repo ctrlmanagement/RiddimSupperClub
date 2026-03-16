@@ -1226,18 +1226,24 @@ window.addEventListener('load', function() {
 });
 
 let REFERRAL_STAFF_ID = null;
+let TBK_TOKEN = null;
+
 (function captureRef() {
-  // Try hash fragment first: #register?ref=UUID
+  // Try hash fragment first: #register?ref=UUID&tbk_token=TOKEN
   const hash = window.location.hash;
   if (hash.includes('?')) {
     const hashParams = new URLSearchParams(hash.split('?')[1]);
     const ref = hashParams.get('ref');
-    if (ref) { REFERRAL_STAFF_ID = ref; return; }
+    if (ref) { REFERRAL_STAFF_ID = ref; }
+    const tbk = hashParams.get('tbk_token');
+    if (tbk) { TBK_TOKEN = tbk; return; }
   }
-  // Fallback: plain query string ?ref=UUID
+  // Fallback: plain query string ?ref=UUID&tbk_token=TOKEN
   const params = new URLSearchParams(window.location.search);
   const ref = params.get('ref');
   if (ref) REFERRAL_STAFF_ID = ref;
+  const tbk = params.get('tbk_token');
+  if (tbk) TBK_TOKEN = tbk;
 })();
 
 function getReferralStaffId() {
@@ -1326,6 +1332,32 @@ async function submitJoin() {
       console.log('[Referral] No ref param — direct registration.');
     }
     // ── End enrollment attribution ───────────────────────────────────────
+
+    // ── TBK token — link booking to new member ───────────────────────────
+    if (TBK_TOKEN) {
+      try {
+        const { error: tbkErr } = await sb
+          .from('table_bookings')
+          .update({ member_id: memberId })
+          .eq('qr_token', TBK_TOKEN)
+          .is('member_id', null); // only update if not already linked
+        if (tbkErr) {
+          console.warn('[TBK] Booking link failed:', tbkErr);
+        } else {
+          console.log('[TBK] Booking linked to member:', memberId);
+        }
+      } catch(tbkEx) {
+        console.warn('[TBK] Booking link exception:', tbkEx);
+      }
+      // Redirect to members portal — booking will appear in wallet
+      document.getElementById('joinForm').style.display = 'none';
+      document.getElementById('joinSuccess').classList.add('show');
+      setTimeout(() => {
+        window.location.href = 'members/index.html';
+      }, 2000);
+      return;
+    }
+    // ── End TBK token ────────────────────────────────────────────────────
 
     document.getElementById('joinForm').style.display = 'none';
     document.getElementById('joinSuccess').classList.add('show');

@@ -460,7 +460,7 @@ async function loadBooking() {
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const { data, error } = await sb
       .from('table_bookings')
-      .select('id,qr_token,guest_name,guest_phone,party_size,section_name,table_number,minimum_spend_required,minimum_spend_acknowledged,deposit_amount,deposit_paid,payment_amount,notes,status,requested_at')
+      .select('id,qr_token,guest_name,guest_phone,party_size,section_name,table_number,minimum_spend_required,minimum_spend_acknowledged,deposit_amount,deposit_paid,payment_amount,notes,status,requested_at,member_id')
       .eq('qr_token', token)
       .maybeSingle();
     if (!error) bk = data;
@@ -468,6 +468,12 @@ async function loadBooking() {
 
   if (!bk) {
     showError('This booking could not be found. It may have been cancelled, or the link may be incorrect.<br><br>Please contact RIDDIM Supper Club if you believe this is an error.');
+    return;
+  }
+
+  // Non-member detection — if booking has no member_id, redirect to join with token preserved
+  if (!bk.member_id) {
+    window.location.href = 'join.html#register?tbk_token=' + encodeURIComponent(token);
     return;
   }
 
