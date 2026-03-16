@@ -224,7 +224,7 @@
     <div class="cbk-field">
       <label>GUEST PHONE <span style="color:var(--ember);font-size:11px;">*</span></label>
       <div class="cbk-phone-lookup-row">
-        <input type="tel" id="cbkPhoneInput" placeholder="(404) 555-0100" maxlength="14" oninput="cbkFormatPhone(this)" />
+        <input type="tel" id="cbkPhoneInput" placeholder="(404) 555-0100" maxlength="14" oninput="cbkFormatPhone(this)" onblur="cbkLookupPhone()" />
         <button class="cbk-lookup-btn" onclick="cbkLookupPhone()">Look Up</button>
       </div>
       <div class="cbk-member-found" id="cbkMemberFound">
@@ -4498,48 +4498,86 @@ function cbkSetType(btn, type) {
   document.getElementById('cbkAmountComp').classList.toggle('visible', type === 'comp');
 }
 
+// ── Phone normalisation — same standard as private-events F02
+function cbkNormalizePhone(raw) {
+  const digits = raw.replace(/\D/g, '');
+  let phone10 = digits;
+  if (digits.length === 11 && digits.startsWith('1')) phone10 = digits.slice(1);
+  const valid = phone10.length === 10;
+  const phoneE164 = valid ? '+1' + phone10 : null;
+  return { phone10, phoneE164, valid };
+}
+
 function cbkFormatPhone(input) {
   const d = input.value.replace(/\D/g,'');
-  if (d.length <= 3) input.value = '(' + d;
+  if (d.length <= 3) input.value = d.length ? '(' + d : '';
   else if (d.length <= 6) input.value = '(' + d.slice(0,3) + ') ' + d.slice(3);
   else input.value = '(' + d.slice(0,3) + ') ' + d.slice(3,6) + '-' + d.slice(6,10);
 }
 
+// ── Silent multi-table lookup on blur — mirrors private-events lookupGuest exactly
 async function cbkLookupPhone() {
-  const raw = document.getElementById('cbkPhoneInput').value.replace(/\D/g,'');
-  if (raw.length < 10) { showToast('Enter a valid 10-digit phone number.'); return; }
-  const phone10 = raw.slice(-10);
-  const phoneE164 = '+1' + phone10;
+  const raw = document.getElementById('cbkPhoneInput').value.trim();
+  const { phone10, phoneE164, valid } = cbkNormalizePhone(raw);
   const foundEl = document.getElementById('cbkMemberFound');
   foundEl.classList.remove('visible');
   _cbkLinkedMemberId = null;
+  document.getElementById('cbkError').textContent = '';
+
+  if (!valid) { showToast('Enter a valid 10-digit phone number.'); return; }
+
+  // Fallback for no live data — search MEMBERS in memory
   if (!LIVE_DATA || !supabaseClient) {
-    // Try local MEMBERS array
     const m = MEMBERS.find(m => (m.phone||'').replace(/\D/g,'').slice(-10) === phone10);
-    if (m) { _cbkApplyMemberFound(m); } else { showToast('No member found — guest name required.'); }
+    if (m) { _cbkApplyMemberFound(m); }
+    else { showToast('No member found — enter guest name manually.'); }
     return;
   }
+
+  const btn = document.querySelector('.cbk-lookup-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Looking…'; }
+
   try {
-    const { data } = await supabaseClient.from('members').select('id,first_name,last_name,phone').eq('phone', phoneE164).maybeSingle();
-    if (data) {
-      _cbkApplyMemberFound(data);
+    const [mRes, rRes, vRes, gRes] = await Promise.all([
+      supabaseClient.from('members').select('id,first_name,last_name,phone').eq('phone', phoneE164).maybeSingle(),
+      supabaseClient.from('reservations').select('id').eq('member_phone', phoneE164).limit(1),
+      supabaseClient.from('vip_passes').select('id').eq('guest_phone', phone10).in('status',['active','unused']).limit(1),
+      supabaseClient.from('guest_lists').select('id').eq('guest_phone', phone10).limit(1),
+    ]);
+
+    if (mRes.data) {
+      _cbkApplyMemberFound(mRes.data);
     } else {
-      showToast('No member found — enter guest name manually.');
+      // Not a member — show guest status if any history found
+      let status = 'New Guest';
+      if (rRes.data && rRes.data.length) status = 'Returning (Reservation)';
+      else if (vRes.data && vRes.data.length) status = 'Returning (VIP Pass)';
+      else if (gRes.data && gRes.data.length) status = 'Returning (Guest List)';
+
+      document.getElementById('cbkMemberAvatar').textContent = '?';
+      document.getElementById('cbkMemberName').textContent = status;
+      document.getElementById('cbkMemberId').textContent = 'Non-member · ' + (phoneE164 || phone10);
+      foundEl.classList.add('visible');
+      showToast(status + ' — enter guest name manually.');
     }
-  } catch(e) { showToast('Lookup failed. Enter guest name manually.'); }
+  } catch(e) {
+    console.warn('cbkLookupPhone error:', e);
+    showToast('Lookup failed. Enter guest name manually.');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Look Up'; }
+  }
 }
 
 function _cbkApplyMemberFound(m) {
   _cbkLinkedMemberId = m.id;
-  const name = (m.first_name + ' ' + m.last_name).trim();
+  const name = ((m.first_name||'') + ' ' + (m.last_name||'')).trim();
   document.getElementById('cbkMemberAvatar').textContent = ((m.first_name||'?')[0] + (m.last_name||'?')[0]).toUpperCase();
   document.getElementById('cbkMemberName').textContent = name;
-  document.getElementById('cbkMemberId').textContent = m.id;
+  document.getElementById('cbkMemberId').textContent = m.id + ' · Member ✦';
   document.getElementById('cbkMemberFound').classList.add('visible');
-  // Auto-fill guest name if blank
   const nameInput = document.getElementById('cbkGuestName');
   if (!nameInput.value.trim()) nameInput.value = name;
-  showToast('Member found: ' + name, 'gold');
+  showToast('Member found: ' + name + ' ✦', 'gold');
 }
 
 async function cbkOnEventChange() {
@@ -4712,13 +4750,12 @@ async function submitCreateBooking() {
       minimum_spend_acknowledged:  payload.minimum_spend_acknowledged,
       deposit_paid:                payload.deposit_paid,
     };
-    // Add optional columns only if they exist (avoids 400 on missing columns)
-    if (payload.booking_type !== undefined) safePayload.booking_type = payload.booking_type;
-    if (payload.valid_date   !== undefined) safePayload.valid_date   = payload.valid_date;
+    // Add valid_date only if column exists (avoids 400 on missing columns)
+    if (payload.valid_date !== undefined) safePayload.valid_date = payload.valid_date;
     const { data, error } = await supabaseClient
       .from('table_bookings')
       .insert(safePayload)
-      .select('id,qr_token,guest_name,guest_phone,table_number,section_name,deposit_amount,minimum_spend_required,comp_applied,payment_amount,booking_source,booking_type,status,requested_at,party_size,notes,member_id,valid_date')
+      .select('id,qr_token,guest_name,guest_phone,table_number,section_name,deposit_amount,minimum_spend_required,comp_applied,payment_amount,booking_source,status,requested_at,party_size,notes,member_id,valid_date')
       .single();
     if (error) {
       errEl.textContent = 'Could not create booking: ' + (error.message || 'Try again.');
@@ -4726,7 +4763,7 @@ async function submitCreateBooking() {
       return;
     }
     // Merge booking_type back in case column doesn't exist in DB yet
-    _cbkCreatedBooking = { ...data, booking_type: payload.booking_type };
+    _cbkCreatedBooking = { ...data, _cbkBookingType: _cbkType };
     _allTableBookings.unshift(_cbkCreatedBooking);
   } else {
     _cbkCreatedBooking = { ...payload, id: 'local-' + Date.now() };
@@ -4751,7 +4788,7 @@ async function submitCreateBooking() {
 
 function cbkShowQrResult(booking) {
   const TYPE_LABELS = { paid: 'Paid Table', comp: 'Comp Table', reserved: 'Reserved Table' };
-  const typeLabel = TYPE_LABELS[booking.booking_type || _cbkType] || 'Table Booking';
+  const typeLabel = TYPE_LABELS[booking._cbkBookingType || _cbkType] || 'Table Booking';
   const evtOpt = document.getElementById('cbkEventSelect');
   const evtLabel = evtOpt.options[evtOpt.selectedIndex]?.text || 'Event';
   const meta = [
@@ -4780,7 +4817,7 @@ function cbkShowQrResult(booking) {
     if (!phone) { showToast('No phone number on this booking.'); return; }
     const typeMsg = { paid: 'paid table booking', comp: 'complimentary table', reserved: 'reserved table' };
     const msg = encodeURIComponent(
-      booking.guest_name + ', your ' + (typeMsg[booking.booking_type || _cbkType] || 'table booking') +
+      booking.guest_name + ', your ' + (typeMsg[booking._cbkBookingType || _cbkType] || 'table booking') +
       ' at RIDDIM Supper Club is confirmed — Table ' + booking.table_number + '.' +
       (booking.deposit_amount > 0 ? ' Deposit: $' + parseFloat(booking.deposit_amount).toLocaleString() + '.' : '') +
       (booking.minimum_spend_required > 0 ? ' Min spend: $' + parseFloat(booking.minimum_spend_required).toLocaleString() + '.' : '') +
