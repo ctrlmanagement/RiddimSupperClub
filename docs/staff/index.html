@@ -108,10 +108,24 @@
  </div></div></div><div id="enrollDlPostWrap"></div><div id="enrollDlStoryWrap"></div></div><div class="tab-panel" id="tab-gallery"><div class="staff-gallery-wrap"><div id="staffGalleryList"><div class="staff-gallery-header"><div><div class="staff-gallery-title">Photo <span>Gallery</span></div><div class="staff-gallery-sub">All galleries · Instagram downloads available</div></div></div><div class="staff-galleries-grid" id="staffGalleriesGrid"><div style="color:rgba(245,240,232,0.3);font-size:13px;">Loading...</div></div><div class="staff-gallery-empty" id="staffGalleryEmpty" style="display:none;"><div class="staff-gallery-empty-icon">📷</div><div class="staff-gallery-empty-text">No galleries yet</div></div></div><div id="staffGalleryViewer" class="staff-gallery-viewer"><div class="staff-gallery-viewer-header"><button class="staff-gallery-back-btn" onclick="showStaffGalleryList()">← Back</button><div class="staff-gallery-viewer-title" id="staffViewerTitle"></div></div><div class="staff-photo-grid" id="staffPhotoGrid"></div><div class="staff-gallery-empty" id="staffPhotoEmpty" style="display:none;"><div class="staff-gallery-empty-icon">🖼️</div><div class="staff-gallery-empty-text">No photos in this gallery</div></div></div></div></div><div class="tab-panel" id="tab-events" style="padding:24px 32px;"><div style="margin-bottom:20px;"><p style="font-family:var(--font-label);font-size:10px;letter-spacing:0.12em;color:var(--gold-warm);margin-bottom:6px;">EVENTS</p><h2 style="font-family:var(--font-display);font-size:28px;font-weight:300;font-style:italic;color:var(--ivory);">This Month</h2></div><div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:16px;margin-bottom:24px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;"><button onclick="staffEvtCalNav(-1)" style="background:none;border:1px solid rgba(255,255,255,0.12);color:#f5f0e8;width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:15px;">&#x2039;</button><div id="staffEvtCalLabel" style="font-family:var(--font-label);font-size:12px;letter-spacing:0.12em;color:#f5f0e8;"></div><button onclick="staffEvtCalNav(1)" style="background:none;border:1px solid rgba(255,255,255,0.12);color:#f5f0e8;width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:15px;">&#x203A;</button></div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;"><div style="text-align:center;font-size:10px;color:rgba(245,240,232,0.3);padding-bottom:3px;">Su</div><div style="text-align:center;font-size:10px;color:rgba(245,240,232,0.3);padding-bottom:3px;">Mo</div><div style="text-align:center;font-size:10px;color:rgba(245,240,232,0.3);padding-bottom:3px;">Tu</div><div style="text-align:center;font-size:10px;color:rgba(245,240,232,0.3);padding-bottom:3px;">We</div><div style="text-align:center;font-size:10px;color:rgba(245,240,232,0.3);padding-bottom:3px;">Th</div><div style="text-align:center;font-size:10px;color:rgba(245,240,232,0.3);padding-bottom:3px;">Fr</div><div style="text-align:center;font-size:10px;color:rgba(245,240,232,0.3);padding-bottom:3px;">Sa</div></div><div id="staffEvtCalGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;"></div></div><div id="staffEvtFeaturedList" style="display:flex;flex-direction:column;gap:10px;"></div>
 </div></div><!-- /tab-events -->
 <div class="tab-panel" id="tab-tables">
-  <div class="page-header">
-    <p class="page-eyebrow">Floor Operations</p>
-    <h1 class="page-title">Table Management</h1>
-    <p class="page-sub" id="tablesTonightDate">—</p>
+  <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+    <div>
+      <p class="page-eyebrow">Floor Operations</p>
+      <h1 class="page-title">Table Management</h1>
+      <p class="page-sub" id="tablesTonightDate">—</p>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <label style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--staff-accent);">DATE</label>
+        <input type="date" id="staffTblDateFilter"
+          style="background:var(--void);border:1px solid var(--graphite);color:var(--mist);padding:6px 10px;border-radius:6px;font-family:var(--font-body);font-size:13px;cursor:pointer;"
+          onchange="staffInitTablesTab()" />
+        <button onclick="document.getElementById('staffTblDateFilter').value=localDateStr();staffInitTablesTab();"
+          style="padding:6px 12px;border:1px solid var(--graphite);background:none;border-radius:6px;color:var(--ash);font-family:var(--font-body);font-size:11px;cursor:pointer;">Today</button>
+      </div>
+      <button onclick="staffInitTablesTab()"
+        style="padding:9px 18px;border:1px solid var(--graphite);background:none;border-radius:6px;color:var(--ash);font-family:var(--font-body);font-size:12px;cursor:pointer;">↺ Refresh</button>
+    </div>
   </div>
   <div id="tablesRoleLocked" class="role-tables-locked" style="display:none;">
     <div class="role-tables-locked-icon">⊘</div>
@@ -2507,9 +2521,13 @@ let _staffTableStaff = [];
 
 async function staffInitTablesTab(){
   try {
-  const today = new Date();
+  // Set date input to today on first load
+  const df = document.getElementById('staffTblDateFilter');
+  if (df && !df.value) df.value = localDateStr();
+  const dateStr = df?.value || localDateStr();
+  const displayDate = new Date(dateStr + 'T12:00:00');
   const el = document.getElementById('tablesTonightDate');
-  if(el) el.textContent = today.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  if(el) el.textContent = displayDate.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
   const lockEl = document.getElementById('tablesRoleLocked');
   const contentEl = document.getElementById('tablesContent');
   if(lockEl) lockEl.style.display = 'none';
@@ -2520,10 +2538,22 @@ async function staffInitTablesTab(){
 
 async function staffLoadTableSessions(){
   if(!LIVE_DATA || !supabaseClient){ staffRenderFloorPlan({}); return; }
-  const {data, error} = await supabaseClient.from('table_sessions').select('*').eq('status','seated');
+  // Filter sessions by the selected date (default today)
+  const dateFilter = document.getElementById('staffTblDateFilter')?.value || localDateStr();
+  const tzOffset = new Date().getTimezoneOffset();
+  const offsetMs = tzOffset * 60 * 1000;
+  const startOfDay = new Date(new Date(dateFilter + 'T00:00:00').getTime() + offsetMs).toISOString();
+  const endOfDay   = new Date(new Date(dateFilter + 'T23:59:59').getTime() + offsetMs).toISOString();
+  const {data, error} = await supabaseClient
+    .from('table_sessions')
+    .select('*')
+    .in('status', ['seated','closed'])
+    .gte('seated_at', startOfDay)
+    .lte('seated_at', endOfDay);
   if(error){ console.warn('table_sessions:', error.message); staffRenderFloorPlan({}); return; }
+  // Only show currently seated on floor plan (not closed)
   const map={};
-  (data||[]).forEach(s=>{ map[s.table_number]=s; });
+  (data||[]).filter(s => s.status === 'seated').forEach(s=>{ map[s.table_number]=s; });
   _staffTableSessions=map;
   staffRenderFloorPlan(map);
   staffRenderActiveList(map);
