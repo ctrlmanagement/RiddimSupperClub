@@ -3528,9 +3528,10 @@ function renderTableBookings() {
     const acked = b.minimum_spend_acknowledged
       ? '<span style="color:#81C784;font-size:11px;">✓ Acknowledged</span>'
       : '<span style="color:var(--ember);font-size:11px;">Not acknowledged</span>';
+    const _depAmt = b.deposit_amount ? parseFloat(b.deposit_amount) : 0;
     const depPaid = b.deposit_paid
-      ? `<span style="color:#81C784;font-size:11px;">Deposit paid</span>`
-      : b.deposit_amount ? `<span style="color:var(--gold-warm);font-size:11px;">Deposit $${parseFloat(b.deposit_amount).toFixed(0)} pending</span>` : '';
+      ? `<span style="color:#81C784;font-size:11px;">✓ Deposit${_depAmt > 0 ? ' $' + _depAmt.toLocaleString() : ''} paid</span>`
+      : _depAmt > 0 ? `<span style="color:var(--gold-warm);font-size:11px;">Deposit $${_depAmt.toLocaleString()} pending</span>` : '';
     const statusColors = { pending:'var(--gold-warm)', confirmed:'#81C784', seated:'var(--staff-light)', cancelled:'var(--ash)', closed:'rgba(255,255,255,0.3)' };
     const color = statusColors[b.status] || 'var(--ash)';
     const isMember = !!b.member_id;
@@ -3551,21 +3552,26 @@ function renderTableBookings() {
           ${depPaid ? depPaid + '<br>' : ''}
           ${b.notes ? `<em style="color:var(--ash);">${escTbl(b.notes)}</em>` : ''}
           ${b.status === 'closed' ? (() => {
-            const dep2 = parseFloat(b.deposit_amount||0);
-            const pay2 = parseFloat(b.payment_amount||0);
-            const comp2 = parseFloat(b.comp_applied||0);
-            const total2 = dep2 + comp2 + pay2;
-            const min2 = parseFloat(b.minimum_spend_required||0);
-            const ov2 = min2 > 0 && total2 > min2 ? total2 - min2 : 0;
+            const dep2    = parseFloat(b.deposit_amount||0);
+            const pay2    = parseFloat(b.payment_amount||0);
+            const comp2   = parseFloat(b.comp_applied||0);
+            const total2  = dep2 + comp2 + pay2;
+            const min2    = parseFloat(b.minimum_spend_required||0);
+            const diff2   = min2 > 0 ? total2 - min2 : null;
+            const minLine = diff2 === null
+              ? ''
+              : diff2 >= 0
+                ? `<div style="margin-top:6px;font-size:11px;color:#81C784;">✓ +$${diff2.toLocaleString(undefined,{maximumFractionDigits:0})} over $${min2.toLocaleString()} min</div>`
+                : `<div style="margin-top:6px;font-size:11px;color:var(--ember);">⚠ $${Math.abs(diff2).toLocaleString(undefined,{maximumFractionDigits:0})} short of $${min2.toLocaleString()} min</div>`;
             return `<div style="margin-top:8px;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:6px;">
               <div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-bottom:5px;">TAB CLOSED</div>
               <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:12px;">
-                <span style="color:var(--mist);">Deposit <strong style="color:var(--ivory);">$${dep2.toLocaleString(undefined,{minimumFractionDigits:2})}</strong></span>
-                <span style="color:var(--mist);">Comp <strong style="color:var(--ivory);">$${comp2.toLocaleString(undefined,{minimumFractionDigits:2})}</strong></span>
+                ${dep2 > 0 ? `<span style="color:var(--mist);">Deposit <strong style="color:var(--ivory);">$${dep2.toLocaleString(undefined,{minimumFractionDigits:2})}</strong></span>` : ''}
+                ${comp2 > 0 ? `<span style="color:var(--mist);">Comp <strong style="color:var(--ivory);">$${comp2.toLocaleString(undefined,{minimumFractionDigits:2})}</strong></span>` : ''}
                 <span style="color:var(--mist);">Payment <strong style="color:var(--ivory);">$${pay2.toLocaleString(undefined,{minimumFractionDigits:2})}</strong></span>
                 <span style="color:var(--gold-warm);">Total <strong style="color:var(--gold-bright);">$${total2.toLocaleString(undefined,{minimumFractionDigits:2})}</strong></span>
-                ${ov2 > 0 ? `<span style="color:#81C784;">+$${ov2.toLocaleString(undefined,{maximumFractionDigits:0})} over min</span>` : ''}
               </div>
+              ${minLine}
             </div>`;
           })() : ''}
         </div>
@@ -4072,9 +4078,14 @@ function renderActiveTablesList(map) {
     const tabTotal = dep + comp + pay;
     const minSpendBk = linkedBk ? parseFloat(linkedBk.minimum_spend_required||0) : 0;
     const overage = minSpendBk > 0 && tabTotal > minSpendBk ? tabTotal - minSpendBk : 0;
-    const overageLine = overage > 0 ? ` · <span style="color:#81C784;">+$${overage.toLocaleString(undefined,{maximumFractionDigits:0})} over min</span>` : '';
+    const diff = minSpendBk > 0 ? tabTotal - minSpendBk : null;
+    const minLineSidebar = diff === null
+      ? ''
+      : diff >= 0
+        ? ` <span style="color:#81C784;">+$${diff.toLocaleString(undefined,{maximumFractionDigits:0})} over min</span>`
+        : ` <span style="color:var(--ember);">⚠ $${Math.abs(diff).toLocaleString(undefined,{maximumFractionDigits:0})} short of $${minSpendBk.toLocaleString()} min</span>`;
     const tabSummary = isClosed
-      ? `<div style="font-size:11px;color:var(--gold-warm);margin-top:4px;padding:6px 8px;background:rgba(212,168,67,0.07);border-radius:4px;">Tab: <strong style="color:var(--ivory);">$${tabTotal.toLocaleString(undefined,{minimumFractionDigits:2})}</strong> &nbsp;·&nbsp; Dep $${dep.toLocaleString()} &nbsp;·&nbsp; Comp $${comp.toLocaleString()} &nbsp;·&nbsp; Pay $${pay.toLocaleString()}${overageLine}</div>` : '';
+      ? `<div style="font-size:11px;color:var(--gold-warm);margin-top:4px;padding:6px 8px;background:rgba(212,168,67,0.07);border-radius:4px;">Tab: <strong style="color:var(--ivory);">$${tabTotal.toLocaleString(undefined,{minimumFractionDigits:2})}</strong>${dep > 0 ? ` &nbsp;·&nbsp; Dep $${dep.toLocaleString()}` : ''}${comp > 0 ? ` &nbsp;·&nbsp; Comp $${comp.toLocaleString()}` : ''} &nbsp;·&nbsp; Pay $${pay.toLocaleString()}${minLineSidebar}</div>` : '';
     const closedStyle = isClosed ? 'opacity:0.65;border-left-color:var(--ash);' : '';
     const closedBadge = isClosed ? `<span style="font-family:var(--font-label);font-size:9px;letter-spacing:0.15em;padding:2px 8px;border-radius:999px;border:1px solid var(--graphite);color:var(--ash);margin-left:8px;">CLOSED ${closedAt||''}</span>` : '';
     return `<div class="active-table-row ${type}" style="${closedStyle}" onclick="${isClosed?'':'openSeatModal('+num+')'}">
