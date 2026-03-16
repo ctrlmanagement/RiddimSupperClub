@@ -117,6 +117,64 @@
 .booking-min-notice{margin-top:8px;padding:7px 10px;background:rgba(212,168,67,0.08);border:1px solid rgba(212,168,67,0.25);border-radius:5px;font-size:12px;color:var(--gold-warm);}
 /* ── fp-table hidden by filter ── */
 .fp-table.fp-hidden{opacity:0.1;pointer-events:none;}
+/* ── Owner-created bookings: purple floor plan ── */
+.fp-table.owner-booked rect{fill:rgba(139,92,246,0.25);stroke:rgba(139,92,246,0.9);}
+.fp-table.owner-booked .fp-table-num{fill:#c4b5fd;}
+.fp-legend-dot.owner-booked{background:rgba(139,92,246,0.35);border:1px solid rgba(139,92,246,0.9);}
+/* ── Create Booking form panel ── */
+.cbk-panel{background:var(--carbon);border:1px solid rgba(139,92,246,0.4);border-radius:10px;padding:28px 24px;margin-bottom:28px;display:none;}
+.cbk-panel.open{display:block;}
+.cbk-section-title{font-family:var(--font-label);font-size:10px;letter-spacing:0.3em;color:#a78bfa;margin-bottom:14px;}
+.cbk-type-row{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
+.cbk-type-btn{flex:1;min-width:100px;padding:12px 10px;border-radius:8px;border:1px solid var(--graphite);background:none;color:var(--ash);font-family:var(--font-label);font-size:11px;letter-spacing:0.18em;cursor:pointer;transition:all 150ms;text-align:center;}
+.cbk-type-btn:hover{border-color:#a78bfa;color:#a78bfa;}
+.cbk-type-btn.active{border-color:#a78bfa;background:rgba(139,92,246,0.1);color:#c4b5fd;}
+.cbk-field{margin-bottom:14px;}
+.cbk-field label{display:block;font-family:var(--font-label);font-size:10px;letter-spacing:0.22em;color:#a78bfa;margin-bottom:6px;}
+.cbk-field input,.cbk-field select{width:100%;background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:11px 14px;color:var(--ivory);font-family:var(--font-body);font-size:14px;outline:none;transition:border-color 150ms;}
+.cbk-field input:focus,.cbk-field select:focus{border-color:#a78bfa;box-shadow:0 0 0 3px rgba(139,92,246,0.12);}
+.cbk-field input::placeholder{color:var(--ash);}
+.cbk-field select option{background:var(--carbon);}
+.cbk-field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:520px){.cbk-field-row{grid-template-columns:1fr;}}
+.cbk-amount-fields{display:none;}
+.cbk-amount-fields.visible{display:block;}
+.cbk-zone-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;}
+.cbk-zone-btn{padding:7px 14px;border-radius:999px;border:1px solid var(--graphite);background:none;color:var(--ash);font-family:var(--font-body);font-size:12px;cursor:pointer;transition:all 150ms;}
+.cbk-zone-btn:hover{border-color:#a78bfa;color:#a78bfa;}
+.cbk-zone-btn.active{border-color:#a78bfa;background:rgba(139,92,246,0.1);color:#c4b5fd;}
+.cbk-table-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;min-height:40px;}
+.cbk-table-btn{width:48px;height:48px;border-radius:8px;border:1px solid var(--graphite);background:var(--void);color:var(--mist);font-family:var(--font-label);font-size:13px;cursor:pointer;transition:all 150ms;display:flex;align-items:center;justify-content:center;}
+.cbk-table-btn:hover:not(.blocked){border-color:#a78bfa;background:rgba(139,92,246,0.1);color:#c4b5fd;}
+.cbk-table-btn.selected{border-color:#a78bfa;background:rgba(139,92,246,0.25);color:#c4b5fd;box-shadow:0 0 0 2px rgba(139,92,246,0.35);}
+.cbk-table-btn.blocked{border-color:rgba(192,57,43,0.35);background:rgba(192,57,43,0.07);color:rgba(192,57,43,0.5);cursor:not-allowed;}
+.cbk-table-legend{display:flex;gap:14px;margin-top:8px;flex-wrap:wrap;}
+.cbk-table-legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ash);}
+.cbk-table-legend-dot{width:10px;height:10px;border-radius:2px;}
+.cbk-phone-lookup-row{display:flex;gap:8px;}
+.cbk-phone-lookup-row input{flex:1;}
+.cbk-lookup-btn{padding:11px 16px;border-radius:6px;background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.4);color:#c4b5fd;font-family:var(--font-label);font-size:11px;letter-spacing:0.12em;cursor:pointer;transition:all 150ms;white-space:nowrap;}
+.cbk-lookup-btn:hover{background:rgba(139,92,246,0.25);}
+.cbk-member-found{display:none;padding:10px 14px;background:rgba(139,92,246,0.07);border:1px solid rgba(139,92,246,0.3);border-radius:6px;margin-top:8px;}
+.cbk-member-found.visible{display:flex;align-items:center;gap:10px;}
+.cbk-member-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6d28d9,#a78bfa);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#fff;flex-shrink:0;}
+.cbk-member-name{font-size:13px;color:var(--ivory);}
+.cbk-member-id{font-size:11px;color:#a78bfa;margin-top:1px;}
+.cbk-qr-result{display:none;background:var(--void);border:1px solid rgba(139,92,246,0.4);border-radius:10px;padding:24px;text-align:center;margin-top:20px;}
+.cbk-qr-result.visible{display:block;}
+.cbk-qr-result-name{font-family:var(--font-display);font-size:20px;font-weight:300;font-style:italic;color:var(--ivory);margin-bottom:4px;}
+.cbk-qr-result-meta{font-size:12px;color:var(--ash);margin-bottom:16px;}
+.cbk-qr-wrap{width:180px;height:180px;background:#fff;border-radius:8px;padding:8px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;}
+.cbk-actions-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.btn-cbk-primary{flex:1;min-width:120px;padding:14px;border-radius:6px;background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;color:#fff;font-family:var(--font-label);font-size:13px;letter-spacing:0.15em;cursor:pointer;transition:opacity 150ms;}
+.btn-cbk-primary:hover{opacity:0.85;}
+.btn-cbk-ghost{padding:14px 20px;border-radius:6px;background:none;border:1px solid var(--graphite);color:var(--ash);font-family:var(--font-body);font-size:13px;cursor:pointer;transition:all 150ms;}
+.btn-cbk-ghost:hover{color:var(--mist);}
+.btn-cbk-sms{padding:10px 20px;border-radius:6px;background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.4);color:#c4b5fd;font-family:var(--font-label);font-size:11px;letter-spacing:0.15em;cursor:pointer;transition:all 150ms;}
+.btn-cbk-sms:hover{background:rgba(139,92,246,0.25);}
+.btn-cbk-copy{padding:10px 20px;border-radius:6px;background:none;border:1px solid var(--graphite);color:var(--ash);font-family:var(--font-label);font-size:11px;letter-spacing:0.15em;cursor:pointer;transition:all 150ms;}
+.btn-cbk-copy:hover{border-color:#a78bfa;color:#a78bfa;}
+.cbk-error{font-size:13px;color:var(--ember);margin-top:8px;min-height:18px;}
 /* ── END TABLE MANAGEMENT ─────────────────────────────────── */
 </style></head><body><div class="screen active" id="screenLogin"><div class="auth-wrap"><div class="auth-card"><div class="auth-logo"><span class="auth-wordmark">RIDDIM</span><div style="display:flex;justify-content:center;margin-top:8px;"><span class="auth-role"><span class="auth-role-dot"></span>Owner Portal</span></div></div><div class="auth-divider"></div><h1 class="auth-heading">Owner Access</h1><p class="auth-hint" style="margin-bottom:24px;">Sign in with your AG Entertainment account to continue</p><div class="auth-lock-badge" style="justify-content:center;text-align:center;"><span class="auth-lock-text">
  Restricted — unauthorized<br>accounts will be denied
@@ -131,8 +189,132 @@
       <h1 class="page-title">Table Bookings</h1>
       <p class="page-sub">Paid table requests with minimum spends — submitted via reserve.html or members portal.</p>
     </div>
-    <button onclick="loadTableBookings()" style="padding:9px 18px;border:1px solid var(--graphite);background:none;border-radius:6px;color:var(--ash);font-family:var(--font-body);font-size:12px;cursor:pointer;margin-top:8px;">↺ Refresh</button>
+    <div style="display:flex;gap:10px;align-items:center;margin-top:8px;">
+      <button onclick="openCreateBookingPanel()" id="btnOpenCreateBooking" style="padding:9px 18px;background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;border-radius:6px;color:#fff;font-family:var(--font-label);font-size:12px;letter-spacing:0.12em;cursor:pointer;">+ Create Booking</button>
+      <button onclick="loadTableBookings()" style="padding:9px 18px;border:1px solid var(--graphite);background:none;border-radius:6px;color:var(--ash);font-family:var(--font-body);font-size:12px;cursor:pointer;">↺ Refresh</button>
+    </div>
   </div>
+
+  <!-- ═══ OWNER CREATE BOOKING PANEL ═══════════════════════════ -->
+  <div class="cbk-panel" id="cbkPanel">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <div>
+        <p class="cbk-section-title">OWNER CREATE BOOKING</p>
+        <div style="font-family:var(--font-display);font-size:22px;font-weight:300;font-style:italic;color:var(--ivory);">New Table Booking</div>
+      </div>
+      <button onclick="closeCreateBookingPanel()" style="background:none;border:none;color:var(--ash);font-size:22px;cursor:pointer;line-height:1;padding:4px;">&#x2715;</button>
+    </div>
+    <!-- Booking Type -->
+    <div class="cbk-field">
+      <label>BOOKING TYPE</label>
+      <div class="cbk-type-row">
+        <button class="cbk-type-btn active" data-type="paid" onclick="cbkSetType(this,'paid')"><span style="font-size:16px;display:block;margin-bottom:3px;">💳</span>Paid</button>
+        <button class="cbk-type-btn" data-type="comp" onclick="cbkSetType(this,'comp')"><span style="font-size:16px;display:block;margin-bottom:3px;">✦</span>Comp</button>
+        <button class="cbk-type-btn" data-type="reserved" onclick="cbkSetType(this,'reserved')"><span style="font-size:16px;display:block;margin-bottom:3px;">⊡</span>Reserved</button>
+      </div>
+    </div>
+    <!-- Event selector -->
+    <div class="cbk-field">
+      <label>EVENT <span style="color:var(--ember);font-size:11px;">*</span></label>
+      <select id="cbkEventSelect" onchange="cbkOnEventChange()">
+        <option value="">— Select an event —</option>
+      </select>
+    </div>
+    <!-- Guest phone lookup -->
+    <div class="cbk-field">
+      <label>GUEST PHONE <span style="color:var(--ember);font-size:11px;">*</span></label>
+      <div class="cbk-phone-lookup-row">
+        <input type="tel" id="cbkPhoneInput" placeholder="(404) 555-0100" maxlength="14" oninput="cbkFormatPhone(this)" />
+        <button class="cbk-lookup-btn" onclick="cbkLookupPhone()">Look Up</button>
+      </div>
+      <div class="cbk-member-found" id="cbkMemberFound">
+        <div class="cbk-member-avatar" id="cbkMemberAvatar">?</div>
+        <div><div class="cbk-member-name" id="cbkMemberName">—</div><div class="cbk-member-id" id="cbkMemberId">—</div></div>
+      </div>
+    </div>
+    <!-- Guest name -->
+    <div class="cbk-field">
+      <label>GUEST NAME <span style="color:var(--ember);font-size:11px;">*</span></label>
+      <input type="text" id="cbkGuestName" placeholder="Full name" />
+    </div>
+    <div class="cbk-field-row">
+      <div class="cbk-field" style="margin-bottom:0;">
+        <label>PARTY SIZE</label>
+        <select id="cbkPartySize">
+          <option value="2">2</option><option value="3">3</option><option value="4" selected>4</option>
+          <option value="5">5</option><option value="6">6</option><option value="8">8</option>
+          <option value="10">10</option><option value="12">12</option><option value="15">15</option><option value="20">20+</option>
+        </select>
+      </div>
+      <div class="cbk-field" style="margin-bottom:0;">
+        <label>SECTION <span style="font-size:9px;color:var(--ash);font-family:var(--font-body);letter-spacing:0;">(auto-fills from table)</span></label>
+        <input type="text" id="cbkSectionDisplay" readonly placeholder="Select a table below" style="cursor:default;opacity:0.7;" />
+      </div>
+    </div>
+    <!-- Zone + table picker -->
+    <div class="cbk-field" style="margin-top:16px;">
+      <label>SELECT ZONE THEN TABLE <span style="color:var(--ember);font-size:11px;">*</span></label>
+      <div id="cbkZoneWrap" style="opacity:0.4;pointer-events:none;">
+        <div class="cbk-zone-row" id="cbkZoneRow">
+          <button class="cbk-zone-btn" data-zone="front" onclick="cbkSelectZone(this,'front')">Front (1–6)</button>
+          <button class="cbk-zone-btn" data-zone="mid" onclick="cbkSelectZone(this,'mid')">Mid (7–11)</button>
+          <button class="cbk-zone-btn" data-zone="center" onclick="cbkSelectZone(this,'center')">Center (12–19)</button>
+          <button class="cbk-zone-btn" data-zone="second" onclick="cbkSelectZone(this,'second')">Second (20–24)</button>
+          <button class="cbk-zone-btn" data-zone="top" onclick="cbkSelectZone(this,'top')">Top (25–31)</button>
+        </div>
+        <div class="cbk-table-grid" id="cbkTableGrid">
+          <span style="font-size:12px;color:var(--ash);font-style:italic;">Select an event and zone first.</span>
+        </div>
+        <div class="cbk-table-legend" id="cbkTableLegend" style="display:none;">
+          <div class="cbk-table-legend-item"><div class="cbk-table-legend-dot" style="background:rgba(42,42,42,0.9);border:1px solid rgba(136,136,136,0.45);"></div>Available</div>
+          <div class="cbk-table-legend-item"><div class="cbk-table-legend-dot" style="background:rgba(192,57,43,0.2);border:1px solid rgba(192,57,43,0.6);"></div>Blocked</div>
+          <div class="cbk-table-legend-item"><div class="cbk-table-legend-dot" style="background:rgba(139,92,246,0.25);border:1px solid rgba(139,92,246,0.9);"></div>Selected</div>
+        </div>
+      </div>
+    </div>
+    <!-- Amount fields -->
+    <div id="cbkAmountPaid" class="cbk-amount-fields" style="margin-top:4px;">
+      <div class="cbk-field-row">
+        <div class="cbk-field" style="margin-bottom:0;">
+          <label>DEPOSIT AMOUNT ($)</label>
+          <input type="number" id="cbkDepositAmount" placeholder="e.g. 200" min="0" step="50" />
+        </div>
+        <div class="cbk-field" style="margin-bottom:0;">
+          <label>MIN SPEND REQUIRED ($)</label>
+          <input type="number" id="cbkMinSpend" placeholder="e.g. 750" min="0" step="50" />
+        </div>
+      </div>
+    </div>
+    <div id="cbkAmountComp" class="cbk-amount-fields" style="margin-top:4px;">
+      <div class="cbk-field">
+        <label>COMP AMOUNT ($)</label>
+        <input type="number" id="cbkCompAmount" placeholder="e.g. 500" min="0" step="50" />
+      </div>
+    </div>
+    <!-- Notes -->
+    <div class="cbk-field" style="margin-top:4px;">
+      <label>NOTES <span style="font-size:9px;color:var(--ash);font-family:var(--font-body);letter-spacing:0;">(internal, optional)</span></label>
+      <input type="text" id="cbkNotes" placeholder="e.g. Birthday VIP, champagne on arrival" />
+    </div>
+    <p class="cbk-error" id="cbkError"></p>
+    <div style="display:flex;gap:10px;margin-top:8px;">
+      <button class="btn-cbk-primary" onclick="submitCreateBooking()">✦ Create Booking</button>
+      <button class="btn-cbk-ghost" onclick="closeCreateBookingPanel()">Cancel</button>
+    </div>
+    <!-- QR result after creation -->
+    <div class="cbk-qr-result" id="cbkQrResult">
+      <div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.3em;color:#a78bfa;margin-bottom:10px;">BOOKING CONFIRMED ✦</div>
+      <div class="cbk-qr-result-name" id="cbkQrResultName"></div>
+      <div class="cbk-qr-result-meta" id="cbkQrResultMeta"></div>
+      <div class="cbk-qr-wrap"><div id="cbkQrWrap"></div></div>
+      <div class="cbk-actions-row">
+        <button class="btn-cbk-sms" id="btnCbkSms">&#x2709; Send SMS</button>
+        <button class="btn-cbk-copy" id="btnCbkCopy">&#x29C9; Copy Link</button>
+        <button class="btn-cbk-ghost" onclick="resetCreateBookingForm()" style="padding:10px 16px;font-size:12px;">+ New Booking</button>
+      </div>
+    </div>
+  </div>
+  <!-- ═══ END OWNER CREATE BOOKING PANEL ═══════════════════════ -->
   <!-- Filters -->
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
     <div class="res-filters" style="margin-bottom:0;">
@@ -256,6 +438,7 @@
           <div class="fp-legend-item"><div class="fp-legend-dot available"></div> Available</div>
           <div class="fp-legend-item"><div class="fp-legend-dot occupied"></div> Seated</div>
           <div class="fp-legend-item"><div class="fp-legend-dot reserved"></div> Reserved</div>
+          <div class="fp-legend-item"><div class="fp-legend-dot owner-booked"></div> Owner Booked</div>
         </div>
       </div>
     </div>
@@ -3838,10 +4021,18 @@ function onSeatResChange() {
 }
 
 function renderFloorPlan(map) {
+  // Build set of owner-booked table numbers from _allTableBookings
+  const ownerBookedTables = new Set(
+    (_allTableBookings || [])
+      .filter(b => b.booking_source === 'owner' && ['confirmed','seated'].includes(b.status) && b.table_number)
+      .map(b => parseInt(b.table_number))
+  );
   document.querySelectorAll('#floorPlanSvg .fp-table').forEach(el => {
     const num = parseInt(el.dataset.table);
-    el.classList.remove('available','occupied','reserved');
-    if (map[num]) {
+    el.classList.remove('available','occupied','reserved','owner-booked');
+    if (ownerBookedTables.has(num)) {
+      el.classList.add('owner-booked');
+    } else if (map[num]) {
       el.classList.add(map[num].reservation_id ? 'reserved' : 'occupied');
     } else {
       el.classList.add('available');
@@ -4256,6 +4447,364 @@ function _renderSeatModalLinks(tableNum) {
       </div>`;
     }).join('')}`;
 }
+
+/* ═══ OWNER CREATE BOOKING ═══════════════════════════════════════════ */
+
+const CBK_SECTION_MAP = {
+  front:  { label: 'Front Booths (1-6)',       tables: [1,2,3,4,5,6] },
+  mid:    { label: 'Mid Row (7-11)',            tables: [7,8,9,10,11] },
+  center: { label: 'Center Cluster (12-19)',   tables: [12,13,14,15,16,17,18,19] },
+  second: { label: 'Second Row (20-24)',        tables: [20,21,22,23,24] },
+  top:    { label: 'Top Row + Lounge (25-31)', tables: [25,26,27,28,29,30,31] },
+};
+
+let _cbkType = 'paid';
+let _cbkSelectedTable = null;
+let _cbkSelectedZone = null;
+let _cbkBlockedTables = new Set();
+let _cbkCreatedBooking = null;
+let _cbkLinkedMemberId = null;
+
+function openCreateBookingPanel() {
+  const panel = document.getElementById('cbkPanel');
+  panel.classList.add('open');
+  panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Populate event dropdown
+  cbkPopulateEvents();
+  // Reset form state
+  resetCreateBookingForm();
+}
+
+function closeCreateBookingPanel() {
+  document.getElementById('cbkPanel').classList.remove('open');
+}
+
+function cbkPopulateEvents() {
+  const sel = document.getElementById('cbkEventSelect');
+  const upcoming = (EVENTS || []).filter(e => ['scheduled','live','sold_out'].includes(e.status));
+  sel.innerHTML = '<option value="">— Select an event —</option>' +
+    upcoming.map(e => {
+      const d = e.event_date ? new Date(e.event_date + 'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}) : '';
+      return `<option value="${e.id}" data-date="${e.event_date || ''}">${e.title}${d ? ' — ' + d : ''}</option>`;
+    }).join('');
+}
+
+function cbkSetType(btn, type) {
+  _cbkType = type;
+  document.querySelectorAll('.cbk-type-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  // Show/hide amount fields
+  document.getElementById('cbkAmountPaid').classList.toggle('visible', type === 'paid');
+  document.getElementById('cbkAmountComp').classList.toggle('visible', type === 'comp');
+}
+
+function cbkFormatPhone(input) {
+  const d = input.value.replace(/\D/g,'');
+  if (d.length <= 3) input.value = '(' + d;
+  else if (d.length <= 6) input.value = '(' + d.slice(0,3) + ') ' + d.slice(3);
+  else input.value = '(' + d.slice(0,3) + ') ' + d.slice(3,6) + '-' + d.slice(6,10);
+}
+
+async function cbkLookupPhone() {
+  const raw = document.getElementById('cbkPhoneInput').value.replace(/\D/g,'');
+  if (raw.length < 10) { showToast('Enter a valid 10-digit phone number.'); return; }
+  const phone10 = raw.slice(-10);
+  const phoneE164 = '+1' + phone10;
+  const foundEl = document.getElementById('cbkMemberFound');
+  foundEl.classList.remove('visible');
+  _cbkLinkedMemberId = null;
+  if (!LIVE_DATA || !supabaseClient) {
+    // Try local MEMBERS array
+    const m = MEMBERS.find(m => (m.phone||'').replace(/\D/g,'').slice(-10) === phone10);
+    if (m) { _cbkApplyMemberFound(m); } else { showToast('No member found — guest name required.'); }
+    return;
+  }
+  try {
+    const { data } = await supabaseClient.from('members').select('id,first_name,last_name,phone').eq('phone', phoneE164).maybeSingle();
+    if (data) {
+      _cbkApplyMemberFound(data);
+    } else {
+      showToast('No member found — enter guest name manually.');
+    }
+  } catch(e) { showToast('Lookup failed. Enter guest name manually.'); }
+}
+
+function _cbkApplyMemberFound(m) {
+  _cbkLinkedMemberId = m.id;
+  const name = (m.first_name + ' ' + m.last_name).trim();
+  document.getElementById('cbkMemberAvatar').textContent = ((m.first_name||'?')[0] + (m.last_name||'?')[0]).toUpperCase();
+  document.getElementById('cbkMemberName').textContent = name;
+  document.getElementById('cbkMemberId').textContent = m.id;
+  document.getElementById('cbkMemberFound').classList.add('visible');
+  // Auto-fill guest name if blank
+  const nameInput = document.getElementById('cbkGuestName');
+  if (!nameInput.value.trim()) nameInput.value = name;
+  showToast('Member found: ' + name, 'gold');
+}
+
+async function cbkOnEventChange() {
+  const sel = document.getElementById('cbkEventSelect');
+  const eventId = sel.value;
+  // Unlock zone picker if event selected
+  const zoneWrap = document.getElementById('cbkZoneWrap');
+  if (eventId) {
+    zoneWrap.style.opacity = '1';
+    zoneWrap.style.pointerEvents = '';
+  } else {
+    zoneWrap.style.opacity = '0.4';
+    zoneWrap.style.pointerEvents = 'none';
+    _cbkBlockedTables = new Set();
+    _cbkSelectedZone = null;
+    _cbkSelectedTable = null;
+    document.getElementById('cbkSectionDisplay').value = '';
+    document.getElementById('cbkTableGrid').innerHTML = '<span style="font-size:12px;color:var(--ash);font-style:italic;">Select an event and zone first.</span>';
+    document.getElementById('cbkTableLegend').style.display = 'none';
+    document.querySelectorAll('.cbk-zone-btn').forEach(b => b.classList.remove('active'));
+    return;
+  }
+  // Fetch blocked tables for this event from table_bookings
+  await cbkFetchBlockedTables(eventId);
+  // If a zone was already selected, re-render the table grid
+  if (_cbkSelectedZone) cbkRenderTableGrid(_cbkSelectedZone);
+}
+
+async function cbkFetchBlockedTables(eventId) {
+  _cbkBlockedTables = new Set();
+  if (!LIVE_DATA || !supabaseClient) {
+    // Fall back to _allTableBookings in memory
+    (_allTableBookings || [])
+      .filter(b => b.event_id === eventId && ['pending','confirmed','seated'].includes(b.status) && b.table_number)
+      .forEach(b => _cbkBlockedTables.add(parseInt(b.table_number)));
+    return;
+  }
+  try {
+    const { data } = await supabaseClient
+      .from('table_bookings')
+      .select('table_number')
+      .eq('event_id', eventId)
+      .in('status', ['pending','confirmed','seated'])
+      .not('table_number', 'is', null);
+    (data || []).forEach(b => _cbkBlockedTables.add(parseInt(b.table_number)));
+  } catch(e) { console.warn('cbkFetchBlockedTables error:', e); }
+}
+
+function cbkSelectZone(btn, zone) {
+  const eventId = document.getElementById('cbkEventSelect').value;
+  if (!eventId) { showToast('Select an event first.'); return; }
+  _cbkSelectedZone = zone;
+  _cbkSelectedTable = null;
+  document.getElementById('cbkSectionDisplay').value = '';
+  document.querySelectorAll('.cbk-zone-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  cbkRenderTableGrid(zone);
+}
+
+function cbkRenderTableGrid(zone) {
+  const info = CBK_SECTION_MAP[zone];
+  if (!info) return;
+  const grid = document.getElementById('cbkTableGrid');
+  grid.innerHTML = info.tables.map(num => {
+    const blocked = _cbkBlockedTables.has(num);
+    const selected = _cbkSelectedTable === num;
+    let cls = 'cbk-table-btn';
+    if (blocked) cls += ' blocked';
+    else if (selected) cls += ' selected';
+    const title = blocked ? `Table ${num} — blocked` : `Table ${num}`;
+    return `<button class="${cls}" title="${title}" onclick="cbkSelectTable(${num})" ${blocked ? 'disabled' : ''}>${num}</button>`;
+  }).join('');
+  document.getElementById('cbkTableLegend').style.display = 'flex';
+}
+
+function cbkSelectTable(num) {
+  if (_cbkBlockedTables.has(num)) return;
+  _cbkSelectedTable = num;
+  // Update section display
+  const zone = Object.keys(CBK_SECTION_MAP).find(z => CBK_SECTION_MAP[z].tables.includes(num));
+  document.getElementById('cbkSectionDisplay').value = zone ? CBK_SECTION_MAP[zone].label : '';
+  // Re-render grid to reflect selection
+  if (_cbkSelectedZone) cbkRenderTableGrid(_cbkSelectedZone);
+}
+
+async function submitCreateBooking() {
+  const errEl = document.getElementById('cbkError');
+  errEl.textContent = '';
+
+  // Gather + validate
+  const eventId = document.getElementById('cbkEventSelect').value;
+  const phoneRaw = document.getElementById('cbkPhoneInput').value.replace(/\D/g,'');
+  const guestName = document.getElementById('cbkGuestName').value.trim();
+  const partySize = parseInt(document.getElementById('cbkPartySize').value) || 4;
+  const notes = document.getElementById('cbkNotes').value.trim();
+
+  if (!eventId) { errEl.textContent = 'Select an event.'; return; }
+  if (phoneRaw.length < 10) { errEl.textContent = 'Enter a valid guest phone number.'; return; }
+  if (!guestName) { errEl.textContent = 'Guest name is required.'; return; }
+  if (!_cbkSelectedTable) { errEl.textContent = 'Select a table number.'; return; }
+
+  const phone10 = phoneRaw.slice(-10);
+  const phoneE164 = '+1' + phone10;
+  const zone = Object.keys(CBK_SECTION_MAP).find(z => CBK_SECTION_MAP[z].tables.includes(_cbkSelectedTable));
+  const sectionName = zone || 'front';
+
+  // Amount fields
+  let depositAmount = 0, minSpend = 0, compApplied = 0;
+  if (_cbkType === 'paid') {
+    depositAmount = parseFloat(document.getElementById('cbkDepositAmount').value) || 0;
+    minSpend = parseFloat(document.getElementById('cbkMinSpend').value) || 0;
+  } else if (_cbkType === 'comp') {
+    compApplied = parseFloat(document.getElementById('cbkCompAmount').value) || 0;
+  }
+
+  // Get event date for valid_date
+  const evtSel = document.getElementById('cbkEventSelect');
+  const evtOpt = evtSel.options[evtSel.selectedIndex];
+  const validDate = evtOpt?.dataset?.date || new Date().toISOString().slice(0,10);
+
+  const qrToken = crypto.randomUUID();
+
+  const payload = {
+    event_id: eventId,
+    guest_name: guestName,
+    guest_phone: phoneE164,
+    party_size: partySize,
+    table_number: _cbkSelectedTable,
+    section_name: sectionName,
+    deposit_amount: depositAmount,
+    minimum_spend_required: minSpend,
+    comp_applied: compApplied,
+    payment_amount: 0,
+    notes: notes || null,
+    status: 'confirmed',
+    booking_source: 'owner',
+    qr_token: qrToken,
+    booking_type: _cbkType,
+    member_id: _cbkLinkedMemberId || null,
+    requested_at: new Date().toISOString(),
+    minimum_spend_acknowledged: true,
+    deposit_paid: depositAmount > 0,
+    valid_date: validDate,
+  };
+
+  // Disable submit button
+  const submitBtn = document.querySelector('#cbkPanel .btn-cbk-primary');
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Creating…'; }
+
+  if (LIVE_DATA && supabaseClient) {
+    const { data, error } = await supabaseClient.from('table_bookings').insert(payload).select().single();
+    if (error) {
+      errEl.textContent = 'Could not create booking: ' + (error.message || 'Try again.');
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = '✦ Create Booking'; }
+      return;
+    }
+    _cbkCreatedBooking = data;
+    _allTableBookings.unshift(data);
+  } else {
+    _cbkCreatedBooking = { ...payload, id: 'local-' + Date.now() };
+    _allTableBookings.unshift(_cbkCreatedBooking);
+  }
+
+  // Mark table as blocked immediately in the grid
+  _cbkBlockedTables.add(_cbkSelectedTable);
+  if (_cbkSelectedZone) cbkRenderTableGrid(_cbkSelectedZone);
+
+  // Update floor plan
+  renderFloorPlan(_tableSessions);
+  renderTableBookings();
+  updateTblBookingBadge();
+
+  // Show QR result
+  cbkShowQrResult(_cbkCreatedBooking);
+
+  if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = '✦ Create Booking'; }
+  showToast('Booking created — Table ' + _cbkSelectedTable + ' blocked ✦', 'gold');
+}
+
+function cbkShowQrResult(booking) {
+  const TYPE_LABELS = { paid: 'Paid Table', comp: 'Comp Table', reserved: 'Reserved Table' };
+  const typeLabel = TYPE_LABELS[booking.booking_type || _cbkType] || 'Table Booking';
+  const evtOpt = document.getElementById('cbkEventSelect');
+  const evtLabel = evtOpt.options[evtOpt.selectedIndex]?.text || 'Event';
+  const meta = [
+    typeLabel,
+    'Table ' + booking.table_number,
+    CBK_SECTION_MAP[booking.section_name]?.label || booking.section_name,
+    'Party of ' + booking.party_size,
+  ];
+  if (booking.deposit_amount > 0) meta.push('Deposit $' + parseFloat(booking.deposit_amount).toLocaleString());
+  if (booking.minimum_spend_required > 0) meta.push('Min $' + parseFloat(booking.minimum_spend_required).toLocaleString());
+  if (booking.comp_applied > 0) meta.push('Comp $' + parseFloat(booking.comp_applied).toLocaleString());
+
+  document.getElementById('cbkQrResultName').textContent = booking.guest_name;
+  document.getElementById('cbkQrResultMeta').textContent = meta.join(' · ');
+
+  const wrap = document.getElementById('cbkQrWrap');
+  wrap.innerHTML = '';
+  const passUrl = 'https://portal.ctrlmanagement.com/tbk.html?token=' + booking.qr_token;
+  try {
+    new QRCode(wrap, { text: 'TBK:' + booking.qr_token, width: 164, height: 164, colorDark: '#000', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.M });
+  } catch(e) { wrap.innerHTML = '<span style="font-size:11px;color:#888;">QR unavailable</span>'; }
+
+  // Wire SMS button
+  document.getElementById('btnCbkSms').onclick = () => {
+    const phone = booking.guest_phone || '';
+    if (!phone) { showToast('No phone number on this booking.'); return; }
+    const typeMsg = { paid: 'paid table booking', comp: 'complimentary table', reserved: 'reserved table' };
+    const msg = encodeURIComponent(
+      booking.guest_name + ', your ' + (typeMsg[booking.booking_type || _cbkType] || 'table booking') +
+      ' at RIDDIM Supper Club is confirmed — Table ' + booking.table_number + '.' +
+      (booking.deposit_amount > 0 ? ' Deposit: $' + parseFloat(booking.deposit_amount).toLocaleString() + '.' : '') +
+      (booking.minimum_spend_required > 0 ? ' Min spend: $' + parseFloat(booking.minimum_spend_required).toLocaleString() + '.' : '') +
+      ' Show this QR at the door: ' + passUrl
+    );
+    window.open('sms:' + phone + '?body=' + msg, '_blank');
+  };
+
+  // Wire copy button
+  document.getElementById('btnCbkCopy').onclick = () => {
+    navigator.clipboard?.writeText(passUrl).then(() => showToast('Link copied!', 'gold')).catch(() => showToast('Copy failed.'));
+  };
+
+  document.getElementById('cbkQrResult').classList.add('visible');
+  document.getElementById('cbkQrResult').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function resetCreateBookingForm() {
+  _cbkType = 'paid';
+  _cbkSelectedTable = null;
+  _cbkSelectedZone = null;
+  _cbkCreatedBooking = null;
+  _cbkLinkedMemberId = null;
+
+  document.querySelectorAll('.cbk-type-btn').forEach(b => b.classList.remove('active'));
+  const paidBtn = document.querySelector('.cbk-type-btn[data-type="paid"]');
+  if (paidBtn) paidBtn.classList.add('active');
+
+  document.getElementById('cbkEventSelect').value = '';
+  document.getElementById('cbkPhoneInput').value = '';
+  document.getElementById('cbkGuestName').value = '';
+  document.getElementById('cbkPartySize').value = '4';
+  document.getElementById('cbkSectionDisplay').value = '';
+  document.getElementById('cbkNotes').value = '';
+  document.getElementById('cbkDepositAmount').value = '';
+  document.getElementById('cbkMinSpend').value = '';
+  document.getElementById('cbkCompAmount').value = '';
+  document.getElementById('cbkError').textContent = '';
+  document.getElementById('cbkMemberFound').classList.remove('visible');
+  document.getElementById('cbkAmountPaid').classList.remove('visible');
+  document.getElementById('cbkAmountComp').classList.remove('visible');
+  document.getElementById('cbkQrResult').classList.remove('visible');
+  document.getElementById('cbkQrWrap').innerHTML = '';
+
+  const zoneWrap = document.getElementById('cbkZoneWrap');
+  zoneWrap.style.opacity = '0.4';
+  zoneWrap.style.pointerEvents = 'none';
+  document.querySelectorAll('.cbk-zone-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('cbkTableGrid').innerHTML = '<span style="font-size:12px;color:var(--ash);font-style:italic;">Select an event and zone first.</span>';
+  document.getElementById('cbkTableLegend').style.display = 'none';
+  _cbkBlockedTables = new Set();
+}
+
+/* ═══ END OWNER CREATE BOOKING ═══════════════════════════════════════════ */
 
 /* ═══ END TABLE MANAGEMENT ═══════════════════════════════════════════ */
 
