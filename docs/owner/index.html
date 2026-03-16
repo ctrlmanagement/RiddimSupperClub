@@ -3735,14 +3735,16 @@ async function tblBookingOwnerRemove(id) {
   const name = b.guest_name || 'this booking';
   if (!confirm(`Remove owner booking for ${name}? This will hard-delete the record and release the table.`)) return;
   // Hard delete — only allowed for owner-created, confirmed, unscanned bookings
-  const { error } = await supabaseClient
+  const { data: deleted, error } = await supabaseClient
     .from('table_bookings')
     .delete()
     .eq('id', id)
     .eq('booking_source', 'owner')
     .eq('status', 'confirmed')
-    .is('scanned_at', null);
-  if (error) { showToast('Error removing booking.'); return; }
+    .is('scanned_at', null)
+    .select('id');
+  if (error) { showToast('Error removing booking: ' + (error.message || 'unknown')); return; }
+  if (!deleted || deleted.length === 0) { showToast('Remove blocked — check RLS policy on table_bookings.'); return; }
   // Remove from local cache
   _allTableBookings = _allTableBookings.filter(b => b.id !== id);
   // Also remove from floor plan cache so table unlocks immediately
