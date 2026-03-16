@@ -2510,15 +2510,29 @@ function startCheckinScanner() {
             if (!LIVE_DATA || !supabaseClient) { showToast('Live data required.'); return; }
             const { data: bk } = await supabaseClient
               .from('table_bookings')
-              .select('id,guest_name,guest_phone,party_size,section_name,table_number,minimum_spend_required,minimum_spend_acknowledged,deposit_amount,deposit_paid,payment_amount,status,notes,qr_token,requested_at,scanned_at')
+              .select('id,guest_name,guest_phone,party_size,section_name,table_number,minimum_spend_required,minimum_spend_acknowledged,deposit_amount,deposit_paid,payment_amount,status,notes,qr_token,requested_at,scanned_at,event_id')
               .eq('qr_token', qrToken)
               .maybeSingle();
             if (!bk) { showToast('Table booking not found.'); return; }
-            // One-time scan check (Option B): if already scanned, block re-entry
+            // One-time scan check: if already scanned, block re-entry
             if (bk.scanned_at) {
               const scannedTime = new Date(bk.scanned_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
               showTableBookingOverlay(bk, null, `Already checked in at ${scannedTime}`);
               return;
+            }
+            // Event date gate — booking must be for today's event (Principle S55)
+            // Query events separately — never join events on table_bookings (Principle 153)
+            if (bk.event_id) {
+              const { data: ev } = await supabaseClient
+                .from('events')
+                .select('event_date, title')
+                .eq('id', bk.event_id)
+                .maybeSingle();
+              if (ev && ev.event_date !== localDateStr()) {
+                const evDateLabel = new Date(ev.event_date + 'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+                showToast(`⚠ Booking is for ${evDateLabel} — cannot scan today.`);
+                return;
+              }
             }
             // Write scanned_at immediately — marks QR as used
             await supabaseClient.from('table_bookings')
