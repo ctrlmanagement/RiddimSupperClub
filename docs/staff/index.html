@@ -2418,15 +2418,22 @@ function startCheckinScanner() {
         // Route: COMP:<uuid> → Tables tab, seat modal pre-filled from comp/vip_pass
         if (/^COMP:/i.test(decoded)) {
           const compId = decoded.slice(5).trim();
-          goToTab('tables');
           showToast('⊟ Loading comp table…', 'blue');
           (async () => {
-            if (LIVE_DATA && supabaseClient) {
-              const { data: vp } = await supabaseClient.from('vip_passes').select('*').eq('id', compId).maybeSingle();
-              if (vp) {
-                staffOpenSeatModal(vp.table_number || null, { prefillComp: vp });
-              } else { showToast('Comp pass not found for this QR.'); }
-            } else { showToast('Live data required to look up comp passes.'); }
+            if (!LIVE_DATA || !supabaseClient) { showToast('Live data required to look up comp passes.'); return; }
+            const { data: vp } = await supabaseClient.from('vip_passes').select('*').eq('id', compId).maybeSingle();
+            if (!vp) { showToast('Comp pass not found for this QR.'); return; }
+            // One-time scan gate — mirrors TBK pattern (Principle S54)
+            if (vp.scanned_at) {
+              const scannedTime = new Date(vp.scanned_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+              showToast(`⚠ Already scanned at ${scannedTime} — cannot reuse this pass.`);
+              return;
+            }
+            // Write scanned_at immediately — marks pass as used
+            await supabaseClient.from('vip_passes').update({ scanned_at: new Date().toISOString() }).eq('id', vp.id);
+            goToTab('tables');
+            await staffInitTablesTab();
+            staffOpenSeatModal(vp.table_number || null, { prefillComp: vp });
           })();
           return;
         }
