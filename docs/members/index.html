@@ -1789,13 +1789,29 @@ async function loadTableBookings(phoneE164) {
   try {
     if (!LIVE_DATA || !supabaseClient) throw new Error('no client');
     const today = new Date().toISOString().split('T')[0];
-    const { data, error } = await supabaseClient
-      .from('table_bookings')
-      .select('id,qr_token,guest_name,party_size,section_name,minimum_spend_required,deposit_amount,deposit_paid,notes,status,requested_at')
-      .eq('guest_phone', phoneE164)
-      .in('status', ['confirmed','seated'])
-      .order('requested_at', { ascending: false });
-    if (error) throw error;
+    // Fetch by guest_phone AND by member_id separately, then deduplicate
+    // Owner-created bookings may be linked by member_id but phone format may differ
+    const [byPhone, byMember] = await Promise.all([
+      supabaseClient
+        .from('table_bookings')
+        .select('id,qr_token,guest_name,party_size,section_name,minimum_spend_required,deposit_amount,deposit_paid,notes,status,requested_at,member_id')
+        .eq('guest_phone', phoneE164)
+        .in('status', ['confirmed','seated'])
+        .order('requested_at', { ascending: false }),
+      currentMember?.id ? supabaseClient
+        .from('table_bookings')
+        .select('id,qr_token,guest_name,party_size,section_name,minimum_spend_required,deposit_amount,deposit_paid,notes,status,requested_at,member_id')
+        .eq('member_id', currentMember.id)
+        .in('status', ['confirmed','seated'])
+        .order('requested_at', { ascending: false }) : { data: [] },
+    ]);
+    // Deduplicate by id — member_id query may overlap with phone query
+    const seen = new Set();
+    const data = [...(byPhone.data || []), ...(byMember.data || [])].filter(b => {
+      if (seen.has(b.id)) return false;
+      seen.add(b.id);
+      return true;
+    });
     // Filter: only show if event date is today or future
     const filtered = (data || []).filter(b => {
       if (!b.events) return true; // no event ref, show anyway
