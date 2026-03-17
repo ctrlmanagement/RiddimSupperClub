@@ -5327,6 +5327,18 @@ function tktFormatPhone(input) {
   if (d.length <= 3) input.value = d.length ? '(' + d : '';
   else if (d.length <= 6) input.value = '(' + d.slice(0,3) + ') ' + d.slice(3);
   else input.value = '(' + d.slice(0,3) + ') ' + d.slice(3,6) + '-' + d.slice(6,10);
+  // Auto-trigger lookup the moment 10 digits are complete — no button press needed
+  if (d.length === 10 || (d.length === 11 && d.startsWith('1'))) {
+    clearTimeout(window._tktPhoneTimer);
+    window._tktPhoneTimer = setTimeout(() => tktLookupPhone(), 400);
+  }
+}
+
+// Fallback: also trigger on blur in case paste was used
+async function tktAutoLookup(input) {
+  const digits = input.value.replace(/\D/g,'');
+  const phone10 = digits.length === 11 && digits.startsWith('1') ? digits.slice(1) : digits;
+  if (phone10.length === 10) await tktLookupPhone();
 }
 
 async function tktLookupPhone() {
@@ -5339,7 +5351,14 @@ async function tktLookupPhone() {
   _tktLinkedMemberId = null;
   document.getElementById('tktCompNameRow').style.display = 'none';
   document.getElementById('tktCompError').textContent = '';
-  if (!phoneE164) { showToast('Enter a valid 10-digit phone number.'); return; }
+  if (!phoneE164) { return; }
+  // Show inline loading state immediately
+  document.getElementById('tktCompMemberAvatarTxt').textContent = '…';
+  document.getElementById('tktCompMemberNameTxt').textContent = 'Looking up…';
+  document.getElementById('tktCompMemberStatusTxt').textContent = '';
+  foundEl.style.borderColor = '';
+  foundEl.style.background = '';
+  foundEl.classList.add('visible');
   const btn = document.querySelector('.tkt-lookup-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Looking…'; }
   try {
@@ -5350,19 +5369,21 @@ async function tktLookupPhone() {
       _setTktDeliveryBtn('wallet');
       document.getElementById('tktCompMemberAvatarTxt').textContent = ((m.first_name||'?')[0] + (m.last_name||'?')[0]).toUpperCase();
       document.getElementById('tktCompMemberNameTxt').textContent = `${m.first_name} ${m.last_name}`;
-      document.getElementById('tktCompMemberStatusTxt').textContent = m.id + ' · Member ✔';
+      document.getElementById('tktCompMemberStatusTxt').textContent = m.id + ' · ✔ Member — ticket goes to wallet';
+      foundEl.style.borderColor = 'rgba(100,181,246,0.5)';
+      foundEl.style.background = 'rgba(100,181,246,0.07)';
       foundEl.classList.add('visible');
-      showToast('Member found: ' + m.first_name + ' ' + m.last_name + ' ✔', 'gold');
     } else {
       // Non-member — show name fields + SMS option
       document.getElementById('tktCompNameRow').style.display = 'grid';
       _tktDelivery = 'sms';
       _setTktDeliveryBtn('sms');
       document.getElementById('tktCompMemberAvatarTxt').textContent = '?';
-      document.getElementById('tktCompMemberNameTxt').textContent = 'Non-member';
-      document.getElementById('tktCompMemberStatusTxt').textContent = phoneE164 + ' · Will receive SMS join link';
+      document.getElementById('tktCompMemberNameTxt').textContent = 'Not a member yet';
+      document.getElementById('tktCompMemberStatusTxt').textContent = 'Will receive SMS — ticket lands in wallet after they register';
+      foundEl.style.borderColor = 'rgba(255,180,0,0.4)';
+      foundEl.style.background = 'rgba(255,180,0,0.06)';
       foundEl.classList.add('visible');
-      showToast('No member found — will send SMS join link.', 'gold');
     }
   } catch(e) {
     console.warn('tktLookupPhone error:', e);
@@ -5389,13 +5410,33 @@ async function submitCompTicket() {
   if (!eventId) { errEl.textContent = 'Select an event.'; return; }
   if (!compReason) { errEl.textContent = 'Comp reason is required.'; return; }
 
+  // Auto-lookup if phone was entered but Look Up was never clicked
+  const foundEl = document.getElementById('tktCompMemberFound');
+  if (!foundEl.classList.contains('visible')) {
+    errEl.textContent = 'Looking up phone…';
+    await tktLookupPhone();
+    errEl.textContent = '';
+    // Re-read after lookup
+  }
+
+  // If delivery=wallet, member_id MUST be set (DB constraint: member_id NOT NULL)
+  // If no member found, force SMS delivery — ticket goes via join flow
+  if (_tktDelivery === 'wallet' && !_tktLinkedMemberId) {
+    _tktDelivery = 'sms';
+    _setTktDeliveryBtn('sms');
+    errEl.textContent = 'No member found for this number — switching to SMS join link delivery.';
+    return; // Let owner confirm the switch, then resubmit
+  }
+
   // Get owner uid
   const { data: sessionData } = await supabaseClient.auth.getSession();
   const ownerUid = sessionData?.session?.user?.id || null;
 
   const qrToken = crypto.randomUUID();
   const payload = {
-    member_id: _tktLinkedMemberId || null,     // TEXT not UUID
+    // member_id: only set when delivery=wallet AND member confirmed
+    // For SMS delivery to non-member, omit member_id entirely (will be set after they join)
+    ...(_tktLinkedMemberId ? { member_id: _tktLinkedMemberId } : {}),
     event_id: eventId,
     quantity: qty,
     price_paid: 0,
@@ -5674,9 +5715,9 @@ function tktEsc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'
       <label>GUEST PHONE <span style="color:var(--ember);font-size:11px;">*</span></label>
       <div class="tkt-phone-row">
         <div class="tkt-field-inner">
-          <input type="tel" id="tktCompPhone" placeholder="(404) 555-0100" maxlength="14" oninput="tktFormatPhone(this)" onkeydown="if(event.key==='Enter')tktLookupPhone()" />
+          <input type="tel" id="tktCompPhone" placeholder="(404) 555-0100" maxlength="14" oninput="tktFormatPhone(this)" onblur="tktAutoLookup(this)" onkeydown="if(event.key==='Enter')tktLookupPhone()" />
         </div>
-        <button class="tkt-lookup-btn" onclick="tktLookupPhone()">Look Up</button>
+        <button class="tkt-lookup-btn" onclick="tktLookupPhone()" id="tktLookupBtn" style="display:none;">Look Up</button>
       </div>
       <div class="tkt-member-found" id="tktCompMemberFound">
         <div class="tkt-member-avatar" id="tktCompMemberAvatarTxt">?</div>
