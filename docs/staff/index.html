@@ -2529,8 +2529,8 @@ function startCheckinScanner() {
                 .eq('id', bk.event_id)
                 .maybeSingle();
               if (ev && ev.event_date !== localDateStr()) {
-                const evDateLabel = new Date(ev.event_date + 'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-                showToast(`⚠ Booking is for ${evDateLabel} — cannot scan today.`);
+                const evDateLabel = new Date(ev.event_date + 'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+                showToast(`⛔ Wrong date — this booking is valid on ${evDateLabel} only.`);
                 return;
               }
             }

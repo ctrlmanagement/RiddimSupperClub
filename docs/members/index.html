@@ -1794,13 +1794,13 @@ async function loadTableBookings(phoneE164) {
     const [byPhone, byMember] = await Promise.all([
       supabaseClient
         .from('table_bookings')
-        .select('id,qr_token,guest_name,party_size,section_name,minimum_spend_required,deposit_amount,deposit_paid,notes,status,requested_at,member_id')
+        .select('id,qr_token,guest_name,party_size,section_name,table_number,minimum_spend_required,deposit_amount,deposit_paid,comp_applied,notes,status,requested_at,member_id')
         .eq('guest_phone', phoneE164)
         .in('status', ['confirmed','seated'])
         .order('requested_at', { ascending: false }),
       currentMember?.id ? supabaseClient
         .from('table_bookings')
-        .select('id,qr_token,guest_name,party_size,section_name,minimum_spend_required,deposit_amount,deposit_paid,notes,status,requested_at,member_id')
+        .select('id,qr_token,guest_name,party_size,section_name,table_number,minimum_spend_required,deposit_amount,deposit_paid,comp_applied,notes,status,requested_at,member_id')
         .eq('member_id', currentMember.id)
         .in('status', ['confirmed','seated'])
         .order('requested_at', { ascending: false }) : { data: [] },
@@ -1826,10 +1826,23 @@ async function loadTableBookings(phoneE164) {
       const token = b.qr_token || b.id;
       const evDate = b.requested_at || null;
       const sectionLabel = SECTION_LABELS[b.section_name] || b.section_name || '—';
+      const tableNum = b.table_number ? `Table ${b.table_number}` : null;
+      // Card heading: table number if assigned, otherwise section label
+      const cardHeading = tableNum ? `${tableNum} · ${sectionLabel}` : sectionLabel;
       const minSpend = parseFloat(b.minimum_spend_required || 0);
       const dep = parseFloat(b.deposit_amount || 0);
+      const comp = parseFloat(b.comp_applied || 0);
       const isConfirmed = b.status === 'confirmed';
       const isSeated = b.status === 'seated';
+      // Booking type badge — comp takes priority, then deposit paid, then reservation
+      let bookingTypeBadge;
+      if (comp > 0) {
+        bookingTypeBadge = `<span class="wpass-badge" style="background:rgba(129,199,132,0.15);border-color:rgba(129,199,132,0.5);color:#81C784;">COMP</span>`;
+      } else if (dep > 0 && b.deposit_paid) {
+        bookingTypeBadge = `<span class="wpass-badge" style="background:rgba(100,181,246,0.15);border-color:rgba(100,181,246,0.5);color:#64B5F6;">DEPOSIT PAID</span>`;
+      } else {
+        bookingTypeBadge = `<span class="wpass-badge">RESERVATION</span>`;
+      }
       const div = document.createElement('div');
       div.className = 'wpass wpass-tbk' + (!isConfirmed ? ' wpass-voided' : '');
       const qrOrStatus = isConfirmed
@@ -1844,14 +1857,14 @@ async function loadTableBookings(phoneE164) {
         <div class="wpass-glow"></div>
         <div class="wpass-body">
           <p class="wpass-eyebrow">🌙 Table Booking · RIDDIM</p>
-          <p class="wpass-name">${escHtml(sectionLabel)}</p>
+          <p class="wpass-name">${escHtml(cardHeading)}</p>
           <div class="wpass-meta">
             <span class="wpass-meta-item">Date <strong>${fmtDate(evDate ? evDate.split('T')[0] : null)}</strong></span>
             ${b.party_size ? `<span class="wpass-meta-item">Party of <strong>${b.party_size}</strong></span>` : ''}
-            ${minSpend > 0 ? `<span class="wpass-meta-item">Min spend <strong>$${minSpend.toLocaleString()}</strong></span>` : ''}
-            ${dep > 0 && b.deposit_paid ? `<span class="wpass-meta-item" style="color:#81C784">✓ Deposit <strong>$${dep.toLocaleString()}</strong></span>` : ''}
+            ${minSpend > 0 && comp === 0 ? `<span class="wpass-meta-item">Min spend <strong>$${minSpend.toLocaleString()}</strong></span>` : ''}
+            ${comp > 0 ? `<span class="wpass-meta-item" style="color:#81C784">✓ Comp <strong>$${comp.toLocaleString()}</strong></span>` : ''}
           </div>
-          <span class="wpass-badge">${b.status.toUpperCase()}</span>
+          ${bookingTypeBadge}
           ${b.notes ? `<p class="wpass-note">${escHtml(b.notes)}</p>` : ''}
         </div>
         <div class="wpass-qr-wrap">
