@@ -703,22 +703,30 @@ body::before {
 
 /* ── MODE SELECTOR ───────────────────────────────────────────── */
 .reserve-mode-selector {
-  max-width: 860px;
+  max-width: 1100px;
   margin: 0 auto;
-  padding: var(--space-12) var(--space-12) 0;
+  padding: var(--space-12) var(--space-12) var(--space-8);
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--space-4);
+  gap: var(--space-6);
+  border-bottom: 1px solid var(--color-graphite);
 }
-@media (max-width: 700px) {
-  .reserve-mode-selector { grid-template-columns: 1fr; padding: var(--space-8) var(--space-6) 0; }
+@media (max-width: 900px) {
+  .reserve-mode-selector {
+    grid-template-columns: 1fr 1fr;
+    padding: var(--space-8) var(--space-6) var(--space-6);
+    gap: var(--space-4);
+  }
+}
+@media (max-width: 560px) {
+  .reserve-mode-selector { grid-template-columns: 1fr; }
 }
 .reserve-mode-card {
   position: relative;
   padding: var(--space-8) var(--space-8);
   border: 1px solid var(--color-graphite);
-  border-radius: var(--radius-md);
-  background: var(--color-void);
+  border-radius: var(--radius-sm);
+  background: transparent;
   cursor: pointer;
   transition: border-color var(--duration-base) var(--ease-standard),
               background var(--duration-base) var(--ease-standard),
@@ -726,52 +734,65 @@ body::before {
   text-align: left;
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-2);
 }
 .reserve-mode-card:hover:not(.disabled) {
-  border-color: rgba(212,168,67,0.4);
-  background: rgba(212,168,67,0.03);
+  border-color: rgba(212,168,67,0.35);
+  background: rgba(212,168,67,0.02);
 }
 .reserve-mode-card.selected {
   border-color: var(--color-gold-warm);
-  background: rgba(212,168,67,0.06);
-  box-shadow: var(--shadow-gold);
+  background: rgba(212,168,67,0.05);
+  box-shadow: 0 0 32px rgba(212,168,67,0.1);
 }
 .reserve-mode-card.disabled {
   cursor: default;
-  opacity: 0.5;
-  filter: grayscale(0.4);
+  opacity: 0.42;
+  pointer-events: none;
 }
-.mode-card-emoji { font-size: 28px; }
-.mode-card-label {
+.mode-card-eyebrow {
   font-family: var(--font-label);
-  font-size: 18px;
-  letter-spacing: 0.15em;
-  color: var(--color-ivory);
+  font-size: 10px;
+  letter-spacing: 0.35em;
+  color: var(--color-gold-deep);
+  text-transform: uppercase;
+  margin-bottom: var(--space-1);
 }
-.reserve-mode-card.selected .mode-card-label { color: var(--color-gold-warm); }
+.mode-card-label {
+  font-family: var(--font-display);
+  font-size: clamp(24px, 2.8vw, 38px);
+  font-weight: 300;
+  font-style: italic;
+  color: var(--color-gold-warm);
+  line-height: 1.05;
+  letter-spacing: 0.01em;
+}
+.reserve-mode-card.selected .mode-card-label { color: var(--color-gold-bright); }
 .mode-card-times {
-  font-size: 12px;
+  font-family: var(--font-label);
+  font-size: 11px;
+  letter-spacing: 0.2em;
   color: var(--color-ash);
-  letter-spacing: 0.06em;
+  margin-top: var(--space-1);
 }
 .mode-card-desc {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-ash);
-  line-height: 1.65;
-  margin-top: var(--space-1);
+  line-height: 1.7;
+  margin-top: var(--space-2);
+  font-weight: 300;
 }
 .mode-card-no-event {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-gold-deep);
-  line-height: 1.65;
+  line-height: 1.7;
   font-style: italic;
-  margin-top: var(--space-1);
+  margin-top: var(--space-2);
 }
 .mode-card-selected-pip {
   position: absolute;
-  top: 12px; right: 12px;
-  width: 8px; height: 8px;
+  top: 14px; right: 14px;
+  width: 7px; height: 7px;
   border-radius: 50%;
   background: var(--color-gold-warm);
   display: none;
@@ -783,16 +804,15 @@ body::before {
   display: grid;
   grid-template-columns: 1.4fr 1fr;
   min-height: calc(100vh - 200px);
-  margin-top: var(--space-8);
 }
 @media (max-width: 900px) { .reserve-layout { grid-template-columns: 1fr; } }
 
 /* ── FORM SIDE ───────────────────────────────────────────────── */
 .form-side {
-  padding: var(--space-12) var(--space-16);
+  padding: var(--space-12) var(--space-12);
   border-right: 1px solid var(--color-graphite);
 }
-@media (max-width: 900px) { .form-side { padding: var(--space-12) var(--space-6); border-right: none; border-bottom: 1px solid var(--color-graphite); } }
+@media (max-width: 900px) { .form-side { padding: var(--space-8) var(--space-6); border-right: none; border-bottom: 1px solid var(--color-graphite); } }
 
 /* ── SPACE SELECTOR ──────────────────────────────────────────── */
 .space-selector {
@@ -922,7 +942,7 @@ body::before {
   <!-- Dinner Card -->
   <div class="reserve-mode-card" id="modeDinner" onclick="selectMode('dinner')">
     <div class="mode-card-selected-pip"></div>
-    <div class="mode-card-emoji">🍽</div>
+    <div class="mode-card-eyebrow">Dining</div>
     <div class="mode-card-label">Dinner Reservations</div>
     <div class="mode-card-times">5:00 PM – 9:00 PM · Daily</div>
     <div class="mode-card-desc">Full supper club experience — fine dining, hookah, and patio. Confirmed within 24 hours.</div>
@@ -930,8 +950,8 @@ body::before {
   <!-- Nightlife Card -->
   <div class="reserve-mode-card" id="modeNightlife" onclick="selectMode('nightlife')">
     <div class="mode-card-selected-pip"></div>
-    <div class="mode-card-emoji">🌙</div>
-    <div class="mode-card-label">Nightlife Reservations</div>
+    <div class="mode-card-eyebrow">Nightlife</div>
+    <div class="mode-card-label">Table Bookings</div>
     <div class="mode-card-times">5:00 PM – 1:00 AM</div>
     <div class="mode-card-desc" id="nightlifeCardDesc">VIP table bookings with bottle service. Pricing set by event.</div>
     <div class="mode-card-no-event" id="nightlifeNoEvent" style="display:none;">No events tonight — kitchen and bar open til 1:00 AM, no reservation required.</div>
