@@ -1201,7 +1201,7 @@ body::before {
       </div>
       <!-- TICKET PANEL: Headz Only -->
       <div class="tkt-panel-wrap" id="tkt-headz-only"
-           data-event-name="Headz Only with DJ Kole"
+           data-event-id="76484afd-ac60-4df7-836b-71b55fac9678" data-event-name="Headz Only with DJ Kole"
            data-event-date="FRI · MAR 7">
         <div class="tkt-panel-inner">
           <div class="tkt-panel-header">
@@ -1241,7 +1241,7 @@ body::before {
         </div>
       </div>
       <div class="tkt-panel-wrap" id="tkt-jazz-supper"
-           data-event-name="Saturday Jazz Supper"
+           data-event-id="4f910a99-d841-4d13-b360-01cea256bfbd" data-event-name="Saturday Jazz Supper"
            data-event-date="SAT · MAR 8">
         <div class="tkt-panel-inner">
           <div class="tkt-panel-header">
@@ -1278,7 +1278,7 @@ body::before {
         </div>
       </div>
       <div class="tkt-panel-wrap" id="tkt-members-dinner"
-           data-event-name="Members Dinner Night"
+           data-event-id="b694abed-1f7f-4073-b708-8cdfb8280540" data-event-name="Members Dinner Night"
            data-event-date="SUN · MAR 9">
         <div class="tkt-panel-inner">
           <div class="tkt-panel-header">
@@ -1315,7 +1315,7 @@ body::before {
         </div>
       </div>
       <div class="tkt-panel-wrap" id="tkt-afrobeats"
-           data-event-name="Afrobeats Friday"
+           data-event-id="4f910a99-d841-4d13-b360-01cea256bfbd" data-event-name="Afrobeats Friday"
            data-event-date="FRI · MAR 14">
         <div class="tkt-panel-inner">
           <div class="tkt-panel-header">
@@ -1352,7 +1352,7 @@ body::before {
         </div>
       </div>
       <div class="tkt-panel-wrap" id="tkt-chefs-table"
-           data-event-name="Chef's Table Night"
+           data-event-id="cc822c75-d1f7-4180-b2d7-31eb64c112f8" data-event-name="Chef's Table Night"
            data-event-date="SAT · MAR 15">
         <div class="tkt-panel-inner">
           <div class="tkt-panel-header">
@@ -1694,7 +1694,7 @@ async function tktLookupMember(panelId, phone10) {
     const { data } = await sbClient
       .from('members')
       .select('id, first_name, last_name, phone')
-      .eq('phone', phone10)
+      .ilike('phone', `%${phone10}%`)
       .maybeSingle();
 
     if (data) {
@@ -1799,10 +1799,12 @@ async function tktSubmit(panelId) {
 
   const qrToken = crypto.randomUUID();
   const eventName = panel ? panel.dataset.eventName : 'RIDDIM Event';
+  const eventId = panel ? panel.dataset.eventId : null;
 
   // Build payload — NEVER send authorized_by (Principle 215)
   const payload = {
     ...(st.resolvedMemberId ? { member_id: st.resolvedMemberId } : {}),
+    ...(eventId ? { event_id: eventId } : {}),
     quantity:        st.qty,
     price_paid:      0,
     comped:          false,
@@ -1812,8 +1814,6 @@ async function tktSubmit(panelId) {
     recipient_phone: st.phone,
     qr_token:        qrToken,
     purchased_at:    new Date().toISOString(),
-    // event_id omitted — events.html cards are static (no live DB event_id)
-    // When events are loaded from DB, pass the real event_id here
   };
 
   try {
