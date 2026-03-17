@@ -710,6 +710,8 @@ body::before {
   grid-template-columns: 1fr 1fr;
   gap: var(--space-6);
   border-bottom: 1px solid var(--color-graphite);
+  box-sizing: border-box;
+  width: 100%;
 }
 @media (max-width: 900px) {
   .reserve-mode-selector {
@@ -804,14 +806,18 @@ body::before {
   max-width: 1100px;
   margin: 0 auto;
   width: 100%;
+  padding: 0 var(--space-12);
+  box-sizing: border-box;
 }
+@media (max-width: 900px) { .reserve-layout { padding: 0 var(--space-6); } }
 
 /* ── FORM SIDE ───────────────────────────────────────────────── */
 .form-side {
-  padding: var(--space-12) var(--space-12);
-  max-width: 720px;
+  padding: var(--space-12) 0;
+  max-width: 680px;
+  width: 100%;
 }
-@media (max-width: 900px) { .form-side { padding: var(--space-8) var(--space-6); } }
+@media (max-width: 900px) { .form-side { padding: var(--space-8) 0; } }
 
 /* ── SPACE SELECTOR ──────────────────────────────────────────── */
 .space-selector {
@@ -979,7 +985,7 @@ body::before {
       <div id="reserveCutoffNotice" style="display:none;padding:16px 20px;background:rgba(192,57,43,0.08);border:1px solid rgba(192,57,43,0.3);border-radius:8px;margin-bottom:24px;font-size:14px;color:#E57373;line-height:1.6;"></div>
 
       <!-- Mode prompt (shown before mode selected) -->
-      <div id="reserveModePrompt" style="padding:32px 0 8px;text-align:center;color:var(--color-ash);font-size:14px;letter-spacing:0.06em;">
+      <div id="reserveModePrompt" style="padding:32px 0 8px;text-align:left;color:var(--color-ash);font-size:14px;letter-spacing:0.06em;">
         ↑ Select a reservation type above to continue
       </div>
 
