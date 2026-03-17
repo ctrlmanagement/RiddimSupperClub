@@ -801,18 +801,17 @@ body::before {
 
 /* ── MAIN LAYOUT ─────────────────────────────────────────────── */
 .reserve-layout {
-  display: grid;
-  grid-template-columns: 1.4fr 1fr;
-  min-height: calc(100vh - 200px);
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
 }
-@media (max-width: 900px) { .reserve-layout { grid-template-columns: 1fr; } }
 
 /* ── FORM SIDE ───────────────────────────────────────────────── */
 .form-side {
   padding: var(--space-12) var(--space-12);
-  border-right: 1px solid var(--color-graphite);
+  max-width: 720px;
 }
-@media (max-width: 900px) { .form-side { padding: var(--space-8) var(--space-6); border-right: none; border-bottom: 1px solid var(--color-graphite); } }
+@media (max-width: 900px) { .form-side { padding: var(--space-8) var(--space-6); } }
 
 /* ── SPACE SELECTOR ──────────────────────────────────────────── */
 .space-selector {
@@ -841,15 +840,27 @@ body::before {
 }
 .space-option.selected .space-option-name { color: var(--color-gold-warm); }
 
-/* ── INFO SIDE ───────────────────────────────────────────────── */
-.info-side {
-  padding: var(--space-16) var(--space-12);
+/* ── INFO BLOCK (below form) ─────────────────────────────────── */
+.reserve-info-block {
+  border-top: 1px solid var(--color-graphite);
   background: var(--color-void);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-12);
+  padding: var(--space-16) var(--space-12);
 }
-@media (max-width: 900px) { .info-side { padding: var(--space-12) var(--space-6); } }
+.reserve-info-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1.6fr 1fr;
+  gap: var(--space-16);
+}
+@media (max-width: 900px) {
+  .reserve-info-inner { grid-template-columns: 1fr 1fr; gap: var(--space-10); }
+}
+@media (max-width: 600px) {
+  .reserve-info-block { padding: var(--space-12) var(--space-6); }
+  .reserve-info-inner { grid-template-columns: 1fr; gap: var(--space-10); }
+}
+.reserve-info-col { display: flex; flex-direction: column; gap: var(--space-4); }
 
 .info-block-title {
   font-family: var(--font-label);
@@ -872,7 +883,7 @@ body::before {
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-graphite);
 }
-.info-policy-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.info-policy-dash { font-family: var(--font-display); font-size: 16px; color: var(--color-gold-deep); flex-shrink: 0; margin-top: 1px; line-height: 1.7; }
 .info-policy-text { font-size: 13px; color: var(--color-ash); line-height: 1.7; }
 .info-policy-text strong {
   color: var(--color-mist);
@@ -1080,10 +1091,13 @@ body::before {
     </div>
   </div>
 
-  <!-- ── INFO SIDE ──────────────────────────────────────────── -->
-  <div class="info-side">
+</div>
 
-    <div>
+<!-- ── INFO BLOCK — below form + mode selector ─────────────── -->
+<div class="reserve-info-block">
+  <div class="reserve-info-inner">
+
+    <div class="reserve-info-col">
       <div class="info-block-title">Hours of Operation</div>
       <div class="info-hours">
         <p><strong>Wednesday – Thursday</strong><br>7PM – 2AM · Kitchen until midnight</p>
@@ -1093,35 +1107,32 @@ body::before {
       </div>
     </div>
 
-    <div>
+    <div class="reserve-info-col">
       <div class="info-block-title">Reservation Policies</div>
       <div class="info-policies">
         <div class="info-policy">
-          <div class="info-policy-icon">⏱</div>
-          <div class="info-policy-text"><strong>Confirmation Window</strong>All requests are reviewed and confirmed within 24 hours. Weekend requests should be submitted at least 48 hours in advance.</div>
+          <div class="info-policy-dash">—</div>
+          <div class="info-policy-text"><strong>Confirmation Window</strong>All requests reviewed and confirmed within 24 hours. Weekend requests should be submitted 48 hours in advance.</div>
         </div>
         <div class="info-policy">
-          <div class="info-policy-icon">🥂</div>
+          <div class="info-policy-dash">—</div>
           <div class="info-policy-text"><strong>Bottle Service</strong>VIP table and bottle service reservations are subject to availability and may require a minimum spend.</div>
         </div>
         <div class="info-policy">
-          <div class="info-policy-icon">👔</div>
+          <div class="info-policy-dash">—</div>
           <div class="info-policy-text"><strong>Dress Code</strong>Upscale. We reserve the right to decline entry to guests not meeting our dress standard. No athletic wear.</div>
         </div>
         <div class="info-policy">
-          <div class="info-policy-icon">📞</div>
+          <div class="info-policy-dash">—</div>
           <div class="info-policy-text"><strong>Same-Day Requests</strong>For reservations within 12 hours, please contact us directly. We will do our best to accommodate.</div>
         </div>
       </div>
     </div>
 
-    <div>
+    <div class="reserve-info-col">
       <div class="info-block-title">Private Events</div>
-      <div class="info-photo">
-        <img src="https://images.unsplash.com/photo-1519214605650-76cfb4ce5b19?auto=format&fit=crop&w=700&q=80" alt="Private event" loading="lazy">
-        <div class="info-photo-caption">Full venue buyouts and private section bookings available.</div>
-      </div>
-      <p style="font-size:13px;color:var(--color-ash);line-height:1.8;margin-top:var(--space-3)">Planning a larger event? <a href="private-events.html" style="color:var(--color-gold-warm)">Submit a private events inquiry →</a></p>
+      <p style="font-size:13px;color:var(--color-ash);line-height:1.8;margin-bottom:var(--space-6)">Planning a larger event or full venue buyout? Our team handles private dinners, corporate events, and full venue takeovers.</p>
+      <a href="private-events.html" style="display:inline-block;font-family:var(--font-label);font-size:11px;letter-spacing:0.25em;text-transform:uppercase;color:var(--color-gold-warm);border:1px solid rgba(212,168,67,0.35);padding:12px 20px;border-radius:var(--radius-sm);transition:border-color 150ms;">Submit an Inquiry →</a>
     </div>
 
   </div>
