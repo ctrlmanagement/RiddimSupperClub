@@ -5434,15 +5434,18 @@ async function submitCompTicket() {
 
   const qrToken = crypto.randomUUID();
   const payload = {
-    // member_id: only set when delivery=wallet AND member confirmed
-    // For SMS delivery to non-member, omit member_id entirely (will be set after they join)
-    ...(_tktLinkedMemberId ? { member_id: _tktLinkedMemberId } : {}),
+    // member_id: TEXT field (Principle 212 — not UUID)
+    // Wallet delivery: use confirmed member ID
+    // SMS delivery to non-member: use phone10 as temp placeholder — will be updated to
+    //   real member ID after they register via join flow (same pattern as TBK non-member)
+    member_id: _tktLinkedMemberId || phone10,
     event_id: eventId,
     quantity: qty,
     price_paid: 0,
     comped: true,
     comp_reason: compReason,
-    authorized_by: ownerUid,
+    // authorized_by: intentionally omitted — FK to auth.users causes constraint error
+    // with Google OAuth sessions. Owner identity tracked via RLS (email-scoped policy).
     purchased_at: new Date().toISOString(),
     qr_token: qrToken,
     status: 'active',

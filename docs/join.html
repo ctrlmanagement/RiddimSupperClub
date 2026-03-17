@@ -1371,8 +1371,8 @@ async function submitJoin() {
         const { error: tktErr } = await sb
           .from('tickets')
           .update({ member_id: memberId, delivery: 'wallet' })
-          .eq('qr_token', TICKET_TOKEN)
-          .is('member_id', null); // only update if not already linked
+          .eq('qr_token', TICKET_TOKEN);
+          // No member_id null guard — placeholder phone10 was stored on issue
         if (tktErr) {
           console.warn('[TKT] Ticket link failed:', tktErr);
         } else {
