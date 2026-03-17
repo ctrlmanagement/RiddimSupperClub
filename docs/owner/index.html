@@ -542,9 +542,9 @@
   </div>
   <div class="tkt-filter-bar">
     <select id="tktEventFilter" onchange="renderOwnerTickets()" style="background:var(--void);border:1px solid var(--graphite);color:var(--mist);padding:7px 12px;border-radius:6px;font-family:var(--font-body);font-size:13px;cursor:pointer;"><option value="">All Events</option></select>
-    <select id="tktStatusFilter" onchange="renderOwnerTickets()" style="background:var(--void);border:1px solid var(--graphite);color:var(--mist);padding:7px 12px;border-radius:6px;font-family:var(--font-body);font-size:13px;cursor:pointer;"><option value="">All Statuses</option><option value="active">Active</option><option value="scanned">Scanned</option></select>
+    <select id="tktStatusFilter" onchange="renderOwnerTickets()" style="background:var(--void);border:1px solid var(--graphite);color:var(--mist);padding:7px 12px;border-radius:6px;font-family:var(--font-body);font-size:13px;cursor:pointer;"><option value="live">Active &amp; Scanned</option><option value="active">Active Only</option><option value="scanned">Scanned</option><option value="cancelled">Voided</option><option value="">All (incl. voided)</option></select>
   </div>
-  <div id="tktListWrap"><div style="text-align:center;padding:40px;color:var(--ash);">Loading tickets&#x2026;</div></div>
+  <div id="tktListWrap" style="padding-bottom:80px;"><div style="text-align:center;padding:40px;color:var(--ash);">Loading tickets&#x2026;</div></div>
 </div></main><div class="mobile-tab-bar"><div class="mobile-tabs"><button class="mobile-tab active" data-tab="dashboard"><span class="mobile-tab-icon">◈</span><span class="mobile-tab-label">Dash</span></button><button class="mobile-tab" data-tab="inquiries"><span class="mobile-tab-icon">✉</span><span class="mobile-tab-label">Inquiries</span></button><button class="mobile-tab" data-tab="reservations"><span class="mobile-tab-icon">◇</span><span class="mobile-tab-label">Reservations</span></button><button class="mobile-tab" data-tab="vipcomp"><span class="mobile-tab-icon">◆</span><span class="mobile-tab-label">VIP &amp; Comp</span></button><button class="mobile-tab" data-tab="tablebookings"><span class="mobile-tab-icon">⊡</span><span class="mobile-tab-label">Bookings</span></button><button class="mobile-tab" data-tab="events"><span class="mobile-tab-icon">◆</span><span class="mobile-tab-label">Events</span></button><button class="mobile-tab" data-tab="gallery"><span class="mobile-tab-icon">◻</span><span class="mobile-tab-label">Gallery</span></button><button class="mobile-tab" data-tab="analytics"><span class="mobile-tab-icon">▣</span><span class="mobile-tab-label">Analytics</span></button><button class="mobile-tab" data-tab="reporting"><span class="mobile-tab-icon">◑</span><span class="mobile-tab-label">Reporting</span></button><button class="mobile-tab" data-tab="members"><span class="mobile-tab-icon">◉</span><span class="mobile-tab-label">Members</span></button><button class="mobile-tab" data-tab="employees"><span class="mobile-tab-icon">◎</span><span class="mobile-tab-label">Employees</span></button><button class="mobile-tab" data-tab="scheduling"><span class="mobile-tab-icon">⊞</span><span class="mobile-tab-label">Schedule</span></button><button class="mobile-tab" data-tab="tables"><span class="mobile-tab-icon">⊟</span><span class="mobile-tab-label">Tables</span></button><button class="mobile-tab staff-view-tab" data-tab="staffview"><span class="mobile-tab-icon">⬡</span><span class="mobile-tab-label">Staff</span></button><button class="mobile-tab" data-tab="tickets"><span class="mobile-tab-icon">🎟</span><span class="mobile-tab-label">Tickets</span></button></div></div></div><div class="gallery-modal-overlay" id="galleryCreateModal"><div class="gallery-modal"><div class="gallery-modal-header"><div class="gallery-modal-title" id="galleryModalTitle">New Gallery</div><button class="gallery-modal-close" onclick="closeCreateGalleryModal()">&#x2715;</button></div><input type="hidden" id="galleryEditId"><div class="gallery-form-row"><label class="gallery-form-label">Gallery Title *</label><input type="text" class="gallery-form-input" id="galleryTitleInput" placeholder="e.g. Saturday Night — Feb 22"></div><div class="gallery-form-row-half"><div><label class="gallery-form-label">Date *</label><input type="date" class="gallery-form-input" id="galleryDateInput"></div><div><label class="gallery-form-label">Link to Event (optional)</label><select class="gallery-form-select" id="galleryEventSelect"><option value="">No event linked</option></select></div></div><div class="gallery-toggle-row"><div><div class="gallery-toggle-label">Private Gallery</div><div class="gallery-toggle-sub">Private galleries are visible to staff only, not members</div></div><label class="gallery-toggle"><input type="checkbox" id="galleryPrivateToggle"><span class="gallery-toggle-slider"></span></label></div><div id="galleryUploadSection"><label class="gallery-form-label">Photos</label><div class="gallery-upload-sources"><button class="gallery-source-btn" onclick="document.getElementById('galleryFileInput').click()"><span>&#x1F4BB;</span> Device
  </button><button class="gallery-source-btn" onclick="openGooglePicker('create')"><span>&#x1F535;</span> Google Drive
  </button><button class="gallery-source-btn" onclick="openDropboxChooser('create')"><span>&#x1F4E6;</span> Dropbox
@@ -865,6 +865,7 @@ document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id
 }
 let schedInitialized = false;
 function goToTab(tabId) {
+document.body.style.overflow = ''; // reset any leaked overflow:hidden from modals
 document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id===`tab-${tabId}`));
 document.querySelectorAll('.portal-tab,.mobile-tab').forEach(btn=>btn.classList.toggle('active',btn.dataset.tab===tabId));
 const activeBtn = document.querySelector(`.mobile-tab[data-tab="${tabId}"]`);
@@ -5234,14 +5235,19 @@ function renderOwnerTickets() {
   const statusFilter = document.getElementById('tktStatusFilter')?.value || '';
   let data = _allOwnerTickets.filter(t => {
     const evOk = !evFilter || t.event_id === evFilter;
-    const statusOk = !statusFilter ||
-      (statusFilter === 'active' && t.status === 'active' && !t.scanned_at) ||
-      (statusFilter === 'scanned' && t.scanned_at);
+    const statusOk =
+      (statusFilter === 'live'      && t.status !== 'cancelled') ||
+      (statusFilter === 'active'    && t.status === 'active' && !t.scanned_at) ||
+      (statusFilter === 'scanned'   && t.scanned_at) ||
+      (statusFilter === 'cancelled' && t.status === 'cancelled') ||
+      (statusFilter === ''          /* all */ );
+    // Default to hiding cancelled when no explicit filter chosen
+    if (!statusFilter && t.status === 'cancelled') return false;
     return evOk && statusOk;
   });
 
-  // Stats (always based on full list, not filtered)
-  const all = _allOwnerTickets;
+  // Stats based on non-cancelled tickets only
+  const all = _allOwnerTickets.filter(t => t.status !== 'cancelled');
   document.getElementById('tktStatTotal').textContent = all.length;
   document.getElementById('tktStatComped').textContent = all.filter(t => t.comped).length;
   document.getElementById('tktStatActive').textContent = all.filter(t => t.status === 'active' && !t.scanned_at).length;
@@ -5278,8 +5284,9 @@ function renderOwnerTickets() {
     const voidBtn = !isScanned
       ? `<button onclick="voidTicket('${t.id}','${tktEsc(guestName)}')" style="padding:4px 10px;border-radius:4px;border:1px solid rgba(192,57,43,0.3);background:none;color:#E57373;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;cursor:pointer;margin-left:4px;">VOID</button>`
       : `<button onclick="deleteTicket('${t.id}','${tktEsc(guestName)}')" style="padding:4px 10px;border-radius:4px;border:1px solid rgba(192,57,43,0.3);background:none;color:#E57373;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;cursor:pointer;margin-left:4px;">DELETE</button>`;
-    return `<div class="tkt-list-row">
-      <div class="tkt-list-dot ${t.comped ? 'comped' : ''} ${isScanned ? 'scanned' : ''}"></div>
+    const isVoided = t.status === 'cancelled';
+    return `<div class="tkt-list-row" style="${isVoided ? 'opacity:0.45;' : ''}">
+      <div class="tkt-list-dot ${t.comped ? 'comped' : ''} ${isScanned ? 'scanned' : ''} ${isVoided ? 'scanned' : ''}"></div>
       <div class="tkt-list-info">
         <div class="tkt-list-guest">${tktEsc(guestName)}</div>
         <div class="tkt-list-meta">${tktEsc(evTitle)} · ${evDate} · Qty ${t.quantity || 1} · ${typeLabel} · ${deliveryLabel}${t.comp_reason ? ' · <em>' + tktEsc(t.comp_reason) + '</em>' : ''}</div>
