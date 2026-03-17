@@ -3608,8 +3608,16 @@ function renderTableBookings() {
   const pending = _allTableBookings.filter(b => b.status === 'pending').length;
   const confirmed = _allTableBookings.filter(b => b.status === 'confirmed').length;
   const revenue = _allTableBookings
-    .filter(b => ['confirmed','seated'].includes(b.status))
-    .reduce((s, b) => s + (parseFloat(b.minimum_spend_required) || 0), 0);
+    .filter(b => ['confirmed','seated','closed'].includes(b.status))
+    .reduce((s, b) => {
+      const min = parseFloat(b.minimum_spend_required || 0);
+      const dep = parseFloat(b.deposit_amount || 0);
+      const pay = parseFloat(b.payment_amount || 0);
+      // If min spend was set: count deposit + payment (cash collected toward min)
+      // If no min spend: count payment only
+      // Comp is never added to member-facing spend total
+      return s + (min > 0 ? dep + pay : pay);
+    }, 0);
   document.getElementById('tblBkStatTotal').textContent = _allTableBookings.length;
   document.getElementById('tblBkStatPending').textContent = pending;
   document.getElementById('tblBkStatConfirmed').textContent = confirmed;
