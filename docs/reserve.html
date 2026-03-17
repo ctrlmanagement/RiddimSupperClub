@@ -701,17 +701,95 @@ body::before {
 }
 @media (max-width: 700px) { .rsvp-header { padding: var(--space-24) var(--space-6) var(--space-12); } }
 
+/* ── MODE SELECTOR ───────────────────────────────────────────── */
+.reserve-mode-selector {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: var(--space-12) var(--space-12) 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+@media (max-width: 700px) {
+  .reserve-mode-selector { grid-template-columns: 1fr; padding: var(--space-8) var(--space-6) 0; }
+}
+.reserve-mode-card {
+  position: relative;
+  padding: var(--space-8) var(--space-8);
+  border: 1px solid var(--color-graphite);
+  border-radius: var(--radius-md);
+  background: var(--color-void);
+  cursor: pointer;
+  transition: border-color var(--duration-base) var(--ease-standard),
+              background var(--duration-base) var(--ease-standard),
+              box-shadow var(--duration-base) var(--ease-standard);
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.reserve-mode-card:hover:not(.disabled) {
+  border-color: rgba(212,168,67,0.4);
+  background: rgba(212,168,67,0.03);
+}
+.reserve-mode-card.selected {
+  border-color: var(--color-gold-warm);
+  background: rgba(212,168,67,0.06);
+  box-shadow: var(--shadow-gold);
+}
+.reserve-mode-card.disabled {
+  cursor: default;
+  opacity: 0.5;
+  filter: grayscale(0.4);
+}
+.mode-card-emoji { font-size: 28px; }
+.mode-card-label {
+  font-family: var(--font-label);
+  font-size: 18px;
+  letter-spacing: 0.15em;
+  color: var(--color-ivory);
+}
+.reserve-mode-card.selected .mode-card-label { color: var(--color-gold-warm); }
+.mode-card-times {
+  font-size: 12px;
+  color: var(--color-ash);
+  letter-spacing: 0.06em;
+}
+.mode-card-desc {
+  font-size: 12px;
+  color: var(--color-ash);
+  line-height: 1.65;
+  margin-top: var(--space-1);
+}
+.mode-card-no-event {
+  font-size: 12px;
+  color: var(--color-gold-deep);
+  line-height: 1.65;
+  font-style: italic;
+  margin-top: var(--space-1);
+}
+.mode-card-selected-pip {
+  position: absolute;
+  top: 12px; right: 12px;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--color-gold-warm);
+  display: none;
+}
+.reserve-mode-card.selected .mode-card-selected-pip { display: block; }
+
 /* ── MAIN LAYOUT ─────────────────────────────────────────────── */
 .reserve-layout {
   display: grid;
   grid-template-columns: 1.4fr 1fr;
   min-height: calc(100vh - 200px);
+  margin-top: var(--space-8);
 }
 @media (max-width: 900px) { .reserve-layout { grid-template-columns: 1fr; } }
 
 /* ── FORM SIDE ───────────────────────────────────────────────── */
 .form-side {
-  padding: var(--space-16) var(--space-16);
+  padding: var(--space-12) var(--space-16);
   border-right: 1px solid var(--color-graphite);
 }
 @media (max-width: 900px) { .form-side { padding: var(--space-12) var(--space-6); border-right: none; border-bottom: 1px solid var(--color-graphite); } }
@@ -839,6 +917,27 @@ body::before {
   </div>
 </div>
 
+<!-- MODE SELECTOR — shown after date pick, or immediately -->
+<div class="reserve-mode-selector" id="reserveModeSelector">
+  <!-- Dinner Card -->
+  <div class="reserve-mode-card" id="modeDinner" onclick="selectMode('dinner')">
+    <div class="mode-card-selected-pip"></div>
+    <div class="mode-card-emoji">🍽</div>
+    <div class="mode-card-label">Dinner Reservations</div>
+    <div class="mode-card-times">5:00 PM – 9:00 PM · Daily</div>
+    <div class="mode-card-desc">Full supper club experience — fine dining, hookah, and patio. Confirmed within 24 hours.</div>
+  </div>
+  <!-- Nightlife Card -->
+  <div class="reserve-mode-card" id="modeNightlife" onclick="selectMode('nightlife')">
+    <div class="mode-card-selected-pip"></div>
+    <div class="mode-card-emoji">🌙</div>
+    <div class="mode-card-label">Nightlife Reservations</div>
+    <div class="mode-card-times">5:00 PM – 1:00 AM</div>
+    <div class="mode-card-desc" id="nightlifeCardDesc">VIP table bookings with bottle service. Pricing set by event.</div>
+    <div class="mode-card-no-event" id="nightlifeNoEvent" style="display:none;">No events tonight — kitchen and bar open til 1:00 AM, no reservation required.</div>
+  </div>
+</div>
+
 <div class="reserve-layout">
 
   <!-- ── FORM ─────────────────────────────────────────────────── -->
@@ -848,32 +947,18 @@ body::before {
       <!-- Cutoff / routing notice -->
       <div id="reserveCutoffNotice" style="display:none;padding:16px 20px;background:rgba(192,57,43,0.08);border:1px solid rgba(192,57,43,0.3);border-radius:8px;margin-bottom:24px;font-size:14px;color:#E57373;line-height:1.6;"></div>
 
-      <!-- Form fields wrapper (hidden during cutoff) -->
-      <div id="reserveFormFields">
-
-      <!-- Space Selection -->
-      <div style="margin-bottom: var(--space-8);">
-        <div class="form-section-label">Select Your Space</div>
-        <div class="space-selector" id="spaceSelector">
-          <div class="space-option selected" data-space="patio" onclick="selectSpace(this)">
-            <div class="space-option-icon">🪴</div>
-            <div class="space-option-name">The Patio</div>
-          </div>
-          <div class="space-option" data-space="dining" onclick="selectSpace(this)">
-            <div class="space-option-icon">🍽️</div>
-            <div class="space-option-name">Dining Room</div>
-          </div>
-          <div class="space-option" data-space="floor" onclick="selectSpace(this)">
-            <div class="space-option-icon">🥂</div>
-            <div class="space-option-name">VIP Floor</div>
-          </div>
-        </div>
+      <!-- Mode prompt (shown before mode selected) -->
+      <div id="reserveModePrompt" style="padding:32px 0 8px;text-align:center;color:var(--color-ash);font-size:14px;letter-spacing:0.06em;">
+        ↑ Select a reservation type above to continue
       </div>
+
+      <!-- Form fields wrapper (hidden until mode selected) -->
+      <div id="reserveFormFields" style="display:none;">
 
       <!-- Guest Info -->
       <div style="margin-bottom: var(--space-8);">
         <div class="form-section-label">Guest Information</div>
-        <!-- Phone first — F02 pattern: autofills name/email if member found -->
+        <!-- Phone first — F02 pattern -->
         <div class="form-group">
           <label class="form-label">Phone Number *</label>
           <div style="position:relative">
@@ -899,19 +984,16 @@ body::before {
 
       <!-- Reservation Details -->
       <div style="margin-bottom: var(--space-8);">
-        <div class="form-section-label">Reservation Details</div>
+        <div class="form-section-label" id="detailsSectionLabel">Reservation Details</div>
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Date *</label>
             <input class="form-input" type="date" id="date" required>
           </div>
-          <div class="form-group">
+          <div class="form-group" id="timeFieldWrapper">
             <label class="form-label">Preferred Time</label>
             <select class="form-select" id="time">
               <option value="">Select time</option>
-              <option>7:00 PM</option><option>7:30 PM</option><option>8:00 PM</option>
-              <option>8:30 PM</option><option>9:00 PM</option><option>9:30 PM</option>
-              <option>10:00 PM</option><option>10:30 PM</option><option>11:00 PM</option>
             </select>
           </div>
         </div>
@@ -920,12 +1002,24 @@ body::before {
             <label class="form-label">Party Size *</label>
             <select class="form-select" id="partySize" required>
               <option value="">Guests</option>
-              <option>1 – 2 guests</option><option>3 – 4 guests</option>
-              <option>5 – 6 guests</option><option>7 – 8 guests</option>
-              <option>9 – 12 guests</option><option>13+ guests</option>
+              <option value="1">1 guest</option>
+              <option value="2">2 guests</option>
+              <option value="3">3 guests</option>
+              <option value="4">4 guests</option>
+              <option value="5">5 guests</option>
+              <option value="6">6 guests</option>
+              <option value="7">7 guests</option>
+              <option value="8">8 guests</option>
+              <option value="9">9 guests</option>
+              <option value="10">10 guests</option>
+              <option value="11">11 guests</option>
+              <option value="12">12 guests</option>
+              <option value="15">15 guests</option>
+              <option value="20">20 guests</option>
+              <option value="25">25+ guests</option>
             </select>
           </div>
-          <div class="form-group">
+          <div class="form-group" id="occasionWrapper">
             <label class="form-label">Occasion</label>
             <select class="form-select" id="occasion">
               <option value="">Select occasion</option>
@@ -945,7 +1039,7 @@ body::before {
         </div>
       </div>
 
-      <!-- Event pricing section (shown when event with pricing exists on selected date) -->
+      <!-- Event pricing section (shown when nightlife + event with pricing exists) -->
       <div id="reservePricingSection" style="display:none;margin-bottom:var(--space-8);"></div>
       <!-- Min spend acknowledgment (shown after section selected) -->
       <div id="reserveAckSection" style="display:none;margin-bottom:var(--space-6);"></div>
@@ -954,7 +1048,7 @@ body::before {
 
       <div id="formError" style="color:#E57373;font-size:13px;margin-bottom:12px;min-height:18px;"></div>
       <button class="form-submit" onclick="submitReservation()">Request Reservation</button>
-      <p class="form-note" style="margin-top: var(--space-4);">All reservations are reviewed within 24 hours. You will receive a confirmation via phone or email. For same-day requests, please call us directly.</p>
+      <p class="form-note" style="margin-top: var(--space-4);">All reservations are reviewed within 24 hours. You will receive a confirmation via phone or email.</p>
     </div>
 
     <!-- SUCCESS STATE -->
@@ -1065,14 +1159,11 @@ try {
 
 /* ═══════════════════════════════════════════════════
    CAPTURE ref= (staff UUID) ON PAGE LOAD
-   Same pattern as join.html — IIFE, runs immediately
 ═══════════════════════════════════════════════════ */
 let REFERRAL_STAFF_ID = (function captureRef() {
   try {
-    // Check query string: reserve.html?ref=UUID
     const qp = new URLSearchParams(window.location.search);
     if (qp.get('ref')) return qp.get('ref');
-    // Fallback: hash fragment
     const hash = window.location.hash.slice(1);
     const hp = new URLSearchParams(hash);
     if (hp.get('ref')) return hp.get('ref');
@@ -1096,69 +1187,95 @@ function closeMobile() {
 }
 
 /* ═══════════════════════════════════════════════════
-   MIN DATE + REFERRAL NOTE
+   STATE
+═══════════════════════════════════════════════════ */
+let _currentMode    = null;   // 'dinner' | 'nightlife'
+let _activeEvent    = null;
+let _eventPricingRules = [];
+let _selectedSection   = null;
+let _selectedMinSpend  = 0;
+let _hasEventToday     = false;
+
+const SECTION_LABELS = { front:'Front Booths (1–6)', mid:'Mid Row (7–11)', center:'Center Cluster (12–19)', second:'Second Row (20–24)', top:'Top Row + Lounge (25–31)' };
+const SECTION_NAMES  = { front:'Front Booths', mid:'Mid Row', center:'Center Cluster', second:'Second Row', top:'Top Row + Lounge' };
+const SECTION_TABLES = { front:'1–6', mid:'7–11', center:'12–19', second:'20–24', top:'25–31' };
+
+/* ═══════════════════════════════════════════════════
+   MIN DATE
 ═══════════════════════════════════════════════════ */
 const dateInput = document.getElementById('date');
 dateInput.min = new Date().toISOString().split('T')[0];
 
-// Show staff credit note if staff referred this guest
 if (REFERRAL_STAFF_ID) {
   const noteEl = document.getElementById('staffCreditNote');
   if (noteEl) noteEl.style.display = 'block';
 }
 
 /* ═══════════════════════════════════════════════════
-   EVENT + PRICING LOOKUP — fires on date change
+   MODE SELECTOR
 ═══════════════════════════════════════════════════ */
-let _activeEvent = null;
-let _eventPricingRules = [];
-let _selectedSection = null;
-let _selectedMinSpend = 0;
+function selectMode(mode) {
+  const nightlifeCard = document.getElementById('modeNightlife');
+  // Block nightlife if disabled (no event)
+  if (mode === 'nightlife' && nightlifeCard.classList.contains('disabled')) return;
 
-const SECTION_LABELS = { front:'Front Booths (1–6)', mid:'Mid Row (7–11)', center:'Center Cluster (12–19)', second:'Second Row (20–24)', top:'Top Row + Lounge (25–31)' };
+  _currentMode = mode;
 
+  // Update card UI
+  document.getElementById('modeDinner').classList.toggle('selected', mode === 'dinner');
+  document.getElementById('modeNightlife').classList.toggle('selected', mode === 'nightlife');
+
+  // Show form
+  document.getElementById('reserveModePrompt').style.display = 'none';
+  document.getElementById('reserveFormFields').style.display = 'block';
+  document.getElementById('reserveCutoffNotice').style.display = 'none';
+
+  // Reset pricing
+  _selectedSection = null;
+  _selectedMinSpend = 0;
+  document.getElementById('reservePricingSection').style.display = 'none';
+  document.getElementById('reserveAckSection').style.display = 'none';
+
+  // Update section label
+  const label = document.getElementById('detailsSectionLabel');
+  if (label) label.textContent = mode === 'dinner' ? 'Dinner Details' : 'Nightlife Details';
+
+  // Update time dropdown
+  updateTimeDropdown(mode);
+
+  // If nightlife + pricing rules exist, show pricing UI
+  if (mode === 'nightlife' && _eventPricingRules.length) {
+    showPricingUI();
+  }
+
+  // Update submit button label
+  const btn = document.querySelector('.form-submit');
+  if (btn) btn.textContent = mode === 'dinner' ? 'Request Dinner Reservation' : 'Request Table Booking';
+}
+
+/* ═══════════════════════════════════════════════════
+   DATE CHANGE — fetch event + set nightlife card state
+═══════════════════════════════════════════════════ */
 dateInput.addEventListener('change', async function() {
   const dateVal = this.value;
   _activeEvent = null;
   _eventPricingRules = [];
   _selectedSection = null;
   _selectedMinSpend = 0;
-  hidePricingUI();
+  _hasEventToday = false;
+
+  // Hide pricing until re-evaluated
+  document.getElementById('reservePricingSection').style.display = 'none';
+  document.getElementById('reserveAckSection').style.display = 'none';
+  document.getElementById('reserveCutoffNotice').style.display = 'none';
+
+  // Reset nightlife card to active state
+  const nightlifeCard = document.getElementById('modeNightlife');
+  nightlifeCard.classList.remove('disabled');
+  document.getElementById('nightlifeNoEvent').style.display = 'none';
+  document.getElementById('nightlifeCardDesc').style.display = 'block';
+
   if (!dateVal || !supabaseClient) return;
-
-  // Determine routing based on SELECTED TIME (not wall clock)
-  // Before 9 PM → dinner reservation path
-  // 9:00–9:30 PM → blackout window
-  // 10:00 PM+ → nightlife table booking path
-  const selectedTime = document.getElementById('time').value;
-  let selectedHour = -1;
-  let selectedMinute = 0;
-  if (selectedTime) {
-    const match = selectedTime.match(/(\d+):(\d+)\s*(AM|PM)/i);
-    if (match) {
-      selectedHour = parseInt(match[1]);
-      selectedMinute = parseInt(match[2]);
-      if (match[3].toUpperCase() === 'PM' && selectedHour !== 12) selectedHour += 12;
-      if (match[3].toUpperCase() === 'AM' && selectedHour === 12) selectedHour = 0;
-    }
-  }
-  // Also check current wall clock for same-day booking restrictions
-  const now = new Date();
-  // Use LOCAL date (not UTC) so 8 PM EDT doesn't become March 15 UTC
-  const today = now.toLocaleDateString('en-CA', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone });
-  const isToday = dateVal === today;
-  const currentHour = now.getHours();
-
-  // If today and current time is past 10 PM, block dinner entirely
-  if (isToday && currentHour >= 22) {
-    showReserveCutoffNotice('Dinner reservations are closed for tonight. <a href="vip.html" style="color:var(--color-gold-warm);">Request a VIP Pass →</a>');
-    return;
-  }
-  // If today and current time is 9–10 PM blackout
-  if (isToday && currentHour >= 21 && currentHour < 22) {
-    showReserveCutoffNotice('Reservations are not available between 9–10 PM. Dinner service ends at 9 PM. Nightlife VIP table bookings open after 10 PM.');
-    return;
-  }
 
   // Fetch event for this date
   try {
@@ -1168,104 +1285,126 @@ dateInput.addEventListener('change', async function() {
       .eq('event_date', dateVal)
       .in('status', ['scheduled', 'live'])
       .limit(1);
+
     if (events && events.length) {
       _activeEvent = events[0];
-      // Fetch pricing rules for this event
+      _hasEventToday = true;
+      // Fetch pricing rules
       const { data: rules } = await supabaseClient
         .from('table_minimums')
         .select('*')
         .eq('event_id', _activeEvent.id)
         .eq('is_active', true);
       _eventPricingRules = rules || [];
-      if (_eventPricingRules.length) {
-        showPricingUI();
-        // Nightlife event — show nightlife times, hide dinner times
-        updateTimeDropdown('nightlife');
-      } else {
-        // Dinner only on this date — show dinner times
-        updateTimeDropdown('dinner');
-      }
     }
   } catch(e) {
     console.warn('Event/pricing lookup failed:', e);
   }
-  // If no event found, default to dinner times
-  if (!_activeEvent) updateTimeDropdown('dinner');
+
+  // Update nightlife card based on event existence
+  if (!_hasEventToday) {
+    // Grey out nightlife — no event
+    nightlifeCard.classList.add('disabled');
+    if (_currentMode === 'nightlife') {
+      // If user had nightlife selected, deselect it
+      nightlifeCard.classList.remove('selected');
+      _currentMode = null;
+      document.getElementById('reserveModePrompt').style.display = 'block';
+      document.getElementById('reserveFormFields').style.display = 'none';
+    }
+    document.getElementById('nightlifeCardDesc').style.display = 'none';
+    document.getElementById('nightlifeNoEvent').style.display = 'block';
+  } else {
+    // Event exists — nightlife available
+    nightlifeCard.classList.remove('disabled');
+    document.getElementById('nightlifeCardDesc').style.display = 'block';
+    document.getElementById('nightlifeNoEvent').style.display = 'none';
+  }
+
+  // Re-apply time dropdown if mode already selected
+  if (_currentMode) {
+    updateTimeDropdown(_currentMode);
+    if (_currentMode === 'nightlife' && _eventPricingRules.length) {
+      showPricingUI();
+    } else {
+      document.getElementById('reservePricingSection').style.display = 'none';
+    }
+  }
 });
 
-function showReserveCutoffNotice(msg) {
-  let el = document.getElementById('reserveCutoffNotice');
-  if (!el) return;
-  el.innerHTML = msg;
-  el.style.display = 'block';
-  document.getElementById('reserveFormFields').style.display = 'none';
-}
-
-function hidePricingUI() {
-  const el = document.getElementById('reserveCutoffNotice');
-  if (el) { el.style.display = 'none'; el.innerHTML = ''; }
-  const pricing = document.getElementById('reservePricingSection');
-  if (pricing) pricing.style.display = 'none';
-  const ack = document.getElementById('reserveAckSection');
-  if (ack) ack.style.display = 'none';
-  document.getElementById('reserveFormFields').style.display = 'block';
-  _selectedSection = null;
-  _selectedMinSpend = 0;
-}
-
+/* ═══════════════════════════════════════════════════
+   TIME DROPDOWN
+═══════════════════════════════════════════════════ */
 function updateTimeDropdown(mode) {
   const sel = document.getElementById('time');
   if (!sel) return;
-  const currentVal = sel.value;
   sel.innerHTML = '<option value="">Select time</option>';
+
+  let times = [];
   if (mode === 'dinner') {
-    // Dinner times: 6 PM – 8:30 PM (must end before 9 PM cutoff)
-    const dinnerTimes = ['6:00 PM','6:30 PM','7:00 PM','7:30 PM','8:00 PM','8:30 PM'];
-    dinnerTimes.forEach(t => {
-      const opt = document.createElement('option');
-      opt.value = t; opt.textContent = t;
-      if (t === currentVal) opt.selected = true;
-      sel.appendChild(opt);
-    });
-    // Show time field for dinner
-    const timeRow = sel.closest('.form-row') || sel.parentElement;
-    if (timeRow) timeRow.style.display = '';
-  } else if (mode === 'nightlife') {
-    // Nightlife times: 10 PM – 1:30 AM
-    const nightTimes = ['10:00 PM','10:30 PM','11:00 PM','11:30 PM','12:00 AM','12:30 AM','1:00 AM','1:30 AM'];
-    nightTimes.forEach(t => {
-      const opt = document.createElement('option');
-      opt.value = t; opt.textContent = t;
-      if (t === currentVal) opt.selected = true;
-      sel.appendChild(opt);
-    });
-    // Show time field for nightlife
-    const timeRow = sel.closest('.form-row') || sel.parentElement;
-    if (timeRow) timeRow.style.display = '';
+    times = ['5:00 PM','5:30 PM','6:00 PM','6:30 PM','7:00 PM','7:30 PM','8:00 PM','8:30 PM','9:00 PM'];
+  } else {
+    times = ['5:00 PM','5:30 PM','6:00 PM','6:30 PM','7:00 PM','7:30 PM','8:00 PM','8:30 PM',
+             '9:00 PM','9:30 PM','10:00 PM','10:30 PM','11:00 PM','11:30 PM',
+             '12:00 AM','12:30 AM','1:00 AM'];
   }
+
+  // Same-day: filter out past times
+  const now = new Date();
+  const today = now.toLocaleDateString('en-CA', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone });
+  const isToday = dateInput.value === today;
+
+  times.forEach(t => {
+    if (isToday) {
+      const parsed = parseTime12(t);
+      if (parsed !== null && parsed <= now.getHours() * 60 + now.getMinutes()) return;
+    }
+    const opt = document.createElement('option');
+    opt.value = t; opt.textContent = t;
+    sel.appendChild(opt);
+  });
 }
 
+function parseTime12(str) {
+  const m = str.match(/(\d+):(\d+)\s*(AM|PM)/i);
+  if (!m) return null;
+  let h = parseInt(m[1]), min = parseInt(m[2]), ampm = m[3].toUpperCase();
+  if (ampm === 'PM' && h !== 12) h += 12;
+  if (ampm === 'AM' && h === 12) h = 0;
+  // 12 AM / 1 AM — treat as next-day early morning (still valid for nightlife)
+  if (h < 5) h += 24;
+  return h * 60 + min;
+}
+
+/* ═══════════════════════════════════════════════════
+   PRICING UI (nightlife)
+═══════════════════════════════════════════════════ */
 function showPricingUI() {
   const pricing = document.getElementById('reservePricingSection');
-  if (!pricing) return;
-  const SECTION_NAMES = { front:'Front Booths', mid:'Mid Row', center:'Center Cluster', second:'Second Row', top:'Top Row + Lounge' };
-  const SECTION_TABLES = { front:'1–6', mid:'7–11', center:'12–19', second:'20–24', top:'25–31' };
+  if (!pricing || !_activeEvent) return;
   pricing.innerHTML = `
     <div style="margin-bottom:var(--space-6);">
-      <div class="form-section-label" style="color:var(--color-gold-warm);">✦ ${_activeEvent.title} — Table Pricing</div>
+      <div class="form-section-label" style="color:var(--color-gold-warm);">✦ ${_activeEvent.title} — Table Sections</div>
       <p style="font-size:13px;color:var(--color-ash);margin-bottom:16px;">Select your preferred section. A minimum spend applies to your table booking.</p>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
         ${_eventPricingRules.map(r => `
-          <button type="button" class="reserve-section-btn" data-section="${r.section_name}" data-spend="${r.minimum_spend}" data-rid="${r.id}"
+          <button type="button" class="reserve-section-btn" data-section="${r.section_name}" data-spend="${r.minimum_spend}"
             onclick="selectReserveSection(this)"
             style="padding:16px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.03);color:var(--color-ivory);text-align:left;cursor:pointer;transition:all 150ms;">
             <div style="font-weight:500;font-size:14px;">${SECTION_NAMES[r.section_name] || r.section_name}</div>
             <div style="font-size:12px;opacity:0.6;margin-top:2px;">Tables ${SECTION_TABLES[r.section_name] || '—'}</div>
-            <div style="font-family:var(--font-label, 'Bebas Neue');font-size:18px;letter-spacing:0.1em;color:var(--color-gold-warm);margin-top:8px;">$${parseFloat(r.minimum_spend).toLocaleString()} minimum</div>
+            <div style="font-family:var(--font-label);font-size:18px;letter-spacing:0.1em;color:var(--color-gold-warm);margin-top:8px;">$${parseFloat(r.minimum_spend).toLocaleString()} minimum</div>
           </button>`).join('')}
       </div>
     </div>`;
   pricing.style.display = 'block';
+}
+
+function showReserveCutoffNotice(msg) {
+  const el = document.getElementById('reserveCutoffNotice');
+  if (!el) return;
+  el.innerHTML = msg;
+  el.style.display = 'block';
 }
 
 function selectReserveSection(btn) {
@@ -1277,14 +1416,13 @@ function selectReserveSection(btn) {
   btn.style.background = 'rgba(212,168,67,0.1)';
   _selectedSection = btn.dataset.section;
   _selectedMinSpend = parseFloat(btn.dataset.spend);
-  // Show acknowledgment
   const ack = document.getElementById('reserveAckSection');
   if (ack) {
     ack.innerHTML = `
       <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;padding:14px 16px;background:rgba(212,168,67,0.05);border:1px solid rgba(212,168,67,0.25);border-radius:8px;">
         <input type="checkbox" id="reserveMinSpendAck" style="margin-top:3px;flex-shrink:0;accent-color:var(--color-gold-warm);" />
         <span style="font-size:13px;color:var(--color-mist);line-height:1.5;">
-          I understand that my table booking at <strong style="color:var(--color-ivory);">${document.getElementById('reserveFormFields') ? '' : ''}</strong> requires a minimum spend of <strong style="color:var(--color-gold-warm);">$${_selectedMinSpend.toLocaleString()}</strong> for the evening. A deposit may be required to confirm my booking.
+          I understand my table booking requires a minimum spend of <strong style="color:var(--color-gold-warm);">$${_selectedMinSpend.toLocaleString()}</strong> for the evening. A deposit may be required to confirm my booking.
         </span>
       </label>`;
     ack.style.display = 'block';
@@ -1292,17 +1430,7 @@ function selectReserveSection(btn) {
 }
 
 /* ═══════════════════════════════════════════════════
-   SPACE SELECTOR
-═══════════════════════════════════════════════════ */
-let selectedSpace = 'patio';
-function selectSpace(el) {
-  document.querySelectorAll('.space-option').forEach(o => o.classList.remove('selected'));
-  el.classList.add('selected');
-  selectedSpace = el.dataset.space;
-}
-
-/* ═══════════════════════════════════════════════════
-   F02 GUEST LOOKUP STATE
+   F02 GUEST LOOKUP
 ═══════════════════════════════════════════════════ */
 let _guestStatus = 'New';
 let _memberId = null;
@@ -1368,33 +1496,32 @@ document.getElementById('phone').addEventListener('input', function() {
 });
 
 /* ═══════════════════════════════════════════════════
-   SUBMIT — writes to Supabase
-   Routes to reservations (dinner) or table_bookings (nightlife w/ pricing)
+   SUBMIT
 ═══════════════════════════════════════════════════ */
 async function submitReservation() {
+  if (!_currentMode) {
+    document.getElementById('formError').textContent = 'Please select a reservation type above.';
+    return;
+  }
+
   const firstName = document.getElementById('firstName').value.trim();
   const lastName  = document.getElementById('lastName').value.trim();
   const phone     = document.getElementById('phone').value.trim();
   const date      = document.getElementById('date').value;
   const partySize = document.getElementById('partySize').value;
   const time      = document.getElementById('time').value;
+  const errEl     = document.getElementById('formError');
 
-
-  // Validation
-  const errEl = document.getElementById('formError');
   if (!firstName || !lastName) { errEl.textContent = 'Please enter your full name.'; return; }
   if (!phone || phone.replace(/\D/g,'').length < 10) { errEl.textContent = 'Please enter a valid 10-digit phone number.'; return; }
   if (!date) { errEl.textContent = 'Please select a date.'; return; }
   if (!partySize) { errEl.textContent = 'Please select your party size.'; return; }
+  if (!time) { errEl.textContent = 'Please select a preferred time.'; return; }
 
-  // If section pricing is showing, require section selection + acknowledgment
-  if (_eventPricingRules.length) {
+  if (_currentMode === 'nightlife' && _eventPricingRules.length) {
     if (!_selectedSection) { errEl.textContent = 'Please select a table section.'; return; }
     const ackBox = document.getElementById('reserveMinSpendAck');
     if (!ackBox || !ackBox.checked) { errEl.textContent = 'Please acknowledge the minimum spend to continue.'; return; }
-  } else {
-    // Dinner path — require time
-    if (!time) { errEl.textContent = 'Please select a time.'; return; }
   }
 
   errEl.textContent = '';
@@ -1405,12 +1532,10 @@ async function submitReservation() {
   const now = new Date().toISOString();
   const phoneE164 = '+1' + phone.replace(/\D/g,'').slice(-10);
   const partyInt = parseInt(partySize) || 2;
-  // Use member_id from F02 lookup (UUID guard)
   const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   const resolvedMemberId = (_memberId && isUUID.test(_memberId)) ? _memberId : null;
 
-  // Route: table_bookings (nightlife/priced) vs reservations (dinner)
-  if (_selectedSection && _activeEvent && _selectedMinSpend > 0) {
+  if (_currentMode === 'nightlife' && _selectedSection && _activeEvent && _selectedMinSpend > 0) {
     // NIGHTLIFE TABLE BOOKING PATH
     const payload = {
       event_id: _activeEvent.id,
@@ -1421,9 +1546,14 @@ async function submitReservation() {
       party_size: partyInt,
       minimum_spend_required: _selectedMinSpend,
       minimum_spend_acknowledged: true,
-      notes: document.getElementById('notes').value.trim() || null,
+      notes: [
+        time ? `Time: ${time}` : '',
+        document.getElementById('occasion').value ? `Occasion: ${document.getElementById('occasion').value}` : '',
+        document.getElementById('notes').value.trim() || '',
+      ].filter(Boolean).join(' · ') || null,
       status: 'pending',
       requested_at: now,
+      booking_source: 'guest',
     };
     if (supabaseClient) {
       try {
@@ -1431,12 +1561,12 @@ async function submitReservation() {
         if (error) {
           console.error('Table booking insert error:', error);
           errEl.textContent = 'Something went wrong. Please try again.';
-          btn.disabled = false; btn.textContent = 'Request Reservation';
+          btn.disabled = false; btn.textContent = 'Request Table Booking';
           return;
         }
       } catch(e) {
         errEl.textContent = 'Connection error. Please try again.';
-        btn.disabled = false; btn.textContent = 'Request Reservation';
+        btn.disabled = false; btn.textContent = 'Request Table Booking';
         return;
       }
     }
@@ -1454,7 +1584,6 @@ async function submitReservation() {
         time ? `Time: ${time}` : '',
         document.getElementById('occasion').value ? `Occasion: ${document.getElementById('occasion').value}` : '',
         document.getElementById('notes').value.trim() || '',
-        selectedSpace ? `Space: ${selectedSpace}` : '',
       ].filter(Boolean).join(' · ') || null,
       handled_by:   REFERRAL_STAFF_ID || null,
       handled_at:   REFERRAL_STAFF_ID ? now : null,
@@ -1466,12 +1595,12 @@ async function submitReservation() {
         if (error) {
           console.error('Reservation insert error:', error);
           errEl.textContent = 'Something went wrong. Please try again or call us directly.';
-          btn.disabled = false; btn.textContent = 'Request Reservation';
+          btn.disabled = false; btn.textContent = 'Request Dinner Reservation';
           return;
         }
       } catch(e) {
         errEl.textContent = 'Connection error. Please try again.';
-        btn.disabled = false; btn.textContent = 'Request Reservation';
+        btn.disabled = false; btn.textContent = 'Request Dinner Reservation';
         return;
       }
     }
