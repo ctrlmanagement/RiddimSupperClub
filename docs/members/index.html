@@ -724,7 +724,7 @@ const phoneE164 = rawPhone.startsWith('+') ? rawPhone : '+1' + phone10;
 
 try {
   const [ticketRes, compRes, bookingRes] = await Promise.all([
-    supabaseClient.from('tickets').select('id,quantity,price_paid,comped,events(title,event_date)').eq('member_id', currentMember.id).order('purchased_at',{ascending:false}),
+    supabaseClient.from('tickets').select('id,quantity,price_paid,comped,status').eq('member_id', currentMember.id).order('purchased_at',{ascending:false}),
     supabaseClient.from('vip_passes').select('id,pass_type,valid_date,status').eq('guest_phone', phone10).order('valid_date',{ascending:false}),
     supabaseClient.from('table_bookings').select('id,section_name,party_size,minimum_spend_required,deposit_amount,comp_applied,payment_amount,status,requested_at').eq('guest_phone', phoneE164).order('requested_at',{ascending:false}),
   ]);

@@ -931,6 +931,196 @@ body::before {
 }
 .sidebar-gold p { font-size: 13px; color: var(--color-ash); line-height: 1.8; margin-bottom: var(--space-4); }
 
+/* ── TICKET PURCHASE PANEL ──────────────────────────────────────── */
+.tkt-panel-wrap {
+  display: none;
+  border-top: 1px solid rgba(100,181,246,0.18);
+  background: linear-gradient(180deg, rgba(10,10,20,0.98) 0%, rgba(12,10,24,0.98) 100%);
+  padding: var(--space-8) var(--space-6);
+  animation: tktSlideIn 0.28s cubic-bezier(0.16,1,0.3,1);
+}
+.tkt-panel-wrap.open { display: block; }
+@keyframes tktSlideIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: none; }
+}
+.tkt-panel-inner { max-width: 560px; margin: 0 auto; }
+.tkt-panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: var(--space-6);
+}
+.tkt-panel-title {
+  font-family: var(--font-label);
+  font-size: 11px; letter-spacing: 0.3em;
+  color: #64B5F6;
+}
+.tkt-panel-close {
+  background: none; border: none; color: rgba(245,240,232,0.35);
+  font-size: 20px; cursor: pointer; line-height: 1; padding: 0 4px;
+  transition: color 0.15s;
+}
+.tkt-panel-close:hover { color: var(--color-ivory); }
+
+/* Phone lookup row */
+.tkt-phone-row { display: flex; gap: var(--space-3); align-items: flex-end; margin-bottom: var(--space-3); }
+.tkt-phone-row .form-group { flex: 1; margin-bottom: 0; }
+.tkt-lookup-status {
+  font-size: 12px; min-height: 18px; margin-bottom: var(--space-4);
+  transition: color 0.2s;
+}
+.tkt-lookup-status.found  { color: #81C784; }
+.tkt-lookup-status.not-found { color: rgba(212,168,67,0.7); }
+
+/* Tier selector */
+.tkt-tiers {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+.tkt-tier {
+  border: 1px solid rgba(100,181,246,0.2);
+  border-radius: var(--radius-md);
+  padding: var(--space-4) var(--space-3);
+  cursor: pointer; text-align: center;
+  transition: border-color 0.18s, background 0.18s;
+  background: rgba(100,181,246,0.03);
+  user-select: none;
+}
+.tkt-tier:hover { border-color: rgba(100,181,246,0.45); background: rgba(100,181,246,0.07); }
+.tkt-tier.selected { border-color: #64B5F6; background: rgba(100,181,246,0.1); box-shadow: 0 0 0 1px rgba(100,181,246,0.3); }
+.tkt-tier-name {
+  font-family: var(--font-label); font-size: 12px;
+  letter-spacing: 0.2em; color: #90CAF9; margin-bottom: 4px;
+}
+.tkt-tier-price {
+  font-family: var(--font-display); font-size: 20px; font-weight: 300;
+  color: var(--color-ivory); margin-bottom: 2px;
+}
+.tkt-tier-desc { font-size: 10px; color: var(--color-ash); letter-spacing: 0.05em; }
+
+/* Qty row */
+.tkt-qty-row {
+  display: flex; align-items: center; gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+.tkt-qty-label {
+  font-family: var(--font-label); font-size: 10px;
+  letter-spacing: 0.25em; color: #64B5F6;
+}
+.tkt-qty-ctrl {
+  display: flex; align-items: center; gap: var(--space-3);
+  border: 1px solid rgba(100,181,246,0.2); border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.tkt-qty-btn {
+  background: rgba(100,181,246,0.06); border: none;
+  color: #90CAF9; width: 36px; height: 36px;
+  font-size: 18px; cursor: pointer; line-height: 1;
+  transition: background 0.15s;
+}
+.tkt-qty-btn:hover { background: rgba(100,181,246,0.14); }
+.tkt-qty-val {
+  font-family: var(--font-label); font-size: 18px;
+  color: var(--color-ivory); min-width: 28px; text-align: center;
+}
+.tkt-summary {
+  font-family: var(--font-label); font-size: 10px;
+  letter-spacing: 0.25em; color: var(--color-ash); margin-left: auto;
+}
+
+/* Name row */
+.tkt-name-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); margin-bottom: var(--space-4); }
+
+/* Delivery toggle */
+.tkt-delivery-row { margin-bottom: var(--space-6); }
+.tkt-delivery-label {
+  font-family: var(--font-label); font-size: 10px;
+  letter-spacing: 0.25em; color: #64B5F6;
+  display: block; margin-bottom: var(--space-3);
+}
+.tkt-delivery-btns { display: flex; gap: var(--space-3); }
+.tkt-delivery-btn {
+  flex: 1; border: 1px solid rgba(100,181,246,0.2);
+  border-radius: var(--radius-sm); background: rgba(100,181,246,0.03);
+  color: var(--color-ash); font-family: var(--font-label);
+  font-size: 10px; letter-spacing: 0.2em;
+  padding: var(--space-3) var(--space-4);
+  cursor: pointer; transition: all 0.18s; text-align: center;
+}
+.tkt-delivery-btn:hover { border-color: rgba(100,181,246,0.4); color: #90CAF9; }
+.tkt-delivery-btn.selected { border-color: #64B5F6; background: rgba(100,181,246,0.1); color: #90CAF9; }
+
+/* Stub notice */
+.tkt-stub-notice {
+  background: rgba(100,181,246,0.05);
+  border: 1px solid rgba(100,181,246,0.15);
+  border-radius: var(--radius-sm);
+  padding: var(--space-4);
+  margin-bottom: var(--space-6);
+  font-size: 12px; color: var(--color-ash); line-height: 1.7;
+}
+.tkt-stub-notice strong { color: #90CAF9; font-weight: 400; }
+
+/* Submit button */
+.tkt-submit {
+  width: 100%; background: #64B5F6; color: #0A0A14;
+  border: none; border-radius: var(--radius-sm);
+  font-family: var(--font-body); font-weight: 500;
+  font-size: var(--t-caption); letter-spacing: 0.22em;
+  text-transform: uppercase; padding: var(--space-4) var(--space-8);
+  cursor: pointer; transition: background 0.18s, transform 0.18s, box-shadow 0.18s;
+}
+.tkt-submit:hover { background: #90CAF9; transform: translateY(-2px); box-shadow: 0 0 24px rgba(100,181,246,0.25); }
+.tkt-submit:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* Success state */
+.tkt-success {
+  display: none; text-align: center; padding: var(--space-8) var(--space-4);
+}
+.tkt-success.show { display: block; }
+.tkt-success-icon { font-size: 38px; margin-bottom: var(--space-4); }
+.tkt-success-title {
+  font-family: var(--font-display); font-size: 28px; font-weight: 300;
+  color: var(--color-ivory); margin-bottom: var(--space-3);
+}
+.tkt-success-title em { color: #64B5F6; font-style: italic; }
+.tkt-success-desc { font-size: 13px; color: var(--color-ash); line-height: 1.9; max-width: 380px; margin: 0 auto var(--space-6); }
+
+/* Get Tickets button variant */
+.btn-tickets {
+  background: rgba(100,181,246,0.1);
+  color: #90CAF9;
+  padding: var(--space-4) var(--space-8);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(100,181,246,0.35);
+  font-family: var(--font-body);
+  font-size: var(--t-caption);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--duration-base) var(--ease-standard);
+  display: inline-block;
+}
+.btn-tickets:hover {
+  background: rgba(100,181,246,0.18);
+  border-color: #64B5F6;
+  color: #64B5F6;
+  transform: translateY(-2px);
+  box-shadow: 0 0 16px rgba(100,181,246,0.15);
+}
+.btn-tickets.active {
+  background: rgba(100,181,246,0.15);
+  border-color: #64B5F6;
+  color: #64B5F6;
+}
+
+/* Featured event wrapper needs overflow visible for panel */
+.event-featured-wrap { overflow: visible; }
+
+@media (max-width: 600px) {
+  .tkt-tiers { grid-template-columns: 1fr; }
+  .tkt-name-row { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
@@ -987,102 +1177,190 @@ body::before {
   <div id="eventsList">
 
     <!-- FEATURED -->
-    <div class="event-featured" data-type="dj">
-      <div class="event-featured-img">
-        <img src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=1200&q=80" alt="Headz Only" loading="lazy">
-        <div class="event-featured-badge">⭐ Featured This Week</div>
-      </div>
-      <div class="event-featured-body">
-        <div class="event-meta">
-          <span class="event-date-chip">FRI · MAR 7</span>
-          <span class="event-type-chip">DJ Night</span>
+    <div class="event-featured-wrap" data-type="dj">
+      <div class="event-featured">
+        <div class="event-featured-img">
+          <img src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=1200&q=80" alt="Headz Only" loading="lazy">
+          <div class="event-featured-badge">⭐ Featured This Week</div>
         </div>
-        <h2 class="event-name"><em>Headz Only</em> with DJ Kole</h2>
-        <p class="event-desc">Atlanta's most respected DJ returns to RIDDIM for a night of pure hip-hop culture. No gimmicks, no compromises. Just the records that shaped the culture and the ones defining where it's going.</p>
-        <div class="event-footer">
-          <span class="event-time">9PM – 3AM · Patio Open · Hookah Available</span>
-          <a href="reserve.html" class="btn btn-primary">Reserve a Table</a>
+        <div class="event-featured-body">
+          <div class="event-meta">
+            <span class="event-date-chip">FRI · MAR 7</span>
+            <span class="event-type-chip">DJ Night</span>
+          </div>
+          <h2 class="event-name"><em>Headz Only</em> with DJ Kole</h2>
+          <p class="event-desc">Atlanta's most respected DJ returns to RIDDIM for a night of pure hip-hop culture. No gimmicks, no compromises. Just the records that shaped the culture and the ones defining where it's going.</p>
+          <div class="event-footer">
+            <span class="event-time">9PM – 3AM · Patio Open · Hookah Available</span>
+            <div style="display:flex;gap:var(--space-3);flex-wrap:wrap;">
+              <a href="reserve.html" class="btn btn-primary">Reserve a Table</a>
+              <button class="btn btn-tickets" onclick="toggleTktPanel('tkt-headz-only', this)">Get Tickets</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- TICKET PANEL: Headz Only -->
+      <div class="tkt-panel-wrap" id="tkt-headz-only"
+           data-event-name="Headz Only with DJ Kole"
+           data-event-date="FRI · MAR 7">
+        <div class="tkt-panel-inner">
+          <div class="tkt-panel-header">
+            <span class="tkt-panel-title">🎟 GET TICKETS — HEADZ ONLY</span>
+            <button class="tkt-panel-close" onclick="toggleTktPanel('tkt-headz-only', null)">✕</button>
+          </div>
+          <div class="tkt-form" id="tkt-headz-only-form">
+            <!-- injected by initTktPanel() -->
+          </div>
+          <div class="tkt-success" id="tkt-headz-only-success"></div>
         </div>
       </div>
     </div>
 
     <!-- EVENT CARDS -->
-    <div class="event-card" data-type="live">
-      <div class="event-card-img">
-        <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=400&q=80" alt="" loading="lazy">
-      </div>
-      <div class="event-card-body">
-        <div>
-          <div class="event-meta">
-            <span class="event-date-chip">SAT · MAR 8</span>
-            <span class="event-type-chip">Live Performance</span>
-          </div>
-          <h3 class="event-name">Saturday <em>Jazz Supper</em></h3>
-          <p class="event-desc">Live quartet. Full dinner service. The Dining Room at its most intimate.</p>
+    <div data-type="live">
+      <div class="event-card">
+        <div class="event-card-img">
+          <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=400&q=80" alt="" loading="lazy">
         </div>
-        <div class="event-footer">
-          <span class="event-time">7PM – 11PM</span>
-          <a href="reserve.html" class="btn btn-ghost">Book Dinner</a>
+        <div class="event-card-body">
+          <div>
+            <div class="event-meta">
+              <span class="event-date-chip">SAT · MAR 8</span>
+              <span class="event-type-chip">Live Performance</span>
+            </div>
+            <h3 class="event-name">Saturday <em>Jazz Supper</em></h3>
+            <p class="event-desc">Live quartet. Full dinner service. The Dining Room at its most intimate.</p>
+          </div>
+          <div class="event-footer">
+            <span class="event-time">7PM – 11PM</span>
+            <div style="display:flex;gap:var(--space-3);flex-wrap:wrap;">
+              <a href="reserve.html" class="btn btn-ghost">Book Dinner</a>
+              <button class="btn btn-tickets" onclick="toggleTktPanel('tkt-jazz-supper', this)">Get Tickets</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tkt-panel-wrap" id="tkt-jazz-supper"
+           data-event-name="Saturday Jazz Supper"
+           data-event-date="SAT · MAR 8">
+        <div class="tkt-panel-inner">
+          <div class="tkt-panel-header">
+            <span class="tkt-panel-title">🎟 GET TICKETS — SATURDAY JAZZ SUPPER</span>
+            <button class="tkt-panel-close" onclick="toggleTktPanel('tkt-jazz-supper', null)">✕</button>
+          </div>
+          <div class="tkt-form" id="tkt-jazz-supper-form"></div>
+          <div class="tkt-success" id="tkt-jazz-supper-success"></div>
         </div>
       </div>
     </div>
 
-    <div class="event-card" data-type="special">
-      <div class="event-card-img">
-        <img src="https://images.unsplash.com/photo-1533174072545-7780ea8d615a?auto=format&fit=crop&w=400&q=80" alt="" loading="lazy">
-      </div>
-      <div class="event-card-body">
-        <div>
-          <div class="event-meta">
-            <span class="event-date-chip">SUN · MAR 9</span>
-            <span class="event-type-chip">Members Only</span>
-          </div>
-          <h3 class="event-name">Members <em>Dinner Night</em></h3>
-          <p class="event-desc">Exclusive Sunday dinner for RIDDIM Members Club. Limited seating. Members-only reservation access.</p>
+    <div data-type="special">
+      <div class="event-card">
+        <div class="event-card-img">
+          <img src="https://images.unsplash.com/photo-1533174072545-7780ea8d615a?auto=format&fit=crop&w=400&q=80" alt="" loading="lazy">
         </div>
-        <div class="event-footer">
-          <span class="event-time">5PM – 10PM</span>
-          <a href="members/index.html" class="btn btn-ghost">Member Login</a>
+        <div class="event-card-body">
+          <div>
+            <div class="event-meta">
+              <span class="event-date-chip">SUN · MAR 9</span>
+              <span class="event-type-chip">Members Only</span>
+            </div>
+            <h3 class="event-name">Members <em>Dinner Night</em></h3>
+            <p class="event-desc">Exclusive Sunday dinner for RIDDIM Members Club. Limited seating. Members-only reservation access.</p>
+          </div>
+          <div class="event-footer">
+            <span class="event-time">5PM – 10PM</span>
+            <div style="display:flex;gap:var(--space-3);flex-wrap:wrap;">
+              <a href="members/index.html" class="btn btn-ghost">Member Login</a>
+              <button class="btn btn-tickets" onclick="toggleTktPanel('tkt-members-dinner', this)">Get Tickets</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tkt-panel-wrap" id="tkt-members-dinner"
+           data-event-name="Members Dinner Night"
+           data-event-date="SUN · MAR 9">
+        <div class="tkt-panel-inner">
+          <div class="tkt-panel-header">
+            <span class="tkt-panel-title">🎟 GET TICKETS — MEMBERS DINNER NIGHT</span>
+            <button class="tkt-panel-close" onclick="toggleTktPanel('tkt-members-dinner', null)">✕</button>
+          </div>
+          <div class="tkt-form" id="tkt-members-dinner-form"></div>
+          <div class="tkt-success" id="tkt-members-dinner-success"></div>
         </div>
       </div>
     </div>
 
-    <div class="event-card" data-type="dj">
-      <div class="event-card-img">
-        <img src="https://images.unsplash.com/photo-1470337458703-4ad1d7ba7fd8?auto=format&fit=crop&w=400&q=80" alt="" loading="lazy">
-      </div>
-      <div class="event-card-body">
-        <div>
-          <div class="event-meta">
-            <span class="event-date-chip">FRI · MAR 14</span>
-            <span class="event-type-chip">DJ Night</span>
-          </div>
-          <h3 class="event-name"><em>Afrobeats</em> Friday</h3>
-          <p class="event-desc">The monthly Afrobeats takeover. Full patio, bottle service, and a lineup built for the culture.</p>
+    <div data-type="dj">
+      <div class="event-card">
+        <div class="event-card-img">
+          <img src="https://images.unsplash.com/photo-1470337458703-4ad1d7ba7fd8?auto=format&fit=crop&w=400&q=80" alt="" loading="lazy">
         </div>
-        <div class="event-footer">
-          <span class="event-time">9PM – 3AM</span>
-          <a href="reserve.html" class="btn btn-ghost">Reserve</a>
+        <div class="event-card-body">
+          <div>
+            <div class="event-meta">
+              <span class="event-date-chip">FRI · MAR 14</span>
+              <span class="event-type-chip">DJ Night</span>
+            </div>
+            <h3 class="event-name"><em>Afrobeats</em> Friday</h3>
+            <p class="event-desc">The monthly Afrobeats takeover. Full patio, bottle service, and a lineup built for the culture.</p>
+          </div>
+          <div class="event-footer">
+            <span class="event-time">9PM – 3AM</span>
+            <div style="display:flex;gap:var(--space-3);flex-wrap:wrap;">
+              <a href="reserve.html" class="btn btn-ghost">Reserve</a>
+              <button class="btn btn-tickets" onclick="toggleTktPanel('tkt-afrobeats', this)">Get Tickets</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tkt-panel-wrap" id="tkt-afrobeats"
+           data-event-name="Afrobeats Friday"
+           data-event-date="FRI · MAR 14">
+        <div class="tkt-panel-inner">
+          <div class="tkt-panel-header">
+            <span class="tkt-panel-title">🎟 GET TICKETS — AFROBEATS FRIDAY</span>
+            <button class="tkt-panel-close" onclick="toggleTktPanel('tkt-afrobeats', null)">✕</button>
+          </div>
+          <div class="tkt-form" id="tkt-afrobeats-form"></div>
+          <div class="tkt-success" id="tkt-afrobeats-success"></div>
         </div>
       </div>
     </div>
 
-    <div class="event-card" data-type="special">
-      <div class="event-card-img">
-        <img src="https://images.unsplash.com/photo-1551024601-bec78aea367e?auto=format&fit=crop&w=400&q=80" alt="" loading="lazy">
-      </div>
-      <div class="event-card-body">
-        <div>
-          <div class="event-meta">
-            <span class="event-date-chip">SAT · MAR 15</span>
-            <span class="event-type-chip">Special Event</span>
-          </div>
-          <h3 class="event-name">Chef's <em>Table Night</em></h3>
-          <p class="event-desc">A six-course tasting menu prepared by the executive chef. Pairing menu available. Very limited seats.</p>
+    <div data-type="special">
+      <div class="event-card">
+        <div class="event-card-img">
+          <img src="https://images.unsplash.com/photo-1551024601-bec78aea367e?auto=format&fit=crop&w=400&q=80" alt="" loading="lazy">
         </div>
-        <div class="event-footer">
-          <span class="event-time">7PM – 10PM · 12 Seats Only</span>
-          <a href="reserve.html" class="btn btn-primary">Reserve a Seat</a>
+        <div class="event-card-body">
+          <div>
+            <div class="event-meta">
+              <span class="event-date-chip">SAT · MAR 15</span>
+              <span class="event-type-chip">Special Event</span>
+            </div>
+            <h3 class="event-name">Chef's <em>Table Night</em></h3>
+            <p class="event-desc">A six-course tasting menu prepared by the executive chef. Pairing menu available. Very limited seats.</p>
+          </div>
+          <div class="event-footer">
+            <span class="event-time">7PM – 10PM · 12 Seats Only</span>
+            <div style="display:flex;gap:var(--space-3);flex-wrap:wrap;">
+              <a href="reserve.html" class="btn btn-primary">Reserve a Seat</a>
+              <button class="btn btn-tickets" onclick="toggleTktPanel('tkt-chefs-table', this)">Get Tickets</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tkt-panel-wrap" id="tkt-chefs-table"
+           data-event-name="Chef's Table Night"
+           data-event-date="SAT · MAR 15">
+        <div class="tkt-panel-inner">
+          <div class="tkt-panel-header">
+            <span class="tkt-panel-title">🎟 GET TICKETS — CHEF'S TABLE NIGHT</span>
+            <button class="tkt-panel-close" onclick="toggleTktPanel('tkt-chefs-table', null)">✕</button>
+          </div>
+          <div class="tkt-form" id="tkt-chefs-table-form"></div>
+          <div class="tkt-success" id="tkt-chefs-table-success"></div>
         </div>
       </div>
     </div>
@@ -1185,13 +1463,7 @@ function closeMobile() {
   mobileMenu.classList.remove('open');
   document.body.style.overflow = '';
 }
-function filterEvents(type, el) {
-  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-  document.querySelectorAll('[data-type]').forEach(card => {
-    card.style.display = (type === 'all' || card.dataset.type === type) ? '' : 'none';
-  });
-}
+// filterEvents is defined in the ticket panel script below
 </script>
 
 <!-- SECRET PORTAL ACCESS — Shift+S: Staff · Shift+O: Owner -->
@@ -1205,6 +1477,415 @@ function filterEvents(type, el) {
     if (e.shiftKey && e.key === "O") window.location.href = OWNER_URL;
   });
 })();
+</script>
+
+<!-- SUPABASE — anon key. Phase 4 ticket INSERT requires anon INSERT policy on tickets table:
+     CREATE POLICY "anon can purchase tickets" ON tickets FOR INSERT TO anon
+     WITH CHECK (comped = false AND authorized_by IS NULL);
+-->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ── SUPABASE INIT ────────────────────────────────────────────────
+const SUPABASE_URL = 'https://cbvryfgrqzdvbqigyrgh.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNidnJ5ZmdycXpkdmJxaWd5cmdoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0MDk1MTcsImV4cCI6MjA4Nzk4NTUxN30.VowMyliVJXmHr2jc7K_07jGHcUnSzfPrSZudB4JALeA';
+let sbClient = null;
+try { sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e) {}
+
+// ── TICKET PANEL STATE ───────────────────────────────────────────
+// Tier config: label, price display, description
+const TKT_TIERS = [
+  { id: 'early_bird', label: 'Early Bird', price: 'TBD', desc: 'Limited availability' },
+  { id: 'ga',        label: 'GA',         price: 'TBD', desc: 'General admission'   },
+  { id: 'vip',       label: 'VIP',        price: 'TBD', desc: 'Premium access'      },
+];
+
+// Per-panel state store
+const _tktState = {};
+
+function _getState(panelId) {
+  if (!_tktState[panelId]) {
+    _tktState[panelId] = {
+      tier: null,
+      qty: 1,
+      delivery: 'wallet',
+      phone: '',
+      firstName: '',
+      lastName: '',
+      resolvedMemberId: null,
+      lookupTimer: null,
+    };
+  }
+  return _tktState[panelId];
+}
+
+// ── PANEL TOGGLE ─────────────────────────────────────────────────
+let _activePanelId = null;
+let _activePanelBtn = null;
+
+function toggleTktPanel(panelId, btn) {
+  const panel = document.getElementById(panelId);
+  if (!panel) return;
+
+  // If same panel is open, close it
+  if (_activePanelId === panelId) {
+    panel.classList.remove('open');
+    if (_activePanelBtn) _activePanelBtn.classList.remove('active');
+    _activePanelId = null;
+    _activePanelBtn = null;
+    return;
+  }
+
+  // Close previously open panel
+  if (_activePanelId) {
+    const prev = document.getElementById(_activePanelId);
+    if (prev) prev.classList.remove('open');
+    if (_activePanelBtn) _activePanelBtn.classList.remove('active');
+  }
+
+  // Open new panel — inject form if not yet built
+  const formEl = document.getElementById(panelId + '-form');
+  if (formEl && !formEl.dataset.built) {
+    const eventName = panel.dataset.eventName || 'This Event';
+    buildTktForm(panelId, formEl, eventName);
+    formEl.dataset.built = '1';
+  }
+
+  panel.classList.add('open');
+  if (btn) btn.classList.add('active');
+  _activePanelId = panelId;
+  _activePanelBtn = btn;
+
+  // Scroll panel into view smoothly
+  setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+}
+
+// ── FORM BUILDER ────────────────────────────────────────────────
+function buildTktForm(panelId, container, eventName) {
+  const st = _getState(panelId);
+
+  container.innerHTML = `
+    <!-- Phone lookup -->
+    <div style="margin-bottom:var(--space-4);">
+      <label class="form-label" style="color:#64B5F6;font-size:10px;letter-spacing:0.25em;">Phone Number</label>
+      <input
+        id="${panelId}-phone"
+        class="form-input"
+        type="tel"
+        placeholder="404 000 0000"
+        maxlength="14"
+        autocomplete="tel"
+        style="border-color:rgba(100,181,246,0.25);background:rgba(100,181,246,0.04);"
+        oninput="tktPhoneInput('${panelId}', this)"
+      >
+      <div class="tkt-lookup-status" id="${panelId}-lookup-status"></div>
+    </div>
+
+    <!-- Name row (always shown — pre-filled if member found) -->
+    <div class="tkt-name-row" id="${panelId}-name-row" style="margin-bottom:var(--space-4);">
+      <div>
+        <label class="form-label" style="color:#64B5F6;font-size:10px;letter-spacing:0.25em;">First Name</label>
+        <input id="${panelId}-fname" class="form-input" type="text" placeholder="First"
+          style="border-color:rgba(100,181,246,0.25);background:rgba(100,181,246,0.04);"
+          oninput="_tktState['${panelId}'].firstName=this.value">
+      </div>
+      <div>
+        <label class="form-label" style="color:#64B5F6;font-size:10px;letter-spacing:0.25em;">Last Name</label>
+        <input id="${panelId}-lname" class="form-input" type="text" placeholder="Last"
+          style="border-color:rgba(100,181,246,0.25);background:rgba(100,181,246,0.04);"
+          oninput="_tktState['${panelId}'].lastName=this.value">
+      </div>
+    </div>
+
+    <!-- Tier selector -->
+    <div style="margin-bottom:var(--space-2);">
+      <div class="tkt-panel-title" style="margin-bottom:var(--space-3);">SELECT TICKET TYPE</div>
+      <div class="tkt-tiers" id="${panelId}-tiers">
+        ${TKT_TIERS.map(t => `
+          <div class="tkt-tier" data-tier="${t.id}" onclick="tktSelectTier('${panelId}','${t.id}',this)">
+            <div class="tkt-tier-name">${t.label}</div>
+            <div class="tkt-tier-price">${t.price}</div>
+            <div class="tkt-tier-desc">${t.desc}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <!-- Quantity -->
+    <div class="tkt-qty-row" style="margin-bottom:var(--space-6);">
+      <span class="tkt-qty-label">QTY</span>
+      <div class="tkt-qty-ctrl">
+        <button class="tkt-qty-btn" onclick="tktQty('${panelId}',-1)">−</button>
+        <span class="tkt-qty-val" id="${panelId}-qty">1</span>
+        <button class="tkt-qty-btn" onclick="tktQty('${panelId}',1)">+</button>
+      </div>
+      <span class="tkt-summary" id="${panelId}-summary">Select a ticket type</span>
+    </div>
+
+    <!-- Delivery -->
+    <div class="tkt-delivery-row">
+      <span class="tkt-delivery-label">DELIVERY</span>
+      <div class="tkt-delivery-btns">
+        <button class="tkt-delivery-btn selected" id="${panelId}-del-wallet"
+          onclick="tktDelivery('${panelId}','wallet')">📲 Member Wallet</button>
+        <button class="tkt-delivery-btn" id="${panelId}-del-sms"
+          onclick="tktDelivery('${panelId}','sms')">💬 SMS Link</button>
+      </div>
+    </div>
+
+    <!-- Payment stub notice -->
+    <div class="tkt-stub-notice">
+      <strong>Payment confirmation</strong><br>
+      Our team will contact you to complete payment within 24 hours.
+      Your tickets will be confirmed and sent to your phone.
+    </div>
+
+    <!-- Submit -->
+    <button class="tkt-submit" id="${panelId}-submit" onclick="tktSubmit('${panelId}')" disabled>
+      Request Tickets
+    </button>
+    <p style="font-size:11px;color:var(--color-ash);text-align:center;margin-top:var(--space-3);">
+      No payment required now — our team will follow up
+    </p>
+  `;
+}
+
+// ── PHONE INPUT HANDLER ─────────────────────────────────────────
+function tktPhoneInput(panelId, input) {
+  // Format as (xxx) xxx-xxxx
+  let v = input.value.replace(/\D/g,'');
+  if (v.length > 10) v = v.slice(0,10);
+  if (v.length >= 7) {
+    input.value = '(' + v.slice(0,3) + ') ' + v.slice(3,6) + '-' + v.slice(6);
+  } else if (v.length >= 4) {
+    input.value = '(' + v.slice(0,3) + ') ' + v.slice(3);
+  } else {
+    input.value = v;
+  }
+
+  const st = _getState(panelId);
+  st.phone = v;
+  st.resolvedMemberId = null;
+
+  clearTimeout(st.lookupTimer);
+
+  const statusEl = document.getElementById(panelId + '-lookup-status');
+
+  if (v.length === 10) {
+    statusEl.textContent = 'Looking up...';
+    statusEl.className = 'tkt-lookup-status';
+    st.lookupTimer = setTimeout(() => tktLookupMember(panelId, v), 400);
+  } else {
+    statusEl.textContent = '';
+    statusEl.className = 'tkt-lookup-status';
+    // Clear pre-filled name if phone changes
+    const fEl = document.getElementById(panelId + '-fname');
+    const lEl = document.getElementById(panelId + '-lname');
+    if (fEl) fEl.removeAttribute('readonly');
+    if (lEl) lEl.removeAttribute('readonly');
+  }
+}
+
+// ── MEMBER LOOKUP ───────────────────────────────────────────────
+async function tktLookupMember(panelId, phone10) {
+  const st = _getState(panelId);
+  const statusEl = document.getElementById(panelId + '-lookup-status');
+
+  try {
+    if (!sbClient) throw new Error('no client');
+    const { data } = await sbClient
+      .from('members')
+      .select('id, first_name, last_name, phone')
+      .eq('phone', phone10)
+      .maybeSingle();
+
+    if (data) {
+      st.resolvedMemberId = data.id;
+      st.firstName = data.first_name || '';
+      st.lastName  = data.last_name  || '';
+      st.delivery  = 'wallet';
+
+      const fEl = document.getElementById(panelId + '-fname');
+      const lEl = document.getElementById(panelId + '-lname');
+      if (fEl) { fEl.value = st.firstName; fEl.setAttribute('readonly',''); }
+      if (lEl) { lEl.value = st.lastName;  lEl.setAttribute('readonly',''); }
+
+      // Auto-select wallet delivery
+      tktDelivery(panelId, 'wallet');
+
+      statusEl.textContent = '✓ Member found — ticket will go to your wallet';
+      statusEl.className = 'tkt-lookup-status found';
+    } else {
+      st.resolvedMemberId = null;
+      st.delivery = 'sms';
+
+      const fEl = document.getElementById(panelId + '-fname');
+      const lEl = document.getElementById(panelId + '-lname');
+      if (fEl) fEl.removeAttribute('readonly');
+      if (lEl) lEl.removeAttribute('readonly');
+
+      // Auto-select SMS delivery
+      tktDelivery(panelId, 'sms');
+
+      statusEl.textContent = '— Not a member yet. Ticket link will be sent via SMS.';
+      statusEl.className = 'tkt-lookup-status not-found';
+    }
+  } catch(e) {
+    statusEl.textContent = '';
+    statusEl.className = 'tkt-lookup-status';
+  }
+
+  tktValidate(panelId);
+}
+
+// ── TIER SELECT ─────────────────────────────────────────────────
+function tktSelectTier(panelId, tierId, el) {
+  const st = _getState(panelId);
+  st.tier = tierId;
+  // Update UI
+  document.querySelectorAll(`#${panelId}-tiers .tkt-tier`).forEach(t => t.classList.remove('selected'));
+  el.classList.add('selected');
+  tktUpdateSummary(panelId);
+  tktValidate(panelId);
+}
+
+// ── QTY ─────────────────────────────────────────────────────────
+function tktQty(panelId, delta) {
+  const st = _getState(panelId);
+  st.qty = Math.max(1, Math.min(10, st.qty + delta));
+  const el = document.getElementById(panelId + '-qty');
+  if (el) el.textContent = st.qty;
+  tktUpdateSummary(panelId);
+}
+
+function tktUpdateSummary(panelId) {
+  const st = _getState(panelId);
+  const el = document.getElementById(panelId + '-summary');
+  if (!el) return;
+  if (!st.tier) { el.textContent = 'Select a ticket type'; return; }
+  const tier = TKT_TIERS.find(t => t.id === st.tier);
+  el.textContent = st.qty + ' × ' + (tier ? tier.label : st.tier) + ' — price TBD';
+}
+
+// ── DELIVERY ────────────────────────────────────────────────────
+function tktDelivery(panelId, mode) {
+  const st = _getState(panelId);
+  st.delivery = mode;
+  const wBtn = document.getElementById(panelId + '-del-wallet');
+  const sBtn = document.getElementById(panelId + '-del-sms');
+  if (wBtn) wBtn.classList.toggle('selected', mode === 'wallet');
+  if (sBtn) sBtn.classList.toggle('selected', mode === 'sms');
+}
+
+// ── VALIDATE ─────────────────────────────────────────────────────
+function tktValidate(panelId) {
+  const st = _getState(panelId);
+  const submitBtn = document.getElementById(panelId + '-submit');
+  if (!submitBtn) return;
+  const phoneOk = st.phone.length === 10;
+  const tierOk  = !!st.tier;
+  submitBtn.disabled = !(phoneOk && tierOk);
+}
+
+// ── SUBMIT ───────────────────────────────────────────────────────
+async function tktSubmit(panelId) {
+  const st = _getState(panelId);
+  const panel = document.getElementById(panelId);
+  const submitBtn = document.getElementById(panelId + '-submit');
+  const formEl  = document.getElementById(panelId + '-form');
+  const successEl = document.getElementById(panelId + '-success');
+
+  if (!st.tier || st.phone.length !== 10) return;
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Submitting...';
+
+  const qrToken = crypto.randomUUID();
+  const eventName = panel ? panel.dataset.eventName : 'RIDDIM Event';
+
+  // Build payload — NEVER send authorized_by (Principle 215)
+  const payload = {
+    ...(st.resolvedMemberId ? { member_id: st.resolvedMemberId } : {}),
+    quantity:        st.qty,
+    price_paid:      0,
+    comped:          false,
+    status:          'pending',
+    ticket_type:     st.tier,
+    delivery:        st.delivery,
+    recipient_phone: st.phone,
+    qr_token:        qrToken,
+    purchased_at:    new Date().toISOString(),
+    // event_id omitted — events.html cards are static (no live DB event_id)
+    // When events are loaded from DB, pass the real event_id here
+  };
+
+  try {
+    if (sbClient) {
+      const { error } = await sbClient.from('tickets').insert(payload);
+      if (error) throw error;
+    }
+    // Show success state
+    const firstName = st.firstName || 'there';
+    const tierLabel = TKT_TIERS.find(t => t.id === st.tier)?.label || st.tier;
+    const isNewMember = !st.resolvedMemberId;
+
+    formEl.style.display = 'none';
+    successEl.innerHTML = `
+      <div class="tkt-success-icon">🎟</div>
+      <div class="tkt-success-title">Request <em>Received</em></div>
+      <p class="tkt-success-desc">
+        Thanks${firstName !== 'there' ? ', ' + firstName : ''}! Your <strong>${st.qty} × ${tierLabel}</strong>
+        ticket${st.qty > 1 ? 's' : ''} for <strong>${eventName}</strong> ${st.qty > 1 ? 'are' : 'is'} pending confirmation.<br><br>
+        Our team will reach out to <strong>${formatPhone(st.phone)}</strong> to complete your order within 24 hours.
+        ${isNewMember ? '<br><br>To get your tickets in your digital wallet, <a href="join.html?ticket_token=' + qrToken + '" style="color:#64B5F6;text-decoration:underline;">join the Members Club</a> — it\'s free.' : ''}
+      </p>
+      <button class="tkt-submit" onclick="tktReset('${panelId}')" style="max-width:240px;margin:0 auto;">
+        Done
+      </button>
+    `;
+    successEl.classList.add('show');
+
+  } catch(e) {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Request Tickets';
+    // Show inline error
+    let errEl = document.getElementById(panelId + '-err');
+    if (!errEl) {
+      errEl = document.createElement('p');
+      errEl.id = panelId + '-err';
+      errEl.style.cssText = 'color:#ef5350;font-size:12px;text-align:center;margin-top:var(--space-3);';
+      submitBtn.insertAdjacentElement('afterend', errEl);
+    }
+    errEl.textContent = 'Something went wrong — please try again.';
+    console.error('Ticket submit error:', e);
+  }
+}
+
+// ── RESET ────────────────────────────────────────────────────────
+function tktReset(panelId) {
+  const panel = document.getElementById(panelId);
+  const formEl = document.getElementById(panelId + '-form');
+  const successEl = document.getElementById(panelId + '-success');
+  if (successEl) { successEl.classList.remove('show'); successEl.innerHTML = ''; }
+  if (formEl) { formEl.style.display = ''; formEl.innerHTML = ''; formEl.removeAttribute('data-built'); }
+  delete _tktState[panelId];
+  // Rebuild fresh form
+  const eventName = panel ? panel.dataset.eventName : '';
+  if (formEl) { buildTktForm(panelId, formEl, eventName); formEl.dataset.built = '1'; }
+}
+
+// ── UTILS ────────────────────────────────────────────────────────
+function formatPhone(p) {
+  if (!p || p.length !== 10) return p;
+  return '(' + p.slice(0,3) + ') ' + p.slice(3,6) + '-' + p.slice(6);
+}
+
+// Fix filter function to handle new wrapper divs
+function filterEvents(type, el) {
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  // Cards are now wrapped — target the wrapper div with data-type
+  document.querySelectorAll('[data-type]').forEach(wrap => {
+    wrap.style.display = (type === 'all' || wrap.dataset.type === type) ? '' : 'none';
+  });
+}
 </script>
 </body>
 </html>
