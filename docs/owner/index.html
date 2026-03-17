@@ -5268,11 +5268,22 @@ function renderOwnerTickets() {
     } else {
       statusBadge = `<span class="tkt-list-status tkt-status-active">ACTIVE</span>`;
     }
+    // Build phone for resend — recipient_phone or try to look up from member
+    const resendPhone = t.recipient_phone
+      ? (t.recipient_phone.startsWith('+') ? t.recipient_phone : '+1' + t.recipient_phone)
+      : (t._member?.phone || null);
+    const resendBtn = resendPhone && !isScanned
+      ? `<button onclick="resendTicketSms('${t.id}','${t.qr_token}',${JSON.stringify(resendPhone)},${JSON.stringify(evTitle)},${JSON.stringify(evDate)},${t.quantity||1},${JSON.stringify(TYPE_LABELS[t.ticket_type]||'GA')},${t._tktLinkedMemberId ? 'true' : 'false'})" style="padding:4px 10px;border-radius:4px;border:1px solid rgba(100,181,246,0.35);background:none;color:#64B5F6;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;cursor:pointer;margin-top:4px;">✉ RESEND</button>`
+      : '';
+    const voidBtn = !isScanned
+      ? `<button onclick="voidTicket('${t.id}','${tktEsc(guestName)}')" style="padding:4px 10px;border-radius:4px;border:1px solid rgba(192,57,43,0.3);background:none;color:#E57373;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;cursor:pointer;margin-left:4px;">VOID</button>`
+      : `<button onclick="deleteTicket('${t.id}','${tktEsc(guestName)}')" style="padding:4px 10px;border-radius:4px;border:1px solid rgba(192,57,43,0.3);background:none;color:#E57373;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;cursor:pointer;margin-left:4px;">DELETE</button>`;
     return `<div class="tkt-list-row">
       <div class="tkt-list-dot ${t.comped ? 'comped' : ''} ${isScanned ? 'scanned' : ''}"></div>
       <div class="tkt-list-info">
         <div class="tkt-list-guest">${tktEsc(guestName)}</div>
         <div class="tkt-list-meta">${tktEsc(evTitle)} · ${evDate} · Qty ${t.quantity || 1} · ${typeLabel} · ${deliveryLabel}${t.comp_reason ? ' · <em>' + tktEsc(t.comp_reason) + '</em>' : ''}</div>
+        <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px;">${resendBtn}${voidBtn}</div>
       </div>
       ${statusBadge}
     </div>`;
@@ -5507,7 +5518,7 @@ function showTktQrResult(ticket, phoneE164, firstName, lastName) {
     if (!phoneE164) { showToast('No phone on this ticket.'); return; }
     const isNonMember = (ticket.delivery === 'sms' && !_tktLinkedMemberId);
     const joinUrl = 'https://portal.ctrlmanagement.com/join.html#register?ticket_token=' + ticket.qr_token;
-    const walletUrl = 'https://portal.ctrlmanagement.com/members/index.html';
+    const walletUrl = 'https://portal.ctrlmanagement.com/members/index.html#wallet';
     const body = isNonMember
       ? `You've received a RIDDIM comp ticket for ${evTitle} on ${evDate} (Qty ${ticket.quantity}, ${TYPE_LABELS[ticket.ticket_type]||'GA'}). Register to claim your ticket: ${joinUrl}`
       : `Your RIDDIM comp ticket for ${evTitle} on ${evDate} is in your wallet (Qty ${ticket.quantity}, ${TYPE_LABELS[ticket.ticket_type]||'GA'}). View it here: ${walletUrl}`;
@@ -5521,6 +5532,37 @@ function showTktQrResult(ticket, phoneE164, firstName, lastName) {
 }
 
 function tktEsc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+async function voidTicket(ticketId, guestName) {
+  if (!confirm('Void ticket for ' + guestName + '? The QR will stop working.')) return;
+  if (!LIVE_DATA || !supabaseClient) { showToast('Live data required.'); return; }
+  const { error } = await supabaseClient.from('tickets').update({ status: 'cancelled' }).eq('id', ticketId);
+  if (error) { showToast('Could not void ticket: ' + (error.message || 'Try again.')); return; }
+  const t = _allOwnerTickets.find(t => t.id === ticketId);
+  if (t) t.status = 'cancelled';
+  renderOwnerTickets();
+  showToast('Ticket voided — QR deactivated', 'gold');
+}
+
+async function deleteTicket(ticketId, guestName) {
+  if (!confirm('Permanently delete this ticket record for ' + guestName + '?')) return;
+  if (!LIVE_DATA || !supabaseClient) { showToast('Live data required.'); return; }
+  const { error } = await supabaseClient.from('tickets').delete().eq('id', ticketId);
+  if (error) { showToast('Could not delete: ' + (error.message || 'Try again.')); return; }
+  _allOwnerTickets = _allOwnerTickets.filter(t => t.id !== ticketId);
+  renderOwnerTickets();
+  showToast('Ticket deleted');
+}
+
+function resendTicketSms(ticketId, qrToken, phone, evTitle, evDate, qty, typeLabel, isMember) {
+  const TYPE_LABELS = { ga: 'GA', vip: 'VIP', reserved: 'Reserved' };
+  const joinUrl = 'https://portal.ctrlmanagement.com/join.html#register?ticket_token=' + qrToken;
+  const walletUrl = 'https://portal.ctrlmanagement.com/members/index.html#wallet';
+  const body = !isMember
+    ? `You've received a RIDDIM comp ticket for ${evTitle} on ${evDate} (Qty ${qty}, ${typeLabel}). Register to claim your ticket: ${joinUrl}`
+    : `Your RIDDIM comp ticket for ${evTitle} on ${evDate} is in your wallet (Qty ${qty}, ${typeLabel}). View it here: ${walletUrl}`;
+  window.open('sms:' + phone + '?body=' + encodeURIComponent(body), '_blank');
+}
 
 /* ═══ END TICKETS ════════════════════════════════════════════ */
 

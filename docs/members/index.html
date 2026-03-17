@@ -937,7 +937,7 @@ const activeBtn = document.querySelector(`.mobile-tab[data-tab="${tabId}"]`);
 if (activeBtn) activeBtn.scrollIntoView({ behavior:'smooth', block:'nearest', inline:'center' });
 if (tabId === 'gallery') loadMemberGalleries();
 if (tabId === 'events') { renderEventsCalendar(); renderFeaturedEvents(); }
-if (tabId === 'wallet') loadWalletPasses();
+if (tabId === 'wallet') { walletPassesLoaded = false; loadWalletPasses(); }
 }
 document.querySelectorAll('.portal-tab, .mobile-tab').forEach(btn => {
 btn.addEventListener('click', () => goToTab(btn.dataset.tab));
@@ -1594,6 +1594,19 @@ async function loadWalletPasses() {
   if (walletPassesLoaded) return;
   if (!currentMember) return;
   walletPassesLoaded = true;
+  // Reset loading states so spinners show while fetching
+  ['walletVipLoading','walletResLoading','walletTicketLoading','walletTbkLoading'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'flex';
+  });
+  ['walletVipEmpty','walletResEmpty','walletTicketEmpty','walletTbkEmpty'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  ['walletVipList','walletResList','walletTicketList','walletTbkList'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = '';
+  });
   const rawPhone = currentMember.phone || '';
   // vip_passes stores 10-digit no country code: 4049770302
   let phone10 = rawPhone.replace(/\D/g,'');
@@ -1807,7 +1820,10 @@ async function loadTickets(phone) {
           ${qrSection}
         </div>`;
       listEl.appendChild(div);
-      if (isActive && t.qr_token) makeQR(qrId, 'TKT:' + t.qr_token, 80);
+      if (isActive && t.qr_token) {
+        // Delay QR render to ensure QRCode.js is loaded (mobile timing issue)
+        setTimeout(() => makeQR(qrId, 'TKT:' + t.qr_token, 80), 100);
+      }
     });
   } catch(e) {
     loadEl.style.display = 'none';
