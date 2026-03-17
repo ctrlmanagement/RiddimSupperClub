@@ -2548,6 +2548,58 @@ function startCheckinScanner() {
           })();
           return;
         }
+        // Route: TKT:<qr_token> → ticket scan gate, one-time entry
+        // Query tickets table by qr_token — check status, scanned_at, event date gate
+        if (/^TKT:/i.test(decoded)) {
+          const tktToken = decoded.slice(4).trim();
+          showToast('🎟 Loading ticket…', 'blue');
+          (async () => {
+            if (!LIVE_DATA || !supabaseClient) { showToast('Live data required.'); return; }
+            // Staff needs SELECT on tickets — RLS policy must allow (add before build if needed)
+            const { data: tkt } = await supabaseClient
+              .from('tickets')
+              .select('id,member_id,event_id,quantity,ticket_type,comped,status,scanned_at,purchased_at')
+              .eq('qr_token', tktToken)
+              .maybeSingle();
+            if (!tkt) { showToast('Ticket not found.'); return; }
+            // Status gate: must be active
+            if (tkt.status !== 'active') {
+              showToast('Ticket is not active' + (tkt.status === 'pending' ? ' — awaiting payment confirmation.' : '.'));
+              return;
+            }
+            // One-time scan gate
+            if (tkt.scanned_at) {
+              const scannedTime = new Date(tkt.scanned_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+              showTicketScanOverlay(tkt, null, `Already checked in at ${scannedTime}`);
+              return;
+            }
+            // Event date gate — query events separately (never join on tickets)
+            if (tkt.event_id) {
+              const { data: ev } = await supabaseClient
+                .from('events').select('event_date, title').eq('id', tkt.event_id).maybeSingle();
+              if (ev && ev.event_date !== localDateStr()) {
+                const evDateLabel = new Date(ev.event_date + 'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+                showToast(`⛔ Wrong date — this ticket is valid on ${evDateLabel} only.`);
+                return;
+              }
+              tkt._eventTitle = ev?.title || null;
+              tkt._eventDate = ev?.event_date || null;
+            }
+            // Fetch member name (TEXT lookup — Principle 212)
+            if (tkt.member_id) {
+              const { data: mem } = await supabaseClient
+                .from('members').select('first_name,last_name').eq('id', tkt.member_id).maybeSingle();
+              tkt._memberName = mem ? `${mem.first_name} ${mem.last_name}` : tkt.member_id;
+            }
+            // Write scanned_at — marks ticket as used
+            await supabaseClient.from('tickets')
+              .update({ scanned_at: new Date().toISOString() })
+              .eq('id', tkt.id);
+            // Show ticket scan overlay
+            showTicketScanOverlay(tkt, null, null);
+          })();
+          return;
+        }
         // Direct Supabase lookup by RDM ID — bypasses local array which may be empty
         if (/^RDM-/i.test(decoded) && LIVE_DATA && supabaseClient) {
           (async () => {
@@ -3289,6 +3341,39 @@ function dismissTblBkOverlay() {
   _tblBookingOverlayCb = null;
 }
 
+
+function showTicketScanOverlay(tkt, onDismiss, alreadyScannedMsg) {
+  const TYPE_LABELS = { ga: 'GA', vip: 'VIP', reserved: 'Reserved' };
+  const evTitle = tkt._eventTitle || 'RIDDIM Event';
+  const evDate = tkt._eventDate
+    ? new Date(tkt._eventDate + 'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})
+    : '—';
+  const guestName = tkt._memberName || 'Guest';
+  const typeLabel = TYPE_LABELS[tkt.ticket_type] || 'GA';
+  const compBadge = tkt.comped
+    ? `<span style="font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:#81C784;background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.4);padding:3px 10px;border-radius:4px;margin-left:8px;">COMP</span>`
+    : '';
+
+  document.getElementById('tktOverlayGuestName').textContent = guestName;
+  document.getElementById('tktOverlayDetails').innerHTML = `
+    <div class="vip-detail"><div class="vip-detail-label">EVENT</div><div class="vip-detail-val">${staffEsc(evTitle)}</div></div>
+    <div class="vip-detail"><div class="vip-detail-label">DATE</div><div class="vip-detail-val">${evDate}</div></div>
+    <div class="vip-detail"><div class="vip-detail-label">QTY</div><div class="vip-detail-val">${tkt.quantity || 1} ticket${(tkt.quantity||1) > 1 ? 's' : ''}</div></div>
+    <div class="vip-detail"><div class="vip-detail-label">TYPE</div><div class="vip-detail-val">${typeLabel}${compBadge}</div></div>`;
+
+  const statusEl = document.getElementById('tktOverlayStatus');
+  if (alreadyScannedMsg) {
+    statusEl.innerHTML = `<div class="vip-status-used">⚑ QR ALREADY SCANNED — ${staffEsc(alreadyScannedMsg)}</div>`;
+  } else {
+    statusEl.innerHTML = `<div style="color:#81C784;font-family:var(--font-label);font-size:13px;letter-spacing:0.15em;">✔ TICKET VALID — ALLOW ENTRY</div>`;
+  }
+  document.getElementById('tktOverlay').classList.add('active');
+}
+
+function dismissTicketOverlay() {
+  document.getElementById('tktOverlay').classList.remove('active');
+}
+
 /* ═══ END STAFF TABLE MANAGEMENT ════════════════════════════════════ */
 
 </script>
@@ -3391,6 +3476,17 @@ function dismissTblBkOverlay() {
   </div>
 </div>
 
+<!-- TICKET SCAN OVERLAY (indigo alert for TKT: scans) -->
+<div class="vip-overlay" id="tktOverlay" onclick="if(event.target===this)dismissTicketOverlay()">
+  <div class="vip-card" style="border-color:rgba(100,181,246,0.45);box-shadow:0 0 48px rgba(100,181,246,0.1);">
+    <div style="font-family:var(--font-label);font-size:11px;letter-spacing:0.3em;color:#64B5F6;margin-bottom:8px;">🎟 EVENT TICKET</div>
+    <div class="vip-guest-name" id="tktOverlayGuestName">—</div>
+    <div class="vip-badge" style="background:rgba(100,181,246,0.15);border-color:rgba(100,181,246,0.5);color:#90CAF9;margin-bottom:20px;">ADMIT</div>
+    <div class="vip-detail-grid" id="tktOverlayDetails"></div>
+    <div id="tktOverlayStatus" style="margin-top:20px;"></div>
+    <button onclick="dismissTicketOverlay()" style="margin-top:20px;width:100%;padding:12px;border-radius:6px;background:rgba(100,181,246,0.12);border:1px solid rgba(100,181,246,0.35);color:#90CAF9;font-family:var(--font-label);font-size:12px;letter-spacing:0.15em;cursor:pointer;">DISMISS</button>
+  </div>
+</div>
 <!-- TABLE BOOKING SCAN OVERLAY (gold alert for TBK: scans) -->
 <div class="vip-overlay" id="tblBkOverlay" onclick="if(event.target===this)dismissTblBkOverlay()">
   <div class="vip-card">

@@ -1227,6 +1227,7 @@ window.addEventListener('load', function() {
 
 let REFERRAL_STAFF_ID = null;
 let TBK_TOKEN = null;
+let TICKET_TOKEN = null;
 
 (function captureRef() {
   // Try hash fragment first: #register?ref=UUID&tbk_token=TOKEN
@@ -1236,7 +1237,10 @@ let TBK_TOKEN = null;
     const ref = hashParams.get('ref');
     if (ref) { REFERRAL_STAFF_ID = ref; }
     const tbk = hashParams.get('tbk_token');
-    if (tbk) { TBK_TOKEN = tbk; return; }
+    if (tbk) { TBK_TOKEN = tbk; }
+    const tkt = hashParams.get('ticket_token');
+    if (tkt) { TICKET_TOKEN = tkt; return; }
+    if (tbk) return;
   }
   // Fallback: plain query string ?ref=UUID&tbk_token=TOKEN
   const params = new URLSearchParams(window.location.search);
@@ -1244,6 +1248,8 @@ let TBK_TOKEN = null;
   if (ref) REFERRAL_STAFF_ID = ref;
   const tbk = params.get('tbk_token');
   if (tbk) TBK_TOKEN = tbk;
+  const tkt = params.get('ticket_token');
+  if (tkt) TICKET_TOKEN = tkt;
 })();
 
 function getReferralStaffId() {
@@ -1357,7 +1363,33 @@ async function submitJoin() {
       }, 2000);
       return;
     }
-    // ── End TBK token ────────────────────────────────────────────────────
+    // ── End TBK token ────────────────────────────────────────────
+
+    // ── TICKET token — link ticket to new member after SMS join flow ───────
+    if (TICKET_TOKEN) {
+      try {
+        const { error: tktErr } = await sb
+          .from('tickets')
+          .update({ member_id: memberId, delivery: 'wallet' })
+          .eq('qr_token', TICKET_TOKEN)
+          .is('member_id', null); // only update if not already linked
+        if (tktErr) {
+          console.warn('[TKT] Ticket link failed:', tktErr);
+        } else {
+          console.log('[TKT] Ticket linked to member:', memberId);
+        }
+      } catch(tktEx) {
+        console.warn('[TKT] Ticket link exception:', tktEx);
+      }
+      // Redirect to members portal — ticket will appear in wallet
+      document.getElementById('joinForm').style.display = 'none';
+      document.getElementById('joinSuccess').classList.add('show');
+      setTimeout(() => {
+        window.location.href = 'members/index.html';
+      }, 2000);
+      return;
+    }
+    // ── End TICKET token ────────────────────────────────────────────────────
 
     document.getElementById('joinForm').style.display = 'none';
     document.getElementById('joinSuccess').classList.add('show');

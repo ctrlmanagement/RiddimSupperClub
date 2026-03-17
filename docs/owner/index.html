@@ -176,12 +176,73 @@
 .btn-cbk-copy:hover{border-color:#4ade80;color:#4ade80;}
 .cbk-error{font-size:13px;color:var(--ember);margin-top:8px;min-height:18px;}
 /* ── END TABLE MANAGEMENT ─────────────────────────────────── */
+
+/* ── TICKETS ─────────────────────────────────────────────── */
+.tkt-comp-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:2000;display:none;align-items:center;justify-content:center;padding:16px;overflow-y:auto;}
+.tkt-comp-modal-overlay.open{display:flex;}
+@media(max-height:700px){.tkt-comp-modal-overlay{align-items:flex-start;padding-top:16px;}}
+.tkt-comp-modal-card{background:var(--carbon);border:1px solid rgba(100,181,246,0.35);border-radius:12px;padding:32px 28px;max-width:440px;width:100%;box-shadow:0 8px 48px rgba(0,0,0,0.7),0 0 32px rgba(100,181,246,0.06);max-height:90vh;overflow-y:auto;overscroll-behavior:contain;animation:fadeUp 0.3s var(--ease-cinema);}
+@media(max-width:480px){.tkt-comp-modal-card{padding:20px;}}
+.tkt-modal-eyebrow{font-family:var(--font-label);font-size:10px;letter-spacing:0.3em;color:#64B5F6;margin-bottom:4px;}
+.tkt-modal-title{font-family:var(--font-display);font-size:26px;font-weight:300;font-style:italic;color:var(--ivory);margin-bottom:4px;}
+.tkt-modal-sub{font-size:13px;color:var(--ash);margin-bottom:24px;}
+.tkt-field{margin-bottom:16px;}
+.tkt-field label{display:block;font-family:var(--font-label);font-size:10px;letter-spacing:0.25em;color:#64B5F6;margin-bottom:6px;}
+.tkt-field input,.tkt-field select,.tkt-field textarea{width:100%;background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:12px 14px;color:var(--ivory);font-family:var(--font-body);font-size:14px;outline:none;transition:border-color 150ms;}
+.tkt-field input:focus,.tkt-field select:focus,.tkt-field textarea:focus{border-color:#64B5F6;box-shadow:0 0 0 3px rgba(100,181,246,0.1);}
+.tkt-field input::placeholder,.tkt-field textarea::placeholder{color:var(--ash);}
+.tkt-field select option{background:var(--carbon);}
+.tkt-field textarea{resize:vertical;min-height:64px;}
+.tkt-member-found{display:none;padding:10px 14px;background:rgba(100,181,246,0.07);border:1px solid rgba(100,181,246,0.3);border-radius:6px;margin-top:8px;}
+.tkt-member-found.visible{display:flex;align-items:center;gap:10px;}
+.tkt-member-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#1565C0,#64B5F6);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#fff;flex-shrink:0;}
+.tkt-member-name{font-size:13px;color:var(--ivory);}
+.tkt-member-status{font-size:11px;color:#64B5F6;margin-top:1px;}
+.tkt-lookup-btn{padding:11px 16px;border-radius:6px;background:rgba(100,181,246,0.15);border:1px solid rgba(100,181,246,0.4);color:#90CAF9;font-family:var(--font-label);font-size:11px;letter-spacing:0.12em;cursor:pointer;transition:all 150ms;white-space:nowrap;}
+.tkt-lookup-btn:hover{background:rgba(100,181,246,0.25);}
+.tkt-phone-row{display:flex;gap:8px;}
+.tkt-phone-row .tkt-field-inner{flex:1;}
+.tkt-delivery-row{display:flex;gap:10px;margin-bottom:16px;}
+.tkt-delivery-btn{flex:1;padding:10px 8px;border-radius:8px;border:1px solid var(--graphite);background:none;color:var(--ash);font-family:var(--font-label);font-size:11px;letter-spacing:0.15em;cursor:pointer;text-align:center;transition:all 150ms;}
+.tkt-delivery-btn:hover{border-color:#64B5F6;color:#64B5F6;}
+.tkt-delivery-btn.active{border-color:#64B5F6;background:rgba(100,181,246,0.1);color:#90CAF9;}
+.tkt-qr-result{background:var(--void);border:1px solid rgba(100,181,246,0.3);border-radius:10px;padding:24px;text-align:center;margin-top:20px;display:none;}
+.tkt-qr-result.visible{display:block;}
+.tkt-qr-result-eyebrow{font-family:var(--font-label);font-size:10px;letter-spacing:0.3em;color:#64B5F6;margin-bottom:8px;}
+.tkt-qr-result-name{font-family:var(--font-display);font-size:20px;font-weight:300;font-style:italic;color:var(--ivory);margin-bottom:4px;}
+.tkt-qr-result-meta{font-size:12px;color:var(--ash);margin-bottom:16px;}
+.tkt-qr-wrap{width:180px;height:180px;background:#fff;border-radius:8px;padding:8px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;}
+.tkt-actions-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.btn-tkt-primary{flex:1;max-width:180px;padding:13px;border-radius:6px;background:linear-gradient(135deg,#1565C0,#1976D2);border:none;color:#fff;font-family:var(--font-label);font-size:13px;letter-spacing:0.15em;cursor:pointer;transition:opacity 150ms;}
+.btn-tkt-primary:hover{opacity:0.85;}
+.btn-tkt-sms{padding:10px 20px;border-radius:6px;background:rgba(100,181,246,0.15);border:1px solid rgba(100,181,246,0.4);color:#90CAF9;font-family:var(--font-label);font-size:11px;letter-spacing:0.15em;cursor:pointer;transition:all 150ms;}
+.btn-tkt-sms:hover{background:rgba(100,181,246,0.25);}
+.btn-tkt-ghost{padding:10px 20px;border-radius:6px;background:none;border:1px solid var(--graphite);color:var(--ash);font-family:var(--font-body);font-size:12px;cursor:pointer;transition:all 150ms;}
+.btn-tkt-ghost:hover{color:var(--mist);}
+.tkt-error{font-size:13px;color:var(--ember);margin-top:8px;min-height:18px;}
+/* Ticket list */
+.tkt-list-row{display:flex;align-items:flex-start;gap:14px;padding:16px 18px;border-radius:8px;background:var(--carbon);border:1px solid var(--graphite);margin-bottom:10px;transition:border-color 150ms;}
+.tkt-list-row:hover{border-color:rgba(100,181,246,0.3);}
+.tkt-list-dot{width:10px;height:10px;border-radius:50%;background:#64B5F6;flex-shrink:0;margin-top:4px;}
+.tkt-list-dot.comped{background:#81C784;}
+.tkt-list-dot.scanned{background:var(--ash);}
+.tkt-list-info{flex:1;min-width:0;}
+.tkt-list-guest{font-family:var(--font-display);font-size:17px;font-weight:300;font-style:italic;color:var(--ivory);}
+.tkt-list-meta{font-size:11px;color:var(--ash);margin-top:2px;}
+.tkt-list-status{font-family:var(--font-label);font-size:9px;letter-spacing:0.15em;padding:3px 10px;border-radius:999px;border:1px solid;flex-shrink:0;}
+.tkt-status-active{color:#64B5F6;border-color:rgba(100,181,246,0.4);background:rgba(100,181,246,0.08);}
+.tkt-status-scanned{color:var(--ash);border-color:var(--graphite);background:transparent;}
+.tkt-status-comped{color:#81C784;border-color:rgba(76,175,80,0.4);background:rgba(76,175,80,0.08);}
+.tkt-filter-bar{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;align-items:center;}
+.tkt-stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px;}
+@media(max-width:700px){.tkt-stats-row{grid-template-columns:repeat(2,1fr);}}
+/* ── END TICKETS ──────────────────────────────────────────── */
 </style></head><body><div class="screen active" id="screenLogin"><div class="auth-wrap"><div class="auth-card"><div class="auth-logo"><span class="auth-wordmark">RIDDIM</span><div style="display:flex;justify-content:center;margin-top:8px;"><span class="auth-role"><span class="auth-role-dot"></span>Owner Portal</span></div></div><div class="auth-divider"></div><h1 class="auth-heading">Owner Access</h1><p class="auth-hint" style="margin-bottom:24px;">Sign in with your AG Entertainment account to continue</p><div class="auth-lock-badge" style="justify-content:center;text-align:center;"><span class="auth-lock-text">
  Restricted — unauthorized<br>accounts will be denied
  </span></div><button class="google-btn" id="googleBtn" onclick="startGoogleLogin()"><svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2.01c-.72.48-1.63.77-2.7.77-2.08 0-3.84-1.4-4.47-3.29H1.87v2.07A8 8 0 0 0 8.98 17z"/><path fill="#FBBC05" d="M4.51 10.53A4.8 4.8 0 0 1 4.26 9c0-.53.09-1.04.25-1.53V5.4H1.87A8 8 0 0 0 .98 9c0 1.29.31 2.51.89 3.6l2.64-2.07z"/><path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 8.98 1 8 8 0 0 0 1.87 5.4L4.51 7.47c.63-1.89 2.39-3.29 4.47-3.29z"/></svg>
  Sign in with Google
  </button><div class="auth-error" id="loginError" style="margin-top:16px;"></div><div class="auth-footer" style="margin-top:24px;">
- Not owner? <a href="javascript:void(0)" onclick="goToMainSite()">← Back to RIDDIM</a></div></div></div></div><div class="screen" id="screenPortal"><header class="portal-header"><div class="portal-nav-inner"><div class="portal-brand"><span class="portal-wordmark">RIDDIM</span><span class="portal-divider"></span><span class="portal-role-badge">Owner Portal</span></div><nav class="portal-tabs"><button class="portal-tab portal-tab-back" onclick="goToMainSite()">← Main Site</button><button class="portal-tab active" data-tab="dashboard">◈ Dashboard</button><button class="portal-tab" data-tab="inquiries">✉ Inquiries <span id="inquiriesNewBadge" style="display:none;background:var(--gold-warm);color:#000;font-family:var(--font-label);font-size:10px;letter-spacing:0.1em;padding:2px 6px;border-radius:10px;margin-left:4px;"></span></button><button class="portal-tab" data-tab="reservations">◇ Reservations <span id="ownerResPendingBadge" style="display:none;background:var(--gold-warm);color:#000;font-family:var(--font-label);font-size:10px;letter-spacing:0.1em;padding:2px 6px;border-radius:10px;margin-left:4px;"></span></button><button class="portal-tab" data-tab="vipcomp">◆ VIP &amp; Comp</button><button class="portal-tab" data-tab="tablebookings">⊡ Table Bookings <span id="tblBookingBadge" style="display:none;background:var(--gold-warm);color:#000;font-family:var(--font-label);font-size:10px;letter-spacing:0.1em;padding:2px 6px;border-radius:10px;margin-left:4px;"></span></button><button class="portal-tab" data-tab="events">◆ Events</button><button class="portal-tab" data-tab="gallery">◻ Gallery</button><button class="portal-tab" data-tab="analytics">▣ Analytics</button><button class="portal-tab" data-tab="reporting">◑ Reporting</button><button class="portal-tab" data-tab="members">◉ Members</button><button class="portal-tab" data-tab="employees">◎ Employees</button><button class="portal-tab" data-tab="scheduling">⊞ Scheduling</button><button class="portal-tab staff-view-tab" data-tab="staffview">⬡ Staff View</button><button class="portal-tab" data-tab="tables">⊟ Tables</button></nav><div class="portal-user"><div><div class="portal-user-name">AG Entertainment</div><div class="portal-user-role">Owner Access</div></div><div class="avatar" id="navAvatar">AG
+ Not owner? <a href="javascript:void(0)" onclick="goToMainSite()">← Back to RIDDIM</a></div></div></div></div><div class="screen" id="screenPortal"><header class="portal-header"><div class="portal-nav-inner"><div class="portal-brand"><span class="portal-wordmark">RIDDIM</span><span class="portal-divider"></span><span class="portal-role-badge">Owner Portal</span></div><nav class="portal-tabs"><button class="portal-tab portal-tab-back" onclick="goToMainSite()">← Main Site</button><button class="portal-tab active" data-tab="dashboard">◈ Dashboard</button><button class="portal-tab" data-tab="inquiries">✉ Inquiries <span id="inquiriesNewBadge" style="display:none;background:var(--gold-warm);color:#000;font-family:var(--font-label);font-size:10px;letter-spacing:0.1em;padding:2px 6px;border-radius:10px;margin-left:4px;"></span></button><button class="portal-tab" data-tab="reservations">◇ Reservations <span id="ownerResPendingBadge" style="display:none;background:var(--gold-warm);color:#000;font-family:var(--font-label);font-size:10px;letter-spacing:0.1em;padding:2px 6px;border-radius:10px;margin-left:4px;"></span></button><button class="portal-tab" data-tab="vipcomp">◆ VIP &amp; Comp</button><button class="portal-tab" data-tab="tablebookings">⊡ Table Bookings <span id="tblBookingBadge" style="display:none;background:var(--gold-warm);color:#000;font-family:var(--font-label);font-size:10px;letter-spacing:0.1em;padding:2px 6px;border-radius:10px;margin-left:4px;"></span></button><button class="portal-tab" data-tab="events">◆ Events</button><button class="portal-tab" data-tab="gallery">◻ Gallery</button><button class="portal-tab" data-tab="analytics">▣ Analytics</button><button class="portal-tab" data-tab="reporting">◑ Reporting</button><button class="portal-tab" data-tab="members">◉ Members</button><button class="portal-tab" data-tab="employees">◎ Employees</button><button class="portal-tab" data-tab="scheduling">⊞ Scheduling</button><button class="portal-tab staff-view-tab" data-tab="staffview">⬡ Staff View</button><button class="portal-tab" data-tab="tables">⊟ Tables</button><button class="portal-tab" data-tab="tickets">🎟 Tickets</button></nav><div class="portal-user"><div><div class="portal-user-name">AG Entertainment</div><div class="portal-user-role">Owner Access</div></div><div class="avatar" id="navAvatar">AG
  <div class="avatar-menu" id="avatarMenu"><button class="avatar-menu-item danger" onclick="logout()">Sign Out</button></div></div></div></div></header><main class="portal-main" id="portalMain"><div class="tab-panel active" id="tab-dashboard"><div id="dashErrorBanner"></div><div class="page-header"><p class="page-eyebrow">AG Entertainment · RIDDIM</p><h1 class="page-title">Owner Dashboard</h1><p class="page-sub" id="dashDate">—</p></div><div class="kpi-row"><div class="kpi-card highlight"><span class="kpi-watermark">$</span><div class="kpi-eyebrow">Tonight Est. Revenue</div><div class="kpi-value">$12,480</div><div class="kpi-sub">Based on covers + bar</div><span class="kpi-delta up">↑ 18% vs last Friday</span></div><div class="kpi-card"><div class="kpi-eyebrow">Total Members</div><div class="kpi-value" id="kpiMembers">—</div><div class="kpi-sub">Active memberships</div><span class="kpi-delta up">↑ 12 this month</span></div><div class="kpi-card"><div class="kpi-eyebrow">Avg Visit Spend</div><div class="kpi-value">$187</div><div class="kpi-sub">Members vs $134 walk-in</div><span class="kpi-delta up">↑ $22 YoY</span></div><div class="kpi-card"><div class="kpi-eyebrow">Points Outstanding</div><div class="kpi-value" id="kpiPoints">—</div><div class="kpi-sub">Across all members</div><span class="kpi-delta down">Potential liability</span></div></div><div class="panel" style="margin-bottom:20px;"><div class="panel-eyebrow">Revenue</div><div class="panel-title">Month-to-Date Breakdown</div><div class="rev-row"><div class="rev-item"><div class="rev-label">Food & Beverage</div><div class="rev-value">$84,200</div><div class="rev-sub">↑ 9% vs prior month</div></div><div class="rev-item"><div class="rev-label">Hookah Service</div><div class="rev-value">$18,640</div><div class="rev-sub">↑ 15% vs prior month</div></div><div class="rev-item"><div class="rev-label">Private Events</div><div class="rev-value">$22,000</div><div class="rev-sub">2 bookings this month</div></div></div></div><div class="analytics-grid"><div class="panel"><div class="panel-eyebrow">Visits</div><div class="panel-title">Weekly Check-Ins (Last 8 Weeks)</div><div class="bar-chart" id="barChart"></div></div><div class="panel"><div class="panel-eyebrow">Membership</div><div class="panel-title">Tier Distribution</div><div class="donut-wrap"><svg class="donut-svg" width="130" height="130" viewBox="0 0 130 130" id="donutChart"></svg></div><div class="donut-legend" id="donutLegend"></div></div></div></div><div class="tab-panel" id="tab-members"><div class="page-header"><p class="page-eyebrow">Management</p><h1 class="page-title">Member Management</h1></div><div class="member-mgmt-header"><div class="search-bar"><input class="search-input" id="memberSearchInput" type="text" placeholder="Search members…" oninput="filterMembersTable()" /></div><div style="font-size:13px;color:var(--ash);" id="memberCount">— members</div></div><div class="panel" style="padding:0;overflow:hidden;"><table class="members-table" id="membersTable"><thead><tr><th>Member</th><th>ID</th><th>Tier</th><th>Points</th><th>Visits</th><th>Since</th><th>Enrolled By</th><th>Actions</th></tr></thead><tbody id="membersTableBody"></tbody></table></div></div><div class="tab-panel" id="tab-reservations"><div id="resErrorBanner"></div><div class="page-header"><p class="page-eyebrow">Bookings</p><h1 class="page-title">Reservations</h1></div><div class="panel" style="margin-bottom:20px;padding:16px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;"><button onclick="resCalChangeMonth(-1)" style="background:none;border:1px solid var(--graphite);color:var(--mist);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:16px;">‹</button><div id="resCalMonthLabel" style="font-family:var(--font-label);font-size:16px;letter-spacing:0.2em;color:var(--ivory);"></div><button onclick="resCalChangeMonth(1)" style="background:none;border:1px solid var(--graphite);color:var(--mist);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:16px;">›</button></div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;"><div style="text-align:center;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;color:var(--ash);padding:4px 0;">SUN</div><div style="text-align:center;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;color:var(--ash);padding:4px 0;">MON</div><div style="text-align:center;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;color:var(--ash);padding:4px 0;">TUE</div><div style="text-align:center;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;color:var(--ash);padding:4px 0;">WED</div><div style="text-align:center;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;color:var(--ash);padding:4px 0;">THU</div><div style="text-align:center;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;color:var(--ash);padding:4px 0;">FRI</div><div style="text-align:center;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;color:var(--ash);padding:4px 0;">SAT</div></div><div id="resCalGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;"></div><div style="margin-top:8px;font-size:11px;color:var(--ash);">Click a date to filter reservations. <button onclick="clearResCalFilter()" style="background:none;border:none;color:var(--gold-warm);cursor:pointer;font-size:11px;padding:0;text-decoration:underline;">Clear</button></div></div><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;"><div class="res-filters" style="margin-bottom:0;"><button class="res-filter active" onclick="ownerResTabFilter(this,'all')">All</button><button class="res-filter" onclick="ownerResTabFilter(this,'pending')">Pending</button><button class="res-filter" onclick="ownerResTabFilter(this,'confirmed')">Confirmed</button><button class="res-filter" onclick="ownerResTabFilter(this,'seated')">Seated</button><button class="res-filter" onclick="ownerResTabFilter(this,'cancelled')">Cancelled</button></div><div style="display:flex;gap:8px;align-items:center;"><input type="date" id="resTabDateFilter" style="background:var(--void);border:1px solid var(--graphite);color:var(--mist);padding:6px 10px;border-radius:6px;font-family:var(--font-body);font-size:13px;" onchange="renderResTab()" /><button class="res-btn confirm" style="padding:6px 14px;" onclick="document.getElementById('resTabDateFilter').value='';renderResTab();">Clear Date</button></div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;"><div class="panel" style="padding:16px;text-align:center;"><div style="font-family:var(--font-display);font-size:28px;font-weight:300;color:var(--ivory);" id="resStatTotal">—</div><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-top:4px;">TOTAL</div></div><div class="panel" style="padding:16px;text-align:center;"><div style="font-family:var(--font-display);font-size:28px;font-weight:300;color:#81C784;" id="resStatConfirmed">—</div><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-top:4px;">CONFIRMED</div></div><div class="panel" style="padding:16px;text-align:center;"><div style="font-family:var(--font-display);font-size:28px;font-weight:300;color:var(--gold-warm);" id="resStatPending">—</div><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-top:4px;">PENDING</div></div></div><div class="res-grid" id="ownerResTabGrid"><div style="text-align:center;padding:40px;color:var(--ash);">Loading reservations…</div></div></div><div class="tab-panel" id="tab-vipcomp"><div class="page-header"><p class="page-eyebrow">Owner Operations</p><h1 class="page-title">VIP &amp; Comp</h1><p class="page-sub">Issue comp tables, entry passes, and comp tabs for VIP guests.</p></div><div style="display:flex;gap:12px;margin-bottom:32px;flex-wrap:wrap;"><button class="btn-vipcomp-create" onclick="openVIPModal('entry')"><span style="font-size:18px;margin-bottom:4px;display:block;">◈</span>Entry Pass</button><button class="btn-vipcomp-create" onclick="openVIPModal('comp_tab')"><span style="font-size:18px;margin-bottom:4px;display:block;">◉</span>Comp Tab</button></div><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;"><div><p style="font-family:var(--font-label);font-size:11px;letter-spacing:0.3em;color:var(--owner-gold);margin-bottom:2px;">ACTIVE PASSES</p><p style="font-size:13px;color:var(--ash);">All passes for today and upcoming dates</p></div><button onclick="loadVIPPasses()" style="background:none;border:1px solid var(--graphite);border-radius:6px;padding:7px 14px;color:var(--ash);font-family:var(--font-body);font-size:12px;cursor:pointer;">↺ Refresh</button></div><div id="vipPassList"><div style="text-align:center;padding:48px;color:var(--ash);">Loading passes…</div></div></div><div class="tab-panel" id="tab-tablebookings">
   <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
     <div>
@@ -461,7 +522,30 @@
     </div>
   </div>
 </div>
-</main><div class="mobile-tab-bar"><div class="mobile-tabs"><button class="mobile-tab active" data-tab="dashboard"><span class="mobile-tab-icon">◈</span><span class="mobile-tab-label">Dash</span></button><button class="mobile-tab" data-tab="inquiries"><span class="mobile-tab-icon">✉</span><span class="mobile-tab-label">Inquiries</span></button><button class="mobile-tab" data-tab="reservations"><span class="mobile-tab-icon">◇</span><span class="mobile-tab-label">Reservations</span></button><button class="mobile-tab" data-tab="vipcomp"><span class="mobile-tab-icon">◆</span><span class="mobile-tab-label">VIP &amp; Comp</span></button><button class="mobile-tab" data-tab="tablebookings"><span class="mobile-tab-icon">⊡</span><span class="mobile-tab-label">Bookings</span></button><button class="mobile-tab" data-tab="events"><span class="mobile-tab-icon">◆</span><span class="mobile-tab-label">Events</span></button><button class="mobile-tab" data-tab="gallery"><span class="mobile-tab-icon">◻</span><span class="mobile-tab-label">Gallery</span></button><button class="mobile-tab" data-tab="analytics"><span class="mobile-tab-icon">▣</span><span class="mobile-tab-label">Analytics</span></button><button class="mobile-tab" data-tab="reporting"><span class="mobile-tab-icon">◑</span><span class="mobile-tab-label">Reporting</span></button><button class="mobile-tab" data-tab="members"><span class="mobile-tab-icon">◉</span><span class="mobile-tab-label">Members</span></button><button class="mobile-tab" data-tab="employees"><span class="mobile-tab-icon">◎</span><span class="mobile-tab-label">Employees</span></button><button class="mobile-tab" data-tab="scheduling"><span class="mobile-tab-icon">⊞</span><span class="mobile-tab-label">Schedule</span></button><button class="mobile-tab" data-tab="tables"><span class="mobile-tab-icon">⊟</span><span class="mobile-tab-label">Tables</span></button><button class="mobile-tab staff-view-tab" data-tab="staffview"><span class="mobile-tab-icon">⬡</span><span class="mobile-tab-label">Staff</span></button></div></div></div><div class="gallery-modal-overlay" id="galleryCreateModal"><div class="gallery-modal"><div class="gallery-modal-header"><div class="gallery-modal-title" id="galleryModalTitle">New Gallery</div><button class="gallery-modal-close" onclick="closeCreateGalleryModal()">&#x2715;</button></div><input type="hidden" id="galleryEditId"><div class="gallery-form-row"><label class="gallery-form-label">Gallery Title *</label><input type="text" class="gallery-form-input" id="galleryTitleInput" placeholder="e.g. Saturday Night — Feb 22"></div><div class="gallery-form-row-half"><div><label class="gallery-form-label">Date *</label><input type="date" class="gallery-form-input" id="galleryDateInput"></div><div><label class="gallery-form-label">Link to Event (optional)</label><select class="gallery-form-select" id="galleryEventSelect"><option value="">No event linked</option></select></div></div><div class="gallery-toggle-row"><div><div class="gallery-toggle-label">Private Gallery</div><div class="gallery-toggle-sub">Private galleries are visible to staff only, not members</div></div><label class="gallery-toggle"><input type="checkbox" id="galleryPrivateToggle"><span class="gallery-toggle-slider"></span></label></div><div id="galleryUploadSection"><label class="gallery-form-label">Photos</label><div class="gallery-upload-sources"><button class="gallery-source-btn" onclick="document.getElementById('galleryFileInput').click()"><span>&#x1F4BB;</span> Device
+<div class="tab-panel" id="tab-tickets">
+  <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+    <div>
+      <p class="page-eyebrow">Owner Operations</p>
+      <h1 class="page-title">Tickets</h1>
+      <p class="page-sub">Issue comp tickets to members or non-members. Track all issued tickets by event.</p>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;margin-top:8px;">
+      <button onclick="openCompTicketModal()" style="padding:9px 18px;background:linear-gradient(135deg,#1565C0,#1976D2);border:none;border-radius:6px;color:#fff;font-family:var(--font-label);font-size:12px;letter-spacing:0.12em;cursor:pointer;">&#x1F3DF; Issue Comp Ticket</button>
+      <button onclick="loadOwnerTickets()" style="padding:9px 18px;border:1px solid var(--graphite);background:none;border-radius:6px;color:var(--ash);font-family:var(--font-body);font-size:12px;cursor:pointer;">&#x21BA; Refresh</button>
+    </div>
+  </div>
+  <div class="tkt-stats-row">
+    <div class="panel" style="padding:16px;text-align:center;"><div style="font-family:var(--font-display);font-size:28px;font-weight:300;color:var(--ivory);" id="tktStatTotal">&#x2014;</div><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-top:4px;">TOTAL ISSUED</div></div>
+    <div class="panel" style="padding:16px;text-align:center;"><div style="font-family:var(--font-display);font-size:28px;font-weight:300;color:#81C784;" id="tktStatComped">&#x2014;</div><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-top:4px;">COMPED</div></div>
+    <div class="panel" style="padding:16px;text-align:center;"><div style="font-family:var(--font-display);font-size:28px;font-weight:300;color:#64B5F6;" id="tktStatActive">&#x2014;</div><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-top:4px;">ACTIVE</div></div>
+    <div class="panel" style="padding:16px;text-align:center;"><div style="font-family:var(--font-display);font-size:28px;font-weight:300;color:var(--gold-warm);" id="tktStatScanned">&#x2014;</div><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-top:4px;">SCANNED IN</div></div>
+  </div>
+  <div class="tkt-filter-bar">
+    <select id="tktEventFilter" onchange="renderOwnerTickets()" style="background:var(--void);border:1px solid var(--graphite);color:var(--mist);padding:7px 12px;border-radius:6px;font-family:var(--font-body);font-size:13px;cursor:pointer;"><option value="">All Events</option></select>
+    <select id="tktStatusFilter" onchange="renderOwnerTickets()" style="background:var(--void);border:1px solid var(--graphite);color:var(--mist);padding:7px 12px;border-radius:6px;font-family:var(--font-body);font-size:13px;cursor:pointer;"><option value="">All Statuses</option><option value="active">Active</option><option value="scanned">Scanned</option></select>
+  </div>
+  <div id="tktListWrap"><div style="text-align:center;padding:40px;color:var(--ash);">Loading tickets&#x2026;</div></div>
+</div></main><div class="mobile-tab-bar"><div class="mobile-tabs"><button class="mobile-tab active" data-tab="dashboard"><span class="mobile-tab-icon">◈</span><span class="mobile-tab-label">Dash</span></button><button class="mobile-tab" data-tab="inquiries"><span class="mobile-tab-icon">✉</span><span class="mobile-tab-label">Inquiries</span></button><button class="mobile-tab" data-tab="reservations"><span class="mobile-tab-icon">◇</span><span class="mobile-tab-label">Reservations</span></button><button class="mobile-tab" data-tab="vipcomp"><span class="mobile-tab-icon">◆</span><span class="mobile-tab-label">VIP &amp; Comp</span></button><button class="mobile-tab" data-tab="tablebookings"><span class="mobile-tab-icon">⊡</span><span class="mobile-tab-label">Bookings</span></button><button class="mobile-tab" data-tab="events"><span class="mobile-tab-icon">◆</span><span class="mobile-tab-label">Events</span></button><button class="mobile-tab" data-tab="gallery"><span class="mobile-tab-icon">◻</span><span class="mobile-tab-label">Gallery</span></button><button class="mobile-tab" data-tab="analytics"><span class="mobile-tab-icon">▣</span><span class="mobile-tab-label">Analytics</span></button><button class="mobile-tab" data-tab="reporting"><span class="mobile-tab-icon">◑</span><span class="mobile-tab-label">Reporting</span></button><button class="mobile-tab" data-tab="members"><span class="mobile-tab-icon">◉</span><span class="mobile-tab-label">Members</span></button><button class="mobile-tab" data-tab="employees"><span class="mobile-tab-icon">◎</span><span class="mobile-tab-label">Employees</span></button><button class="mobile-tab" data-tab="scheduling"><span class="mobile-tab-icon">⊞</span><span class="mobile-tab-label">Schedule</span></button><button class="mobile-tab" data-tab="tables"><span class="mobile-tab-icon">⊟</span><span class="mobile-tab-label">Tables</span></button><button class="mobile-tab staff-view-tab" data-tab="staffview"><span class="mobile-tab-icon">⬡</span><span class="mobile-tab-label">Staff</span></button><button class="mobile-tab" data-tab="tickets"><span class="mobile-tab-icon">🎟</span><span class="mobile-tab-label">Tickets</span></button></div></div></div><div class="gallery-modal-overlay" id="galleryCreateModal"><div class="gallery-modal"><div class="gallery-modal-header"><div class="gallery-modal-title" id="galleryModalTitle">New Gallery</div><button class="gallery-modal-close" onclick="closeCreateGalleryModal()">&#x2715;</button></div><input type="hidden" id="galleryEditId"><div class="gallery-form-row"><label class="gallery-form-label">Gallery Title *</label><input type="text" class="gallery-form-input" id="galleryTitleInput" placeholder="e.g. Saturday Night — Feb 22"></div><div class="gallery-form-row-half"><div><label class="gallery-form-label">Date *</label><input type="date" class="gallery-form-input" id="galleryDateInput"></div><div><label class="gallery-form-label">Link to Event (optional)</label><select class="gallery-form-select" id="galleryEventSelect"><option value="">No event linked</option></select></div></div><div class="gallery-toggle-row"><div><div class="gallery-toggle-label">Private Gallery</div><div class="gallery-toggle-sub">Private galleries are visible to staff only, not members</div></div><label class="gallery-toggle"><input type="checkbox" id="galleryPrivateToggle"><span class="gallery-toggle-slider"></span></label></div><div id="galleryUploadSection"><label class="gallery-form-label">Photos</label><div class="gallery-upload-sources"><button class="gallery-source-btn" onclick="document.getElementById('galleryFileInput').click()"><span>&#x1F4BB;</span> Device
  </button><button class="gallery-source-btn" onclick="openGooglePicker('create')"><span>&#x1F535;</span> Google Drive
  </button><button class="gallery-source-btn" onclick="openDropboxChooser('create')"><span>&#x1F4E6;</span> Dropbox
  </button></div><div class="gallery-drop-zone" id="galleryDropZone"><input type="file" id="galleryFileInput" multiple accept="image/jpeg,image/png,image/webp,image/heic" onchange="handleFileSelect(event)"><div class="gallery-drop-icon">&#x1F4F8;</div><div class="gallery-drop-text">Drop photos here or click to select</div><div class="gallery-drop-sub">JPEG, PNG, WebP, HEIC &middot; Max 10MB each</div></div><div class="gallery-upload-preview" id="galleryUploadPreview"></div></div><div class="gallery-status" id="galleryModalStatus"></div><div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--graphite);"><div class="gallery-form-label" style="margin-bottom:10px;font-size:11px;letter-spacing:.08em;color:var(--owner-gold);">PHOTO METADATA <span style="color:var(--ash);font-weight:300;">(applied to all uploaded photos)</span></div><div class="gallery-form-row-half" style="gap:10px;"><div><label class="gallery-form-label">Venue Name</label><input type="text" class="gallery-form-input" id="metaVenueName" value="RIDDIM Supper Club" placeholder="RIDDIM Supper Club"></div><div><label class="gallery-form-label">Location</label><input type="text" class="gallery-form-input" id="metaLocation" placeholder="Atlanta, GA"></div></div><div class="gallery-form-row-half" style="gap:10px;margin-top:10px;"><div><label class="gallery-form-label">Photographer Credit</label><input type="text" class="gallery-form-input" id="metaPhotographer" placeholder="e.g. @riddimshots"></div><div><label class="gallery-form-label">Date Taken</label><input type="date" class="gallery-form-input" id="metaDateTaken"></div></div><div style="margin-top:10px;"><label class="gallery-form-label">Caption / Description <span style="color:var(--ash);font-weight:300;">(optional)</span></label><textarea class="gallery-form-input" id="metaCaption" rows="2" placeholder="e.g. Friday night energy on the patio…" style="resize:vertical;min-height:52px;"></textarea></div></div><button class="gallery-save-btn" id="gallerySaveBtn" onclick="saveGallery()">Create Gallery</button></div></div><div class="gallery-lightbox" id="galleryLightbox"><button class="gallery-lightbox-close" onclick="closeLightbox()">&#x2715;</button><button class="gallery-lightbox-prev" onclick="lightboxNav(-1)">&#x2039;</button><img class="gallery-lightbox-img" id="galleryLightboxImg" src="" alt=""><button class="gallery-lightbox-next" onclick="lightboxNav(1)">&#x203A;</button><div class="gallery-lightbox-counter" id="galleryLightboxCounter"></div><button onclick="openPhotoMetaModal()" style="position:absolute;top:16px;right:56px;background:rgba(0,0,0,0.5);border:1px solid rgba(212,168,67,0.4);color:var(--owner-gold);font-size:11px;font-family:var(--font-body);letter-spacing:.06em;padding:5px 12px;border-radius:4px;cursor:pointer;">✎ EDIT INFO</button><div id="galleryLightboxMeta" style="position:absolute;bottom:48px;left:0;right:0;padding:10px 20px;background:linear-gradient(transparent,rgba(0,0,0,0.75));text-align:left;pointer-events:none;display:none;"><div id="galleryLightboxCaption" style="font-family:var(--font-display);font-size:15px;font-weight:300;color:var(--ivory);margin-bottom:4px;"></div><div id="galleryLightboxMetaRow" style="font-size:11px;color:rgba(255,255,255,0.55);display:flex;flex-wrap:wrap;gap:12px;"></div></div></div><div class="modal-overlay" id="photoMetaModal" style="z-index:10001;"><div class="modal-card" style="max-width:480px;"><div class="modal-title">Edit Photo Info</div><div class="modal-sub" id="photoMetaFilename" style="font-size:11px;color:var(--ash);margin-bottom:16px;"></div><div class="field"><label>Caption</label><textarea id="pmCaption" rows="2" style="width:100%;background:var(--void);border:1px solid var(--graphite);color:var(--ivory);padding:10px 12px;border-radius:6px;font-family:var(--font-body);font-size:14px;resize:vertical;"></textarea></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"><div class="field"><label>Photographer</label><input type="text" id="pmPhotographer" placeholder="@riddimshots" /></div><div class="field"><label>Date Taken</label><input type="date" id="pmDateTaken" /></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"><div class="field"><label>Venue Name</label><input type="text" id="pmVenueName" placeholder="RIDDIM Supper Club" /></div><div class="field"><label>Location</label><input type="text" id="pmLocation" placeholder="Atlanta, GA" /></div></div><div class="auth-error" id="photoMetaError" style="text-align:left;margin-bottom:8px;"></div><div class="modal-actions"><button class="btn-primary" onclick="savePhotoMeta()">Save</button><button class="btn-ghost" onclick="document.getElementById('photoMetaModal').classList.remove('open')">Cancel</button></div></div></div><div class="modal-overlay" id="memberDetailModal"><div class="modal-card" style="max-width:420px;"><button onclick="closeMemberDetailModal()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:var(--ash);font-size:18px;cursor:pointer;">&#x2715;</button><div style="text-align:center;margin-bottom:20px;"><div style="font-family:var(--font-display);font-size:28px;font-weight:300;color:var(--ivory);" id="mdName"></div><div style="margin-top:6px;" id="mdTier"></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;"><div class="panel" style="padding:12px;text-align:center;"><div style="font-family:var(--font-display);font-size:22px;color:var(--gold-warm);" id="mdPoints"></div><div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-top:3px;">POINTS</div></div><div class="panel" style="padding:12px;text-align:center;"><div style="font-family:var(--font-display);font-size:22px;color:var(--ivory);" id="mdVisits"></div><div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-top:3px;">VISITS</div></div></div><div style="margin-bottom:12px;"><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:6px;">PHONE</div><div style="font-size:15px;color:var(--mist);" id="mdPhone">—</div></div><div style="margin-bottom:12px;"><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:6px;">MEMBER ID</div><div style="font-family:var(--font-label);letter-spacing:0.15em;font-size:13px;color:var(--ash);" id="mdId"></div></div><div style="margin-bottom:20px;text-align:center;"><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:10px;">MEMBER QR</div><div id="mdQrWrap" style="background:white;padding:14px;border-radius:10px;display:inline-block;line-height:0;"></div></div><div style="margin-bottom:8px;"><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:6px;">MEMBER SINCE</div><div style="font-size:13px;color:var(--ash);" id="mdSince"></div></div><div style="margin-bottom:16px;"><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--owner-gold);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(218,165,32,0.15);">VISIT &amp; SPEND HISTORY</div><div id="mdHistoryWrap" style="max-height:260px;overflow-y:auto;"></div></div><div class="modal-actions" style="margin-top:20px;"><button class="btn-primary" onclick="closeMemberDetailModal();openEditModal(window._mdCurrentId)">Edit Points</button><button class="btn-ghost" onclick="closeMemberDetailModal()">Close</button></div></div></div><div class="modal-overlay" id="editModal"><div class="modal-card"><div class="modal-title" id="editModalTitle">Edit Points</div><div class="modal-sub" id="editModalSub">Adjust this member's point balance</div><div class="field"><label for="editPointsInput">New Point Total</label><input type="number" id="editPointsInput" placeholder="e.g. 2500" /></div><div class="field"><label for="editNoteInput">Note (internal)</label><input type="text" id="editNoteInput" placeholder="Reason for adjustment…" /></div><div class="modal-actions"><button class="btn-primary" onclick="savePointEdit()">Save Changes</button><button class="btn-ghost" onclick="closeModal()">Cancel</button></div></div></div><div class="modal-overlay" id="schedExportModal"><div class="modal-card" style="max-width:400px;"><div class="modal-title">Export Schedule</div><div class="modal-sub">Select a date range to export</div><div class="field"><label for="schedExportFrom">From</label><input type="date" id="schedExportFrom" /></div><div class="field"><label for="schedExportTo">To</label><input type="date" id="schedExportTo" /></div><div class="field"><label>Format</label><div style="display:flex;gap:10px;margin-top:4px;"><label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="radio" name="schedExportFmt" value="print" checked> Print / PDF</label><label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="radio" name="schedExportFmt" value="csv"> CSV (Google Sheets)</label></div></div><div class="modal-actions"><button class="btn-primary" onclick="runSchedExport()">Export</button><button class="btn-ghost" onclick="closeSchedExportModal()">Cancel</button></div></div></div><div class="modal-overlay" id="inquiryDetailModal" style="display:none;align-items:flex-start;padding-top:60px;"><div class="modal-card" style="max-width:560px;width:100%;max-height:80vh;overflow-y:auto;position:relative;"><button onclick="closeInquiryModal()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:var(--ash);font-size:18px;cursor:pointer;line-height:1;">&#x2715;</button><div class="modal-title" id="inquiryModalTitle">Inquiry</div><div id="inquiryModalMeta" style="font-size:12px;color:var(--ash);margin-bottom:20px;display:flex;gap:16px;flex-wrap:wrap;"></div><div style="margin-bottom:24px;"><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:8px;">STATUS</div><div style="display:flex;gap:8px;flex-wrap:wrap;" id="inquiryStatusBtns"></div></div><div id="inquiryDetailRows" style="display:grid;gap:12px;"></div><div style="margin-top:24px;"><div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:8px;">OWNER NOTES</div><textarea id="inquiryNotesInput" rows="4" placeholder="Add internal notes…"
@@ -3029,6 +3113,110 @@ win.document.write(`<!DOCTYPE html><html><head>
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><title>Guest List</title><style>body{font-family:sans-serif;padding:24px;color:#111;}h2{margin-bottom:4px;}p{color:#555;font-size:13px;margin-bottom:20px;}table{width:100%;border-collapse:collapse;}th{text-align:left;padding:8px 12px;border-bottom:2px solid #000;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;}td{padding:8px 12px;border-bottom:1px solid #eee;font-size:13px;}@media print{button{display:none;}}</style></head><body><h2>RIDDIM Supper Club — Guest List</h2><p>${eventName}${dateVal ? ' &nbsp;·&nbsp; ' + dateVal : ''}</p><button onclick="window.print()" style="margin-bottom:16px;padding:8px 20px;background:#000;color:#fff;border:none;cursor:pointer;border-radius:4px;font-size:13px;">Print</button><table><thead><tr><th>Name</th><th>Status</th><th>Party Size</th></tr></thead><tbody>${tableRows}</tbody></table>
+
+<!-- ═══ TICKETS COMP MODAL ════════════════════════════════════════════ -->
+<div class="tkt-comp-modal-overlay" id="tktCompModalOverlay" onclick="if(event.target===this)closeCompTicketModal()">
+  <div class="tkt-comp-modal-card">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px;">
+      <div>
+        <p class="tkt-modal-eyebrow">ISSUE COMP TICKET</p>
+        <div class="tkt-modal-title">Comp Ticket</div>
+      </div>
+      <button onclick="closeCompTicketModal()" style="background:none;border:none;color:var(--ash);font-size:22px;cursor:pointer;line-height:1;padding:4px;margin-left:12px;">&#x2715;</button>
+    </div>
+    <p class="tkt-modal-sub">Ticket lands in member wallet. Non-members receive an SMS join link.</p>
+
+    <!-- Phone lookup -->
+    <div class="tkt-field">
+      <label>GUEST PHONE <span style="color:var(--ember);font-size:11px;">*</span></label>
+      <div class="tkt-phone-row">
+        <div class="tkt-field-inner">
+          <input type="tel" id="tktCompPhone" placeholder="(404) 555-0100" maxlength="14" oninput="tktFormatPhone(this)" onkeydown="if(event.key==='Enter')tktLookupPhone()" />
+        </div>
+        <button class="tkt-lookup-btn" onclick="tktLookupPhone()">Look Up</button>
+      </div>
+      <div class="tkt-member-found" id="tktCompMemberFound">
+        <div class="tkt-member-avatar" id="tktCompMemberAvatarTxt">?</div>
+        <div><div class="tkt-member-name" id="tktCompMemberNameTxt">&#x2014;</div><div class="tkt-member-status" id="tktCompMemberStatusTxt">&#x2014;</div></div>
+      </div>
+    </div>
+
+    <!-- Non-member name (shown when no member found) -->
+    <div id="tktCompNameRow" style="display:none;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+      <div class="tkt-field" style="margin-bottom:0;"><label>FIRST NAME</label><input type="text" id="tktCompFirstName" placeholder="First" /></div>
+      <div class="tkt-field" style="margin-bottom:0;"><label>LAST NAME</label><input type="text" id="tktCompLastName" placeholder="Last" /></div>
+    </div>
+
+    <!-- Event -->
+    <div class="tkt-field">
+      <label>EVENT <span style="color:var(--ember);font-size:11px;">*</span></label>
+      <select id="tktCompEventSel"><option value="">&#x2014; Select an event &#x2014;</option></select>
+    </div>
+
+    <!-- Qty + Type -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="tkt-field">
+        <label>QUANTITY</label>
+        <select id="tktCompQty">
+          <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+          <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+          <option value="8">8</option><option value="10">10</option>
+        </select>
+      </div>
+      <div class="tkt-field">
+        <label>TICKET TYPE</label>
+        <select id="tktCompType">
+          <option value="ga">GA (General Admission)</option>
+          <option value="vip">VIP</option>
+          <option value="reserved">Reserved</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Comp reason -->
+    <div class="tkt-field">
+      <label>COMP REASON <span style="color:var(--ember);font-size:11px;">*</span></label>
+      <input type="text" id="tktCompReason" placeholder="e.g. Birthday guest, industry comp, staff invite&#x2026;" />
+    </div>
+
+    <!-- Delivery mode -->
+    <div style="margin-bottom:16px;">
+      <div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.25em;color:#64B5F6;margin-bottom:8px;">DELIVERY METHOD</div>
+      <div class="tkt-delivery-row">
+        <button class="tkt-delivery-btn active" data-mode="wallet" onclick="_setTktDeliveryBtn('wallet')">
+          <span style="font-size:15px;display:block;margin-bottom:3px;">&#x25A3;</span>Member Wallet
+        </button>
+        <button class="tkt-delivery-btn" data-mode="sms" onclick="_setTktDeliveryBtn('sms')">
+          <span style="font-size:15px;display:block;margin-bottom:3px;">&#x2709;</span>SMS Join Link
+        </button>
+      </div>
+    </div>
+
+    <!-- SMS recipient note (shown when sms selected) -->
+    <div id="tktCompSmsRow" style="display:none;margin-bottom:16px;padding:12px 14px;border-radius:6px;background:rgba(100,181,246,0.07);border:1px solid rgba(100,181,246,0.25);font-size:12px;color:#90CAF9;line-height:1.6;">
+      An SMS with a join link will be sent to the guest&#x2019;s phone. Once they register, the ticket appears in their wallet automatically.
+    </div>
+
+    <p class="tkt-error" id="tktCompError"></p>
+    <div style="display:flex;gap:10px;margin-top:8px;">
+      <button class="btn-tkt-primary" id="btnSubmitCompTicket" onclick="submitCompTicket()" style="flex:1;max-width:100%;">&#x2714; Issue Comp Ticket</button>
+      <button class="btn-tkt-ghost" onclick="closeCompTicketModal()">Cancel</button>
+    </div>
+
+    <!-- QR result after creation -->
+    <div class="tkt-qr-result" id="tktCompQrResult">
+      <p class="tkt-qr-result-eyebrow">TICKET ISSUED &#x2714;</p>
+      <div class="tkt-qr-result-name" id="tktQrResultName"></div>
+      <div class="tkt-qr-result-meta" id="tktQrResultMeta"></div>
+      <div class="tkt-qr-wrap"><div id="tktQrWrap"></div></div>
+      <div class="tkt-actions-row">
+        <button class="btn-tkt-sms" id="btnTktSms">&#x2709; Send SMS</button>
+        <button class="btn-tkt-ghost" onclick="closeCompTicketModal();openCompTicketModal()">+ New Ticket</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ═══ END TICKETS COMP MODAL ════════════════════════════════════════════ -->
 </body></html>`);
 win.document.close();
 }
@@ -5070,6 +5258,325 @@ function resetCreateBookingForm() {
 /* ═══ END OWNER CREATE BOOKING ═══════════════════════════════════════════ */
 
 /* ═══ END TABLE MANAGEMENT ═══════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════
+   TICKETS — Owner Portal
+   Phase 1: Comp issuance + ticket list
+   ═══════════════════════════════════════════════════════════════ */
+
+let _allOwnerTickets = [];
+let _tktLinkedMemberId = null;
+let _tktDelivery = 'wallet'; // 'wallet' | 'sms'
+let _tktCreatedTicket = null;
+
+// Wire tab open
+(function patchGoToTabTickets() {
+  const _prev = window.goToTab;
+  window.goToTab = function(tabId) {
+    if (typeof _prev === 'function') _prev(tabId);
+    if (tabId === 'tickets') loadOwnerTickets();
+  };
+})();
+
+async function loadOwnerTickets() {
+  const wrap = document.getElementById('tktListWrap');
+  if (wrap) wrap.innerHTML = '<div style="text-align:center;padding:40px;color:var(--ash);">Loading…</div>';
+  if (!LIVE_DATA || !supabaseClient) { renderOwnerTickets(); return; }
+  try {
+    const { data, error } = await supabaseClient
+      .from('tickets')
+      .select('id,member_id,event_id,quantity,price_paid,comped,comp_reason,ticket_type,delivery,recipient_phone,status,qr_token,scanned_at,purchased_at')
+      .order('purchased_at', { ascending: false })
+      .limit(200);
+    if (error) throw error;
+    _allOwnerTickets = data || [];
+    // Fetch event titles separately for each unique event_id
+    const eventIds = [...new Set(_allOwnerTickets.map(t => t.event_id).filter(Boolean))];
+    if (eventIds.length && supabaseClient) {
+      const { data: evData } = await supabaseClient.from('events').select('id,title,event_date').in('id', eventIds);
+      if (evData) {
+        const evMap = {};
+        evData.forEach(e => evMap[e.id] = e);
+        _allOwnerTickets.forEach(t => { if (t.event_id) t._event = evMap[t.event_id] || null; });
+        // Populate event filter
+        const evSel = document.getElementById('tktEventFilter');
+        if (evSel) {
+          const seen = new Set();
+          let opts = '<option value="">All Events</option>';
+          _allOwnerTickets.forEach(t => {
+            if (t.event_id && t._event && !seen.has(t.event_id)) {
+              seen.add(t.event_id);
+              const d = t._event.event_date ? new Date(t._event.event_date + 'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '';
+              opts += `<option value="${t.event_id}">${tktEsc(t._event.title)}${d ? ' — ' + d : ''}</option>`;
+            }
+          });
+          evSel.innerHTML = opts;
+        }
+      }
+    }
+    // Fetch member names for member_id values
+    const memberIds = [...new Set(_allOwnerTickets.map(t => t.member_id).filter(Boolean))];
+    if (memberIds.length && supabaseClient) {
+      const { data: mData } = await supabaseClient.from('members').select('id,first_name,last_name').in('id', memberIds);
+      if (mData) {
+        const mMap = {};
+        mData.forEach(m => mMap[m.id] = m);
+        _allOwnerTickets.forEach(t => { if (t.member_id) t._member = mMap[t.member_id] || null; });
+      }
+    }
+  } catch(e) {
+    console.error('loadOwnerTickets error:', e);
+    _allOwnerTickets = [];
+  }
+  renderOwnerTickets();
+}
+
+function renderOwnerTickets() {
+  const wrap = document.getElementById('tktListWrap');
+  if (!wrap) return;
+  const evFilter = document.getElementById('tktEventFilter')?.value || '';
+  const statusFilter = document.getElementById('tktStatusFilter')?.value || '';
+  let data = _allOwnerTickets.filter(t => {
+    const evOk = !evFilter || t.event_id === evFilter;
+    const statusOk = !statusFilter ||
+      (statusFilter === 'active' && t.status === 'active' && !t.scanned_at) ||
+      (statusFilter === 'scanned' && t.scanned_at);
+    return evOk && statusOk;
+  });
+
+  // Stats (always based on full list, not filtered)
+  const all = _allOwnerTickets;
+  document.getElementById('tktStatTotal').textContent = all.length;
+  document.getElementById('tktStatComped').textContent = all.filter(t => t.comped).length;
+  document.getElementById('tktStatActive').textContent = all.filter(t => t.status === 'active' && !t.scanned_at).length;
+  document.getElementById('tktStatScanned').textContent = all.filter(t => t.scanned_at).length;
+
+  if (!data.length) {
+    wrap.innerHTML = '<div style="text-align:center;padding:60px;color:var(--ash);"><div style="font-size:32px;margin-bottom:12px;opacity:0.3;">🎟</div>No tickets found.</div>';
+    return;
+  }
+  const TYPE_LABELS = { ga: 'GA', vip: 'VIP', reserved: 'Reserved' };
+  wrap.innerHTML = data.map(t => {
+    const guestName = t._member ? `${t._member.first_name} ${t._member.last_name}` : (t.recipient_phone || t.member_id || 'Non-member');
+    const evTitle = t._event?.title || '—';
+    const evDate = t._event?.event_date ? new Date(t._event.event_date + 'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}) : '—';
+    const isScanned = !!t.scanned_at;
+    const typeLabel = TYPE_LABELS[t.ticket_type] || t.ticket_type || 'GA';
+    const deliveryLabel = t.delivery === 'sms' ? 'SMS → Join Flow' : 'Wallet';
+    const scannedTime = isScanned ? new Date(t.scanned_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}) : null;
+    let statusBadge;
+    if (isScanned) {
+      statusBadge = `<span class="tkt-list-status tkt-status-scanned">✓ SCANNED ${scannedTime}</span>`;
+    } else if (t.comped) {
+      statusBadge = `<span class="tkt-list-status tkt-status-comped">COMP</span>`;
+    } else {
+      statusBadge = `<span class="tkt-list-status tkt-status-active">ACTIVE</span>`;
+    }
+    return `<div class="tkt-list-row">
+      <div class="tkt-list-dot ${t.comped ? 'comped' : ''} ${isScanned ? 'scanned' : ''}"></div>
+      <div class="tkt-list-info">
+        <div class="tkt-list-guest">${tktEsc(guestName)}</div>
+        <div class="tkt-list-meta">${tktEsc(evTitle)} · ${evDate} · Qty ${t.quantity || 1} · ${typeLabel} · ${deliveryLabel}${t.comp_reason ? ' · <em>' + tktEsc(t.comp_reason) + '</em>' : ''}</div>
+      </div>
+      ${statusBadge}
+    </div>`;
+  }).join('');
+}
+
+/* ── Comp Ticket Modal ─────────────────────────────────── */
+let _tktCompModalOpen = false;
+
+function openCompTicketModal() {
+  _tktCompModalOpen = true;
+  _tktLinkedMemberId = null;
+  _tktDelivery = 'wallet';
+  _tktCreatedTicket = null;
+  // Populate event selector
+  const evSel = document.getElementById('tktCompEventSel');
+  if (evSel) {
+    const upcoming = (EVENTS || []).filter(e => ['scheduled','live','sold_out'].includes(e.status));
+    evSel.innerHTML = '<option value="">— Select an event —</option>' +
+      upcoming.map(e => {
+        const d = e.event_date ? new Date(e.event_date + 'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}) : '';
+        return `<option value="${e.id}">${tktEsc(e.title)}${d ? ' — ' + d : ''}</option>`;
+      }).join('');
+  }
+  // Reset form
+  const inputs = ['tktCompPhone','tktCompFirstName','tktCompLastName','tktCompReason'];
+  inputs.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  const qty = document.getElementById('tktCompQty'); if (qty) qty.value = '1';
+  const type = document.getElementById('tktCompType'); if (type) type.value = 'ga';
+  document.getElementById('tktCompMemberFound')?.classList.remove('visible');
+  document.getElementById('tktCompQrResult')?.classList.remove('visible');
+  document.getElementById('tktCompError').textContent = '';
+  document.getElementById('tktCompNameRow').style.display = 'none';
+  document.getElementById('tktCompSmsRow').style.display = 'none';
+  _setTktDeliveryBtn('wallet');
+  document.getElementById('tktCompModalOverlay').classList.add('open');
+}
+
+function closeCompTicketModal() {
+  document.getElementById('tktCompModalOverlay').classList.remove('open');
+  _tktCompModalOpen = false;
+}
+
+function _setTktDeliveryBtn(mode) {
+  _tktDelivery = mode;
+  document.querySelectorAll('.tkt-delivery-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+  document.getElementById('tktCompSmsRow').style.display = mode === 'sms' ? 'block' : 'none';
+}
+
+function tktFormatPhone(input) {
+  const d = input.value.replace(/\D/g,'');
+  if (d.length <= 3) input.value = d.length ? '(' + d : '';
+  else if (d.length <= 6) input.value = '(' + d.slice(0,3) + ') ' + d.slice(3);
+  else input.value = '(' + d.slice(0,3) + ') ' + d.slice(3,6) + '-' + d.slice(6,10);
+}
+
+async function tktLookupPhone() {
+  const raw = document.getElementById('tktCompPhone').value.trim();
+  const digits = raw.replace(/\D/g,'');
+  let phone10 = digits.length === 11 && digits.startsWith('1') ? digits.slice(1) : digits;
+  const phoneE164 = phone10.length === 10 ? '+1' + phone10 : null;
+  const foundEl = document.getElementById('tktCompMemberFound');
+  foundEl.classList.remove('visible');
+  _tktLinkedMemberId = null;
+  document.getElementById('tktCompNameRow').style.display = 'none';
+  document.getElementById('tktCompError').textContent = '';
+  if (!phoneE164) { showToast('Enter a valid 10-digit phone number.'); return; }
+  const btn = document.querySelector('.tkt-lookup-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Looking…'; }
+  try {
+    const { data: m } = await supabaseClient.from('members').select('id,first_name,last_name,phone').eq('phone', phoneE164).maybeSingle();
+    if (m) {
+      _tktLinkedMemberId = m.id;
+      _tktDelivery = 'wallet';
+      _setTktDeliveryBtn('wallet');
+      document.getElementById('tktCompMemberAvatarTxt').textContent = ((m.first_name||'?')[0] + (m.last_name||'?')[0]).toUpperCase();
+      document.getElementById('tktCompMemberNameTxt').textContent = `${m.first_name} ${m.last_name}`;
+      document.getElementById('tktCompMemberStatusTxt').textContent = m.id + ' · Member ✔';
+      foundEl.classList.add('visible');
+      showToast('Member found: ' + m.first_name + ' ' + m.last_name + ' ✔', 'gold');
+    } else {
+      // Non-member — show name fields + SMS option
+      document.getElementById('tktCompNameRow').style.display = 'grid';
+      _tktDelivery = 'sms';
+      _setTktDeliveryBtn('sms');
+      document.getElementById('tktCompMemberAvatarTxt').textContent = '?';
+      document.getElementById('tktCompMemberNameTxt').textContent = 'Non-member';
+      document.getElementById('tktCompMemberStatusTxt').textContent = phoneE164 + ' · Will receive SMS join link';
+      foundEl.classList.add('visible');
+      showToast('No member found — will send SMS join link.', 'gold');
+    }
+  } catch(e) {
+    console.warn('tktLookupPhone error:', e);
+    showToast('Lookup failed. Check connection.');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Look Up'; }
+  }
+}
+
+async function submitCompTicket() {
+  const errEl = document.getElementById('tktCompError');
+  errEl.textContent = '';
+  const phoneRaw = document.getElementById('tktCompPhone').value.replace(/\D/g,'');
+  const phone10 = phoneRaw.length === 11 && phoneRaw.startsWith('1') ? phoneRaw.slice(1) : phoneRaw;
+  const phoneE164 = phone10.length === 10 ? '+1' + phone10 : null;
+  const eventId = document.getElementById('tktCompEventSel').value;
+  const qty = parseInt(document.getElementById('tktCompQty').value) || 1;
+  const ticketType = document.getElementById('tktCompType').value;
+  const compReason = document.getElementById('tktCompReason').value.trim();
+  const firstName = document.getElementById('tktCompFirstName').value.trim();
+  const lastName = document.getElementById('tktCompLastName').value.trim();
+
+  if (!phoneE164) { errEl.textContent = 'Enter a valid phone number.'; return; }
+  if (!eventId) { errEl.textContent = 'Select an event.'; return; }
+  if (!compReason) { errEl.textContent = 'Comp reason is required.'; return; }
+
+  // Get owner uid
+  const { data: sessionData } = await supabaseClient.auth.getSession();
+  const ownerUid = sessionData?.session?.user?.id || null;
+
+  const qrToken = crypto.randomUUID();
+  const payload = {
+    member_id: _tktLinkedMemberId || null,     // TEXT not UUID
+    event_id: eventId,
+    quantity: qty,
+    price_paid: 0,
+    comped: true,
+    comp_reason: compReason,
+    authorized_by: ownerUid,
+    purchased_at: new Date().toISOString(),
+    qr_token: qrToken,
+    status: 'active',
+    ticket_type: ticketType,
+    delivery: _tktDelivery,
+    recipient_phone: _tktDelivery === 'sms' ? phone10 : null,
+  };
+
+  const submitBtn = document.getElementById('btnSubmitCompTicket');
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Issuing…'; }
+
+  try {
+    if (LIVE_DATA && supabaseClient) {
+      const { data, error } = await supabaseClient.from('tickets').insert(payload).select().single();
+      if (error) { errEl.textContent = 'Could not issue ticket: ' + (error.message || 'Try again.'); return; }
+      _tktCreatedTicket = data;
+    } else {
+      _tktCreatedTicket = { ...payload, id: 'local-' + Date.now() };
+    }
+    // Attach event info for QR result display
+    const ev = (EVENTS || []).find(e => e.id === eventId);
+    _tktCreatedTicket._event = ev || null;
+    _allOwnerTickets.unshift(_tktCreatedTicket);
+    showTktQrResult(_tktCreatedTicket, phoneE164, firstName, lastName);
+    showToast('Comp ticket issued ✔', 'gold');
+  } catch(e) {
+    errEl.textContent = 'Error issuing ticket: ' + (e.message || 'Try again.');
+  } finally {
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = '✔ Issue Comp Ticket'; }
+  }
+}
+
+function showTktQrResult(ticket, phoneE164, firstName, lastName) {
+  const evTitle = ticket._event?.title || 'RIDDIM Event';
+  const evDate = ticket._event?.event_date
+    ? new Date(ticket._event.event_date + 'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})
+    : '—';
+  const guestDisplay = ticket._member
+    ? (ticket._member.first_name + ' ' + ticket._member.last_name)
+    : (firstName && lastName ? firstName + ' ' + lastName : phoneE164 || 'Non-member');
+  const TYPE_LABELS = { ga: 'GA', vip: 'VIP', reserved: 'Reserved' };
+  const meta = `${evTitle} · ${evDate} · Qty ${ticket.quantity} · ${TYPE_LABELS[ticket.ticket_type] || 'GA'}`;
+  document.getElementById('tktQrResultName').textContent = guestDisplay;
+  document.getElementById('tktQrResultMeta').textContent = meta;
+  const wrap = document.getElementById('tktQrWrap');
+  wrap.innerHTML = '';
+  try {
+    new QRCode(wrap, { text: 'TKT:' + ticket.qr_token, width: 164, height: 164, colorDark: '#000', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.M });
+  } catch(e) { wrap.innerHTML = '<span style="font-size:11px;color:#888;">QR unavailable</span>'; }
+
+  // Wire SMS button
+  document.getElementById('btnTktSms').onclick = () => {
+    if (!phoneE164) { showToast('No phone on this ticket.'); return; }
+    const isNonMember = !ticket.member_id;
+    const joinUrl = 'https://portal.ctrlmanagement.com/join.html#register?ticket_token=' + ticket.qr_token;
+    const walletUrl = 'https://portal.ctrlmanagement.com/members/index.html';
+    const body = isNonMember
+      ? `You've received a RIDDIM comp ticket for ${evTitle} on ${evDate} (Qty ${ticket.quantity}, ${TYPE_LABELS[ticket.ticket_type]||'GA'}). Register to claim your ticket in your wallet: ${joinUrl}`
+      : `Your RIDDIM comp ticket for ${evTitle} on ${evDate} is in your wallet (Qty ${ticket.quantity}, ${TYPE_LABELS[ticket.ticket_type]||'GA'}). View it here: ${walletUrl}`;
+    window.open('sms:' + phoneE164 + '?body=' + encodeURIComponent(body), '_blank');
+  };
+
+  document.getElementById('tktCompQrResult').classList.add('visible');
+  document.getElementById('tktCompQrResult').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  // Refresh list in background
+  renderOwnerTickets();
+}
+
+function tktEsc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/* ═══ END TICKETS ════════════════════════════════════════════ */
 
 </script>
 <!-- SEAT TABLE MODAL -->

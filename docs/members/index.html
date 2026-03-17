@@ -1722,47 +1722,92 @@ async function loadTickets(phone) {
     if (!LIVE_DATA || !supabaseClient) throw new Error('no client');
     if (!currentMember || !currentMember.id) throw new Error('no member id');
     const today = new Date().toISOString().split('T')[0];
-    // Join events to get event_date and title; filter future events only
+    // Fetch tickets by member_id (TEXT match — Principle 212: member_id is TEXT not UUID)
+    // NEVER join events on tickets in the same query — query events separately
     const { data, error } = await supabaseClient
       .from('tickets')
-      .select('id, quantity, price_paid, comped, comp_reason, purchased_at, events(id, title, event_date)')
+      .select('id, member_id, event_id, quantity, price_paid, comped, comp_reason, ticket_type, status, qr_token, scanned_at, purchased_at')
       .eq('member_id', currentMember.id)
-      .gte('events.event_date', today)
+      .in('status', ['active', 'pending'])
       .order('purchased_at', { ascending: false });
     if (error) throw error;
-    // Filter client-side: only rows where event_date >= today (join filter not guaranteed server-side)
-    const filtered = (data || []).filter(t => t.events && t.events.event_date >= today);
+    const tickets = data || [];
+    if (!tickets.length) { loadEl.style.display = 'none'; emptyEl.style.display = 'block'; return; }
+    // Fetch event details separately for each unique event_id (Principle 153 pattern)
+    const eventIds = [...new Set(tickets.map(t => t.event_id).filter(Boolean))];
+    const evMap = {};
+    if (eventIds.length) {
+      const { data: evData } = await supabaseClient
+        .from('events').select('id, title, event_date').in('id', eventIds);
+      (evData || []).forEach(e => evMap[e.id] = e);
+    }
+    // Filter to upcoming events only (client-side after separate events fetch)
+    const filtered = tickets.filter(t => {
+      const ev = evMap[t.event_id];
+      return !ev || ev.event_date >= today;
+    });
     loadEl.style.display = 'none';
-    if (filtered.length === 0) { emptyEl.style.display = 'block'; return; }
+    if (!filtered.length) { emptyEl.style.display = 'block'; return; }
     listEl.innerHTML = '';
+    const TYPE_LABELS = { ga: 'GA', vip: 'VIP', reserved: 'Reserved' };
     filtered.forEach((t, i) => {
+      const ev = evMap[t.event_id] || null;
+      const eventName = ev?.title || 'RIDDIM Event';
+      const eventDate = ev?.event_date || null;
       const qrId = `ticket-qr-${i}`;
-      const typeLabel = t.comped ? 'GUEST LIST' : 'PAID TICKET';
-      const eventName = t.events?.title || 'RIDDIM Event';
-      const eventDate = t.events?.event_date || null;
-      const shortId = t.id ? t.id.slice(0,8).toUpperCase() : '—';
+      const isActive = t.status === 'active' && !t.scanned_at;
+      const isPending = t.status === 'pending';
+      const isScanned = !!t.scanned_at;
+      const typeLabel = t.comped ? 'COMP' : (TYPE_LABELS[t.ticket_type] || 'GA');
+      const typeBadgeColor = t.comped ? '#81C784' : '#B8AFEA';
+      const typeBadgeBg = t.comped ? 'rgba(76,175,80,0.1)' : 'rgba(124,111,205,0.1)';
+      const typeBadgeBorder = t.comped ? 'rgba(76,175,80,0.5)' : 'rgba(124,111,205,0.5)';
+      const scannedTime = isScanned ? new Date(t.scanned_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}) : null;
+      // QR section: active = show QR; pending = message; scanned = checked-in badge
+      let qrSection;
+      if (isActive) {
+        qrSection = `
+          <div style="background:#fff;padding:6px;border-radius:6px;width:92px;height:92px;display:flex;align-items:center;justify-content:center" id="${qrId}"></div>
+          <p class="wpass-qr-label" style="color:#9B8FD4">Show at door</p>`;
+      } else if (isPending) {
+        qrSection = `
+          <div style="width:92px;height:92px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:1px solid rgba(124,111,205,0.2);border-radius:6px;">
+            <span style="font-size:18px;opacity:0.5;">⏳</span>
+            <span style="font-family:var(--font-label);font-size:8px;letter-spacing:0.1em;color:#9B8FD4;text-align:center;">PENDING CONFIRMATION</span>
+          </div>`;
+      } else if (isScanned) {
+        qrSection = `
+          <div style="width:92px;height:92px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:1px solid rgba(76,175,80,0.4);border-radius:6px;background:rgba(76,175,80,0.06);">
+            <span style="font-size:22px;">✓</span>
+            <span style="font-family:var(--font-label);font-size:8px;letter-spacing:0.1em;color:#81C784;text-align:center;">CHECKED IN<br>${scannedTime}</span>
+          </div>`;
+      } else {
+        qrSection = `<div style="width:92px;height:92px;display:flex;align-items:center;justify-content:center;border:1px solid var(--color-graphite);border-radius:6px;font-size:20px;opacity:0.3;">⊘</div>`;
+      }
+      const pendingNotice = isPending
+        ? `<p class="wpass-note" style="color:#9B8FD4;">Awaiting payment confirmation — our team will contact you shortly.</p>`
+        : '';
       const div = document.createElement('div');
-      div.className = 'wpass wpass-ticket';
+      div.className = 'wpass wpass-ticket' + (isScanned ? ' wpass-voided' : '');
       div.innerHTML = `
         <div class="wpass-glow"></div>
         <div class="wpass-body">
-          <p class="wpass-eyebrow" style="color:#9B8FD4">Event Ticket</p>
+          <p class="wpass-eyebrow" style="color:#9B8FD4">🎟 Event Ticket · RIDDIM</p>
           <p class="wpass-name">${escHtml(eventName)}</p>
           <div class="wpass-meta">
             <span class="wpass-meta-item">Date <strong>${fmtDate(eventDate)}</strong></span>
             ${t.quantity > 1 ? `<span class="wpass-meta-item">Qty <strong>${t.quantity}</strong></span>` : ''}
-            ${t.price_paid && !t.comped ? `<span class="wpass-meta-item">Paid <strong>$${t.price_paid}</strong></span>` : ''}
+            ${t.price_paid && parseFloat(t.price_paid) > 0 && !t.comped ? `<span class="wpass-meta-item">Paid <strong>$${t.price_paid}</strong></span>` : ''}
           </div>
-          <span class="wpass-badge" style="color:#B8AFEA;border-color:rgba(124,111,205,0.5);background:rgba(124,111,205,0.1)">${typeLabel}</span>
+          <span class="wpass-badge" style="color:${typeBadgeColor};border-color:${typeBadgeBorder};background:${typeBadgeBg}">${typeLabel}</span>
           ${t.comp_reason ? `<p class="wpass-note">${escHtml(t.comp_reason)}</p>` : ''}
+          ${pendingNotice}
         </div>
         <div class="wpass-qr-wrap">
-          <div style="background:#fff;padding:6px;border-radius:6px;width:92px;height:92px;display:flex;align-items:center;justify-content:center" id="${qrId}"></div>
-          <p class="wpass-qr-label" style="color:#9B8FD4">Ref #${shortId}</p>
-          <a href="sms:?body=${encodeURIComponent('RIDDIM ticket — ' + eventName + ' on ' + fmtDate(eventDate) + '. Ref: TKT-' + shortId)}" style="margin-top:6px;display:flex;align-items:center;gap:4px;padding:5px 8px;border:1px solid rgba(124,111,205,0.35);border-radius:4px;color:#B8AFEA;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;text-decoration:none;white-space:nowrap;">📲 SHARE</a>
+          ${qrSection}
         </div>`;
       listEl.appendChild(div);
-      makeQR(qrId, 'TKT:' + t.id, 80);
+      if (isActive && t.qr_token) makeQR(qrId, 'TKT:' + t.qr_token, 80);
     });
   } catch(e) {
     loadEl.style.display = 'none';
