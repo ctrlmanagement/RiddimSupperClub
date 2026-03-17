@@ -3113,110 +3113,6 @@ win.document.write(`<!DOCTYPE html><html><head>
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><title>Guest List</title><style>body{font-family:sans-serif;padding:24px;color:#111;}h2{margin-bottom:4px;}p{color:#555;font-size:13px;margin-bottom:20px;}table{width:100%;border-collapse:collapse;}th{text-align:left;padding:8px 12px;border-bottom:2px solid #000;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;}td{padding:8px 12px;border-bottom:1px solid #eee;font-size:13px;}@media print{button{display:none;}}</style></head><body><h2>RIDDIM Supper Club — Guest List</h2><p>${eventName}${dateVal ? ' &nbsp;·&nbsp; ' + dateVal : ''}</p><button onclick="window.print()" style="margin-bottom:16px;padding:8px 20px;background:#000;color:#fff;border:none;cursor:pointer;border-radius:4px;font-size:13px;">Print</button><table><thead><tr><th>Name</th><th>Status</th><th>Party Size</th></tr></thead><tbody>${tableRows}</tbody></table>
-
-<!-- ═══ TICKETS COMP MODAL ════════════════════════════════════════════ -->
-<div class="tkt-comp-modal-overlay" id="tktCompModalOverlay" onclick="if(event.target===this)closeCompTicketModal()">
-  <div class="tkt-comp-modal-card">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px;">
-      <div>
-        <p class="tkt-modal-eyebrow">ISSUE COMP TICKET</p>
-        <div class="tkt-modal-title">Comp Ticket</div>
-      </div>
-      <button onclick="closeCompTicketModal()" style="background:none;border:none;color:var(--ash);font-size:22px;cursor:pointer;line-height:1;padding:4px;margin-left:12px;">&#x2715;</button>
-    </div>
-    <p class="tkt-modal-sub">Ticket lands in member wallet. Non-members receive an SMS join link.</p>
-
-    <!-- Phone lookup -->
-    <div class="tkt-field">
-      <label>GUEST PHONE <span style="color:var(--ember);font-size:11px;">*</span></label>
-      <div class="tkt-phone-row">
-        <div class="tkt-field-inner">
-          <input type="tel" id="tktCompPhone" placeholder="(404) 555-0100" maxlength="14" oninput="tktFormatPhone(this)" onkeydown="if(event.key==='Enter')tktLookupPhone()" />
-        </div>
-        <button class="tkt-lookup-btn" onclick="tktLookupPhone()">Look Up</button>
-      </div>
-      <div class="tkt-member-found" id="tktCompMemberFound">
-        <div class="tkt-member-avatar" id="tktCompMemberAvatarTxt">?</div>
-        <div><div class="tkt-member-name" id="tktCompMemberNameTxt">&#x2014;</div><div class="tkt-member-status" id="tktCompMemberStatusTxt">&#x2014;</div></div>
-      </div>
-    </div>
-
-    <!-- Non-member name (shown when no member found) -->
-    <div id="tktCompNameRow" style="display:none;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
-      <div class="tkt-field" style="margin-bottom:0;"><label>FIRST NAME</label><input type="text" id="tktCompFirstName" placeholder="First" /></div>
-      <div class="tkt-field" style="margin-bottom:0;"><label>LAST NAME</label><input type="text" id="tktCompLastName" placeholder="Last" /></div>
-    </div>
-
-    <!-- Event -->
-    <div class="tkt-field">
-      <label>EVENT <span style="color:var(--ember);font-size:11px;">*</span></label>
-      <select id="tktCompEventSel"><option value="">&#x2014; Select an event &#x2014;</option></select>
-    </div>
-
-    <!-- Qty + Type -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-      <div class="tkt-field">
-        <label>QUANTITY</label>
-        <select id="tktCompQty">
-          <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-          <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-          <option value="8">8</option><option value="10">10</option>
-        </select>
-      </div>
-      <div class="tkt-field">
-        <label>TICKET TYPE</label>
-        <select id="tktCompType">
-          <option value="ga">GA (General Admission)</option>
-          <option value="vip">VIP</option>
-          <option value="reserved">Reserved</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- Comp reason -->
-    <div class="tkt-field">
-      <label>COMP REASON <span style="color:var(--ember);font-size:11px;">*</span></label>
-      <input type="text" id="tktCompReason" placeholder="e.g. Birthday guest, industry comp, staff invite&#x2026;" />
-    </div>
-
-    <!-- Delivery mode -->
-    <div style="margin-bottom:16px;">
-      <div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.25em;color:#64B5F6;margin-bottom:8px;">DELIVERY METHOD</div>
-      <div class="tkt-delivery-row">
-        <button class="tkt-delivery-btn active" data-mode="wallet" onclick="_setTktDeliveryBtn('wallet')">
-          <span style="font-size:15px;display:block;margin-bottom:3px;">&#x25A3;</span>Member Wallet
-        </button>
-        <button class="tkt-delivery-btn" data-mode="sms" onclick="_setTktDeliveryBtn('sms')">
-          <span style="font-size:15px;display:block;margin-bottom:3px;">&#x2709;</span>SMS Join Link
-        </button>
-      </div>
-    </div>
-
-    <!-- SMS recipient note (shown when sms selected) -->
-    <div id="tktCompSmsRow" style="display:none;margin-bottom:16px;padding:12px 14px;border-radius:6px;background:rgba(100,181,246,0.07);border:1px solid rgba(100,181,246,0.25);font-size:12px;color:#90CAF9;line-height:1.6;">
-      An SMS with a join link will be sent to the guest&#x2019;s phone. Once they register, the ticket appears in their wallet automatically.
-    </div>
-
-    <p class="tkt-error" id="tktCompError"></p>
-    <div style="display:flex;gap:10px;margin-top:8px;">
-      <button class="btn-tkt-primary" id="btnSubmitCompTicket" onclick="submitCompTicket()" style="flex:1;max-width:100%;">&#x2714; Issue Comp Ticket</button>
-      <button class="btn-tkt-ghost" onclick="closeCompTicketModal()">Cancel</button>
-    </div>
-
-    <!-- QR result after creation -->
-    <div class="tkt-qr-result" id="tktCompQrResult">
-      <p class="tkt-qr-result-eyebrow">TICKET ISSUED &#x2714;</p>
-      <div class="tkt-qr-result-name" id="tktQrResultName"></div>
-      <div class="tkt-qr-result-meta" id="tktQrResultMeta"></div>
-      <div class="tkt-qr-wrap"><div id="tktQrWrap"></div></div>
-      <div class="tkt-actions-row">
-        <button class="btn-tkt-sms" id="btnTktSms">&#x2709; Send SMS</button>
-        <button class="btn-tkt-ghost" onclick="closeCompTicketModal();openCompTicketModal()">+ New Ticket</button>
-      </div>
-    </div>
-  </div>
-</div>
-<!-- ═══ END TICKETS COMP MODAL ════════════════════════════════════════════ -->
 </body></html>`);
 win.document.close();
 }
@@ -5760,4 +5656,108 @@ function tktEsc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'
     </div>
   </div>
 </div>
+
+<!-- ═══ TICKETS COMP MODAL ════════════════════════════════════════════ -->
+<div class="tkt-comp-modal-overlay" id="tktCompModalOverlay" onclick="if(event.target===this)closeCompTicketModal()">
+  <div class="tkt-comp-modal-card">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px;">
+      <div>
+        <p class="tkt-modal-eyebrow">ISSUE COMP TICKET</p>
+        <div class="tkt-modal-title">Comp Ticket</div>
+      </div>
+      <button onclick="closeCompTicketModal()" style="background:none;border:none;color:var(--ash);font-size:22px;cursor:pointer;line-height:1;padding:4px;margin-left:12px;">&#x2715;</button>
+    </div>
+    <p class="tkt-modal-sub">Ticket lands in member wallet. Non-members receive an SMS join link.</p>
+
+    <!-- Phone lookup -->
+    <div class="tkt-field">
+      <label>GUEST PHONE <span style="color:var(--ember);font-size:11px;">*</span></label>
+      <div class="tkt-phone-row">
+        <div class="tkt-field-inner">
+          <input type="tel" id="tktCompPhone" placeholder="(404) 555-0100" maxlength="14" oninput="tktFormatPhone(this)" onkeydown="if(event.key==='Enter')tktLookupPhone()" />
+        </div>
+        <button class="tkt-lookup-btn" onclick="tktLookupPhone()">Look Up</button>
+      </div>
+      <div class="tkt-member-found" id="tktCompMemberFound">
+        <div class="tkt-member-avatar" id="tktCompMemberAvatarTxt">?</div>
+        <div><div class="tkt-member-name" id="tktCompMemberNameTxt">&#x2014;</div><div class="tkt-member-status" id="tktCompMemberStatusTxt">&#x2014;</div></div>
+      </div>
+    </div>
+
+    <!-- Non-member name (shown when no member found) -->
+    <div id="tktCompNameRow" style="display:none;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+      <div class="tkt-field" style="margin-bottom:0;"><label>FIRST NAME</label><input type="text" id="tktCompFirstName" placeholder="First" /></div>
+      <div class="tkt-field" style="margin-bottom:0;"><label>LAST NAME</label><input type="text" id="tktCompLastName" placeholder="Last" /></div>
+    </div>
+
+    <!-- Event -->
+    <div class="tkt-field">
+      <label>EVENT <span style="color:var(--ember);font-size:11px;">*</span></label>
+      <select id="tktCompEventSel"><option value="">&#x2014; Select an event &#x2014;</option></select>
+    </div>
+
+    <!-- Qty + Type -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="tkt-field">
+        <label>QUANTITY</label>
+        <select id="tktCompQty">
+          <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+          <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+          <option value="8">8</option><option value="10">10</option>
+        </select>
+      </div>
+      <div class="tkt-field">
+        <label>TICKET TYPE</label>
+        <select id="tktCompType">
+          <option value="ga">GA (General Admission)</option>
+          <option value="vip">VIP</option>
+          <option value="reserved">Reserved</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Comp reason -->
+    <div class="tkt-field">
+      <label>COMP REASON <span style="color:var(--ember);font-size:11px;">*</span></label>
+      <input type="text" id="tktCompReason" placeholder="e.g. Birthday guest, industry comp, staff invite&#x2026;" />
+    </div>
+
+    <!-- Delivery mode -->
+    <div style="margin-bottom:16px;">
+      <div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.25em;color:#64B5F6;margin-bottom:8px;">DELIVERY METHOD</div>
+      <div class="tkt-delivery-row">
+        <button class="tkt-delivery-btn active" data-mode="wallet" onclick="_setTktDeliveryBtn('wallet')">
+          <span style="font-size:15px;display:block;margin-bottom:3px;">&#x25A3;</span>Member Wallet
+        </button>
+        <button class="tkt-delivery-btn" data-mode="sms" onclick="_setTktDeliveryBtn('sms')">
+          <span style="font-size:15px;display:block;margin-bottom:3px;">&#x2709;</span>SMS Join Link
+        </button>
+      </div>
+    </div>
+
+    <!-- SMS recipient note (shown when sms selected) -->
+    <div id="tktCompSmsRow" style="display:none;margin-bottom:16px;padding:12px 14px;border-radius:6px;background:rgba(100,181,246,0.07);border:1px solid rgba(100,181,246,0.25);font-size:12px;color:#90CAF9;line-height:1.6;">
+      An SMS with a join link will be sent to the guest&#x2019;s phone. Once they register, the ticket appears in their wallet automatically.
+    </div>
+
+    <p class="tkt-error" id="tktCompError"></p>
+    <div style="display:flex;gap:10px;margin-top:8px;">
+      <button class="btn-tkt-primary" id="btnSubmitCompTicket" onclick="submitCompTicket()" style="flex:1;max-width:100%;">&#x2714; Issue Comp Ticket</button>
+      <button class="btn-tkt-ghost" onclick="closeCompTicketModal()">Cancel</button>
+    </div>
+
+    <!-- QR result after creation -->
+    <div class="tkt-qr-result" id="tktCompQrResult">
+      <p class="tkt-qr-result-eyebrow">TICKET ISSUED &#x2714;</p>
+      <div class="tkt-qr-result-name" id="tktQrResultName"></div>
+      <div class="tkt-qr-result-meta" id="tktQrResultMeta"></div>
+      <div class="tkt-qr-wrap"><div id="tktQrWrap"></div></div>
+      <div class="tkt-actions-row">
+        <button class="btn-tkt-sms" id="btnTktSms">&#x2709; Send SMS</button>
+        <button class="btn-tkt-ghost" onclick="closeCompTicketModal();openCompTicketModal()">+ New Ticket</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ═══ END TICKETS COMP MODAL ════════════════════════════════════════════ -->
 </body></html>
