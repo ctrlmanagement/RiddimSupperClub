@@ -5433,19 +5433,18 @@ async function submitCompTicket() {
   const ownerUid = sessionData?.session?.user?.id || null;
 
   const qrToken = crypto.randomUUID();
+  // member_id has FK to members table — cannot store phone as placeholder
+  // SMS/non-member path: omit member_id from insert entirely
+  // Requires: ALTER TABLE tickets ALTER COLUMN member_id DROP NOT NULL;
+  //           ALTER TABLE tickets DROP CONSTRAINT IF EXISTS tickets_member_id_fkey;
+  // join.html will UPDATE member_id after registration via ticket_token flow
   const payload = {
-    // member_id: TEXT field (Principle 212 — not UUID)
-    // Wallet delivery: use confirmed member ID
-    // SMS delivery to non-member: use phone10 as temp placeholder — will be updated to
-    //   real member ID after they register via join flow (same pattern as TBK non-member)
-    member_id: _tktLinkedMemberId || phone10,
+    ..._tktLinkedMemberId ? { member_id: _tktLinkedMemberId } : {},
     event_id: eventId,
     quantity: qty,
     price_paid: 0,
     comped: true,
     comp_reason: compReason,
-    // authorized_by: intentionally omitted — FK to auth.users causes constraint error
-    // with Google OAuth sessions. Owner identity tracked via RLS (email-scoped policy).
     purchased_at: new Date().toISOString(),
     qr_token: qrToken,
     status: 'active',
@@ -5460,7 +5459,14 @@ async function submitCompTicket() {
   try {
     if (LIVE_DATA && supabaseClient) {
       const { data, error } = await supabaseClient.from('tickets').insert(payload).select().single();
-      if (error) { errEl.textContent = 'Could not issue ticket: ' + (error.message || 'Try again.'); return; }
+      if (error) {
+      let msg = 'Could not issue ticket: ' + (error.message || 'Try again.');
+      if (error.message && error.message.includes('member_id')) {
+        msg = 'DB schema fix needed — run in Supabase SQL: ALTER TABLE tickets ALTER COLUMN member_id DROP NOT NULL; ALTER TABLE tickets DROP CONSTRAINT IF EXISTS tickets_member_id_fkey;';
+      }
+      errEl.textContent = msg;
+      return;
+    }
       _tktCreatedTicket = data;
     } else {
       _tktCreatedTicket = { ...payload, id: 'local-' + Date.now() };
@@ -5499,11 +5505,11 @@ function showTktQrResult(ticket, phoneE164, firstName, lastName) {
   // Wire SMS button
   document.getElementById('btnTktSms').onclick = () => {
     if (!phoneE164) { showToast('No phone on this ticket.'); return; }
-    const isNonMember = !ticket.member_id;
+    const isNonMember = (ticket.delivery === 'sms' && !_tktLinkedMemberId);
     const joinUrl = 'https://portal.ctrlmanagement.com/join.html#register?ticket_token=' + ticket.qr_token;
     const walletUrl = 'https://portal.ctrlmanagement.com/members/index.html';
     const body = isNonMember
-      ? `You've received a RIDDIM comp ticket for ${evTitle} on ${evDate} (Qty ${ticket.quantity}, ${TYPE_LABELS[ticket.ticket_type]||'GA'}). Register to claim your ticket in your wallet: ${joinUrl}`
+      ? `You've received a RIDDIM comp ticket for ${evTitle} on ${evDate} (Qty ${ticket.quantity}, ${TYPE_LABELS[ticket.ticket_type]||'GA'}). Register to claim your ticket: ${joinUrl}`
       : `Your RIDDIM comp ticket for ${evTitle} on ${evDate} is in your wallet (Qty ${ticket.quantity}, ${TYPE_LABELS[ticket.ticket_type]||'GA'}). View it here: ${walletUrl}`;
     window.open('sms:' + phoneE164 + '?body=' + encodeURIComponent(body), '_blank');
   };
