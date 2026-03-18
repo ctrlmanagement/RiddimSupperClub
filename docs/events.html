@@ -845,17 +845,29 @@ body::before {
 .event-featured-body { padding: var(--space-6); }
 
 /* ── EVENT CARD ─────────────────────────────────────────────────── */
-.event-card {
-  display: grid;
-  grid-template-columns: 140px 1fr;
+.event-card-outer {
+  width: 100%;
+  min-width: 0;
+  margin-bottom: var(--space-4);
   border: 1px solid var(--color-graphite);
   border-radius: var(--radius-md);
   overflow: hidden;
-  margin-bottom: var(--space-4);
+  transition: border-color var(--duration-base);
+}
+.event-card-outer:hover { border-color: rgba(184,134,11,0.35); }
+.event-card {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  border: none;
+  border-radius: 0;
+  overflow: hidden;
+  margin-bottom: 0;
   transition: border-color var(--duration-base), transform var(--duration-base);
   background: var(--color-void);
+  min-width: 0;
+  width: 100%;
 }
-.event-card:hover { border-color: rgba(184,134,11,0.35); transform: translateY(-2px); }
+.event-card:hover { border-color: none; }
 @media (max-width: 600px) { .event-card { grid-template-columns: 1fr; } }
 
 .event-card-img { position: relative; overflow: hidden; min-height: 160px; }
@@ -1242,9 +1254,9 @@ body::before {
       <h1 class="events-hero-title">Events<br>at <em>RIDDIM</em></h1>
       <p class="events-hero-caption" id="eventsHeroCaption">Atlanta's premier supper club — where fine dining meets the culture. DJ nights, live performances &amp; special events.</p>
       <div class="events-hero-actions">
-        <a href="reserve.html" class="btn btn-primary">Reserve a Table</a>
-        <a href="#eventsList" class="btn btn-ghost" onclick="document.getElementById('eventsList').scrollIntoView({behavior:'smooth'});return false;">View All Events</a>
+        <a href="reserve.html" class="btn btn-primary" id="eventsHeroReserveBtn">Reserve a Table</a>
         <span id="eventsHeroTicketLink"></span>
+        <a href="#eventsList" class="btn btn-ghost" onclick="document.getElementById('eventsList').scrollIntoView({behavior:'smooth'});return false;">View All Events</a>
       </div>
     </div>
   </div>
@@ -1936,6 +1948,11 @@ async function loadSiteEvents() {
       if (captionEl && featuredEvent.description) {
         captionEl.textContent = featuredEvent.description;
       }
+      // Wire hero Reserve button to pre-fill date + event name
+      const heroReserveBtn = document.getElementById('eventsHeroReserveBtn');
+      if (heroReserveBtn && featuredEvent.event_date) {
+        heroReserveBtn.href = `reserve.html?date=${featuredEvent.event_date}&event=${encodeURIComponent(featuredEvent.title)}`;
+      }
       // Update hero title with event name
       const titleEl = document.querySelector('.events-hero-title');
       if (titleEl) titleEl.innerHTML = escHtml(featuredEvent.title) + '<br>at <em>RIDDIM</em>';
@@ -2056,7 +2073,7 @@ function buildFeaturedCard(e, tiers) {
         <div class="event-footer">
           <span class="event-time">${timeStr}</span>
           <div style="display:flex;gap:var(--space-3);flex-wrap:wrap;">
-            <a href="reserve.html" class="btn btn-primary">Reserve a Table</a>
+            <a href="reserve.html?date=${e.event_date}&event=${encodeURIComponent(e.title)}" class="btn btn-primary">Reserve a Table</a>
             ${ticketBtn}
           </div>
         </div>
@@ -2070,6 +2087,7 @@ function buildFeaturedCard(e, tiers) {
 // ── BUILD REGULAR EVENT CARD ─────────────────────────────────────
 function buildEventCard(e, tiers) {
   const wrap = document.createElement('div');
+  wrap.className = 'event-card-outer';
   wrap.dataset.type = e.event_type || 'special';
 
   const dateChip = formatEventDateChip(e.event_date);
@@ -2104,7 +2122,7 @@ function buildEventCard(e, tiers) {
         <div class="event-footer">
           <span class="event-time">${timeStr}</span>
           <div style="display:flex;gap:var(--space-3);flex-wrap:wrap;">
-            <a href="reserve.html" class="btn btn-ghost">Reserve</a>
+            <a href="reserve.html?date=${e.event_date}&event=${encodeURIComponent(e.title)}" class="btn btn-ghost">Reserve</a>
             ${ticketBtn}
           </div>
         </div>
@@ -2254,12 +2272,15 @@ function sideCalSelectDate(dateStr) {
   content.innerHTML = `
     <div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--color-gold-warm);margin-bottom:var(--space-3);">${label.toUpperCase()}</div>
     ${events.map(e => {
-      const time = e.start_time ? e.start_time.slice(0,5) : '';
+      const timeStart = e.start_time ? e.start_time.slice(0,5) : '';
+      const timeEnd   = e.end_time   ? e.end_time.slice(0,5)   : '';
+      const timeStr   = timeStart + (timeEnd ? ' – ' + timeEnd : '');
       return `
-        <div style="margin-bottom:var(--space-3);padding-bottom:var(--space-3);border-bottom:1px solid rgba(212,168,67,0.1);">
-          <div style="font-family:var(--font-display);font-size:15px;font-weight:300;color:var(--color-ivory);margin-bottom:2px;">${escHtml(e.title)}</div>
-          ${time ? `<div style="font-size:11px;color:var(--color-ash);margin-bottom:var(--space-2);">${time}</div>` : ''}
-          <a href="reserve.html" class="btn btn-ghost" style="font-size:9px;padding:5px 12px;">Reserve a Table</a>
+        <div style="margin-bottom:var(--space-4);padding-bottom:var(--space-4);border-bottom:1px solid rgba(212,168,67,0.1);">
+          <div style="font-family:var(--font-display);font-size:16px;font-weight:300;color:var(--color-ivory);margin-bottom:3px;">${escHtml(e.title)}</div>
+          ${timeStr ? `<div style="font-size:11px;color:var(--color-ash);margin-bottom:var(--space-2);">${timeStr}</div>` : ''}
+          ${e.description ? `<div style="font-size:12px;color:rgba(204,204,204,0.75);line-height:1.6;margin-bottom:var(--space-3);">${escHtml(e.description)}</div>` : ''}
+          <a href="reserve.html?date=${e.event_date}&event=${encodeURIComponent(e.title)}" class="btn btn-ghost" style="font-size:9px;padding:5px 12px;">Reserve a Table</a>
         </div>`;
     }).join('')}
   `;
