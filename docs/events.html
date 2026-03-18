@@ -1799,12 +1799,13 @@ async function loadSiteEvents() {
     const { data: allPrices } = await sbClient
       .from('ticket_prices')
       .select('event_id, ticket_type, label, price, qty_cap, is_active')
-      .in('event_id', eventIds)
-      .eq('is_active', true);
+      .in('event_id', eventIds);
 
-    // Build price map: { eventId: [ tier, ... ] }
+    // Build price map — only include active tiers
+    // is_active = false means owner disabled that tier or master toggle was off
     const priceMap = {};
     (allPrices || []).forEach(r => {
+      if (!r.is_active) return;
       if (!priceMap[r.event_id]) priceMap[r.event_id] = [];
       priceMap[r.event_id].push(r);
     });
