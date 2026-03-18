@@ -777,7 +777,7 @@ body::before {
 .event-card:hover { border-color: rgba(184,134,11,0.35); transform: translateY(-2px); }
 @media (max-width: 600px) { .event-card { grid-template-columns: 1fr; } }
 
-.event-card-img { position: relative; overflow: hidden; min-height: 160px; height: 160px; }
+.event-card-img { position: relative; overflow: hidden; min-height: 160px; }
 .event-card-img img {
   width: 100%; height: 100%; object-fit: cover;
   transition: transform var(--duration-slow) var(--ease-cinematic), filter var(--duration-slow);
@@ -1838,22 +1838,41 @@ async function loadSiteEvents() {
 
 // ── MEDIA HELPER — flyer or video thumbnail, no autoplay ─────────
 function buildMediaHtml(e, isFeatured) {
+  const h = isFeatured ? '280px' : '160px';
   if (e.flyer_url) {
     return `<img src="${escHtml(e.flyer_url)}" alt="${escHtml(e.title)}" loading="lazy"
-              style="width:100%;height:100%;object-fit:cover;display:block;filter:brightness(0.85);">`;
+              style="width:100%;height:${h};object-fit:cover;display:block;filter:brightness(0.85);">`;
   }
   if (e.promo_video_url) {
-    // Video thumbnail — no autoplay, no controls on card
+    const vid_id = 'vid-' + e.id.replace(/-/g,'').slice(0,8);
     return `
-      <video src="${escHtml(e.promo_video_url)}#t=0.1" preload="metadata" muted playsinline
-        style="width:100%;height:100%;object-fit:cover;display:block;filter:brightness(0.78);"
-        tabindex="-1" onloadedmetadata="this.currentTime=0.1"></video>
-      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
-        <span style="width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,0.55);border:1px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;padding-left:3px;">▶</span>
+      <div style="position:relative;width:100%;height:${h};cursor:pointer;overflow:hidden;"
+           onclick="tktToggleVideo('${vid_id}',this)">
+        <video id="${vid_id}" src="${escHtml(e.promo_video_url)}" preload="metadata" muted playsinline
+          style="width:100%;height:100%;object-fit:cover;display:block;filter:brightness(0.78);"
+          onloadedmetadata="this.currentTime=0.1"
+          onended="this.currentTime=0;this.pause();this.closest('[onclick]').querySelector('.vid-play-icon').style.display='flex';">
+        </video>
+        <div class="vid-play-icon" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;transition:opacity 0.2s;">
+          <span style="width:42px;height:42px;border-radius:50%;background:rgba(0,0,0,0.6);border:1.5px solid rgba(255,255,255,0.4);display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;padding-left:3px;">▶</span>
+        </div>
       </div>`;
   }
   // Fallback gradient placeholder
-  return `<div style="width:100%;height:100%;background:linear-gradient(135deg,rgba(184,134,11,0.08),rgba(10,10,10,0.6));display:flex;align-items:center;justify-content:center;font-size:32px;opacity:0.25;">◆</div>`;
+  return `<div style="width:100%;height:${h};background:linear-gradient(135deg,rgba(184,134,11,0.08),rgba(10,10,10,0.6));display:flex;align-items:center;justify-content:center;font-size:32px;opacity:0.25;">◆</div>`;
+}
+
+function tktToggleVideo(vidId, wrapper) {
+  const vid = document.getElementById(vidId);
+  const icon = wrapper.querySelector('.vid-play-icon');
+  if (!vid) return;
+  if (vid.paused) {
+    vid.play();
+    if (icon) icon.style.opacity = '0';
+  } else {
+    vid.pause();
+    if (icon) icon.style.opacity = '1';
+  }
 }
 
 // ── BUILD FEATURED CARD ───────────────────────────────────────────

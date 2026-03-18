@@ -1499,6 +1499,7 @@ document.getElementById('eventStart').value = '20:00';
 document.getElementById('eventEnd').value = '02:00';
 document.getElementById('eventCapacity').value = '';
 document.getElementById('eventStatus').value = 'scheduled';
+document.getElementById('eventType').value = 'special';
 document.getElementById('eventDesc').value = '';
 document.getElementById('eventError').textContent = '';
 document.getElementById('eventModal').classList.add('open');
@@ -1515,6 +1516,7 @@ document.getElementById('eventStart').value = e.start_time ? e.start_time.slice(
 document.getElementById('eventEnd').value = e.end_time ? e.end_time.slice(0,5) : '02:00';
 document.getElementById('eventCapacity').value = e.capacity || '';
 document.getElementById('eventStatus').value = e.status || 'scheduled';
+document.getElementById('eventType').value = e.event_type || 'special';
 document.getElementById('eventDesc').value = e.description || '';
 document.getElementById('eventError').textContent = '';
 document.getElementById('eventModal').classList.add('open');
@@ -1544,6 +1546,7 @@ const start = document.getElementById('eventStart').value;
 const end = document.getElementById('eventEnd').value;
 const capacity = document.getElementById('eventCapacity').value;
 const status = document.getElementById('eventStatus').value.trim().toLowerCase();
+const event_type = document.getElementById('eventType')?.value || 'special';
 const desc = document.getElementById('eventDesc').value.trim();
 const errEl = document.getElementById('eventError');
 if (!title) { errEl.textContent = 'Event name is required.'; return; }
@@ -1556,6 +1559,7 @@ start_time: start || null,
 end_time: end || null,
 capacity: capacity ? parseInt(capacity) : null,
 status,
+event_type,
 description: desc || null,
 visible_staff: document.getElementById('eventVisibleStaff')?.checked !== false,
 visible_members: document.getElementById('eventVisibleMembers')?.checked !== false,
@@ -1801,7 +1805,7 @@ const t=document.getElementById('toast');
 t.textContent=msg; t.className=`toast show${type?' '+type:''}`;
 clearTimeout(toastTimeout);
 toastTimeout=setTimeout(()=>t.className='toast',3000);
-}</script><div class="modal-overlay" id="eventModal"><div class="modal-card" style="max-width:520px;"><div class="modal-title" id="eventModalTitle">Add Event</div><div class="modal-sub">Events appear in the member portal calendar</div><div class="field"><label for="eventName">Event Name</label><input type="text" id="eventName" placeholder="Friday Night Live" /></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"><div class="field"><label for="eventDate">Date</label><input type="date" id="eventDate" /></div><div class="field"><label for="eventStatus">Status</label><select id="eventStatus"><option value="scheduled">Scheduled</option><option value="live">Live Now</option><option value="sold_out">Sold Out</option><option value="cancelled">Cancelled</option><option value="completed">Completed</option></select></div></div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;flex-wrap:wrap;" class="time-cap-grid"><div class="field"><label for="eventStart">Start Time</label><input type="time" id="eventStart" value="20:00" /></div><div class="field"><label for="eventEnd">End Time</label><input type="time" id="eventEnd" value="02:00" /></div><div class="field"><label for="eventCapacity">Capacity</label><input type="number" id="eventCapacity" placeholder="250" min="1" /></div></div><div class="field"><label for="eventDesc">Description <span style="font-size:10px;color:var(--ash);font-weight:300;">(optional)</span></label><textarea id="eventDesc" rows="3" placeholder="Featured performer, dress code, cover charge…" style="width:100%;background:var(--void);border:1px solid var(--graphite);color:var(--ivory);padding:10px 12px;border-radius:6px;font-family:var(--font-body);font-size:14px;resize:vertical;"></textarea></div><div class="field"><label for="eventFlyer">Event Flyer <span style="font-size:10px;color:var(--ash);font-weight:300;">(optional · JPG/PNG/WebP)</span></label><div id="eventFlyerWrap" style="border:1px dashed var(--graphite);border-radius:6px;padding:16px;text-align:center;cursor:pointer;transition:border-color 150ms;position:relative;"
+}</script><div class="modal-overlay" id="eventModal"><div class="modal-card" style="max-width:520px;"><div class="modal-title" id="eventModalTitle">Add Event</div><div class="modal-sub">Events appear in the member portal calendar</div><div class="field"><label for="eventName">Event Name</label><input type="text" id="eventName" placeholder="Friday Night Live" /></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"><div class="field"><label for="eventDate">Date</label><input type="date" id="eventDate" /></div><div class="field"><label for="eventStatus">Status</label><select id="eventStatus"><option value="scheduled">Scheduled</option><option value="live">Live Now</option><option value="sold_out">Sold Out</option><option value="cancelled">Cancelled</option><option value="completed">Completed</option></select></div></div><div class="field"><label for="eventType">Event Type <span style="font-size:10px;color:var(--ash);font-weight:300;">(used for filter on events page)</span></label><select id="eventType"><option value="special">Special Event</option><option value="dj">DJ Night</option><option value="live">Live Performance</option><option value="dinner">Dinner</option><option value="members">Members Only</option></select></div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;flex-wrap:wrap;" class="time-cap-grid"><div class="field"><label for="eventStart">Start Time</label><input type="time" id="eventStart" value="20:00" /></div><div class="field"><label for="eventEnd">End Time</label><input type="time" id="eventEnd" value="02:00" /></div><div class="field"><label for="eventCapacity">Capacity</label><input type="number" id="eventCapacity" placeholder="250" min="1" /></div></div><div class="field"><label for="eventDesc">Description <span style="font-size:10px;color:var(--ash);font-weight:300;">(optional)</span></label><textarea id="eventDesc" rows="3" placeholder="Featured performer, dress code, cover charge…" style="width:100%;background:var(--void);border:1px solid var(--graphite);color:var(--ivory);padding:10px 12px;border-radius:6px;font-family:var(--font-body);font-size:14px;resize:vertical;"></textarea></div><div class="field"><label for="eventFlyer">Event Flyer <span style="font-size:10px;color:var(--ash);font-weight:300;">(optional · JPG/PNG/WebP)</span></label><div id="eventFlyerWrap" style="border:1px dashed var(--graphite);border-radius:6px;padding:16px;text-align:center;cursor:pointer;transition:border-color 150ms;position:relative;"
  onclick="document.getElementById('eventFlyer').click()"
  ondragover="event.preventDefault();this.style.borderColor='var(--owner-gold)'"
  ondragleave="this.style.borderColor='var(--graphite)'"
