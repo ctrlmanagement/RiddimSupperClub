@@ -695,7 +695,7 @@ body::before {
 .events-hero-img {
   position: absolute;
   inset: 0;
-  background: url('https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
+  background: url('https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=1920&q=80') center 20%/cover no-repeat;
   animation: evHeroZoom 10s ease-out forwards;
 }
 @keyframes evHeroZoom { from { transform: scale(1.06); } to { transform: scale(1); } }
@@ -757,7 +757,7 @@ body::before {
 /* Hero image: load the featured event flyer dynamically */
 .events-hero-img.has-flyer {
   background-size: cover;
-  background-position: center;
+  background-position: center 15%;
 }
 @media (max-width: 700px) {
   .events-hero { height: 85vh; min-height: 480px; }
@@ -1927,6 +1927,8 @@ async function loadSiteEvents() {
         const bg = document.getElementById('eventsHeroBg');
         if (bg) {
           bg.style.backgroundImage = `url('${featuredEvent.flyer_url}')`;
+          bg.style.backgroundSize = 'cover';
+          bg.style.backgroundPosition = 'center 15%';
           bg.classList.add('has-flyer');
         }
       }
