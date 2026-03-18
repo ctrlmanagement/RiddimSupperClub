@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="robots" content="noindex,nofollow"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="RIDDIM Inventory"/>
+<title>RIDDIM — Inventory Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --obsidian:#0A0A0A;--void:#111111;--carbon:#1A1A1A;--graphite:#2A2A2A;
+  --ash:#888888;--mist:#CCCCCC;--ivory:#F5F0E8;
+  --gold-warm:#D4A843;--gold-bright:#F0C060;--ember:#C0392B;
+  --inv:#4A9F8A;--inv-light:#6BBFA8;--inv-dark:#1A3830;
+  --inv-dim:rgba(74,159,138,0.12);
+  --owner-gold:#DAA520;--owner-accent:#8B4513;
+  --font-display:'Cormorant Garamond',serif;
+  --font-label:'Bebas Neue',sans-serif;
+  --font-body:'DM Sans',sans-serif;
+  --ease:cubic-bezier(0.16,1,0.3,1);
+}
+html{scroll-behavior:smooth;}
+body{background:var(--obsidian);color:var(--ivory);font-family:var(--font-body);font-weight:300;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");opacity:0.45;}
+.screen{display:none;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;}
+/* AUTH */
+.auth-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:32px 16px;position:relative;}
+.auth-wrap::before{content:'';position:absolute;top:30%;left:50%;transform:translate(-50%,-50%);width:500px;height:300px;border-radius:50%;background:radial-gradient(ellipse,rgba(74,159,138,0.07) 0%,transparent 65%);pointer-events:none;}
+.auth-card{position:relative;width:100%;max-width:400px;background:var(--carbon);border:1px solid var(--graphite);border-radius:12px;padding:48px 32px;box-shadow:0 4px 24px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.06);animation:fadeUp 0.6s var(--ease) forwards;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+.auth-logo{text-align:center;margin-bottom:28px;}
+.auth-wordmark{font-family:var(--font-label);font-size:28px;letter-spacing:0.25em;color:var(--gold-warm);display:block;}
+.auth-badge{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-label);font-size:10px;letter-spacing:0.3em;color:var(--inv-light);background:rgba(74,159,138,0.1);border:1px solid rgba(74,159,138,0.3);border-radius:999px;padding:3px 12px;margin-top:8px;}
+.auth-badge-dot{width:5px;height:5px;border-radius:50%;background:var(--inv-light);}
+.auth-divider{width:40px;height:1px;background:linear-gradient(90deg,transparent,var(--inv),transparent);margin:20px auto;}
+.auth-heading{font-family:var(--font-display);font-size:24px;font-weight:300;font-style:italic;color:var(--ivory);text-align:center;margin-bottom:6px;}
+.auth-hint{font-size:13px;color:var(--ash);text-align:center;margin-bottom:24px;line-height:1.6;}
+.field{margin-bottom:16px;}
+.field label{display:block;font-family:var(--font-label);font-size:10px;letter-spacing:0.25em;color:var(--inv-light);margin-bottom:6px;}
+.field input{width:100%;background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:13px 16px;color:var(--ivory);font-family:var(--font-body);font-size:15px;outline:none;transition:border-color 150ms,box-shadow 150ms;}
+.field input:focus{border-color:var(--inv);box-shadow:0 0 0 3px rgba(74,159,138,0.12);}
+.field input::placeholder{color:var(--ash);}
+.otp-row{display:flex;gap:10px;justify-content:center;margin-bottom:24px;}
+.otp-input{width:50px;height:58px;text-align:center;font-family:var(--font-display);font-size:26px;font-weight:300;background:var(--void);border:1px solid var(--graphite);border-radius:6px;color:var(--ivory);outline:none;transition:border-color 150ms;}
+.otp-input:focus{border-color:var(--inv);box-shadow:0 0 0 3px rgba(74,159,138,0.12);}
+.otp-input.filled{border-color:rgba(74,159,138,0.5);}
+.dev-code{display:none;text-align:center;padding:10px 16px;background:rgba(74,159,138,0.1);border:1px solid rgba(74,159,138,0.35);border-radius:6px;margin-bottom:16px;}
+.dev-code.visible{display:block;}
+.dev-code-label{font-family:var(--font-label);font-size:10px;letter-spacing:0.25em;color:var(--inv-light);margin-bottom:4px;}
+.dev-code-val{font-family:var(--font-display);font-size:36px;font-weight:300;letter-spacing:0.3em;color:var(--gold-bright);}
+.btn-primary{width:100%;background:linear-gradient(135deg,var(--inv-dark),var(--inv));border:none;border-radius:6px;padding:15px;color:var(--ivory);font-family:var(--font-label);font-size:14px;letter-spacing:0.2em;cursor:pointer;transition:opacity 150ms;}
+.btn-primary:hover{opacity:0.85;}
+.btn-primary:disabled{opacity:0.4;cursor:not-allowed;}
+.btn-ghost{width:100%;background:none;border:1px solid var(--graphite);border-radius:6px;padding:13px;color:var(--ash);font-family:var(--font-body);font-size:13px;cursor:pointer;margin-top:10px;transition:all 150ms;}
+.btn-ghost:hover{border-color:var(--inv);color:var(--mist);}
+.google-btn{width:100%;padding:14px 20px;border-radius:8px;background:#fff;border:none;color:#3c4043;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:12px;transition:box-shadow 150ms;box-shadow:0 2px 8px rgba(0,0,0,0.35);}
+.google-btn:hover{box-shadow:0 4px 16px rgba(0,0,0,0.45);}
+.google-btn:disabled{opacity:0.5;cursor:not-allowed;}
+.auth-or{display:flex;align-items:center;gap:12px;margin:20px 0;font-size:11px;color:var(--ash);}
+.auth-or::before,.auth-or::after{content:'';flex:1;height:1px;background:var(--graphite);}
+.auth-error{font-size:13px;color:var(--ember);text-align:center;margin-top:10px;min-height:20px;}
+.resend-row{text-align:center;margin-top:12px;font-size:12px;color:var(--ash);}
+.resend-btn{color:var(--inv-light);cursor:pointer;background:none;border:none;font-size:12px;font-family:var(--font-body);}
+.resend-btn:disabled{color:var(--ash);cursor:default;}
+/* PORTAL HEADER */
+.portal-header{position:sticky;top:0;z-index:100;background:rgba(17,17,17,0.97);backdrop-filter:blur(20px);border-bottom:1px solid rgba(74,159,138,0.25);}
+.portal-nav-inner{max-width:1200px;margin:0 auto;padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.portal-brand{display:flex;align-items:center;gap:14px;}
+.portal-wordmark{font-family:var(--font-label);font-size:22px;letter-spacing:0.2em;color:var(--gold-warm);}
+.portal-divider{width:1px;height:18px;background:var(--graphite);}
+.portal-role-badge{font-family:var(--font-label);font-size:10px;letter-spacing:0.3em;color:var(--inv-light);background:rgba(74,159,138,0.1);border:1px solid rgba(74,159,138,0.3);border-radius:999px;padding:3px 12px;}
+.portal-tabs{display:flex;align-items:center;gap:4px;flex:1;overflow-x:auto;scrollbar-width:none;}
+.portal-tabs::-webkit-scrollbar{display:none;}
+.portal-tab{display:flex;align-items:center;gap:7px;padding:6px 16px;border-radius:6px;font-family:var(--font-body);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;border:1px solid transparent;cursor:pointer;background:none;color:var(--ash);transition:all 150ms;white-space:nowrap;}
+.portal-tab:hover{color:var(--mist);border-color:var(--graphite);}
+.portal-tab.active{background:var(--inv-dim);border-color:var(--inv);color:var(--inv-light);}
+.portal-tab.mgr-only{display:none;}
+.portal-tab.mgr-only.show{display:flex;}
+.portal-user{display:flex;align-items:center;gap:12px;}
+.user-name{font-size:14px;color:var(--ivory);}
+.user-role{font-family:var(--font-label);font-size:10px;letter-spacing:0.15em;color:var(--inv-light);}
+.avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;color:var(--obsidian);background:linear-gradient(135deg,var(--inv-dark),var(--inv-light));box-shadow:0 0 0 2px rgba(74,159,138,0.4);cursor:pointer;position:relative;}
+.avatar-menu{position:absolute;top:calc(100% + 8px);right:0;background:var(--carbon);border:1px solid var(--graphite);border-radius:6px;min-width:160px;box-shadow:0 4px 24px rgba(0,0,0,0.5);overflow:hidden;display:none;}
+.avatar-menu.open{display:block;}
+.avatar-menu-item{padding:10px 16px;font-size:13px;color:var(--mist);cursor:pointer;border:none;background:none;width:100%;text-align:left;font-family:var(--font-body);transition:background 150ms;}
+.avatar-menu-item:hover{background:var(--graphite);}
+.avatar-menu-item.danger{color:var(--ember);}
+/* MOBILE TAB BAR */
+.mobile-tab-bar{display:none;position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(17,17,17,0.97);border-top:1px solid rgba(74,159,138,0.2);backdrop-filter:blur(20px);padding:6px 0 env(safe-area-inset-bottom,6px);}
+.mobile-tabs{display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:0 4px;}
+.mobile-tabs::-webkit-scrollbar{display:none;}
+.mobile-tab{flex:0 0 auto;min-width:60px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 10px;background:none;border:none;cursor:pointer;color:var(--ash);transition:color 150ms;}
+.mobile-tab.active{color:var(--inv-light);}
+.mobile-tab-icon{font-size:18px;}
+.mobile-tab-label{font-family:var(--font-label);font-size:8px;letter-spacing:0.15em;text-transform:uppercase;white-space:nowrap;}
+.mobile-tab.mgr-only{display:none;}
+.mobile-tab.mgr-only.show{display:flex;}
+@media(max-width:720px){.portal-tabs{display:none;}.mobile-tab-bar{display:block;}}
+@media(max-width:600px){.portal-nav-inner{padding:0 16px;}}
+/* MAIN */
+.portal-main{max-width:1200px;margin:0 auto;padding:32px 32px calc(80px + env(safe-area-inset-bottom,0px));opacity:0;transition:opacity 0.5s var(--ease);}
+.portal-main.visible{opacity:1;}
+@media(max-width:600px){.portal-main{padding:20px 16px 100px;}}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+.page-header{margin-bottom:28px;}
+.page-eyebrow{font-family:var(--font-label);font-size:11px;letter-spacing:0.35em;color:var(--inv-light);margin-bottom:4px;}
+.page-title{font-family:var(--font-display);font-size:clamp(26px,4vw,44px);font-weight:300;font-style:italic;color:var(--ivory);}
+.page-sub{font-size:13px;color:var(--ash);margin-top:6px;}
+.panel{background:var(--carbon);border:1px solid var(--graphite);border-radius:8px;padding:24px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.04);}
+.panel-eyebrow{font-family:var(--font-label);font-size:10px;letter-spacing:0.3em;color:var(--inv-light);margin-bottom:4px;}
+.panel-title{font-family:var(--font-display);font-size:20px;font-weight:300;color:var(--ivory);margin-bottom:18px;}
+/* LOCATION TABS */
+.loc-tabs{display:flex;gap:6px;margin-bottom:24px;flex-wrap:wrap;}
+.loc-tab{padding:7px 16px;border-radius:6px;background:none;border:1px solid var(--graphite);color:var(--ash);font-family:var(--font-body);font-size:12px;cursor:pointer;transition:all 150ms;white-space:nowrap;}
+.loc-tab:hover{border-color:var(--inv);color:var(--mist);}
+.loc-tab.active{background:var(--inv-dim);border-color:var(--inv);color:var(--inv-light);}
+/* SCANNER */
+.scanner-idle{border:2px dashed rgba(74,159,138,0.35);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:var(--void);cursor:pointer;transition:border-color 150ms;height:180px;}
+.scanner-idle:hover{border-color:var(--inv);}
+.scanner-idle-icon{font-size:32px;opacity:0.25;}
+.scanner-idle-label{font-family:var(--font-label);font-size:11px;letter-spacing:0.25em;color:var(--ash);}
+.scanner-frame{display:none;border-radius:10px;overflow:hidden;border:2px solid rgba(74,159,138,0.5);height:220px;}
+.scanner-frame #invQrReader{width:100% !important;border:none !important;}
+.scanner-frame #invQrReader video{width:100% !important;height:220px !important;object-fit:cover;}
+.scanner-frame #invQrReader img{display:none;}
+.scanner-stop-btn{width:100%;margin-top:8px;padding:9px;border:1px solid var(--graphite);background:none;border-radius:6px;color:var(--ash);font-family:var(--font-body);font-size:12px;cursor:pointer;display:none;}
+/* SCAN RESULT */
+.scan-result{display:none;margin-top:14px;background:var(--void);border:1px solid rgba(74,159,138,0.3);border-radius:8px;padding:16px;}
+.scan-result-name{font-family:var(--font-display);font-size:22px;font-weight:300;color:var(--ivory);margin-bottom:2px;}
+.scan-result-cat{font-size:12px;color:var(--ash);margin-bottom:16px;}
+.fill-btns{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px;}
+.fill-btn{padding:8px 4px;border-radius:6px;background:none;border:1px solid var(--graphite);color:var(--ash);font-family:var(--font-label);font-size:11px;cursor:pointer;transition:all 150ms;text-align:center;}
+.fill-btn:hover{border-color:var(--inv);color:var(--mist);}
+.fill-btn.active{background:var(--inv-dim);border-color:var(--inv);color:var(--inv-light);}
+.fill-exact-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.fill-exact-input{width:72px;background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:8px 10px;color:var(--ivory);font-family:var(--font-display);font-size:16px;text-align:center;outline:none;}
+.fill-exact-input:focus{border-color:var(--inv);}
+.btn-log{width:100%;padding:13px;border-radius:6px;background:linear-gradient(135deg,var(--inv-dark),var(--inv));border:none;color:var(--ivory);font-family:var(--font-label);font-size:13px;letter-spacing:0.15em;cursor:pointer;transition:opacity 150ms;}
+.btn-log:hover{opacity:0.85;}
+.btn-scan-again{width:100%;margin-top:8px;padding:10px;border-radius:6px;background:none;border:1px solid var(--graphite);color:var(--ash);font-family:var(--font-body);font-size:12px;cursor:pointer;transition:all 150ms;}
+.btn-scan-again:hover{border-color:var(--inv);color:var(--mist);}
+/* SESSION BANNER */
+.session-banner{display:none;padding:12px 18px;border-radius:8px;margin-bottom:20px;}
+.session-banner.open{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border:1px solid rgba(76,175,80,0.3);background:rgba(76,175,80,0.07);}
+.session-label{font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:#81C784;}
+.session-meta{font-size:12px;color:var(--ash);margin-top:2px;}
+/* COUNT LIST */
+.count-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:6px;background:var(--void);border:1px solid var(--graphite);}
+.count-row:hover{border-color:rgba(74,159,138,0.3);}
+.count-product{flex:1;font-size:13px;color:var(--ivory);}
+.count-cat{font-family:var(--font-label);font-size:9px;letter-spacing:0.15em;color:var(--ash);margin-top:2px;}
+.count-qty{font-family:var(--font-display);font-size:20px;font-weight:300;color:var(--inv-light);min-width:40px;text-align:right;}
+.count-del{background:none;border:none;color:var(--ash);cursor:pointer;font-size:14px;padding:4px;transition:color 150ms;}
+.count-del:hover{color:var(--ember);}
+/* HOUSE */
+.house-card{background:var(--carbon);border:1px solid var(--graphite);border-radius:8px;padding:18px 20px;}
+.house-cat{font-family:var(--font-label);font-size:10px;letter-spacing:0.3em;color:var(--inv-light);margin-bottom:12px;}
+.house-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(42,42,42,0.5);font-size:13px;}
+.house-row:last-child{border-bottom:none;}
+.house-name{color:var(--mist);}
+.house-qty{font-family:var(--font-display);font-size:16px;font-weight:300;}
+.house-qty.ok{color:#81C784;}.house-qty.low{color:var(--gold-warm);}.house-qty.out{color:var(--ember);}
+/* OWNER TABS */
+.par-input{width:70px;background:var(--void);border:1px solid var(--graphite);border-radius:4px;padding:5px 8px;color:var(--ivory);font-family:var(--font-display);font-size:16px;text-align:center;outline:none;}
+.par-input:focus{border-color:var(--owner-gold);}
+.upc-input{width:150px;background:var(--void);border:1px solid var(--graphite);border-radius:4px;padding:5px 8px;color:var(--ivory);font-family:var(--font-body);font-size:12px;outline:none;}
+.upc-input:focus{border-color:var(--owner-gold);}
+.upc-input.has-upc{border-color:rgba(129,199,132,0.5);color:#81C784;}
+.order-section{background:var(--carbon);border:1px solid var(--graphite);border-radius:8px;overflow:hidden;}
+.order-dist{padding:12px 18px;background:rgba(218,165,32,0.06);border-bottom:1px solid var(--graphite);font-family:var(--font-label);font-size:11px;letter-spacing:0.25em;color:var(--owner-gold);display:flex;justify-content:space-between;}
+.order-row{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid rgba(42,42,42,0.4);}
+.order-row:last-child{border-bottom:none;}
+.order-name{flex:1;font-size:13px;color:var(--ivory);}
+.order-end{font-family:var(--font-display);font-size:15px;min-width:36px;text-align:center;}
+.order-end.low{color:var(--gold-warm);}.order-end.out{color:var(--ember);}
+.order-input{width:64px;background:var(--void);border:1px solid var(--graphite);border-radius:4px;padding:5px 8px;color:var(--ivory);font-family:var(--font-display);font-size:16px;text-align:center;outline:none;}
+.order-input:focus{border-color:var(--owner-gold);}
+/* IMPORT */
+.import-drop{border:2px dashed rgba(74,159,138,0.35);border-radius:8px;padding:32px;text-align:center;cursor:pointer;transition:border-color 150ms;background:var(--void);}
+.import-drop:hover{border-color:var(--inv);}
+.import-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:6px;background:var(--void);border:1px solid var(--graphite);font-size:13px;}
+.import-row.unmatched{border-color:rgba(212,168,67,0.3);}
+.import-row-name{flex:1;color:var(--ivory);}
+.import-row-qty{font-family:var(--font-display);font-size:16px;color:var(--inv-light);}
+/* TOAST */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--carbon);border:1px solid var(--graphite);border-radius:6px;padding:10px 24px;font-size:13px;color:var(--ivory);box-shadow:0 4px 24px rgba(0,0,0,0.5);opacity:0;transition:opacity 300ms,transform 300ms;z-index:10000;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.success{border-color:rgba(76,175,80,0.5);color:#81C784;}
+.toast.blue{border-color:rgba(74,159,138,0.5);color:var(--inv-light);}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="screen active" id="screenLogin">
+  <div class="auth-wrap"><div class="auth-card">
+    <div class="auth-logo">
+      <span class="auth-wordmark">RIDDIM</span>
+      <div style="display:flex;justify-content:center;margin-top:8px;">
+        <span class="auth-badge"><span class="auth-badge-dot"></span>Inventory Portal</span>
+      </div>
+    </div>
+    <div class="auth-divider"></div>
+    <h1 class="auth-heading">Sign In</h1>
+    <p class="auth-hint">Enter your registered phone number</p>
+    <div class="field">
+      <label for="phoneInput">Phone Number</label>
+      <input type="tel" id="phoneInput" placeholder="(404) 555-0100" inputmode="tel" autocomplete="tel" maxlength="14"/>
+    </div>
+    <button class="btn-primary" id="btnSendCode" onclick="sendOtp()">Send Code</button>
+    <div class="auth-or">or</div>
+    <button class="google-btn" id="googleBtn" onclick="startGoogleLogin()">
+      <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2.01c-.72.48-1.63.77-2.7.77-2.08 0-3.84-1.4-4.47-3.29H1.87v2.07A8 8 0 0 0 8.98 17z"/><path fill="#FBBC05" d="M4.51 10.53A4.8 4.8 0 0 1 4.26 9c0-.53.09-1.04.25-1.53V5.4H1.87A8 8 0 0 0 .98 9c0 1.29.31 2.51.89 3.6l2.64-2.07z"/><path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 8.98 1 8 8 0 0 0 1.87 5.4L4.51 7.47c.63-1.89 2.39-3.29 4.47-3.29z"/></svg>
+      Sign in with Google
+    </button>
+    <div class="auth-error" id="loginError"></div>
+  </div></div>
+</div>
+
+<!-- OTP -->
+<div class="screen" id="screenOtp">
+  <div class="auth-wrap"><div class="auth-card">
+    <div class="auth-logo">
+      <span class="auth-wordmark">RIDDIM</span>
+      <div style="display:flex;justify-content:center;margin-top:8px;">
+        <span class="auth-badge"><span class="auth-badge-dot"></span>Inventory Portal</span>
+      </div>
+    </div>
+    <div class="auth-divider"></div>
+    <h1 class="auth-heading">Verify your number</h1>
+    <p style="font-size:14px;color:var(--mist);text-align:center;margin-bottom:20px;">Code sent to <strong id="otpPhoneDisplay" style="color:var(--inv-light);"></strong></p>
+    <div class="dev-code" id="devCode">
+      <p class="dev-code-label">DEV MODE · YOUR CODE</p>
+      <p class="dev-code-val" id="devCodeVal">—</p>
+    </div>
+    <div class="otp-row" id="otpRow">
+      <input class="otp-input" type="text" inputmode="numeric" maxlength="1"/>
+      <input class="otp-input" type="text" inputmode="numeric" maxlength="1"/>
+      <input class="otp-input" type="text" inputmode="numeric" maxlength="1"/>
+      <input class="otp-input" type="text" inputmode="numeric" maxlength="1"/>
+      <input class="otp-input" type="text" inputmode="numeric" maxlength="1"/>
+      <input class="otp-input" type="text" inputmode="numeric" maxlength="1"/>
+    </div>
+    <button class="btn-primary" onclick="verifyOtp()">Verify</button>
+    <div class="auth-error" id="otpError"></div>
+    <div class="resend-row">Didn't receive it? <button class="resend-btn" id="btnResend" disabled onclick="resendOtp()">Resend in <span id="resendTimer">30</span>s</button></div>
+    <button class="btn-ghost" onclick="backToLogin()">← Back</button>
+  </div></div>
+</div>
+
+<!-- PORTAL -->
+<div class="screen" id="screenPortal">
+  <header class="portal-header">
+    <div class="portal-nav-inner">
+      <div class="portal-brand">
+        <span class="portal-wordmark">RIDDIM</span>
+        <span class="portal-divider"></span>
+        <span class="portal-role-badge" id="navRoleBadge">Inventory</span>
+      </div>
+      <nav class="portal-tabs">
+        <button class="portal-tab active" data-tab="count">⊡ Count</button>
+        <button class="portal-tab" data-tab="import">↑ Stock Up</button>
+        <button class="portal-tab mgr-only" data-tab="house">🏠 House</button>
+        <button class="portal-tab mgr-only" data-tab="par">⊞ PAR</button>
+        <button class="portal-tab mgr-only" data-tab="products">◉ Products</button>
+        <button class="portal-tab mgr-only" data-tab="orders">📋 Orders</button>
+      </nav>
+      <div class="portal-user">
+        <div>
+          <div class="user-name" id="navUserName">—</div>
+          <div class="user-role" id="navUserRole">—</div>
+        </div>
+        <div class="avatar" id="navAvatar" onclick="document.getElementById('avatarMenu').classList.toggle('open')">
+          <span id="navInitials">??</span>
+          <div class="avatar-menu" id="avatarMenu">
+            <button class="avatar-menu-item danger" onclick="logout()">Sign Out</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="portal-main" id="portalMain">
+
+    <!-- COUNT TAB -->
+    <div class="tab-panel active" id="tab-count">
+      <div class="page-header">
+        <p class="page-eyebrow">Inventory Count</p>
+        <h1 class="page-title">Scan & Count</h1>
+        <p class="page-sub" id="countWeekLabel">—</p>
+      </div>
+      <div class="loc-tabs">
+        <button class="loc-tab active" data-loc="LR" onclick="setLocation('LR',this)">📦 Liquor Room</button>
+        <button class="loc-tab" data-loc="BAR1" onclick="setLocation('BAR1',this)">🍸 Bar 1</button>
+        <button class="loc-tab" data-loc="BAR2" onclick="setLocation('BAR2',this)">🍸 Bar 2</button>
+        <button class="loc-tab" data-loc="BAR3" onclick="setLocation('BAR3',this)">🍸 Bar 3</button>
+        <button class="loc-tab" data-loc="BAR4" onclick="setLocation('BAR4',this)">🍸 Bar 4</button>
+        <button class="loc-tab" data-loc="SVC" onclick="setLocation('SVC',this)">🥂 Service</button>
+      </div>
+      <div id="sessionBanner" class="session-banner"></div>
+      <div id="countGrid" style="display:grid;grid-template-columns:300px 1fr;gap:20px;">
+        <!-- Scanner panel -->
+        <div class="panel" style="height:fit-content;">
+          <p class="panel-eyebrow">Bottle Scan</p>
+          <p class="panel-title" style="font-size:18px;margin-bottom:16px;">Scan & Count</p>
+          <div class="scanner-idle" id="scanIdle" onclick="startScanner()">
+            <div class="scanner-idle-icon">▣</div>
+            <div class="scanner-idle-label">Tap to Scan Bottle</div>
+          </div>
+          <div class="scanner-frame" id="scanFrame"><div id="invQrReader"></div></div>
+          <button class="scanner-stop-btn" id="scanStopBtn" onclick="stopScanner()">✕ Stop Scanner</button>
+          <div class="scan-result" id="scanResult">
+            <div class="scan-result-name" id="scanProductName">—</div>
+            <div class="scan-result-cat" id="scanProductCat">—</div>
+            <div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--inv-light);margin-bottom:8px;">FILL LEVEL</div>
+            <div class="fill-btns">
+              <button class="fill-btn" data-val="0.1" onclick="setFill(0.1,this)">1/10</button>
+              <button class="fill-btn" data-val="0.25" onclick="setFill(0.25,this)">¼</button>
+              <button class="fill-btn" data-val="0.5" onclick="setFill(0.5,this)">½</button>
+              <button class="fill-btn" data-val="0.75" onclick="setFill(0.75,this)">¾</button>
+              <button class="fill-btn active" data-val="1.0" onclick="setFill(1.0,this)">Full</button>
+            </div>
+            <div class="fill-exact-row">
+              <span style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);">OR EXACT</span>
+              <input class="fill-exact-input" id="fillExact" type="number" min="0.1" max="10" step="0.1" value="1.0" oninput="fillVal=parseFloat(this.value)||1"/>
+              <span style="font-size:12px;color:var(--ash);">bottles</span>
+            </div>
+            <button class="btn-log" onclick="logScan()">✓ Log Count</button>
+            <button class="btn-scan-again" onclick="clearScan()">↺ Scan Another</button>
+          </div>
+          <div style="margin-top:16px;border-top:1px solid var(--graphite);padding-top:16px;">
+            <div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);margin-bottom:8px;">MANUAL ENTRY</div>
+            <div style="position:relative;">
+              <input id="manualSearch" type="text" placeholder="Search product…" oninput="manualFilter(this.value)"
+                style="width:100%;background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:10px 14px;color:var(--ivory);font-family:var(--font-body);font-size:13px;outline:none;"/>
+              <div id="manualResults" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--carbon);border:1px solid var(--graphite);border-radius:6px;z-index:20;max-height:200px;overflow-y:auto;box-shadow:0 4px 20px rgba(0,0,0,0.5);"></div>
+            </div>
+          </div>
+          <div style="margin-top:20px;border-top:1px solid var(--graphite);padding-top:16px;display:flex;gap:8px;">
+            <button id="openSessionBtn" onclick="openSession()"
+              style="flex:1;padding:10px;border-radius:6px;background:rgba(76,175,80,0.12);border:1px solid rgba(76,175,80,0.35);color:#81C784;font-family:var(--font-label);font-size:11px;letter-spacing:0.15em;cursor:pointer;">▶ Start Count</button>
+            <button id="closeSessionBtn" onclick="closeSession()"
+              style="flex:1;padding:10px;border-radius:6px;background:rgba(192,57,43,0.1);border:1px solid rgba(192,57,43,0.3);color:#E57373;font-family:var(--font-label);font-size:11px;letter-spacing:0.15em;cursor:pointer;display:none;">■ Close Count</button>
+          </div>
+        </div>
+        <!-- Count list -->
+        <div class="panel">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+            <div>
+              <p class="panel-eyebrow">Current Session</p>
+              <p class="panel-title" style="font-size:18px;margin-bottom:0;">Count Log</p>
+            </div>
+            <select id="catFilter" onchange="renderCountList()"
+              style="background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:7px 12px;color:var(--ivory);font-family:var(--font-body);font-size:12px;">
+              <option value="">All Categories</option>
+              <option>COGNAC</option><option>CORDIAL</option><option>GIN</option>
+              <option>RUM</option><option>SCOTCH</option><option>TEQUILA</option>
+              <option>VODKA</option><option>WHISKEY</option><option>BEER</option>
+              <option>CHAMPAGNE</option><option>BEVERAGE</option>
+            </select>
+          </div>
+          <div id="countList" style="display:flex;flex-direction:column;gap:6px;max-height:520px;overflow-y:auto;">
+            <div style="text-align:center;padding:40px;font-size:13px;color:var(--ash);font-style:italic;">Start a count session to begin scanning</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STOCK UP TAB -->
+    <div class="tab-panel" id="tab-import">
+      <div class="page-header">
+        <p class="page-eyebrow">Hot Sauce POS</p>
+        <h1 class="page-title">Import Stock Up</h1>
+        <p class="page-sub">Upload the STOCK_UP CSV export to record bar pulls from the Liquor Room.</p>
+      </div>
+      <div class="panel" style="max-width:560px;">
+        <div class="import-drop" id="importDropZone"
+          onclick="document.getElementById('importFile').click()"
+          ondragover="event.preventDefault();this.style.borderColor='var(--inv)'"
+          ondragleave="this.style.borderColor='rgba(74,159,138,0.35)'"
+          ondrop="handleImportDrop(event)">
+          <div style="font-size:28px;margin-bottom:8px;opacity:0.3;">📂</div>
+          <div style="font-family:var(--font-label);font-size:11px;letter-spacing:0.2em;color:var(--ash);">TAP TO SELECT FILE</div>
+          <div style="font-size:11px;color:var(--ash);margin-top:4px;">or drag & drop · XLS or CSV</div>
+        </div>
+        <input type="file" id="importFile" accept=".xls,.xlsx,.csv" style="display:none;" onchange="handleImportFile(this)"/>
+        <div id="importStatus" style="margin-top:12px;font-size:13px;color:var(--ash);"></div>
+        <div id="importPreview" style="margin-top:16px;display:none;">
+          <div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--inv-light);margin-bottom:10px;">PREVIEW — <span id="importCount">0</span> ITEMS</div>
+          <div id="importPreviewList" style="max-height:240px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;"></div>
+          <div style="display:flex;gap:10px;margin-top:16px;">
+            <button onclick="confirmImport()"
+              style="flex:1;padding:13px;border-radius:6px;background:linear-gradient(135deg,var(--inv-dark),var(--inv));border:none;color:var(--ivory);font-family:var(--font-label);font-size:13px;letter-spacing:0.15em;cursor:pointer;">✓ Confirm Import</button>
+            <button onclick="cancelImport()"
+              style="padding:13px 18px;border-radius:6px;background:none;border:1px solid var(--graphite);color:var(--ash);font-family:var(--font-body);font-size:13px;cursor:pointer;">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HOUSE TAB -->
+    <div class="tab-panel" id="tab-house">
+      <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div><p class="page-eyebrow">Aggregated View</p><h1 class="page-title">House</h1></div>
+        <select id="houseCatFilter" onchange="renderHouse()"
+          style="background:var(--void);border:1px solid var(--graphite);color:var(--mist);padding:8px 14px;border-radius:6px;font-family:var(--font-body);font-size:12px;margin-top:8px;">
+          <option value="">All Categories</option>
+          <option>COGNAC</option><option>VODKA</option><option>WHISKEY</option>
+          <option>TEQUILA</option><option>RUM</option><option>GIN</option>
+          <option>SCOTCH</option><option>CORDIAL</option><option>CHAMPAGNE</option>
+          <option>BEER</option><option>BEVERAGE</option>
+        </select>
+      </div>
+      <div id="houseGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;">
+        <div style="text-align:center;padding:40px;color:var(--ash);grid-column:1/-1;">Loading…</div>
+      </div>
+    </div>
+
+    <!-- PAR TAB -->
+    <div class="tab-panel" id="tab-par">
+      <div class="page-header"><p class="page-eyebrow">Settings</p><h1 class="page-title">PAR Levels</h1></div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+        <select id="parLocFilter" onchange="renderPar()"
+          style="background:var(--void);border:1px solid var(--graphite);color:var(--mist);padding:8px 14px;border-radius:6px;font-family:var(--font-body);font-size:13px;">
+          <option value="LR">Liquor Room</option>
+          <option value="BAR1">Bar 1</option><option value="BAR2">Bar 2</option>
+          <option value="BAR3">Bar 3</option><option value="BAR4">Bar 4</option>
+          <option value="SVC">Service</option>
+        </select>
+        <button onclick="savePar()"
+          style="padding:9px 20px;background:linear-gradient(135deg,var(--owner-accent),var(--owner-gold));border:none;border-radius:6px;color:#fff;font-family:var(--font-label);font-size:12px;letter-spacing:0.12em;cursor:pointer;">✓ Save PAR</button>
+      </div>
+      <div class="panel" style="padding:0;overflow:hidden;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead><tr style="border-bottom:1px solid var(--graphite);">
+            <th style="padding:12px 16px;text-align:left;font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);">PRODUCT</th>
+            <th style="padding:12px 16px;text-align:left;font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);">CATEGORY</th>
+            <th style="padding:12px 16px;text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--owner-gold);">PAR QTY</th>
+          </tr></thead>
+          <tbody id="parBody"><tr><td colspan="3" style="padding:40px;text-align:center;color:var(--ash);">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PRODUCTS TAB -->
+    <div class="tab-panel" id="tab-products">
+      <div class="page-header"><p class="page-eyebrow">Settings</p><h1 class="page-title">Products & UPC</h1></div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+        <input id="prodSearch" type="text" placeholder="Search products…" oninput="filterProducts(this.value)"
+          style="flex:1;min-width:200px;background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:9px 14px;color:var(--ivory);font-family:var(--font-body);font-size:13px;outline:none;"/>
+        <span id="prodCount" style="font-size:12px;color:var(--ash);"></span>
+      </div>
+      <div class="panel" style="padding:0;overflow:hidden;overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;min-width:560px;">
+          <thead><tr style="border-bottom:1px solid var(--graphite);">
+            <th style="padding:12px 16px;text-align:left;font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);">PRODUCT</th>
+            <th style="padding:12px 16px;text-align:left;font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);">CATEGORY</th>
+            <th style="padding:12px 16px;text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);">COST</th>
+            <th style="padding:12px 16px;text-align:center;font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--ash);">CASE</th>
+            <th style="padding:12px 16px;text-align:left;font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--owner-gold);">UPC BARCODE</th>
+          </tr></thead>
+          <tbody id="productsBody"><tr><td colspan="5" style="padding:40px;text-align:center;color:var(--ash);">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ORDERS TAB -->
+    <div class="tab-panel" id="tab-orders">
+      <div class="page-header"><p class="page-eyebrow">Purchasing</p><h1 class="page-title">Weekly Orders</h1></div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+        <button onclick="generateOrders()"
+          style="padding:9px 18px;background:rgba(218,165,32,0.12);border:1px solid rgba(218,165,32,0.4);border-radius:6px;color:var(--owner-gold);font-family:var(--font-label);font-size:12px;letter-spacing:0.12em;cursor:pointer;">⚡ Auto-Generate</button>
+        <button onclick="confirmOrders()"
+          style="padding:9px 18px;background:linear-gradient(135deg,var(--owner-accent),var(--owner-gold));border:none;border-radius:6px;color:#fff;font-family:var(--font-label);font-size:12px;letter-spacing:0.12em;cursor:pointer;">✓ Confirm Orders</button>
+      </div>
+      <div id="ordersGrid" style="display:flex;flex-direction:column;gap:16px;">
+        <div style="text-align:center;padding:48px;color:var(--ash);font-style:italic;font-size:13px;">Click Auto-Generate to build this week's order sheet.</div>
+      </div>
+    </div>
+
+  </main>
+
+  <div class="mobile-tab-bar">
+    <div class="mobile-tabs">
+      <button class="mobile-tab active" data-tab="count"><span class="mobile-tab-icon">⊡</span><span class="mobile-tab-label">Count</span></button>
+      <button class="mobile-tab" data-tab="import"><span class="mobile-tab-icon">↑</span><span class="mobile-tab-label">Stock Up</span></button>
+      <button class="mobile-tab mgr-only" data-tab="house"><span class="mobile-tab-icon">🏠</span><span class="mobile-tab-label">House</span></button>
+      <button class="mobile-tab mgr-only" data-tab="par"><span class="mobile-tab-icon">⊞</span><span class="mobile-tab-label">PAR</span></button>
+      <button class="mobile-tab mgr-only" data-tab="products"><span class="mobile-tab-icon">◉</span><span class="mobile-tab-label">Products</span></button>
+      <button class="mobile-tab mgr-only" data-tab="orders"><span class="mobile-tab-icon">📋</span><span class="mobile-tab-label">Orders</span></button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+const SUPABASE_URL      = 'https://cbvryfgrqzdvbqigyrgh.supabase.co';
+const SUPABASE_KEY      = 'sb_publishable_fQlHFhC7tPkZNRl1djnvcA_68LpKQpv';
+const GOOGLE_CLIENT_ID  = '46572233442-7ppaitpmvnm0vvmj6uqk0683rsocka9a.apps.googleusercontent.com';
+const OWNER_EMAILS      = ['inquiry@ctrlmanagement.com','gebriel@ctrlmanagement.com'];
+const DEV_MODE          = true;
+const INV_LOCATIONS     = ['LR','BAR1','BAR2','BAR3','BAR4','SVC'];
+const INV_CAT_ORDER     = ['COGNAC','VODKA','WHISKEY','TEQUILA','RUM','GIN','SCOTCH','CORDIAL','CHAMPAGNE','BEER','BEVERAGE'];
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentUser = null;
+let invProducts = [], invProductsF = [], invPars = {}, invPending = {};
+let invCounts = {}, invSession = null, invLocation = 'LR';
+let invScanProduct = null, fillVal = 1.0, invScanner = null;
+let pendingImport = [], invOrders = [];
+let loginPhone = '', otpCode = '', resendInterval = null;
+
+// ── TOAST ──────────────────────────────────────────────────────────
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (type ? ' '+type : '');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ── PHONE FORMAT ───────────────────────────────────────────────────
+document.getElementById('phoneInput').addEventListener('input', function() {
+  let v = this.value.replace(/\D/g,'');
+  if (v.length >= 6) v = '('+v.slice(0,3)+') '+v.slice(3,6)+'-'+v.slice(6,10);
+  else if (v.length >= 3) v = '('+v.slice(0,3)+') '+v.slice(3);
+  this.value = v;
+});
+
+// ── OTP AUTH ───────────────────────────────────────────────────────
+async function sendOtp() {
+  const raw = document.getElementById('phoneInput').value.replace(/\D/g,'');
+  if (raw.length !== 10) { document.getElementById('loginError').textContent = 'Enter a valid 10-digit phone number.'; return; }
+  const e164 = '+1' + raw;
+  loginPhone = e164;
+  const { data: staff } = await sb.from('inv_staff').select('*').eq('phone', e164).eq('active', true).maybeSingle();
+  if (!staff) { document.getElementById('loginError').textContent = 'Phone number not registered for inventory access.'; return; }
+  document.getElementById('btnSendCode').disabled = true;
+  document.getElementById('loginError').textContent = '';
+  if (DEV_MODE) {
+    otpCode = String(Math.floor(100000 + Math.random() * 900000));
+    document.getElementById('devCodeVal').textContent = otpCode;
+    document.getElementById('devCode').classList.add('visible');
+    showOtpScreen(e164);
+    return;
+  }
+  const { error } = await sb.auth.signInWithOtp({ phone: e164 });
+  if (error) { document.getElementById('loginError').textContent = error.message; document.getElementById('btnSendCode').disabled = false; return; }
+  showOtpScreen(e164);
+}
+
+function showOtpScreen(phone) {
+  document.getElementById('otpPhoneDisplay').textContent = phone;
+  document.getElementById('screenLogin').classList.remove('active');
+  document.getElementById('screenOtp').classList.add('active');
+  setupOtpInputs();
+  startResendTimer();
+}
+
+function setupOtpInputs() {
+  const inputs = document.querySelectorAll('.otp-input');
+  inputs.forEach((inp, i) => {
+    inp.value = ''; inp.classList.remove('filled');
+    inp.addEventListener('input', function() {
+      this.value = this.value.replace(/\D/g,'').slice(-1);
+      if (this.value) { this.classList.add('filled'); if (i < 5) inputs[i+1].focus(); }
+      else this.classList.remove('filled');
+      if ([...inputs].every(x => x.value)) verifyOtp();
+    });
+    inp.addEventListener('keydown', function(e) { if (e.key==='Backspace' && !this.value && i>0) inputs[i-1].focus(); });
+  });
+  inputs[0].focus();
+}
+
+async function verifyOtp() {
+  const code = [...document.querySelectorAll('.otp-input')].map(x => x.value).join('');
+  if (code.length !== 6) return;
+  if (DEV_MODE) {
+    if (code !== otpCode) { document.getElementById('otpError').textContent = 'Incorrect code.'; return; }
+    const { data: staff } = await sb.from('inv_staff').select('*').eq('phone', loginPhone).eq('active', true).maybeSingle();
+    if (!staff) { document.getElementById('otpError').textContent = 'Access denied.'; return; }
+    currentUser = { name: staff.name, phone: staff.phone, role: staff.role };
+    enterPortal(); return;
+  }
+  const { data, error } = await sb.auth.verifyOtp({ phone: loginPhone, token: code, type: 'sms' });
+  if (error || !data?.session) { document.getElementById('otpError').textContent = 'Incorrect code.'; return; }
+  const { data: staff } = await sb.from('inv_staff').select('*').eq('phone', loginPhone).eq('active', true).maybeSingle();
+  if (!staff) { document.getElementById('otpError').textContent = 'Access denied.'; return; }
+  currentUser = { name: staff.name, phone: staff.phone, role: staff.role };
+  enterPortal();
+}
+
+function backToLogin() {
+  document.getElementById('screenOtp').classList.remove('active');
+  document.getElementById('screenLogin').classList.add('active');
+  document.getElementById('btnSendCode').disabled = false;
+  clearInterval(resendInterval);
+}
+
+function resendOtp() {
+  if (DEV_MODE) { otpCode = String(Math.floor(100000 + Math.random() * 900000)); document.getElementById('devCodeVal').textContent = otpCode; }
+  else sb.auth.signInWithOtp({ phone: loginPhone });
+  startResendTimer();
+}
+
+function startResendTimer() {
+  let t = 30;
+  document.getElementById('btnResend').disabled = true;
+  document.getElementById('resendTimer').textContent = t;
+  clearInterval(resendInterval);
+  resendInterval = setInterval(() => {
+    t--;
+    document.getElementById('resendTimer').textContent = t;
+    if (t <= 0) { clearInterval(resendInterval); const b = document.getElementById('btnResend'); b.disabled = false; b.innerHTML = 'Resend code'; }
+  }, 1000);
+}
+
+// ── GOOGLE OAUTH ───────────────────────────────────────────────────
+function startGoogleLogin() {
+  const btn = document.getElementById('googleBtn');
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  const params = new URLSearchParams({ client_id: GOOGLE_CLIENT_ID, redirect_uri: window.location.origin + window.location.pathname, response_type: 'token id_token', scope: 'openid email profile', nonce: Math.random().toString(36).slice(2), prompt: 'select_account' });
+  const popup = window.open('https://accounts.google.com/o/oauth2/v2/auth?'+params,'googleLogin','width=500,height=620,left='+(screen.width/2-250)+',top='+(screen.height/2-310));
+  const iv = setInterval(() => {
+    try {
+      if (!popup || popup.closed) { clearInterval(iv); resetGoogleBtn(); return; }
+      const hash = popup.location.hash;
+      if (hash && hash.includes('id_token=')) { clearInterval(iv); popup.close(); const m = hash.match(/id_token=([^&]+)/); if (m) handleIdToken(m[1]); }
+    } catch(e) {}
+  }, 300);
+}
+
+async function handleIdToken(idToken) {
+  try {
+    const { data, error } = await sb.auth.signInWithIdToken({ provider: 'google', token: idToken });
+    if (error || !data?.session) { document.getElementById('loginError').textContent = 'Access denied.'; resetGoogleBtn(); return; }
+    const email = (data.session.user?.email || '').toLowerCase().trim();
+    if (!OWNER_EMAILS.includes(email)) { await sb.auth.signOut(); document.getElementById('loginError').textContent = 'Access denied — owner accounts only.'; resetGoogleBtn(); return; }
+    currentUser = { name: 'AG Entertainment', phone: email, role: 'owner' };
+    enterPortal();
+  } catch(e) { document.getElementById('loginError').textContent = 'Authentication error.'; resetGoogleBtn(); }
+}
+
+function resetGoogleBtn() {
+  const btn = document.getElementById('googleBtn');
+  btn.disabled = false;
+  btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2.01c-.72.48-1.63.77-2.7.77-2.08 0-3.84-1.4-4.47-3.29H1.87v2.07A8 8 0 0 0 8.98 17z"/><path fill="#FBBC05" d="M4.51 10.53A4.8 4.8 0 0 1 4.26 9c0-.53.09-1.04.25-1.53V5.4H1.87A8 8 0 0 0 .98 9c0 1.29.31 2.51.89 3.6l2.64-2.07z"/><path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 8.98 1 8 8 0 0 0 1.87 5.4L4.51 7.47c.63-1.89 2.39-3.29 4.47-3.29z"/></svg> Sign in with Google';
+}
+
+// ── PORTAL ─────────────────────────────────────────────────────────
+async function enterPortal() {
+  const isMgr = currentUser.role === 'owner' || currentUser.role === 'manager';
+  const initials = currentUser.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+  const roleLabel = currentUser.role === 'owner' ? 'Owner' : currentUser.role === 'manager' ? 'Manager' : 'Key Barback';
+  document.getElementById('navUserName').textContent = currentUser.name;
+  document.getElementById('navUserRole').textContent = roleLabel;
+  document.getElementById('navInitials').textContent = initials;
+  document.getElementById('navRoleBadge').textContent = roleLabel + ' · Inventory';
+  document.getElementById('countWeekLabel').textContent = 'Week of ' + new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  if (isMgr) document.querySelectorAll('.mgr-only').forEach(el => el.classList.add('show'));
+  await loadProducts();
+  await loadPars();
+  await loadSession();
+  document.getElementById('screenLogin').classList.remove('active');
+  document.getElementById('screenOtp').classList.remove('active');
+  document.getElementById('screenPortal').classList.add('active');
+  setTimeout(() => document.getElementById('portalMain').classList.add('visible'), 100);
+  document.querySelectorAll('[data-tab]').forEach(btn => btn.addEventListener('click', () => goToTab(btn.dataset.tab)));
+}
+
+function logout() {
+  sb.auth.signOut().catch(()=>{});
+  currentUser = null; invSession = null; invCounts = {};
+  document.getElementById('screenPortal').classList.remove('active');
+  document.getElementById('portalMain').classList.remove('visible');
+  document.getElementById('screenLogin').classList.add('active');
+  document.getElementById('loginError').textContent = '';
+  document.getElementById('phoneInput').value = '';
+  document.getElementById('avatarMenu').classList.remove('open');
+}
+
+// ── NAVIGATION ─────────────────────────────────────────────────────
+function goToTab(tabId) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-'+tabId));
+  document.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === tabId));
+  stopScanner();
+  if (tabId === 'house')    renderHouse();
+  if (tabId === 'par')      renderPar();
+  if (tabId === 'products') renderProducts();
+  if (tabId === 'orders')   renderOrdersView();
+}
+
+// ── DATA LOADING ───────────────────────────────────────────────────
+async function loadProducts() {
+  const { data } = await sb.from('inv_products').select('*').eq('active', true).order('category').order('name');
+  invProducts = data || []; invProductsF = [...invProducts];
+  const el = document.getElementById('prodCount');
+  if (el) el.textContent = invProducts.length + ' products';
+}
+
+async function loadPars() {
+  const { data } = await sb.from('inv_par_levels').select('*');
+  invPars = {};
+  if (data) data.forEach(p => { if (!invPars[p.product_id]) invPars[p.product_id] = {}; invPars[p.product_id][p.location] = p.par_qty; });
+}
+
+async function setLocation(loc, btn) {
+  invLocation = loc;
+  document.querySelectorAll('.loc-tab').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  stopScanner(); clearScan();
+  await loadSession(); renderCountList();
+}
+
+async function loadSession() {
+  const today = new Date().toISOString().slice(0,10);
+  const { data } = await sb.from('inv_sessions').select('*').eq('location', invLocation).eq('status','open').eq('week_of', today).maybeSingle();
+  invSession = data || null; invCounts = {};
+  if (invSession) {
+    const { data: counts } = await sb.from('inv_counts').select('product_id, quantity').eq('session_id', invSession.id);
+    if (counts) counts.forEach(c => { invCounts[c.product_id] = (invCounts[c.product_id]||0) + c.quantity; });
+  }
+  renderSessionBanner(); renderSessionButtons();
+}
+
+function renderSessionBanner() {
+  const banner = document.getElementById('sessionBanner');
+  if (!invSession) { banner.className = 'session-banner'; return; }
+  banner.className = 'session-banner open';
+  const t = new Date(invSession.opened_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+  banner.innerHTML = `<div><div class="session-label">COUNT SESSION OPEN</div><div class="session-meta">${invLocation} · Started ${t} · ${Object.keys(invCounts).length} products counted</div></div>`;
+}
+
+function renderSessionButtons() {
+  document.getElementById('openSessionBtn').style.display = invSession ? 'none' : 'flex';
+  document.getElementById('closeSessionBtn').style.display = invSession ? 'flex' : 'none';
+}
+
+async function openSession() {
+  const today = new Date().toISOString().slice(0,10);
+  const { data, error } = await sb.from('inv_sessions').insert({ location: invLocation, opened_by: currentUser.phone, week_of: today, status: 'open' }).select().single();
+  if (error) { showToast('Error opening session', ''); return; }
+  invSession = data; invCounts = {};
+  renderSessionBanner(); renderSessionButtons(); renderCountList();
+  showToast(`${invLocation} count started`, 'success');
+}
+
+async function closeSession() {
+  if (!invSession || !confirm(`Close the ${invLocation} count session?`)) return;
+  await sb.from('inv_sessions').update({ status: 'closed', closed_by: currentUser.phone, closed_at: new Date().toISOString() }).eq('id', invSession.id);
+  invSession = null; renderSessionBanner(); renderSessionButtons();
+  showToast(`${invLocation} count closed`, 'blue');
+}
+
+// ── SCANNER ────────────────────────────────────────────────────────
+function startScanner() {
+  if (!invSession) { showToast('Start a count session first', ''); return; }
+  document.getElementById('scanIdle').style.display = 'none';
+  document.getElementById('scanFrame').style.display = 'block';
+  document.getElementById('scanStopBtn').style.display = 'block';
+  document.getElementById('invQrReader').innerHTML = '';
+  invScanner = new Html5Qrcode('invQrReader');
+  invScanner.start({ facingMode:'environment' }, { fps:10, qrbox:{width:200,height:200} }, onScan, ()=>{}).catch(() => showToast('Camera error', ''));
+}
+
+function stopScanner() {
+  if (invScanner) { invScanner.stop().catch(()=>{}); invScanner = null; }
+  const i = document.getElementById('scanIdle'), f = document.getElementById('scanFrame'), s = document.getElementById('scanStopBtn');
+  if (i) i.style.display = 'flex'; if (f) f.style.display = 'none'; if (s) s.style.display = 'none';
+}
+
+async function onScan(decoded) {
+  stopScanner();
+  if (decoded.startsWith('INV:')) {
+    const pid = decoded.replace('INV:','').trim();
+    const product = invProducts.find(p => p.id === pid || p.qr_code === decoded);
+    if (!product) { showToast('Product not found', ''); return; }
+    showScanResult(product); return;
+  }
+  const { data: byUpc } = await sb.from('inv_products').select('*').eq('upc', decoded).maybeSingle();
+  if (byUpc) { showScanResult(byUpc); return; }
+  const name = prompt(`Unknown barcode: ${decoded}\n\nProduct name to register (or Cancel):`);
+  if (!name) { showToast('Barcode not registered', ''); return; }
+  const match = invProducts.find(p => p.name.toLowerCase() === name.toLowerCase());
+  if (match) {
+    await sb.from('inv_products').update({ upc: decoded }).eq('id', match.id);
+    match.upc = decoded;
+    showToast(`UPC registered — ${match.name}`, 'success');
+    showScanResult(match);
+  } else { showToast(`Product "${name}" not found`, ''); }
+}
+
+function showScanResult(product) {
+  invScanProduct = product; fillVal = 1.0;
+  document.getElementById('fillExact').value = '1.0';
+  document.querySelectorAll('.fill-btn').forEach(b => b.classList.toggle('active', parseFloat(b.dataset.val) === 1.0));
+  document.getElementById('scanProductName').textContent = product.name;
+  document.getElementById('scanProductCat').textContent = product.category + (product.upc ? ' · UPC ✓' : '');
+  document.getElementById('scanResult').style.display = 'block';
+}
+
+function setFill(val, btn) {
+  fillVal = val; document.getElementById('fillExact').value = val;
+  document.querySelectorAll('.fill-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+async function logScan() {
+  if (!invScanProduct || !invSession) return;
+  const qty = parseFloat(document.getElementById('fillExact').value) || 1.0;
+  const { error } = await sb.from('inv_counts').insert({ session_id: invSession.id, product_id: invScanProduct.id, location: invLocation, quantity: qty, counted_by: currentUser.phone, scan_count: 1 });
+  if (error) { showToast('Error saving count', ''); return; }
+  invCounts[invScanProduct.id] = (invCounts[invScanProduct.id]||0) + qty;
+  showToast(`${invScanProduct.name} +${qty}`, 'success');
+  clearScan(); renderCountList(); renderSessionBanner();
+  setTimeout(() => startScanner(), 400);
+}
+
+function clearScan() { invScanProduct = null; document.getElementById('scanResult').style.display = 'none'; }
+
+function manualFilter(q) {
+  const box = document.getElementById('manualResults');
+  if (!q.trim()) { box.style.display='none'; return; }
+  const matches = invProducts.filter(p => p.name.toLowerCase().includes(q.toLowerCase()) || (p.category||'').toLowerCase().includes(q.toLowerCase())).slice(0,8);
+  if (!matches.length) { box.style.display='none'; return; }
+  box.style.display = 'block';
+  box.innerHTML = matches.map(p => `<div onclick="selectManual('${p.id}')" style="padding:10px 14px;cursor:pointer;border-bottom:1px solid rgba(42,42,42,0.5);transition:background 150ms;" onmouseover="this.style.background='rgba(74,159,138,0.06)'" onmouseout="this.style.background=''"><div style="font-size:13px;color:var(--ivory);">${p.name}</div><div style="font-size:11px;color:var(--ash);">${p.category}</div></div>`).join('');
+}
+
+function selectManual(pid) {
+  if (!invSession) { showToast('Start a count session first', ''); return; }
+  const product = invProducts.find(p => p.id === pid);
+  if (!product) return;
+  document.getElementById('manualResults').style.display = 'none';
+  document.getElementById('manualSearch').value = '';
+  showScanResult(product);
+}
+
+function renderCountList() {
+  const list = document.getElementById('countList');
+  const cat = document.getElementById('catFilter')?.value || '';
+  const counted = Object.entries(invCounts);
+  if (!counted.length) {
+    list.innerHTML = `<div style="text-align:center;padding:40px;font-size:13px;color:var(--ash);font-style:italic;">${invSession ? 'No bottles scanned yet' : 'Start a count session to begin scanning'}</div>`;
+    return;
+  }
+  const rows = counted.map(([pid, qty]) => {
+    const p = invProducts.find(pr => pr.id === pid);
+    if (!p || (cat && p.category !== cat)) return null;
+    return { p, qty };
+  }).filter(Boolean).sort((a,b) => a.p.category.localeCompare(b.p.category)||a.p.name.localeCompare(b.p.name));
+  list.innerHTML = rows.map(({p, qty}) => `<div class="count-row"><div style="flex:1;"><div class="count-product">${p.name}</div><div class="count-cat">${p.category}</div></div><div class="count-qty">${qty%1===0?qty:qty.toFixed(1)}</div><button class="count-del" onclick="deleteCount('${p.id}')">✕</button></div>`).join('');
+}
+
+async function deleteCount(pid) {
+  if (!invSession) return;
+  await sb.from('inv_counts').delete().eq('session_id', invSession.id).eq('product_id', pid);
+  delete invCounts[pid]; renderCountList(); renderSessionBanner();
+}
+
+// ── IMPORT ─────────────────────────────────────────────────────────
+function handleImportDrop(e) { e.preventDefault(); document.getElementById('importDropZone').style.borderColor='rgba(74,159,138,0.35)'; const f=e.dataTransfer.files[0]; if(f) parseImportFile(f); }
+function handleImportFile(input) { if(input.files[0]) parseImportFile(input.files[0]); }
+function parseImportFile(file) {
+  document.getElementById('importStatus').textContent = 'Parsing file…';
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const lines = e.target.result.split(/\r?\n/); const items = []; let cat = '';
+      for (const line of lines) {
+        const cols = line.split(',').map(c => c.replace(/^"|"$/g,'').trim());
+        if (cols[0].startsWith('SU_') && !cols[0].includes('Total')) { cat = cols[0].replace('SU_',''); }
+        else if (cols[0] && !isNaN(parseFloat(cols[0])) && parseFloat(cols[0]) > 100) {
+          const posId=parseInt(cols[0]), name=cols[1]||'', qty=parseFloat(cols[4])||1;
+          if (name) { const matched = invProducts.find(p => p.pos_item_id===posId || p.name.toLowerCase()===name.toLowerCase() || (p.pos_name&&p.pos_name.toLowerCase()===name.toLowerCase())); items.push({ posId, name, category: cat, qty, matched }); }
+        }
+      }
+      pendingImport = items; renderImportPreview(items);
+    } catch(err) { document.getElementById('importStatus').textContent = 'Parse error — use CSV export'; }
+  };
+  reader.readAsText(file);
+}
+function renderImportPreview(items) {
+  if (!items.length) { document.getElementById('importStatus').textContent = 'No STOCK_UP items found'; return; }
+  document.getElementById('importStatus').textContent = '';
+  document.getElementById('importPreview').style.display = 'block';
+  document.getElementById('importCount').textContent = items.length;
+  document.getElementById('importPreviewList').innerHTML = items.map(item => `<div class="import-row ${item.matched?'':'unmatched'}"><div class="import-row-name">${item.name} <span style="font-size:10px;color:var(--ash);margin-left:6px;">${item.category}</span>${!item.matched?'<span style="font-size:10px;color:var(--gold-warm);margin-left:6px;">⚠ unmatched</span>':''}</div><div class="import-row-qty">×${item.qty}</div></div>`).join('');
+}
+async function confirmImport() {
+  if (!pendingImport.length) return;
+  const importId = crypto.randomUUID(), today = new Date().toISOString().slice(0,10);
+  const { error } = await sb.from('inv_stock_ups').insert(pendingImport.map(item => ({ import_id:importId, pos_item_id:item.posId, pos_name:item.name, pos_category:'SU_'+item.category, product_id:item.matched?.id||null, quantity:item.qty, from_location:'LR', report_date:today, imported_by:currentUser.phone })));
+  if (error) { showToast('Import failed', ''); return; }
+  document.getElementById('importPreview').style.display = 'none';
+  document.getElementById('importStatus').textContent = `✓ ${pendingImport.length} items imported`;
+  pendingImport = []; document.getElementById('importFile').value = '';
+  showToast('Stock up imported', 'success');
+}
+function cancelImport() { pendingImport=[]; document.getElementById('importPreview').style.display='none'; document.getElementById('importStatus').textContent=''; document.getElementById('importFile').value=''; }
+
+// ── HOUSE ──────────────────────────────────────────────────────────
+async function renderHouse() {
+  const grid = document.getElementById('houseGrid');
+  const cat = document.getElementById('houseCatFilter')?.value || '';
+  grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--ash);grid-column:1/-1;">Loading…</div>';
+  const today = new Date().toISOString().slice(0,10);
+  const allCounts = {};
+  for (const loc of INV_LOCATIONS) {
+    const { data: sessions } = await sb.from('inv_sessions').select('id').eq('location',loc).eq('week_of',today).order('opened_at',{ascending:false}).limit(1);
+    if (!sessions?.length) continue;
+    const { data: counts } = await sb.from('inv_counts').select('product_id, quantity').eq('session_id', sessions[0].id);
+    if (counts) counts.forEach(c => { allCounts[c.product_id]=(allCounts[c.product_id]||0)+c.quantity; });
+  }
+  const cats = {};
+  invProducts.forEach(p => {
+    if (cat && p.category !== cat) return;
+    if (!cats[p.category]) cats[p.category] = [];
+    const qty = allCounts[p.id]||0, par = INV_LOCATIONS.reduce((s,l) => s+(invPars[p.id]?.[l]||0), 0);
+    cats[p.category].push({ p, qty, par });
+  });
+  const sorted = INV_CAT_ORDER.filter(c => cats[c]).concat(Object.keys(cats).filter(c => !INV_CAT_ORDER.includes(c)));
+  if (!sorted.length) { grid.innerHTML = '<div style="text-align:center;padding:48px;color:var(--ash);grid-column:1/-1;">No count data for today.</div>'; return; }
+  grid.innerHTML = sorted.map(c => {
+    const rows = cats[c].map(({p,qty,par}) => { const cls=qty===0?'out':qty<par?'low':'ok'; return `<div class="house-row"><span class="house-name">${p.name}</span><span class="house-qty ${cls}">${qty%1===0?qty:qty.toFixed(1)}<span style="font-size:10px;color:var(--ash);margin-left:4px;">/ ${par}</span></span></div>`; }).join('');
+    return `<div class="house-card"><div class="house-cat">${c}</div>${rows}</div>`;
+  }).join('');
+}
+
+// ── PAR ────────────────────────────────────────────────────────────
+function renderPar() {
+  const loc = document.getElementById('parLocFilter')?.value||'LR';
+  const tbody = document.getElementById('parBody'); if (!tbody) return;
+  tbody.innerHTML = invProducts.map(p => { const par = invPending[p.id]?.[loc]??invPars[p.id]?.[loc]??0; return `<tr style="border-bottom:1px solid rgba(42,42,42,0.4);"><td style="padding:10px 16px;font-size:13px;color:var(--ivory);">${p.name}</td><td style="padding:10px 16px;font-size:12px;color:var(--ash);">${p.category}</td><td style="padding:10px 16px;text-align:center;"><input class="par-input" type="number" min="0" step="0.5" value="${par}" data-pid="${p.id}" data-loc="${loc}" onchange="parChanged(this)"/></td></tr>`; }).join('');
+}
+function parChanged(input) { const pid=input.dataset.pid, loc=input.dataset.loc; if (!invPending[pid]) invPending[pid]={}; invPending[pid][loc]=parseFloat(input.value)||0; }
+async function savePar() {
+  const loc = document.getElementById('parLocFilter')?.value||'LR';
+  const changes = Object.entries(invPending).filter(([,locs])=>locs[loc]!==undefined).map(([pid,locs])=>({product_id:pid,location:loc,par_qty:locs[loc],updated_by:currentUser.phone}));
+  if (!changes.length) { showToast('No changes to save',''); return; }
+  for (const row of changes) await sb.from('inv_par_levels').upsert(row, {onConflict:'product_id,location'});
+  await loadPars(); invPending = {};
+  showToast(`PAR saved — ${changes.length} items`, 'success');
+}
+
+// ── PRODUCTS ───────────────────────────────────────────────────────
+function renderProducts() {
+  const tbody = document.getElementById('productsBody'); if (!tbody) return;
+  tbody.innerHTML = invProductsF.map(p => `<tr style="border-bottom:1px solid rgba(42,42,42,0.4);"><td style="padding:12px 16px;font-size:13px;color:var(--ivory);font-weight:500;">${p.name}</td><td style="padding:12px 16px;font-size:12px;color:var(--ash);">${p.category}</td><td style="padding:12px 16px;font-size:13px;color:var(--mist);text-align:center;">${p.cost?'$'+p.cost:'—'}</td><td style="padding:12px 16px;font-size:13px;color:var(--mist);text-align:center;">${p.case_size||'—'}</td><td style="padding:12px 16px;"><input class="upc-input ${p.upc?'has-upc':''}" type="text" placeholder="Scan or enter UPC…" value="${p.upc||''}" data-pid="${p.id}" onchange="saveUpc(this)" onfocus="this.select()"/></td></tr>`).join('');
+  const el = document.getElementById('prodCount'); if (el) el.textContent = invProductsF.length+' products';
+}
+function filterProducts(q) { invProductsF = q.trim() ? invProducts.filter(p=>p.name.toLowerCase().includes(q.toLowerCase())||(p.upc||'').includes(q)) : [...invProducts]; renderProducts(); }
+async function saveUpc(input) {
+  const pid=input.dataset.pid, upc=input.value.trim();
+  const { error } = await sb.from('inv_products').update({upc:upc||null}).eq('id',pid);
+  if (error) { showToast('Error saving UPC',''); return; }
+  const p = invProducts.find(p=>p.id===pid); if (p) p.upc=upc||null;
+  input.classList.toggle('has-upc', !!upc);
+  showToast(upc?`UPC saved — ${p?.name}`:'UPC cleared','success');
+}
+
+// ── ORDERS ─────────────────────────────────────────────────────────
+async function generateOrders() {
+  const grid = document.getElementById('ordersGrid');
+  grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--ash);">Calculating…</div>';
+  const today = new Date().toISOString().slice(0,10), allCounts = {};
+  for (const loc of INV_LOCATIONS) {
+    const { data: sessions } = await sb.from('inv_sessions').select('id').eq('location',loc).eq('week_of',today).order('opened_at',{ascending:false}).limit(1);
+    if (!sessions?.length) continue;
+    const { data: counts } = await sb.from('inv_counts').select('product_id, quantity').eq('session_id', sessions[0].id);
+    if (counts) counts.forEach(c => { allCounts[c.product_id]=(allCounts[c.product_id]||0)+c.quantity; });
+  }
+  invOrders = invProducts.map(p => { const end=allCounts[p.id]||0, par=INV_LOCATIONS.reduce((s,l)=>s+(invPars[p.id]?.[l]||0),0), suggested=Math.max(0,par-end)>0?Math.ceil((par-end)/(p.case_size||1)):0; return {p,end,par,suggested,confirmed:suggested}; }).filter(r=>r.par>0);
+  renderOrdersView();
+}
+function renderOrdersView() {
+  const grid = document.getElementById('ordersGrid');
+  if (!invOrders.length) { grid.innerHTML='<div style="text-align:center;padding:48px;color:var(--ash);font-style:italic;font-size:13px;">Click Auto-Generate to build this week\'s order sheet.</div>'; return; }
+  const byDist = {};
+  invOrders.forEach((row,idx) => { const dist=row.p.distributor||'Unknown'; if(!byDist[dist]) byDist[dist]=[]; byDist[dist].push({...row,idx}); });
+  grid.innerHTML = Object.entries(byDist).sort((a,b)=>a[0].localeCompare(b[0])).map(([dist,rows]) => {
+    const total = rows.reduce((s,r)=>s+(r.confirmed*(r.p.cost||0)*(r.p.case_size||1)),0);
+    const rowsHtml = rows.map(row => { const cls=row.end===0?'out':row.end<row.par?'low':''; return `<div class="order-row"><div class="order-name">${row.p.name} <span style="font-size:11px;color:var(--ash);margin-left:6px;">${row.p.category}</span></div><span style="font-size:11px;color:var(--ash);">END</span><div class="order-end ${cls}">${row.end%1===0?row.end:row.end.toFixed(1)}</div><span style="font-size:11px;color:var(--ash);">PAR</span><div style="font-family:var(--font-display);font-size:15px;min-width:30px;text-align:center;color:var(--mist);">${row.par}</div><span style="font-size:11px;color:var(--owner-gold);">CASES</span><input class="order-input" type="number" min="0" step="1" value="${row.confirmed}" onchange="invOrders[${row.idx}].confirmed=parseFloat(this.value)||0"/><span style="font-size:12px;color:var(--ash);min-width:60px;text-align:right;">${row.confirmed>0&&row.p.cost?'$'+(row.confirmed*(row.p.cost||0)*(row.p.case_size||1)).toFixed(0):''}</span></div>`; }).join('');
+    return `<div class="order-section"><div class="order-dist">${dist}<span style="color:var(--ash);font-size:11px;">${total>0?'Est. $'+total.toFixed(0):''}</span></div>${rowsHtml}</div>`;
+  }).join('');
+}
+async function confirmOrders() {
+  const toSave = invOrders.filter(r=>r.confirmed>0);
+  if (!toSave.length) { showToast('No quantities set',''); return; }
+  if (!confirm(`Confirm ${toSave.length} order lines?`)) return;
+  const today = new Date().toISOString().slice(0,10);
+  const { error } = await sb.from('inv_orders').insert(toSave.map(r=>({week_of:today,product_id:r.p.id,distributor:r.p.distributor||'Unknown',house_end:r.end,house_par:r.par,suggested_cases:r.suggested,confirmed_cases:r.confirmed,case_price:(r.p.cost||0)*(r.p.case_size||1),status:'confirmed',created_by:currentUser.phone})));
+  if (error) { showToast('Error saving orders',''); return; }
+  showToast(`${toSave.length} orders confirmed`, 'success');
+}
+
+// ── MISC ───────────────────────────────────────────────────────────
+document.addEventListener('click', function(e) { const menu=document.getElementById('avatarMenu'), av=document.getElementById('navAvatar'); if(menu&&!av?.contains(e.target)) menu.classList.remove('open'); });
+function updateCountGrid() { const g=document.getElementById('countGrid'); if(g) g.style.gridTemplateColumns=window.innerWidth<900?'1fr':'300px 1fr'; }
+window.addEventListener('resize', updateCountGrid);
+updateCountGrid();
+</script>
+</body>
+</html>
