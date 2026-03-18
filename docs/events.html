@@ -810,6 +810,7 @@ body::before {
   padding: var(--space-12) var(--space-12) var(--space-24);
   gap: var(--space-12);
 }
+.events-layout > div { min-width: 0; overflow: hidden; }
 @media (max-width: 1000px) { .events-layout { grid-template-columns: 1fr; padding: var(--space-8) var(--space-6); } }
 
 /* ── FEATURED EVENT ─────────────────────────────────────────────── */
@@ -1012,6 +1013,8 @@ body::before {
   border-radius: var(--radius-md);
   padding: var(--space-4);
   margin-bottom: var(--space-6);
+  overflow: hidden;
+  word-wrap: break-word;
 }
 .sidebar-panel p { font-size: 13px; color: var(--color-ash); line-height: 1.8; }
 .sidebar-panel strong { color: var(--color-mist); font-weight: 400; }
@@ -1022,6 +1025,8 @@ body::before {
   border-radius: var(--radius-md);
   padding: var(--space-4);
   margin-bottom: var(--space-6);
+  overflow: hidden;
+  word-wrap: break-word;
 }
 .sidebar-gold p { font-size: 13px; color: var(--color-ash); line-height: 1.8; margin-bottom: var(--space-4); }
 
