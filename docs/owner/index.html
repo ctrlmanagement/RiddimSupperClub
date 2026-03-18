@@ -100,6 +100,35 @@
 .pricing-rule-tables{font-size:11px;color:var(--ash);flex:2;}
 .del-btn{padding:6px 10px;border-radius:4px;background:none;border:1px solid rgba(192,57,43,0.35);color:#E57373;font-size:11px;cursor:pointer;transition:all 150ms;white-space:nowrap;}
 .del-btn:hover{background:rgba(192,57,43,0.1);}
+/* ── Ticket Config Modal ── */
+.tkt-cfg-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:3000;display:none;align-items:center;justify-content:center;padding:16px;overflow-y:auto;}
+.tkt-cfg-overlay.open{display:flex;}
+.tkt-cfg-card{width:100%;max-width:520px;background:var(--carbon);border:1px solid rgba(100,181,246,0.35);border-radius:12px;padding:28px;box-shadow:0 8px 48px rgba(0,0,0,0.7);max-height:90vh;overflow-y:auto;}
+.tkt-cfg-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;}
+.tkt-cfg-title{font-family:var(--font-display);font-size:22px;font-weight:300;font-style:italic;color:var(--ivory);}
+.tkt-cfg-close{background:none;border:none;color:rgba(245,240,232,0.35);font-size:20px;cursor:pointer;line-height:1;padding:0 4px;transition:color 150ms;}
+.tkt-cfg-close:hover{color:var(--ivory);}
+.tkt-cfg-event-meta{font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:#64B5F6;margin-bottom:20px;}
+.tkt-cfg-toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:rgba(100,181,246,0.04);border:1px solid rgba(100,181,246,0.15);border-radius:8px;margin-bottom:20px;}
+.tkt-cfg-toggle-label{font-size:14px;color:var(--ivory);}
+.tkt-cfg-toggle-sub{font-size:11px;color:var(--ash);margin-top:2px;}
+.tkt-cfg-toggle{position:relative;width:44px;height:24px;flex-shrink:0;}
+.tkt-cfg-toggle input{opacity:0;width:0;height:0;position:absolute;}
+.tkt-cfg-toggle-slider{position:absolute;inset:0;background:rgba(255,255,255,0.1);border-radius:24px;cursor:pointer;transition:background 0.2s;}
+.tkt-cfg-toggle-slider:before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:white;border-radius:50%;transition:transform 0.2s;}
+.tkt-cfg-toggle input:checked+.tkt-cfg-toggle-slider{background:#64B5F6;}
+.tkt-cfg-toggle input:checked+.tkt-cfg-toggle-slider:before{transform:translateX(20px);}
+.tkt-cfg-tiers-label{font-family:var(--font-label);font-size:10px;letter-spacing:0.25em;color:#64B5F6;margin-bottom:12px;}
+.tkt-cfg-tier-row{display:grid;grid-template-columns:auto 1fr 120px 120px;gap:10px;align-items:center;padding:12px 14px;border:1px solid rgba(100,181,246,0.15);border-radius:8px;margin-bottom:8px;background:rgba(100,181,246,0.03);}
+.tkt-cfg-tier-row.disabled-tier{opacity:0.4;}
+.tkt-cfg-tier-name{font-family:var(--font-label);font-size:11px;letter-spacing:0.18em;color:#90CAF9;}
+.tkt-cfg-tier-input{background:var(--void);border:1px solid rgba(100,181,246,0.2);border-radius:6px;padding:8px 10px;color:var(--ivory);font-family:var(--font-body);font-size:13px;width:100%;outline:none;transition:border-color 150ms;}
+.tkt-cfg-tier-input:focus{border-color:#64B5F6;}
+.tkt-cfg-tier-input::placeholder{color:var(--ash);}
+@media(max-width:480px){.tkt-cfg-tier-row{grid-template-columns:auto 1fr;}.tkt-cfg-tier-row .tkt-cfg-tier-input:last-child{grid-column:2;}}
+.tkt-cfg-save-btn{width:100%;padding:13px;background:#64B5F6;color:#0A0A14;border:none;border-radius:6px;font-family:var(--font-label);font-size:13px;letter-spacing:0.2em;cursor:pointer;margin-top:20px;transition:opacity 150ms;}
+.tkt-cfg-save-btn:hover{opacity:0.85;}
+.tkt-cfg-save-btn:disabled{opacity:0.4;cursor:not-allowed;}
 /* ── Table filter bar ── */
 .tbl-filter-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
 .tbl-filter-btn{padding:5px 14px;border-radius:999px;background:none;border:1px solid var(--graphite);color:var(--ash);font-family:var(--font-body);font-size:12px;cursor:pointer;transition:all 150ms;}
@@ -1458,7 +1487,7 @@ ${e.start_time ? e.start_time.slice(0,5) : ''} ${e.end_time ? '– '+e.end_time.
 ${e.capacity ? ` · Capacity: ${e.capacity}` : ''}
 </div>
 ${e.description ? `<div style="font-size:13px;color:var(--mist);margin-top:6px;">${e.description}</div>` : ''}
-</div><div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;"><button class="res-btn confirm" style="white-space:nowrap;" onclick="openEditEventModal('${e.id}')">Edit</button><button class="res-btn seat" style="white-space:nowrap;border-color:rgba(218,165,32,0.4);color:var(--owner-gold);" onclick="openPricingModal('${e.id}','${e.title.replace(/'/g,"\\'")}','${e.event_date}')">$ Pricing</button><button class="res-btn cancel" style="white-space:nowrap;" onclick="deleteEvent('${e.id}')">Delete</button></div></div>`;
+</div><div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;"><button class="res-btn confirm" style="white-space:nowrap;" onclick="openEditEventModal('${e.id}')">Edit</button><button class="res-btn seat" style="white-space:nowrap;border-color:rgba(218,165,32,0.4);color:var(--owner-gold);" onclick="openPricingModal('${e.id}','${e.title.replace(/'/g,"\\'")}','${e.event_date}')">$ Pricing</button><button class="res-btn seat" style="white-space:nowrap;border-color:rgba(100,181,246,0.4);color:#90CAF9;" onclick="openTktCfgModal('${e.id}','${e.title.replace(/'/g,"\\'")}','${e.event_date}')">🎟 Tickets</button><button class="res-btn cancel" style="white-space:nowrap;" onclick="deleteEvent('${e.id}')">Delete</button></div></div>`;
 }).join('');
 }
 function openAddEventModal() {
@@ -3966,6 +3995,131 @@ async function deletePricingRule(ruleId) {
   showToast('Rule removed');
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   TICKET CONFIG — Per-event ticket tier settings
+   Writes to: ticket_prices table
+   Read by:   events.html on load to build Get Tickets panels
+   ═══════════════════════════════════════════════════════════════ */
+const TKT_TIER_DEFS = [
+  { id: 'early_bird', label: 'Early Bird' },
+  { id: 'ga',        label: 'GA'          },
+  { id: 'vip',       label: 'VIP'         },
+];
+
+let _tktCfgEventId   = null;
+let _tktCfgEventTitle = '';
+let _tktCfgRows      = []; // loaded from DB
+
+function openTktCfgModal(eventId, eventTitle, eventDate) {
+  _tktCfgEventId    = eventId;
+  _tktCfgEventTitle = eventTitle;
+  document.getElementById('tktCfgError').textContent = '';
+  const d = eventDate ? new Date(eventDate + 'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}) : '—';
+  document.getElementById('tktCfgEventMeta').textContent = eventTitle + ' · ' + d;
+  document.getElementById('tktCfgOverlay').classList.add('open');
+  loadTktCfg(eventId);
+}
+
+function closeTktCfgModal() {
+  document.getElementById('tktCfgOverlay').classList.remove('open');
+  _tktCfgEventId = null;
+}
+
+async function loadTktCfg(eventId) {
+  document.getElementById('tktCfgSaveBtn').disabled = true;
+  document.getElementById('tktCfgTierRows').innerHTML = '<div style="font-size:13px;color:var(--ash);padding:8px 0;">Loading…</div>';
+  _tktCfgRows = [];
+
+  let enabled = false;
+  let tierData = {};
+
+  if (LIVE_DATA && supabaseClient) {
+    try {
+      const { data } = await supabaseClient
+        .from('ticket_prices')
+        .select('*')
+        .eq('event_id', eventId);
+      if (data && data.length) {
+        enabled = data.some(r => r.is_active);
+        data.forEach(r => { tierData[r.ticket_type] = r; });
+      }
+    } catch(e) { console.warn('ticket_prices load error:', e); }
+  }
+
+  document.getElementById('tktCfgEnabled').checked = enabled;
+  renderTktCfgTiers(tierData);
+  document.getElementById('tktCfgSaveBtn').disabled = false;
+}
+
+function renderTktCfgTiers(tierData) {
+  const container = document.getElementById('tktCfgTierRows');
+  container.innerHTML = TKT_TIER_DEFS.map(tier => {
+    const existing = tierData[tier.id] || {};
+    const active   = existing.is_active !== undefined ? existing.is_active : true;
+    const price    = existing.price    || '';
+    const qtyCap   = existing.qty_cap  || '';
+    return `
+      <div class="tkt-cfg-tier-row ${active ? '' : 'disabled-tier'}" id="tktTierRow-${tier.id}">
+        <label class="tkt-cfg-toggle" title="Enable this tier">
+          <input type="checkbox" id="tktTierActive-${tier.id}" ${active ? 'checked' : ''}
+            onchange="document.getElementById('tktTierRow-${tier.id}').classList.toggle('disabled-tier',!this.checked)">
+          <span class="tkt-cfg-toggle-slider"></span>
+        </label>
+        <div class="tkt-cfg-tier-name">${tier.label}</div>
+        <input class="tkt-cfg-tier-input" type="number" min="0" step="1" placeholder="Price"
+          id="tktTierPrice-${tier.id}" value="${price}">
+        <input class="tkt-cfg-tier-input" type="number" min="0" step="1" placeholder="No cap"
+          id="tktTierQty-${tier.id}" value="${qtyCap}">
+      </div>`;
+  }).join('');
+}
+
+async function saveTktCfg() {
+  const errEl = document.getElementById('tktCfgError');
+  errEl.textContent = '';
+  const btn = document.getElementById('tktCfgSaveBtn');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  const masterEnabled = document.getElementById('tktCfgEnabled').checked;
+
+  const rows = TKT_TIER_DEFS.map(tier => {
+    const active  = document.getElementById(`tktTierActive-${tier.id}`).checked && masterEnabled;
+    const priceRaw = document.getElementById(`tktTierPrice-${tier.id}`).value;
+    const qtyRaw  = document.getElementById(`tktTierQty-${tier.id}`).value;
+    const price   = priceRaw !== '' ? parseFloat(priceRaw) : null;
+    const qty_cap = qtyRaw  !== '' ? parseInt(qtyRaw)     : null;
+    return {
+      event_id:    _tktCfgEventId,
+      ticket_type: tier.id,
+      label:       tier.label,
+      price:       price,
+      qty_cap:     qty_cap,
+      is_active:   active,
+    };
+  });
+
+  if (LIVE_DATA && supabaseClient) {
+    try {
+      // Upsert all three tier rows — conflict on (event_id, ticket_type)
+      const { error } = await supabaseClient
+        .from('ticket_prices')
+        .upsert(rows, { onConflict: 'event_id,ticket_type' });
+      if (error) throw error;
+    } catch(e) {
+      errEl.textContent = 'Save failed: ' + (e.message || 'Try again.');
+      btn.disabled = false;
+      btn.textContent = 'Save Ticket Config';
+      return;
+    }
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Save Ticket Config';
+  showToast('Ticket config saved', 'gold');
+  closeTktCfgModal();
+}
+
 /* ── Load table_bookings into seat modal sidebar ── */
 let _todayTableBookings = [];
 // Owner bookings for the current floor plan date — populated by loadTableSessions
@@ -5707,6 +5861,43 @@ function resendTicketSms(ticketId, qrToken, phone, evTitle, evDate, qty, typeLab
 </div>
 
 <!-- TABLE PRICING MODAL -->
+<div class="tkt-cfg-overlay" id="tktCfgOverlay" onclick="if(event.target===this)closeTktCfgModal()">
+  <div class="tkt-cfg-card">
+    <div class="tkt-cfg-header">
+      <div class="tkt-cfg-title">Ticket <em>Configuration</em></div>
+      <button class="tkt-cfg-close" onclick="closeTktCfgModal()">✕</button>
+    </div>
+    <div class="tkt-cfg-event-meta" id="tktCfgEventMeta">—</div>
+
+    <!-- Master on/off toggle -->
+    <div class="tkt-cfg-toggle-row">
+      <div>
+        <div class="tkt-cfg-toggle-label">Tickets Active</div>
+        <div class="tkt-cfg-toggle-sub">Show Get Tickets button on events.html</div>
+      </div>
+      <label class="tkt-cfg-toggle">
+        <input type="checkbox" id="tktCfgEnabled">
+        <span class="tkt-cfg-toggle-slider"></span>
+      </label>
+    </div>
+
+    <!-- Tier rows: Early Bird / GA / VIP -->
+    <div class="tkt-cfg-tiers-label">TICKET TIERS</div>
+    <div style="margin-bottom:6px;display:grid;grid-template-columns:auto 1fr 120px 120px;gap:10px;padding:0 14px;">
+      <div></div>
+      <div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);">TIER</div>
+      <div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);">PRICE ($)</div>
+      <div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);">QTY CAP</div>
+    </div>
+    <div id="tktCfgTierRows">
+      <!-- injected by openTktCfgModal -->
+    </div>
+
+    <div id="tktCfgError" style="font-size:12px;color:#E57373;margin-top:8px;min-height:18px;"></div>
+    <button class="tkt-cfg-save-btn" id="tktCfgSaveBtn" onclick="saveTktCfg()">Save Ticket Config</button>
+  </div>
+</div>
+
 <div class="pricing-modal-overlay" id="pricingModalOverlay" onclick="if(event.target===this)closePricingModal()">
   <div class="pricing-modal-card">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px;">

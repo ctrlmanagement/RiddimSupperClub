@@ -1492,12 +1492,50 @@ let sbClient = null;
 try { sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e) {}
 
 // ── TICKET PANEL STATE ───────────────────────────────────────────
-// Tier config: label, price display, description
-const TKT_TIERS = [
-  { id: 'early_bird', label: 'Early Bird', price: 'TBD', desc: 'Limited availability' },
-  { id: 'ga',        label: 'GA',         price: 'TBD', desc: 'General admission'   },
-  { id: 'vip',       label: 'VIP',        price: 'TBD', desc: 'Premium access'      },
+// Tier config: loaded from DB (ticket_prices table) per event
+// Fallback defaults used when DB is unavailable
+const TKT_TIER_FALLBACK = [
+  { id: 'early_bird', label: 'Early Bird', price: null, qty_cap: null, is_active: true, desc: 'Limited availability' },
+  { id: 'ga',        label: 'GA',         price: null, qty_cap: null, is_active: true, desc: 'General admission'   },
+  { id: 'vip',       label: 'VIP',        price: null, qty_cap: null, is_active: true, desc: 'Premium access'      },
 ];
+
+// Cache of loaded tier configs: { eventId: [ tierRow, ... ] }
+const _tktTierCache = {};
+
+// Tier descriptions for display
+const TKT_TIER_DESCS = {
+  early_bird: 'Limited availability',
+  ga:         'General admission',
+  vip:        'Premium access',
+};
+
+async function loadTktTiersForEvent(eventId) {
+  if (_tktTierCache[eventId]) return _tktTierCache[eventId];
+  try {
+    if (!sbClient) throw new Error('no client');
+    const { data } = await sbClient
+      .from('ticket_prices')
+      .select('ticket_type, label, price, qty_cap, is_active')
+      .eq('event_id', eventId)
+      .eq('is_active', true)
+      .order('ticket_type');
+    const tiers = (data && data.length) ? data.map(r => ({
+      id:      r.ticket_type,
+      label:   r.label || r.ticket_type,
+      price:   r.price,
+      qty_cap: r.qty_cap,
+      desc:    TKT_TIER_DESCS[r.ticket_type] || '',
+    })) : TKT_TIER_FALLBACK.filter(t => t.is_active);
+    _tktTierCache[eventId] = tiers;
+    return tiers;
+  } catch(e) {
+    return TKT_TIER_FALLBACK.filter(t => t.is_active);
+  }
+}
+
+// Will be set per-panel when form opens
+let TKT_TIERS = TKT_TIER_FALLBACK;
 
 // Per-panel state store
 const _tktState = {};
@@ -1546,8 +1584,18 @@ function toggleTktPanel(panelId, btn) {
   const formEl = document.getElementById(panelId + '-form');
   if (formEl && !formEl.dataset.built) {
     const eventName = panel.dataset.eventName || 'This Event';
-    buildTktForm(panelId, formEl, eventName);
-    formEl.dataset.built = '1';
+    const eventId   = panel.dataset.eventId   || null;
+    // Load tiers from DB then build form
+    (async () => {
+      const tiers = eventId ? await loadTktTiersForEvent(eventId) : TKT_TIER_FALLBACK;
+      if (!tiers.length) {
+        formEl.innerHTML = '<p style="font-size:13px;color:var(--color-ash);text-align:center;padding:var(--space-8);">Tickets are not available for this event.</p>';
+        formEl.dataset.built = '1';
+        return;
+      }
+      buildTktForm(panelId, formEl, eventName, tiers);
+      formEl.dataset.built = '1';
+    })();
   }
 
   panel.classList.add('open');
@@ -1560,8 +1608,11 @@ function toggleTktPanel(panelId, btn) {
 }
 
 // ── FORM BUILDER ────────────────────────────────────────────────
-function buildTktForm(panelId, container, eventName) {
+function buildTktForm(panelId, container, eventName, tiers) {
+  tiers = tiers || TKT_TIER_FALLBACK;
   const st = _getState(panelId);
+  // Store tiers on state so submit can reference them
+  st.tiers = tiers;
 
   container.innerHTML = `
     <!-- Phone lookup -->
@@ -1596,16 +1647,20 @@ function buildTktForm(panelId, container, eventName) {
       </div>
     </div>
 
-    <!-- Tier selector -->
+    <!-- Tier selector — built from DB config -->
     <div style="margin-bottom:var(--space-2);">
       <div class="tkt-panel-title" style="margin-bottom:var(--space-3);">SELECT TICKET TYPE</div>
       <div class="tkt-tiers" id="${panelId}-tiers">
-        ${TKT_TIERS.map(t => `
+        ${tiers.map(t => {
+          const priceDisplay = t.price != null ? '$' + parseFloat(t.price).toFixed(0) : 'TBD';
+          const capLabel     = t.qty_cap != null ? t.qty_cap + ' left' : '';
+          return `
           <div class="tkt-tier" data-tier="${t.id}" onclick="tktSelectTier('${panelId}','${t.id}',this)">
             <div class="tkt-tier-name">${t.label}</div>
-            <div class="tkt-tier-price">${t.price}</div>
-            <div class="tkt-tier-desc">${t.desc}</div>
-          </div>`).join('')}
+            <div class="tkt-tier-price">${priceDisplay}</div>
+            <div class="tkt-tier-desc">${capLabel || t.desc || ''}</div>
+          </div>`;
+        }).join('')}
       </div>
     </div>
 
@@ -1761,8 +1816,10 @@ function tktUpdateSummary(panelId) {
   const el = document.getElementById(panelId + '-summary');
   if (!el) return;
   if (!st.tier) { el.textContent = 'Select a ticket type'; return; }
-  const tier = TKT_TIERS.find(t => t.id === st.tier);
-  el.textContent = st.qty + ' × ' + (tier ? tier.label : st.tier) + ' — price TBD';
+  const tiers = st.tiers || TKT_TIER_FALLBACK;
+  const tier  = tiers.find(t => t.id === st.tier);
+  const priceStr = tier && tier.price != null ? ' · $' + parseFloat(tier.price).toFixed(0) + ' ea' : '';
+  el.textContent = st.qty + ' × ' + (tier ? tier.label : st.tier) + priceStr;
 }
 
 // ── DELIVERY ────────────────────────────────────────────────────
@@ -1823,7 +1880,7 @@ async function tktSubmit(panelId) {
     }
     // Show success state
     const firstName = st.firstName || 'there';
-    const tierLabel = TKT_TIERS.find(t => t.id === st.tier)?.label || st.tier;
+    const tierLabel = (st.tiers || TKT_TIER_FALLBACK).find(t => t.id === st.tier)?.label || st.tier;
     const isNewMember = !st.resolvedMemberId;
 
     formEl.style.display = 'none';
@@ -1866,9 +1923,14 @@ function tktReset(panelId) {
   if (successEl) { successEl.classList.remove('show'); successEl.innerHTML = ''; }
   if (formEl) { formEl.style.display = ''; formEl.innerHTML = ''; formEl.removeAttribute('data-built'); }
   delete _tktState[panelId];
-  // Rebuild fresh form
+  // Rebuild fresh form using cached tiers
   const eventName = panel ? panel.dataset.eventName : '';
-  if (formEl) { buildTktForm(panelId, formEl, eventName); formEl.dataset.built = '1'; }
+  const eventId   = panel ? panel.dataset.eventId   : null;
+  if (formEl) {
+    const tiers = (eventId && _tktTierCache[eventId]) ? _tktTierCache[eventId] : TKT_TIER_FALLBACK;
+    buildTktForm(panelId, formEl, eventName, tiers);
+    formEl.dataset.built = '1';
+  }
 }
 
 // ── UTILS ────────────────────────────────────────────────────────
