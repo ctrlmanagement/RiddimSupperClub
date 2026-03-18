@@ -1848,7 +1848,7 @@ function buildMediaHtml(e, isFeatured) {
     return `
       <div style="position:relative;width:100%;height:${h};cursor:pointer;overflow:hidden;"
            onclick="tktToggleVideo('${vid_id}',this)">
-        <video id="${vid_id}" src="${escHtml(e.promo_video_url)}" preload="metadata" muted playsinline
+        <video id="${vid_id}" src="${escHtml(e.promo_video_url)}" preload="metadata" playsinline
           style="width:100%;height:100%;object-fit:cover;display:block;filter:brightness(0.78);"
           onloadedmetadata="this.currentTime=0.1"
           onended="this.currentTime=0;this.pause();this.closest('[onclick]').querySelector('.vid-play-icon').style.display='flex';">
