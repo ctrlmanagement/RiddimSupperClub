@@ -2175,7 +2175,7 @@ async function loadSideCalEvents(year, month) {
   try {
     const { data } = await sbClient
       .from('events')
-      .select('id, title, event_date, start_time, show_on_site, status')
+      .select('id, title, event_date, start_time, end_time, description, show_on_site, status')
       .eq('show_on_site', true)
       .gte('event_date', firstDay)
       .lte('event_date', lastStr)
