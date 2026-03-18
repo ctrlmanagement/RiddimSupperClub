@@ -683,6 +683,87 @@ body::before {
 .page-title em { color: var(--color-gold-warm); font-style: italic; }
 @media (max-width: 700px) { .page-header-flex { padding: var(--space-24) var(--space-6) var(--space-12); } }
 
+/* ── EVENTS HERO — matches experience.html / menu.html pattern ── */
+.events-hero {
+  position: relative;
+  height: 70vh;
+  min-height: 500px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+.events-hero-img {
+  position: absolute;
+  inset: 0;
+  background: url('https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
+  animation: evHeroZoom 10s ease-out forwards;
+}
+@keyframes evHeroZoom { from { transform: scale(1.06); } to { transform: scale(1); } }
+.events-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(10,10,10,0.2) 0%,
+    rgba(10,10,10,0.55) 55%,
+    rgba(10,10,10,0.92) 100%
+  );
+}
+.events-hero-content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  padding: 0 var(--space-12) var(--space-12);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-8);
+  flex-wrap: wrap;
+  animation: evHeroUp 1s var(--ease-cinematic) 0.3s both;
+}
+@keyframes evHeroUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+.events-hero-left { flex: 1; min-width: 240px; }
+.events-hero-eyebrow {
+  font-family: var(--font-label);
+  font-size: var(--t-caption);
+  letter-spacing: 0.45em;
+  color: var(--color-gold-warm);
+  margin-bottom: var(--space-3);
+  text-transform: uppercase;
+}
+.events-hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(40px, 8vw, 96px);
+  font-weight: 300;
+  line-height: 0.93;
+  color: var(--color-ivory);
+  margin-bottom: var(--space-4);
+}
+.events-hero-title em { color: var(--color-gold-warm); font-style: italic; }
+.events-hero-caption {
+  font-size: 14px;
+  color: rgba(245,240,232,0.65);
+  font-weight: 300;
+  max-width: 420px;
+  line-height: 1.7;
+  margin-bottom: var(--space-6);
+}
+.events-hero-actions {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  align-items: center;
+}
+/* Hero image: load the featured event flyer dynamically */
+.events-hero-img.has-flyer {
+  background-size: cover;
+  background-position: center;
+}
+@media (max-width: 700px) {
+  .events-hero { height: 85vh; min-height: 480px; }
+  .events-hero-content { padding: 0 var(--space-6) var(--space-10); flex-direction: column; align-items: flex-start; }
+}
+
 /* ── FILTER BAR ─────────────────────────────────────────────────── */
 .filter-bar {
   padding: var(--space-6) var(--space-12);
@@ -764,108 +845,17 @@ body::before {
 .event-featured-body { padding: var(--space-6); }
 
 /* ── EVENT CARD ─────────────────────────────────────────────────── */
-/* ── EVENT CARD EXPAND ──────────────────────────────────────────── */
 .event-card {
   display: grid;
   grid-template-columns: 140px 1fr;
   border: 1px solid var(--color-graphite);
   border-radius: var(--radius-md);
   overflow: hidden;
-  margin-bottom: 0;
+  margin-bottom: var(--space-4);
   transition: border-color var(--duration-base), transform var(--duration-base);
   background: var(--color-void);
-  cursor: pointer;
 }
-.event-card.expanded { border-color: rgba(212,168,67,0.5); transform: none; }
 .event-card:hover { border-color: rgba(184,134,11,0.35); transform: translateY(-2px); }
-.event-card.expanded:hover { transform: none; }
-
-/* Expand detail panel */
-.event-card-detail {
-  display: none;
-  background: rgba(10,10,10,0.95);
-  border-top: 1px solid rgba(212,168,67,0.15);
-  padding: var(--space-6);
-  animation: cardExpand 0.22s cubic-bezier(0.16,1,0.3,1);
-}
-.event-card-detail.open { display: block; }
-@keyframes cardExpand {
-  from { opacity: 0; transform: translateY(-6px); }
-  to   { opacity: 1; transform: none; }
-}
-.event-card-detail-body {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-6);
-  flex-wrap: wrap;
-}
-.event-card-detail-text { flex: 1; min-width: 200px; }
-.event-card-detail-desc {
-  font-size: 13px;
-  color: var(--color-ash);
-  line-height: 1.8;
-  margin-bottom: var(--space-4);
-}
-.event-card-detail-meta {
-  font-family: var(--font-label);
-  font-size: 10px;
-  letter-spacing: 0.2em;
-  color: var(--color-gold-deep);
-  margin-bottom: var(--space-2);
-}
-.event-card-detail-actions {
-  display: flex;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-  align-items: center;
-}
-.event-card-chevron {
-  display: inline-block;
-  font-size: 11px;
-  color: var(--color-ash);
-  margin-left: var(--space-2);
-  transition: transform 0.2s;
-  vertical-align: middle;
-}
-.event-card.expanded .event-card-chevron { transform: rotate(180deg); }
-
-/* Card wrapper for expand */
-.event-card-wrap {
-  border: 1px solid var(--color-graphite);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  margin-bottom: var(--space-4);
-  transition: border-color var(--duration-base);
-}
-.event-card-wrap:hover { border-color: rgba(184,134,11,0.35); }
-.event-card-wrap.expanded { border-color: rgba(212,168,67,0.5); }
-.event-card-wrap .event-card {
-  border: none;
-  border-radius: 0;
-  margin-bottom: 0;
-}
-.event-card-wrap .event-card:hover { transform: none; }
-
-/* ── IMAGE CAPTION ──────────────────────────────────────────────── */
-.event-img-caption {
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  background: linear-gradient(transparent, rgba(0,0,0,0.75));
-  padding: var(--space-4) var(--space-4) var(--space-3);
-  font-family: var(--font-label);
-  font-size: 9px;
-  letter-spacing: 0.18em;
-  color: rgba(245,240,232,0.8);
-  text-transform: uppercase;
-  opacity: 0;
-  transform: translateY(4px);
-  transition: opacity 0.2s, transform 0.2s;
-  pointer-events: none;
-}
-.event-card-wrap:hover .event-img-caption,
-.event-card-wrap.expanded .event-img-caption,
-.event-featured-wrap:hover .event-img-caption { opacity: 1; transform: none; }
 @media (max-width: 600px) { .event-card { grid-template-columns: 1fr; } }
 
 .event-card-img { position: relative; overflow: hidden; min-height: 160px; }
@@ -1242,14 +1232,21 @@ body::before {
   <a href="reserve.html" onclick="closeMobile()" class="m-cta">Reserve</a>
 </div>
 
-<!-- PAGE HEADER -->
-<div style="padding: var(--space-32) var(--space-12) 0; border-bottom: 1px solid var(--color-graphite); background: var(--color-obsidian);">
-  <div style="max-width: 1100px; margin: 0 auto; display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-8); flex-wrap: wrap; padding-bottom: var(--space-16);">
-    <div>
-      <div class="page-eyebrow">Upcoming</div>
-      <h1 class="page-title">Events<br>at <em>RIDDIM</em></h1>
+<!-- EVENTS HERO — featured event flyer as background, updated dynamically -->
+<div class="events-hero" id="eventsHero">
+  <div class="events-hero-img" id="eventsHeroBg"></div>
+  <div class="events-hero-overlay"></div>
+  <div class="events-hero-content">
+    <div class="events-hero-left">
+      <div class="events-hero-eyebrow">Upcoming Events at RIDDIM</div>
+      <h1 class="events-hero-title">Events<br>at <em>RIDDIM</em></h1>
+      <p class="events-hero-caption" id="eventsHeroCaption">Atlanta's premier supper club — where fine dining meets the culture. DJ nights, live performances &amp; special events.</p>
+      <div class="events-hero-actions">
+        <a href="reserve.html" class="btn btn-primary">Reserve a Table</a>
+        <a href="#eventsList" class="btn btn-ghost" onclick="document.getElementById('eventsList').scrollIntoView({behavior:'smooth'});return false;">View All Events</a>
+        <span id="eventsHeroTicketLink"></span>
+      </div>
     </div>
-    <a href="reserve.html" class="btn btn-primary" style="flex-shrink:0; margin-bottom: 4px;">Reserve for an Event</a>
   </div>
 </div>
 
@@ -1863,8 +1860,17 @@ async function loadSiteEvents() {
   try {
     if (!sbClient) throw new Error('no client');
 
-    // Fetch events marked show_on_site, order by featured first then date
-    const { data: events, error } = await sbClient
+    // Fetch featured event (hero banner) — separate from card list
+    const { data: featuredArr } = await sbClient
+      .from('events')
+      .select('id, title, event_date, start_time, end_time, status, description, flyer_url, promo_video_url, event_type, is_featured, show_on_site')
+      .eq('is_featured', true)
+      .in('status', ['scheduled', 'live', 'sold_out'])
+      .limit(1);
+    const featuredEvent = (featuredArr && featuredArr.length) ? featuredArr[0] : null;
+
+    // Fetch up to 5 show_on_site events for cards (exclude featured event)
+    let cardQuery = sbClient
       .from('events')
       .select('id, title, event_date, start_time, end_time, status, description, flyer_url, promo_video_url, event_type, is_featured, show_on_site')
       .eq('show_on_site', true)
@@ -1872,15 +1878,22 @@ async function loadSiteEvents() {
       .order('event_date', { ascending: true })
       .limit(5);
 
+    const { data: cardEvents, error } = await cardQuery;
+
     if (error) throw error;
-    if (!events || !events.length) {
+
+    // Combine for ticket_prices fetch
+    const events = cardEvents || [];
+    const allEventsForTix = [...events, ...(featuredEvent ? [featuredEvent] : [])];
+
+    if (!events.length && !featuredEvent) {
       if (loadEl) loadEl.style.display = 'none';
       if (emptyEl) emptyEl.style.display = 'block';
       return;
     }
 
-    // Fetch ticket_prices for all these events in one query
-    const eventIds = events.map(e => e.id);
+    // Fetch ticket_prices for all events (cards + featured)
+    const eventIds = [...new Set(allEventsForTix.map(e => e.id))];
     const { data: allPrices } = await sbClient
       .from('ticket_prices')
       .select('event_id, ticket_type, label, price, qty_cap, is_active')
@@ -1908,14 +1921,52 @@ async function loadSiteEvents() {
 
     SITE_EVENTS = events;
 
-    // Sort: featured first, then by date
-    const featured  = events.find(e => e.is_featured) || null;
-    const remaining = events.filter(e => !e.is_featured).slice(0, featured ? 4 : 5);
+    // ── Wire hero to featured event (banner only — not a card) ───
+    if (featuredEvent) {
+      if (featuredEvent.flyer_url) {
+        const bg = document.getElementById('eventsHeroBg');
+        if (bg) {
+          bg.style.backgroundImage = `url('${featuredEvent.flyer_url}')`;
+          bg.classList.add('has-flyer');
+        }
+      }
+      const captionEl = document.getElementById('eventsHeroCaption');
+      if (captionEl && featuredEvent.description) {
+        captionEl.textContent = featuredEvent.description;
+      }
+      // Update hero title with event name
+      const titleEl = document.querySelector('.events-hero-title');
+      if (titleEl) titleEl.innerHTML = escHtml(featuredEvent.title) + '<br>at <em>RIDDIM</em>';
+      // Ticket CTA
+      const hasTix = (priceMap[featuredEvent.id] || []).length > 0;
+      const tixEl  = document.getElementById('eventsHeroTicketLink');
+      if (tixEl && hasTix && featuredEvent.status !== 'sold_out') {
+        const panelId = 'tkt-hero-' + featuredEvent.id.replace(/-/g,'').slice(0,12);
+        tixEl.innerHTML = `<button class="btn btn-tickets" onclick="toggleHeroTktPanel('${panelId}', '${featuredEvent.id}', this)">Get Tickets</button>`;
+        // Add hero ticket panel below hero
+        const heroEl = document.getElementById('eventsHero');
+        if (heroEl && !document.getElementById(panelId)) {
+          const tiers = priceMap[featuredEvent.id] || [];
+          _tktTierCache[featuredEvent.id] = tiers;
+          const panelDiv = document.createElement('div');
+          panelDiv.innerHTML = buildPanelHTML(panelId, featuredEvent);
+          heroEl.insertAdjacentElement('afterend', panelDiv.firstElementChild);
+        }
+      } else if (tixEl && featuredEvent.status === 'sold_out') {
+        tixEl.innerHTML = `<span style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:#E57373;border:1px solid rgba(192,57,43,0.4);padding:var(--space-4) var(--space-6);border-radius:var(--radius-sm);">Sold Out</span>`;
+      }
+      // Hero date chip
+      const eyebrowEl = document.querySelector('.events-hero-eyebrow');
+      if (eyebrowEl) {
+        const dateChip = formatEventDateChip(featuredEvent.event_date);
+        const typeLabel = EVENT_TYPE_LABELS[featuredEvent.event_type] || 'Event';
+        eyebrowEl.textContent = dateChip + ' · ' + typeLabel;
+      }
+    }
 
-    // Clear loading state, render cards
+    // Clear loading state, render up to 5 cards (featured event NOT in list)
     listEl.innerHTML = '';
-    if (featured)  listEl.appendChild(buildFeaturedCard(featured,  priceMap[featured.id]  || []));
-    remaining.forEach(e => listEl.appendChild(buildEventCard(e, priceMap[e.id] || [])));
+    events.forEach(e => listEl.appendChild(buildEventCard(e, priceMap[e.id] || [])));
 
     // Render sidebar calendar synced to DB events
     renderSideCal();
@@ -1991,7 +2042,6 @@ function buildFeaturedCard(e, tiers) {
       <div class="event-featured-img">
         ${buildMediaHtml(e, true)}
         <div class="event-featured-badge">⭐ Featured This Week</div>
-        <div class="event-img-caption">${escHtml(e.title)}</div>
       </div>
       <div class="event-featured-body">
         <div class="event-meta">
@@ -2020,54 +2070,45 @@ function buildEventCard(e, tiers) {
   const wrap = document.createElement('div');
   wrap.dataset.type = e.event_type || 'special';
 
-  const dateChip  = formatEventDateChip(e.event_date);
+  const dateChip = formatEventDateChip(e.event_date);
   const typeLabel = EVENT_TYPE_LABELS[e.event_type] || 'Event';
-  const timeStr   = e.start_time ? e.start_time.slice(0,5) + (e.end_time ? ' – ' + e.end_time.slice(0,5) : '') : '';
+  const timeStr = e.start_time ? e.start_time.slice(0,5) + (e.end_time ? ' – ' + e.end_time.slice(0,5) : '') : '';
   const hasTickets = tiers.length > 0;
-  const panelId   = 'tkt-' + e.id.replace(/-/g,'').slice(0,12);
-  const wrapId    = 'card-wrap-' + e.id.replace(/-/g,'').slice(0,12);
+  const panelId = 'tkt-' + e.id.replace(/-/g,'').slice(0,12);
 
   const ticketBtn = hasTickets
     ? `<button class="btn btn-tickets${e.status==='sold_out'?' disabled':''}"
-         onclick="event.stopPropagation();toggleTktPanel('${panelId}', this)"
+         onclick="toggleTktPanel('${panelId}', this)"
          ${e.status==='sold_out'?'disabled':''}>
          ${e.status==='sold_out'?'Sold Out':'Get Tickets'}
        </button>`
     : '';
 
   wrap.innerHTML = `
-    <div class="event-card-wrap" id="${wrapId}" onclick="toggleCardExpand('${wrapId}')">
-      <div class="event-card">
-        <div class="event-card-img">
-          ${buildMediaHtml(e, false)}
-          <div class="event-img-caption">${escHtml(e.title)}</div>
+    <div class="event-card">
+      <div class="event-card-img">
+        ${buildMediaHtml(e, false)}
+      </div>
+      <div class="event-card-body">
+        <div>
+          <div class="event-meta">
+            <span class="event-date-chip">${dateChip}</span>
+            <span class="event-type-chip">${typeLabel}</span>
+            ${e.status==='sold_out'?'<span class="event-type-chip" style="color:#E57373;">Sold Out</span>':''}
+          </div>
+          <h3 class="event-name">${escHtml(e.title)}</h3>
+          ${e.description ? `<p class="event-desc">${escHtml(e.description)}</p>` : ''}
         </div>
-        <div class="event-card-body">
-          <div>
-            <div class="event-meta">
-              <span class="event-date-chip">${dateChip}</span>
-              <span class="event-type-chip">${typeLabel}</span>
-              ${e.status==='sold_out'?'<span class="event-type-chip" style="color:#E57373;">Sold Out</span>':''}
-            </div>
-            <h3 class="event-name">${escHtml(e.title)} <span class="event-card-chevron">▾</span></h3>
-            <p class="event-time" style="font-size:11px;color:var(--color-ash);letter-spacing:0.08em;">${timeStr}</p>
+        <div class="event-footer">
+          <span class="event-time">${timeStr}</span>
+          <div style="display:flex;gap:var(--space-3);flex-wrap:wrap;">
+            <a href="reserve.html" class="btn btn-ghost">Reserve</a>
+            ${ticketBtn}
           </div>
         </div>
       </div>
-      <!-- EXPAND DETAIL -->
-      <div class="event-card-detail" id="${wrapId}-detail">
-        <div class="event-card-detail-body">
-          <div class="event-card-detail-text">
-            ${e.description ? `<p class="event-card-detail-desc">${escHtml(e.description)}</p>` : ''}
-            <div class="event-card-detail-actions">
-              <a href="reserve.html" class="btn btn-ghost" onclick="event.stopPropagation()">Reserve a Table</a>
-              ${ticketBtn}
-            </div>
-          </div>
-        </div>
-      </div>
-      ${hasTickets ? buildPanelHTML(panelId, e) : ''}
     </div>
+    ${hasTickets ? buildPanelHTML(panelId, e) : ''}
   `;
   return wrap;
 }
@@ -2132,7 +2173,7 @@ async function loadSideCalEvents(year, month) {
   try {
     const { data } = await sbClient
       .from('events')
-      .select('id, title, event_date, start_time, end_time, description, show_on_site, status')
+      .select('id, title, event_date, start_time, show_on_site, status')
       .eq('show_on_site', true)
       .gte('event_date', firstDay)
       .lte('event_date', lastStr)
@@ -2211,14 +2252,11 @@ function sideCalSelectDate(dateStr) {
   content.innerHTML = `
     <div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--color-gold-warm);margin-bottom:var(--space-3);">${label.toUpperCase()}</div>
     ${events.map(e => {
-      const timeStart = e.start_time ? e.start_time.slice(0,5) : '';
-      const timeEnd   = e.end_time   ? e.end_time.slice(0,5)   : '';
-      const timeStr   = timeStart + (timeEnd ? ' – ' + timeEnd : '');
+      const time = e.start_time ? e.start_time.slice(0,5) : '';
       return `
-        <div style="margin-bottom:var(--space-4);padding-bottom:var(--space-4);border-bottom:1px solid rgba(212,168,67,0.1);">
-          <div style="font-family:var(--font-display);font-size:16px;font-weight:300;color:var(--color-ivory);margin-bottom:3px;">${escHtml(e.title)}</div>
-          ${timeStr ? `<div style="font-size:11px;color:var(--color-ash);margin-bottom:var(--space-2);">${timeStr}</div>` : ''}
-          ${e.description ? `<div style="font-size:12px;color:rgba(204,204,204,0.7);line-height:1.6;margin-bottom:var(--space-3);">${escHtml(e.description)}</div>` : ''}
+        <div style="margin-bottom:var(--space-3);padding-bottom:var(--space-3);border-bottom:1px solid rgba(212,168,67,0.1);">
+          <div style="font-family:var(--font-display);font-size:15px;font-weight:300;color:var(--color-ivory);margin-bottom:2px;">${escHtml(e.title)}</div>
+          ${time ? `<div style="font-size:11px;color:var(--color-ash);margin-bottom:var(--space-2);">${time}</div>` : ''}
           <a href="reserve.html" class="btn btn-ghost" style="font-size:9px;padding:5px 12px;">Reserve a Table</a>
         </div>`;
     }).join('')}
@@ -2229,24 +2267,17 @@ function sideCalSelectDate(dateStr) {
   renderSideCal();
 }
 
-// ── CARD EXPAND / COLLAPSE ──────────────────────────────────────
-function toggleCardExpand(wrapId) {
-  const wrap   = document.getElementById(wrapId);
-  const detail = document.getElementById(wrapId + '-detail');
-  if (!wrap || !detail) return;
-  const isOpen = detail.classList.contains('open');
-  // Close any other open cards first
-  document.querySelectorAll('.event-card-detail.open').forEach(d => {
-    d.classList.remove('open');
-    const w = d.closest('.event-card-wrap');
-    if (w) w.classList.remove('expanded');
-  });
-  if (!isOpen) {
-    detail.classList.add('open');
-    wrap.classList.add('expanded');
-    // Scroll card into view smoothly
-    setTimeout(() => wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+// ── HERO TICKET PANEL TOGGLE ─────────────────────────────────────
+function toggleHeroTktPanel(panelId, eventId, btn) {
+  const formEl = document.getElementById(panelId + '-form');
+  if (formEl && !formEl.dataset.built) {
+    const panel = document.getElementById(panelId);
+    const eventName = panel ? panel.dataset.eventName : 'This Event';
+    const tiers = _tktTierCache[eventId] || [];
+    buildTktForm(panelId, formEl, eventName, tiers.length ? tiers : null);
+    formEl.dataset.built = '1';
   }
+  toggleTktPanel(panelId, btn);
 }
 
 // ── KICK OFF ON PAGE LOAD ─────────────────────────────────────────
