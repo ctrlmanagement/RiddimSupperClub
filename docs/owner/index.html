@@ -1415,7 +1415,7 @@ renderEventsTab();
 async function loadEvents() {
 if (!LIVE_DATA || !supabaseClient) { renderEventsTab(); renderCalendar(); return; }
 try {
-const { data, error } = await supabaseClient.from('events').select('*').order('event_date');
+const { data, error } = await supabaseClient.from('events').select('*, show_on_site, is_featured').order('event_date');
 if (error) throw error;
 EVENTS = data || [];
 } catch(e) {
@@ -1573,6 +1573,11 @@ if (error) { console.error('Event update error:', error); errEl.textContent = 'C
 }
 const idx = EVENTS.findIndex(e => e.id === editingEventId);
 if (idx > -1) EVENTS[idx] = { ...EVENTS[idx], ...payload };
+// Patch show_on_site + is_featured into local EVENTS array immediately
+if (idx > -1) {
+  EVENTS[idx].show_on_site = payload.show_on_site;
+  EVENTS[idx].is_featured  = payload.is_featured;
+}
 showToast(`✦ ${title} updated`, 'gold');
 } else {
 if (LIVE_DATA) {
@@ -1591,14 +1596,17 @@ if (Object.keys(updates).length) {
 await supabaseClient.from('events').update(updates).eq('id', data.id);
 Object.assign(data, updates);
 }
+// Ensure new fields are on the pushed record
+data.show_on_site = payload.show_on_site;
+data.is_featured  = payload.is_featured;
 EVENTS.push(data);
 } else {
 EVENTS.push({ id: 'E'+Date.now(), ...payload, created_at: new Date().toISOString() });
 }
 showToast(`✦ ${title} added`, 'gold');
 }
-renderEventsTab();
-renderCalendar();
+// Re-fetch from DB so list reflects all saved fields immediately (no manual refresh needed)
+await loadEvents();
 closeEventModal();
 }
 let calYear = new Date().getFullYear();
