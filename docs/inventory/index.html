@@ -757,8 +757,10 @@ async function openSession() {
 
 async function closeSession() {
   if (!invSession || !confirm(`Close the ${invLocation} count session?`)) return;
+  stopScanner(); clearScan();
   await sb.from('inv_sessions').update({ status: 'closed', closed_by: currentUser.phone, closed_at: new Date().toISOString() }).eq('id', invSession.id);
-  invSession = null; renderSessionBanner(); renderSessionButtons();
+  invSession = null; invCounts = {};
+  renderSessionBanner(); renderSessionButtons(); renderCountList();
   showToast(`${invLocation} count closed`, 'blue');
 }
 

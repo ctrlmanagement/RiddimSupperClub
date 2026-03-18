@@ -651,7 +651,8 @@ function costRenderKpis() {
   const totalCost$  = lines.reduce((s,l) => s+(l.cost_dollars||0), 0);
   const totalSales  = locs.reduce((s,loc) => s+(costSales[loc]?.total_sales||0), 0);
   const totalComps  = locs.reduce((s,loc) => s+(costSales[loc]?.total_comps||0), 0);
-  const costPct     = totalSales > 0 ? (totalCost$ / totalSales * 100) : null;
+  const totalRevenue = totalSales + totalComps;
+  const costPct     = totalRevenue > 0 ? (totalCost$ / totalRevenue * 100) : null;
   const pctClass    = costPct === null ? '' : costPct <= 25 ? '' : costPct <= 32 ? 'alert' : 'alert';
   const pctColor    = costPct === null ? 'var(--ash)' : costPct <= 25 ? '#81C784' : costPct <= 32 ? 'var(--gold-warm)' : 'var(--ember)';
 
@@ -710,7 +711,9 @@ function costRenderReportBody() {
     byCat[cat].push({ l, p });
   });
 
-  const totalSales = locs.reduce((s,loc) => s+(costSales[loc]?.total_sales||0), 0);
+  const totalSales  = locs.reduce((s,loc) => s+(costSales[loc]?.total_sales||0), 0);
+  const totalComps2 = locs.reduce((s,loc) => s+(costSales[loc]?.total_comps||0), 0);
+  const totalRev    = totalSales + totalComps2;
   const sorted     = INV_CAT_ORDER.filter(c => byCat[c]).concat(Object.keys(byCat).filter(c => !INV_CAT_ORDER.includes(c)));
 
   const pullBtn = costActivePeriod?.status !== 'finalized'
@@ -720,14 +723,14 @@ function costRenderReportBody() {
   el.innerHTML = pullBtn + sorted.map(cat => {
     const rows = byCat[cat];
     const catCost = rows.reduce((s,{l}) => s+(l.cost_dollars||0), 0);
-    const catPct  = totalSales>0 ? (catCost/totalSales*100) : null;
+    const catPct  = totalRev>0 ? (catCost/totalRev*100) : null;
     const pctStr  = catPct !== null ? catPct.toFixed(1)+'%' : '—';
     const pctCls  = catPct === null ? '' : catPct<=8?'ok':catPct<=14?'warn':'alert';
 
     const rowsHtml = rows.map(({l,p}) => {
       const usage   = l.usage || 0;
       const cost$   = l.cost_dollars || 0;
-      const pPct    = totalSales>0 ? (cost$/totalSales*100) : null;
+      const pPct    = totalRev>0 ? (cost$/totalRev*100) : null;
       const pPctCls = pPct===null?'':pPct<=4?'ok':pPct<=8?'warn':'alert';
       return `<tr>
         <td style="padding-left:24px;">${p.name}</td>
@@ -823,10 +826,12 @@ async function costPullFromCounts() {
   const we  = costActivePeriod.week_ending;
   showToast('Pulling counts…', '');
 
-  // Load all sessions for this week_ending across all locations
+  // Load all sessions within period date range
+  const dateStart = costActivePeriod.date_start || we;
   const { data: sessions } = await supabaseClient
     .from('inv_sessions').select('id, location')
-    .eq('week_of', we);
+    .gte('week_of', dateStart)
+    .lte('week_of', we);
 
   const endCounts = {}; // { product_id: { location: qty } }
   for (const sess of (sessions||[])) {
@@ -841,7 +846,7 @@ async function costPullFromCounts() {
   // Pull confirmed orders for this week
   const { data: orders } = await supabaseClient
     .from('inv_orders').select('product_id, confirmed_cases, case_price, distributor')
-    .eq('week_of', we).eq('status','confirmed');
+    .gte('week_of', dateStart).lte('week_of', we).eq('status','confirmed');
 
   const ordersIn = {}; // { product_id: cases (need ×case_size for bottles) }
   if (orders) orders.forEach(o => { ordersIn[o.product_id] = (ordersIn[o.product_id]||0) + o.confirmed_cases; });
@@ -849,7 +854,7 @@ async function costPullFromCounts() {
   // Pull stock-up requests (bar pulls from LR)
   const { data: stockUps } = await supabaseClient
     .from('inv_stock_ups').select('product_id, quantity, from_location')
-    .eq('report_date', we);
+    .gte('report_date', dateStart).lte('report_date', we);
 
   const pulls = {}; // { product_id: qty } — total pulled from LR
   if (stockUps) stockUps.forEach(s => { pulls[s.product_id] = (pulls[s.product_id]||0) + s.quantity; });
@@ -1056,12 +1061,14 @@ function costExportCSV() {
   const we    = costActivePeriod.week_ending;
   const locs  = costReportLoc === 'house' ? INV_BAR_LOCATIONS : [costReportLoc];
   const lines = costLines.filter(l => locs.includes(l.location));
-  const totalSales = locs.reduce((s,loc) => s+(costSales[loc]?.total_sales||0), 0);
+  const totalSales  = locs.reduce((s,loc) => s+(costSales[loc]?.total_sales||0), 0);
+  const totalCompsC = locs.reduce((s,loc) => s+(costSales[loc]?.total_comps||0), 0);
+  const totalRevC   = totalSales + totalCompsC;
 
   let csv = `Week Ending,${we}\n`;
   csv += `Period Type,${costActivePeriod.period_type}\n`;
   csv += `Location,${costReportLoc === 'house' ? 'House (All Bars)' : costReportLoc}\n`;
-  csv += `Total Sales,$${totalSales.toFixed(2)}\n\n`;
+  csv += `Total Sales,$${totalSales.toFixed(2)}\nTotal Comps,$${totalCompsC.toFixed(2)}\nTotal Revenue (Sales+Comps),$${totalRevC.toFixed(2)}\n\n`;
   csv += `Product,Category,Location,Start,Orders In,Pulls Out,End,Usage,Unit Cost,Cost $,Cost %\n`;
 
   lines.forEach(l => {
@@ -1069,13 +1076,13 @@ function costExportCSV() {
     if (!p) return;
     const usage   = l.usage || 0;
     const cost$   = l.cost_dollars || 0;
-    const pct     = totalSales > 0 ? (cost$/totalSales*100).toFixed(2) : '';
+    const pct     = totalRevC > 0 ? (cost$/totalRevC*100).toFixed(2) : '';
     csv += `"${p.name}","${p.category}","${l.location}",${l.start_qty||0},${l.orders_in||0},${l.pulls_out||0},${l.end_qty||0},${usage.toFixed(2)},${p.cost||0},${cost$.toFixed(2)},${pct}\n`;
   });
 
   // Totals
   const totalCost = lines.reduce((s,l) => s+(l.cost_dollars||0), 0);
-  const costPct   = totalSales > 0 ? (totalCost/totalSales*100).toFixed(2) : '';
+  const costPct   = totalRevC > 0 ? (totalCost/totalRevC*100).toFixed(2) : '';
   csv += `\nTOTAL,,,,,,,,$${totalCost.toFixed(2)},${costPct ? costPct+'%' : ''}\n`;
 
   // Sales by location
@@ -1098,9 +1105,11 @@ function costExportPDF() {
   const we    = costActivePeriod.week_ending;
   const locs  = costReportLoc === 'house' ? INV_BAR_LOCATIONS : [costReportLoc];
   const lines = costLines.filter(l => locs.includes(l.location));
-  const totalSales = locs.reduce((s,loc) => s+(costSales[loc]?.total_sales||0), 0);
-  const totalCost  = lines.reduce((s,l) => s+(l.cost_dollars||0), 0);
-  const costPct    = totalSales > 0 ? (totalCost/totalSales*100).toFixed(1)+'%' : '—';
+  const totalSales  = locs.reduce((s,loc) => s+(costSales[loc]?.total_sales||0), 0);
+  const totalCompsP = locs.reduce((s,loc) => s+(costSales[loc]?.total_comps||0), 0);
+  const totalRevP   = totalSales + totalCompsP;
+  const totalCost   = lines.reduce((s,l) => s+(l.cost_dollars||0), 0);
+  const costPct     = totalRevP > 0 ? (totalCost/totalRevP*100).toFixed(1)+'%' : '—';
 
   // Group by category
   const byCat = {};
