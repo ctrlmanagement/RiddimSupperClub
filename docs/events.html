@@ -1173,198 +1173,16 @@ body::before {
 <!-- EVENTS + SIDEBAR -->
 <div class="events-layout">
 
-  <!-- EVENTS LIST -->
+  <!-- EVENTS LIST — dynamically loaded from DB -->
   <div id="eventsList">
-
-    <!-- FEATURED -->
-    <div class="event-featured-wrap" data-type="dj">
-      <div class="event-featured">
-        <div class="event-featured-img">
-          <img src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=1200&q=80" alt="Headz Only" loading="lazy">
-          <div class="event-featured-badge">⭐ Featured This Week</div>
-        </div>
-        <div class="event-featured-body">
-          <div class="event-meta">
-            <span class="event-date-chip">FRI · MAR 7</span>
-            <span class="event-type-chip">DJ Night</span>
-          </div>
-          <h2 class="event-name"><em>Headz Only</em> with DJ Kole</h2>
-          <p class="event-desc">Atlanta's most respected DJ returns to RIDDIM for a night of pure hip-hop culture. No gimmicks, no compromises. Just the records that shaped the culture and the ones defining where it's going.</p>
-          <div class="event-footer">
-            <span class="event-time">9PM – 3AM · Patio Open · Hookah Available</span>
-            <div style="display:flex;gap:var(--space-3);flex-wrap:wrap;">
-              <a href="reserve.html" class="btn btn-primary">Reserve a Table</a>
-              <button class="btn btn-tickets" onclick="toggleTktPanel('tkt-headz-only', this)">Get Tickets</button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- TICKET PANEL: Headz Only -->
-      <div class="tkt-panel-wrap" id="tkt-headz-only"
-           data-event-id="76484afd-ac60-4df7-836b-71b55fac9678" data-event-name="Headz Only with DJ Kole"
-           data-event-date="FRI · MAR 7">
-        <div class="tkt-panel-inner">
-          <div class="tkt-panel-header">
-            <span class="tkt-panel-title">🎟 GET TICKETS — HEADZ ONLY</span>
-            <button class="tkt-panel-close" onclick="toggleTktPanel('tkt-headz-only', null)">✕</button>
-          </div>
-          <div class="tkt-form" id="tkt-headz-only-form">
-            <!-- injected by initTktPanel() -->
-          </div>
-          <div class="tkt-success" id="tkt-headz-only-success"></div>
-        </div>
-      </div>
+    <div id="eventsLoadingState" style="padding:48px 20px;text-align:center;color:var(--color-ash);">
+      <div style="font-size:32px;margin-bottom:12px;opacity:0.3;">◆</div>
+      Loading events…
     </div>
-
-    <!-- EVENT CARDS -->
-    <div data-type="live">
-      <div class="event-card">
-        <div class="event-card-img">
-          <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=400&q=80" alt="" loading="lazy">
-        </div>
-        <div class="event-card-body">
-          <div>
-            <div class="event-meta">
-              <span class="event-date-chip">SAT · MAR 8</span>
-              <span class="event-type-chip">Live Performance</span>
-            </div>
-            <h3 class="event-name">Saturday <em>Jazz Supper</em></h3>
-            <p class="event-desc">Live quartet. Full dinner service. The Dining Room at its most intimate.</p>
-          </div>
-          <div class="event-footer">
-            <span class="event-time">7PM – 11PM</span>
-            <div style="display:flex;gap:var(--space-3);flex-wrap:wrap;">
-              <a href="reserve.html" class="btn btn-ghost">Book Dinner</a>
-              <button class="btn btn-tickets" onclick="toggleTktPanel('tkt-jazz-supper', this)">Get Tickets</button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="tkt-panel-wrap" id="tkt-jazz-supper"
-           data-event-id="4f910a99-d841-4d13-b360-01cea256bfbd" data-event-name="Saturday Jazz Supper"
-           data-event-date="SAT · MAR 8">
-        <div class="tkt-panel-inner">
-          <div class="tkt-panel-header">
-            <span class="tkt-panel-title">🎟 GET TICKETS — SATURDAY JAZZ SUPPER</span>
-            <button class="tkt-panel-close" onclick="toggleTktPanel('tkt-jazz-supper', null)">✕</button>
-          </div>
-          <div class="tkt-form" id="tkt-jazz-supper-form"></div>
-          <div class="tkt-success" id="tkt-jazz-supper-success"></div>
-        </div>
-      </div>
+    <div id="eventsEmptyState" style="display:none;padding:48px 20px;text-align:center;color:var(--color-ash);">
+      <div style="font-size:32px;margin-bottom:12px;opacity:0.2;">◆</div>
+      No upcoming events at the moment — check back soon.
     </div>
-
-    <div data-type="special">
-      <div class="event-card">
-        <div class="event-card-img">
-          <img src="https://images.unsplash.com/photo-1533174072545-7780ea8d615a?auto=format&fit=crop&w=400&q=80" alt="" loading="lazy">
-        </div>
-        <div class="event-card-body">
-          <div>
-            <div class="event-meta">
-              <span class="event-date-chip">SUN · MAR 9</span>
-              <span class="event-type-chip">Members Only</span>
-            </div>
-            <h3 class="event-name">Members <em>Dinner Night</em></h3>
-            <p class="event-desc">Exclusive Sunday dinner for RIDDIM Members Club. Limited seating. Members-only reservation access.</p>
-          </div>
-          <div class="event-footer">
-            <span class="event-time">5PM – 10PM</span>
-            <div style="display:flex;gap:var(--space-3);flex-wrap:wrap;">
-              <a href="members/index.html" class="btn btn-ghost">Member Login</a>
-              <button class="btn btn-tickets" onclick="toggleTktPanel('tkt-members-dinner', this)">Get Tickets</button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="tkt-panel-wrap" id="tkt-members-dinner"
-           data-event-id="b694abed-1f7f-4073-b708-8cdfb8280540" data-event-name="Members Dinner Night"
-           data-event-date="SUN · MAR 9">
-        <div class="tkt-panel-inner">
-          <div class="tkt-panel-header">
-            <span class="tkt-panel-title">🎟 GET TICKETS — MEMBERS DINNER NIGHT</span>
-            <button class="tkt-panel-close" onclick="toggleTktPanel('tkt-members-dinner', null)">✕</button>
-          </div>
-          <div class="tkt-form" id="tkt-members-dinner-form"></div>
-          <div class="tkt-success" id="tkt-members-dinner-success"></div>
-        </div>
-      </div>
-    </div>
-
-    <div data-type="dj">
-      <div class="event-card">
-        <div class="event-card-img">
-          <img src="https://images.unsplash.com/photo-1470337458703-4ad1d7ba7fd8?auto=format&fit=crop&w=400&q=80" alt="" loading="lazy">
-        </div>
-        <div class="event-card-body">
-          <div>
-            <div class="event-meta">
-              <span class="event-date-chip">FRI · MAR 14</span>
-              <span class="event-type-chip">DJ Night</span>
-            </div>
-            <h3 class="event-name"><em>Afrobeats</em> Friday</h3>
-            <p class="event-desc">The monthly Afrobeats takeover. Full patio, bottle service, and a lineup built for the culture.</p>
-          </div>
-          <div class="event-footer">
-            <span class="event-time">9PM – 3AM</span>
-            <div style="display:flex;gap:var(--space-3);flex-wrap:wrap;">
-              <a href="reserve.html" class="btn btn-ghost">Reserve</a>
-              <button class="btn btn-tickets" onclick="toggleTktPanel('tkt-afrobeats', this)">Get Tickets</button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="tkt-panel-wrap" id="tkt-afrobeats"
-           data-event-id="4f910a99-d841-4d13-b360-01cea256bfbd" data-event-name="Afrobeats Friday"
-           data-event-date="FRI · MAR 14">
-        <div class="tkt-panel-inner">
-          <div class="tkt-panel-header">
-            <span class="tkt-panel-title">🎟 GET TICKETS — AFROBEATS FRIDAY</span>
-            <button class="tkt-panel-close" onclick="toggleTktPanel('tkt-afrobeats', null)">✕</button>
-          </div>
-          <div class="tkt-form" id="tkt-afrobeats-form"></div>
-          <div class="tkt-success" id="tkt-afrobeats-success"></div>
-        </div>
-      </div>
-    </div>
-
-    <div data-type="special">
-      <div class="event-card">
-        <div class="event-card-img">
-          <img src="https://images.unsplash.com/photo-1551024601-bec78aea367e?auto=format&fit=crop&w=400&q=80" alt="" loading="lazy">
-        </div>
-        <div class="event-card-body">
-          <div>
-            <div class="event-meta">
-              <span class="event-date-chip">SAT · MAR 15</span>
-              <span class="event-type-chip">Special Event</span>
-            </div>
-            <h3 class="event-name">Chef's <em>Table Night</em></h3>
-            <p class="event-desc">A six-course tasting menu prepared by the executive chef. Pairing menu available. Very limited seats.</p>
-          </div>
-          <div class="event-footer">
-            <span class="event-time">7PM – 10PM · 12 Seats Only</span>
-            <div style="display:flex;gap:var(--space-3);flex-wrap:wrap;">
-              <a href="reserve.html" class="btn btn-primary">Reserve a Seat</a>
-              <button class="btn btn-tickets" onclick="toggleTktPanel('tkt-chefs-table', this)">Get Tickets</button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="tkt-panel-wrap" id="tkt-chefs-table"
-           data-event-id="cc822c75-d1f7-4180-b2d7-31eb64c112f8" data-event-name="Chef's Table Night"
-           data-event-date="SAT · MAR 15">
-        <div class="tkt-panel-inner">
-          <div class="tkt-panel-header">
-            <span class="tkt-panel-title">🎟 GET TICKETS — CHEF'S TABLE NIGHT</span>
-            <button class="tkt-panel-close" onclick="toggleTktPanel('tkt-chefs-table', null)">✕</button>
-          </div>
-          <div class="tkt-form" id="tkt-chefs-table-form"></div>
-          <div class="tkt-success" id="tkt-chefs-table-success"></div>
-        </div>
-      </div>
-    </div>
-
   </div><!-- /eventsList -->
 
   <!-- SIDEBAR -->
@@ -1939,15 +1757,230 @@ function formatPhone(p) {
   return '(' + p.slice(0,3) + ') ' + p.slice(3,6) + '-' + p.slice(6);
 }
 
-// Fix filter function to handle new wrapper divs
+// ── SITE EVENT TYPE LABELS ────────────────────────────────────────
+const EVENT_TYPE_LABELS = {
+  dj:      'DJ Night',
+  live:    'Live Performance',
+  special: 'Special Event',
+  dinner:  'Dinner',
+  members: 'Members Only',
+};
+
+// All loaded site events — used by filter
+let SITE_EVENTS = [];
+
+// ── LOAD EVENTS FROM DB ───────────────────────────────────────────
+async function loadSiteEvents() {
+  const listEl   = document.getElementById('eventsList');
+  const loadEl   = document.getElementById('eventsLoadingState');
+  const emptyEl  = document.getElementById('eventsEmptyState');
+
+  try {
+    if (!sbClient) throw new Error('no client');
+
+    // Fetch events marked show_on_site, order by featured first then date
+    const { data: events, error } = await sbClient
+      .from('events')
+      .select('id, title, event_date, start_time, end_time, status, description, flyer_url, event_type, is_featured, show_on_site')
+      .eq('show_on_site', true)
+      .in('status', ['scheduled', 'live', 'sold_out'])
+      .order('event_date', { ascending: true })
+      .limit(5);
+
+    if (error) throw error;
+    if (!events || !events.length) {
+      if (loadEl) loadEl.style.display = 'none';
+      if (emptyEl) emptyEl.style.display = 'block';
+      return;
+    }
+
+    // Fetch ticket_prices for all these events in one query
+    const eventIds = events.map(e => e.id);
+    const { data: allPrices } = await sbClient
+      .from('ticket_prices')
+      .select('event_id, ticket_type, label, price, qty_cap, is_active')
+      .in('event_id', eventIds)
+      .eq('is_active', true);
+
+    // Build price map: { eventId: [ tier, ... ] }
+    const priceMap = {};
+    (allPrices || []).forEach(r => {
+      if (!priceMap[r.event_id]) priceMap[r.event_id] = [];
+      priceMap[r.event_id].push(r);
+    });
+
+    // Cache tiers for panel use
+    Object.entries(priceMap).forEach(([eid, tiers]) => {
+      _tktTierCache[eid] = tiers.map(r => ({
+        id:      r.ticket_type,
+        label:   r.label || r.ticket_type,
+        price:   r.price,
+        qty_cap: r.qty_cap,
+        desc:    TKT_TIER_DESCS[r.ticket_type] || '',
+      }));
+    });
+
+    SITE_EVENTS = events;
+
+    // Sort: featured first, then by date
+    const featured  = events.find(e => e.is_featured) || null;
+    const remaining = events.filter(e => !e.is_featured).slice(0, featured ? 4 : 5);
+
+    // Clear loading state, render cards
+    listEl.innerHTML = '';
+    if (featured)  listEl.appendChild(buildFeaturedCard(featured,  priceMap[featured.id]  || []));
+    remaining.forEach(e => listEl.appendChild(buildEventCard(e, priceMap[e.id] || [])));
+
+  } catch(err) {
+    console.warn('loadSiteEvents error:', err);
+    if (loadEl) loadEl.style.display = 'none';
+    if (emptyEl) { emptyEl.style.display = 'block'; emptyEl.innerHTML = '<div style="font-size:32px;margin-bottom:12px;opacity:0.2;">◆</div>Could not load events — please refresh.'; }
+  }
+}
+
+// ── BUILD FEATURED CARD ───────────────────────────────────────────
+function buildFeaturedCard(e, tiers) {
+  const wrap = document.createElement('div');
+  wrap.className = 'event-featured-wrap';
+  wrap.dataset.type = e.event_type || 'special';
+
+  const dateChip = formatEventDateChip(e.event_date);
+  const typeLabel = EVENT_TYPE_LABELS[e.event_type] || 'Event';
+  const imgSrc = e.flyer_url || 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=1200&q=80';
+  const timeStr = e.start_time ? e.start_time.slice(0,5) + (e.end_time ? ' – ' + e.end_time.slice(0,5) : '') : '';
+  const hasTickets = tiers.length > 0;
+  const panelId = 'tkt-' + e.id.replace(/-/g,'').slice(0,12);
+
+  const ticketBtn = hasTickets
+    ? `<button class="btn btn-tickets${e.status==='sold_out'?' disabled':''}"
+         onclick="toggleTktPanel('${panelId}', this)"
+         ${e.status==='sold_out'?'disabled':''}>
+         ${e.status==='sold_out'?'Sold Out':'Get Tickets'}
+       </button>`
+    : '';
+
+  wrap.innerHTML = `
+    <div class="event-featured">
+      <div class="event-featured-img">
+        <img src="${escHtml(imgSrc)}" alt="${escHtml(e.title)}" loading="lazy">
+        <div class="event-featured-badge">⭐ Featured This Week</div>
+      </div>
+      <div class="event-featured-body">
+        <div class="event-meta">
+          <span class="event-date-chip">${dateChip}</span>
+          <span class="event-type-chip">${typeLabel}</span>
+          ${e.status==='sold_out'?'<span class="event-type-chip" style="color:#E57373;">Sold Out</span>':''}
+        </div>
+        <h2 class="event-name">${escHtml(e.title)}</h2>
+        ${e.description ? `<p class="event-desc">${escHtml(e.description)}</p>` : ''}
+        <div class="event-footer">
+          <span class="event-time">${timeStr}</span>
+          <div style="display:flex;gap:var(--space-3);flex-wrap:wrap;">
+            <a href="reserve.html" class="btn btn-primary">Reserve a Table</a>
+            ${ticketBtn}
+          </div>
+        </div>
+      </div>
+    </div>
+    ${hasTickets ? buildPanelHTML(panelId, e) : ''}
+  `;
+  return wrap;
+}
+
+// ── BUILD REGULAR EVENT CARD ─────────────────────────────────────
+function buildEventCard(e, tiers) {
+  const wrap = document.createElement('div');
+  wrap.dataset.type = e.event_type || 'special';
+
+  const dateChip = formatEventDateChip(e.event_date);
+  const typeLabel = EVENT_TYPE_LABELS[e.event_type] || 'Event';
+  const imgSrc = e.flyer_url || 'https://images.unsplash.com/photo-1470337458703-4ad1d7ba7fd8?auto=format&fit=crop&w=400&q=80';
+  const timeStr = e.start_time ? e.start_time.slice(0,5) + (e.end_time ? ' – ' + e.end_time.slice(0,5) : '') : '';
+  const hasTickets = tiers.length > 0;
+  const panelId = 'tkt-' + e.id.replace(/-/g,'').slice(0,12);
+
+  const ticketBtn = hasTickets
+    ? `<button class="btn btn-tickets${e.status==='sold_out'?' disabled':''}"
+         onclick="toggleTktPanel('${panelId}', this)"
+         ${e.status==='sold_out'?'disabled':''}>
+         ${e.status==='sold_out'?'Sold Out':'Get Tickets'}
+       </button>`
+    : '';
+
+  wrap.innerHTML = `
+    <div class="event-card">
+      <div class="event-card-img">
+        <img src="${escHtml(imgSrc)}" alt="" loading="lazy">
+      </div>
+      <div class="event-card-body">
+        <div>
+          <div class="event-meta">
+            <span class="event-date-chip">${dateChip}</span>
+            <span class="event-type-chip">${typeLabel}</span>
+            ${e.status==='sold_out'?'<span class="event-type-chip" style="color:#E57373;">Sold Out</span>':''}
+          </div>
+          <h3 class="event-name">${escHtml(e.title)}</h3>
+          ${e.description ? `<p class="event-desc">${escHtml(e.description)}</p>` : ''}
+        </div>
+        <div class="event-footer">
+          <span class="event-time">${timeStr}</span>
+          <div style="display:flex;gap:var(--space-3);flex-wrap:wrap;">
+            <a href="reserve.html" class="btn btn-ghost">Reserve</a>
+            ${ticketBtn}
+          </div>
+        </div>
+      </div>
+    </div>
+    ${hasTickets ? buildPanelHTML(panelId, e) : ''}
+  `;
+  return wrap;
+}
+
+// ── BUILD TICKET PANEL HTML STRING ───────────────────────────────
+function buildPanelHTML(panelId, e) {
+  const titleUpper = e.title.toUpperCase();
+  return `
+    <div class="tkt-panel-wrap" id="${panelId}"
+         data-event-id="${e.id}"
+         data-event-name="${escHtml(e.title)}"
+         data-event-date="${formatEventDateChip(e.event_date)}">
+      <div class="tkt-panel-inner">
+        <div class="tkt-panel-header">
+          <span class="tkt-panel-title">🎟 GET TICKETS — ${escHtml(titleUpper)}</span>
+          <button class="tkt-panel-close" onclick="toggleTktPanel('${panelId}', null)">✕</button>
+        </div>
+        <div class="tkt-form" id="${panelId}-form"></div>
+        <div class="tkt-success" id="${panelId}-success"></div>
+      </div>
+    </div>`;
+}
+
+// ── DATE FORMAT HELPERS ───────────────────────────────────────────
+function formatEventDateChip(dateStr) {
+  if (!dateStr) return '—';
+  const d = new Date(dateStr + 'T12:00:00');
+  const day  = d.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
+  const mon  = d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+  const date = d.getDate();
+  return `${day} · ${mon} ${date}`;
+}
+
+function escHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── FILTER — works on dynamically rendered data-type wrappers ─────
 function filterEvents(type, el) {
   document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
   el.classList.add('active');
-  // Cards are now wrapped — target the wrapper div with data-type
-  document.querySelectorAll('[data-type]').forEach(wrap => {
+  document.querySelectorAll('#eventsList > [data-type]').forEach(wrap => {
     wrap.style.display = (type === 'all' || wrap.dataset.type === type) ? '' : 'none';
   });
 }
+
+// ── KICK OFF ON PAGE LOAD ─────────────────────────────────────────
+loadSiteEvents();
 </script>
 </body>
 </html>
