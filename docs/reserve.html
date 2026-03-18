@@ -1647,6 +1647,47 @@ async function submitReservation() {
   document.getElementById('formSuccess').classList.add('show');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+/* ═══════════════════════════════════════════════════
+   AUTO-POPULATE FROM EVENTS PAGE
+   Reads ?date=YYYY-MM-DD&event=EventName from URL
+   Fired after page loads so selectMode() is available
+═══════════════════════════════════════════════════ */
+(function autoPopulateFromEvent() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const date  = params.get('date');
+    const event = params.get('event');
+    if (!date && !event) return;
+
+    // Auto-select Dinner mode and show the form
+    selectMode('dinner');
+
+    if (date) {
+      const dateEl = document.getElementById('date');
+      if (dateEl) {
+        dateEl.value = date;
+        // Trigger any change handlers on the date field
+        dateEl.dispatchEvent(new Event('change'));
+      }
+    }
+
+    if (event) {
+      // Put event name in the notes field as context
+      const notesEl = document.getElementById('notes');
+      if (notesEl && !notesEl.value) {
+        notesEl.value = 'Event: ' + event;
+      }
+      // Set occasion to Special Event if available
+      const occasionEl = document.getElementById('occasion');
+      if (occasionEl) {
+        const opts = Array.from(occasionEl.options);
+        const match = opts.find(o => o.value === 'special_event' || o.text.toLowerCase().includes('special') || o.text.toLowerCase().includes('event'));
+        if (match) occasionEl.value = match.value;
+      }
+    }
+  } catch(e) {}
+})();
 </script>
 
 <!-- SECRET PORTAL ACCESS — Shift+S: Staff · Shift+O: Owner -->
