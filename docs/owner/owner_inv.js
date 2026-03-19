@@ -692,12 +692,22 @@ function costShell() {
     <input id="costPeriodSearch" type="text" placeholder="Search week ending…"
       oninput="costFilterPeriods(this.value)"
       style="width:100%;background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:8px 12px;color:var(--ivory);font-family:var(--font-body);font-size:13px;outline:none;margin-bottom:12px;" />
-    <!-- Period type filter -->
-    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">
-      <button class="cost-filter-btn active" data-pfilter="all" onclick="costSetPeriodFilter('all',this)">All</button>
-      <button class="cost-filter-btn" data-pfilter="week" onclick="costSetPeriodFilter('week',this)">Week</button>
-      <button class="cost-filter-btn" data-pfilter="month" onclick="costSetPeriodFilter('month',this)">Month</button>
-      <button class="cost-filter-btn" data-pfilter="quarter" onclick="costSetPeriodFilter('quarter',this)">Quarter</button>
+    <!-- Date range filter -->
+    <div style="margin-bottom:12px;">
+      <div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-bottom:6px;">DATE RANGE</div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <input id="costDateFrom" type="date"
+          style="flex:1;background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:6px 8px;color:var(--ivory);font-family:var(--font-body);font-size:12px;outline:none;"
+          onchange="costFilterPeriods(document.getElementById('costPeriodSearch')?.value||'')"/>
+        <span style="color:var(--ash);font-size:11px;">→</span>
+        <input id="costDateTo" type="date"
+          style="flex:1;background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:6px 8px;color:var(--ivory);font-family:var(--font-body);font-size:12px;outline:none;"
+          onchange="costFilterPeriods(document.getElementById('costPeriodSearch')?.value||'')"/>
+      </div>
+      <button onclick="document.getElementById('costDateFrom').value='';document.getElementById('costDateTo').value='';costFilterPeriods('');"
+        style="margin-top:5px;background:none;border:none;color:var(--ash);font-size:11px;cursor:pointer;padding:0;font-family:var(--font-body);">
+        Clear dates
+      </button>
     </div>
     <div id="costPeriodList" style="display:flex;flex-direction:column;gap:8px;max-height:600px;overflow-y:auto;">
       <div style="text-align:center;padding:32px;color:var(--ash);font-size:13px;">Loading periods…</div>
@@ -790,16 +800,12 @@ function costRenderPeriodList(periods) {
 
 function costFilterPeriods(q) {
   let filtered = costPeriods;
-  const pf     = document.querySelector('.cost-filter-btn.active[data-pfilter]')?.dataset.pfilter || 'all';
-  if (pf !== 'all') filtered = filtered.filter(p => p.period_type === pf);
+  const dateFrom = document.getElementById('costDateFrom')?.value;
+  const dateTo   = document.getElementById('costDateTo')?.value;
+  if (dateFrom) filtered = filtered.filter(p => p.week_ending >= dateFrom);
+  if (dateTo)   filtered = filtered.filter(p => p.week_ending <= dateTo);
   if (q.trim()) filtered = filtered.filter(p => p.week_ending.includes(q) || p.period_type.includes(q));
   costRenderPeriodList(filtered);
-}
-
-function costSetPeriodFilter(val, btn) {
-  document.querySelectorAll('.cost-filter-btn[data-pfilter]').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  costFilterPeriods(document.getElementById('costPeriodSearch')?.value || '');
 }
 
 async function costSelectPeriod(id) {
