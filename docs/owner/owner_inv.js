@@ -1047,8 +1047,8 @@ function costRenderReportBody() {
         <thead><tr>
           <th>Product</th>
           <th class="num">Start</th>
-          <th class="num">+Orders</th>
-          <th class="num">−Pulls</th>
+          <th class="num">${costReportLoc === 'LR' ? '+Orders' : '+Pulls'}</th>
+          <th class="num">${costReportLoc === 'LR' ? '−Pulls' : ''}</th>
           <th class="num">End</th>
           <th class="num">Usage</th>
           <th class="num">Unit $</th>
@@ -1097,8 +1097,8 @@ function costRenderLRBalance(el) {
       <div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.25em;color:var(--owner-gold);margin-bottom:4px;">${cat}</div>
       <div style="display:flex;justify-content:flex-end;gap:24px;font-family:var(--font-label);font-size:9px;letter-spacing:0.15em;color:var(--ash);padding:4px 0 8px;border-bottom:1px solid var(--graphite);margin-bottom:4px;">
         <span style="min-width:60px;text-align:right;">START</span>
-        <span style="min-width:60px;text-align:right;">ORDERS</span>
-        <span style="min-width:60px;text-align:right;">PULLS</span>
+        <span style="min-width:60px;text-align:right;">+ORDERS</span>
+        <span style="min-width:60px;text-align:right;">−PULLS</span>
         <span style="min-width:60px;text-align:right;">END</span>
         <span style="min-width:80px;text-align:right;color:var(--owner-gold);">VARIANCE</span>
       </div>
@@ -1373,7 +1373,7 @@ function costExportCSV() {
   csv += `Period Type,${costActivePeriod.period_type}\n`;
   csv += `Location,${costReportLoc === 'house' ? 'House (All Bars)' : costReportLoc}\n`;
   csv += `Total Sales,$${totalSales.toFixed(2)}\nTotal Comps,$${totalCompsC.toFixed(2)}\nTotal Revenue (Sales+Comps),$${totalRevC.toFixed(2)}\n\n`;
-  csv += `Product,Category,Location,Start,Orders In,Pulls Out,End,Usage,Unit Cost,Cost $,Cost %\n`;
+  csv += `Product,Category,Location,Start,+Orders/+Pulls,−Pulls Out,End,Usage,Unit Cost,Cost $,Cost %\n`;
 
   lines.forEach(l => {
     const p       = invMgrProducts.find(pr => pr.id === l.product_id);
