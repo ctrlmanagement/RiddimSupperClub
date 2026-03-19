@@ -56,8 +56,18 @@ async function invMgrLoadDistributors() {
 }
 
 async function invMgrLoadProducts() {
-  const { data } = await supabaseClient
+  // Try with distributor join first; fall back to plain select if table not yet migrated
+  let data = null;
+  const { data: d1, error: e1 } = await supabaseClient
     .from('inv_products').select('*, inv_distributors(name)').order('category').order('name');
+  if (e1) {
+    // Fallback — inv_distributors table may not exist yet
+    const { data: d2 } = await supabaseClient
+      .from('inv_products').select('*').order('category').order('name');
+    data = d2;
+  } else {
+    data = d1;
+  }
   invMgrProducts  = data || [];
   invMgrProductsF = [...invMgrProducts];
   const el = document.getElementById('invMgrProdCount');
@@ -491,17 +501,20 @@ async function invMgrSavePar() {
 async function invMgrGenerateOrders() {
   const grid = document.getElementById('invMgrOrdersGrid');
   grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--ash);">Calculating…</div>';
-  const today = new Date().toISOString().slice(0,10), allCounts = {};
-  for (const loc of INV_LOCATIONS) {
+  const today     = new Date().toISOString().slice(0,10);
+  const weekStart = new Date(new Date(today + 'T12:00:00') - 6 * 86400000).toISOString().slice(0,10);
+  const allCounts = {};
+  for (const loc of ACTIVE_LOCATIONS) {
     const { data: sessions } = await supabaseClient.from('inv_sessions').select('id')
-      .eq('location', loc).eq('week_of', today).order('opened_at', { ascending: false }).limit(1);
+      .eq('location', loc).gte('week_of', weekStart).lte('week_of', today)
+      .order('opened_at', { ascending: false }).limit(1);
     if (!sessions?.length) continue;
     const { data: counts } = await supabaseClient.from('inv_counts').select('product_id, quantity').eq('session_id', sessions[0].id);
     if (counts) counts.forEach(c => { allCounts[c.product_id] = (allCounts[c.product_id]||0) + c.quantity; });
   }
   invMgrOrders = invMgrProducts.map(p => {
     const end = allCounts[p.id] || 0;
-    const par = INV_LOCATIONS.reduce((s, l) => s + (invMgrPars[p.id]?.[l]||0), 0);
+    const par = ACTIVE_LOCATIONS.reduce((s, l) => s + (invMgrPars[p.id]?.[l]||0), 0);
     const suggested = Math.max(0, par - end) > 0 ? Math.ceil((par - end) / (p.case_size||1)) : 0;
     return { p, end, par, suggested, confirmed: suggested };
   }).filter(r => r.par > 0);
@@ -568,10 +581,14 @@ async function invMgrRenderHouse() {
   const catFilter = document.getElementById('invMgrHouseCat')?.value || '';
   if (!grid) return;
   grid.innerHTML  = '<div style="text-align:center;padding:40px;color:var(--ash);grid-column:1/-1;">Loading…</div>';
-  const today = new Date().toISOString().slice(0,10), allCounts = {};
-  for (const loc of INV_LOCATIONS) {
+  const today     = new Date().toISOString().slice(0,10);
+  const weekStart = new Date(new Date(today + 'T12:00:00') - 6 * 86400000).toISOString().slice(0,10);
+  const allCounts = {};
+  for (const loc of ACTIVE_LOCATIONS) {
+    // Get most recent session within the current week window
     const { data: sessions } = await supabaseClient.from('inv_sessions').select('id')
-      .eq('location', loc).eq('week_of', today).order('opened_at', { ascending: false }).limit(1);
+      .eq('location', loc).gte('week_of', weekStart).lte('week_of', today)
+      .order('opened_at', { ascending: false }).limit(1);
     if (!sessions?.length) continue;
     const { data: counts } = await supabaseClient.from('inv_counts').select('product_id, quantity').eq('session_id', sessions[0].id);
     if (counts) counts.forEach(c => { allCounts[c.product_id] = (allCounts[c.product_id]||0) + c.quantity; });
@@ -581,7 +598,7 @@ async function invMgrRenderHouse() {
     if (catFilter && p.category !== catFilter) return;
     if (!cats[p.category]) cats[p.category] = [];
     const qty = allCounts[p.id] || 0;
-    const par = INV_LOCATIONS.reduce((s,l) => s + (invMgrPars[p.id]?.[l]||0), 0);
+    const par = ACTIVE_LOCATIONS.reduce((s,l) => s + (invMgrPars[p.id]?.[l]||0), 0);
     cats[p.category].push({ p, qty, par });
   });
   const sorted = INV_CAT_ORDER.filter(c => cats[c]).concat(Object.keys(cats).filter(c => !INV_CAT_ORDER.includes(c)));
@@ -1160,7 +1177,7 @@ async function costPullFromCounts() {
     const product = invMgrProducts.find(p => p.id === pid_prod);
     if (!product) continue;
 
-    for (const loc of INV_LOCATIONS) {
+    for (const loc of ACTIVE_LOCATIONS) {
       const endQty   = endCounts[pid_prod]?.[loc] ?? 0;
       const startQty = startQtys[pid_prod]?.[loc] ?? 0;
       // Orders in: convert cases to bottles — LR only gets full order deliveries
