@@ -6489,8 +6489,10 @@ window.viewSignedPDF = function(id) {
   var ua       = a.user_agent || 'Not recorded';
   var sigImg   = a.signature_data ? '<img src="'+a.signature_data+'" style="max-width:340px;max-height:100px;border:1px solid #d4cfc6;background:#fdfcfa;padding:6px;display:block;margin-top:6px;" />' : '<span style="color:#888;font-style:italic;">No signature image recorded</span>';
 
-  var pdfWin = window.open('','_blank');
-  pdfWin.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Signed License Agreement — ctrl</title>'
+  var orgSlug = a.org_name.replace(/[^a-zA-Z0-9]+/g,'-').toLowerCase();
+  var dateSlug = new Date(a.signed_at).toISOString().slice(0,10);
+  var fileName = 'ctrl-license-' + orgSlug + '-' + dateSlug + '.html';
+  var htmlDoc = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Signed License Agreement — '+a.org_name+' — ctrl</title>'
   +'<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">'
   +'<style>'
   +'*{box-sizing:border-box;margin:0;padding:0;}'
@@ -6569,9 +6571,16 @@ window.viewSignedPDF = function(id) {
 
   +'<div class="footer">This document was electronically executed on '+signedAt+' &nbsp;|&nbsp; ctrl &mdash; Proprietary Software License &nbsp;|&nbsp; ID: '+a.id.slice(0,8).toUpperCase()+'</div>'
   +'</div>'
-  +'<script>window.onload=function(){window.print();}<\/script>'
-  +'</body></html>');
-  pdfWin.document.close();
+  
+  +'</body></html>';
+  var blob = new Blob([htmlDoc], {type:'text/html;charset=utf-8'});
+  var dlUrl = URL.createObjectURL(blob);
+  var dlA   = document.createElement('a');
+  dlA.href  = dlUrl;
+  dlA.download = fileName;
+  document.body.appendChild(dlA);
+  dlA.click();
+  setTimeout(function(){ URL.revokeObjectURL(dlUrl); document.body.removeChild(dlA); }, 2000);
 };
 
 var _prevGoToTabAg = window.goToTab;
