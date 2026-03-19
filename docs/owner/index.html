@@ -6552,36 +6552,44 @@ window.viewSignedPDF = function(id) {
   +'<div class="stamp-full"><div class="stamp-label">Agreement ID</div><div class="stamp-value" style="font-family:\'DM Mono\',monospace;font-size:13px;">'+a.id+'</div></div>'
   +'</div></div>'
 
-  // License document
-  +'<div class="doc-head"><div class="doc-title">Proprietary Software License</div><div class="doc-copy">Copyright &copy; 2026 ctrl. All rights reserved.</div></div>'
-  +'<div class="doc-body">'
-  +'<div class="sec"><h2>1. Definitions</h2><p>&ldquo;Software&rdquo; means the source code, object code, documentation, and all associated files provided by ctrl.</p><p>&ldquo;Licensee&rdquo; means the organization that has received explicit written approval from ctrl and holds an active subscription.</p><p>&ldquo;Subscription&rdquo; means a valid, current, and paid license agreement entered into between the Licensee and ctrl.</p></div>'
-  +'<div class="sec"><h2>2. License Grant</h2><p>Subject to the terms and conditions of this License, and contingent upon (a) prior written approval by ctrl and (b) maintenance of an active Subscription, ctrl hereby grants to the Licensee a limited, non-exclusive, non-transferable, non-sublicensable, revocable license to use the Software solely for the Licensee\'s internal business purposes during the active Subscription term.</p></div>'
-  +'<div class="sec"><h2>3. Approval Requirement</h2><p>No rights are granted under this License until ctrl has provided explicit written approval to the Licensee. Use of the Software prior to receiving such approval is strictly prohibited and constitutes a material breach of this License.</p></div>'
-  +'<div class="sec"><h2>4. Restrictions</h2><p>The Licensee shall not, and shall not permit any third party to: copy, modify, or create derivative works of the Software; distribute, sublicense, sell, or transfer any rights; reverse engineer or decompile the Software; remove any proprietary notices; or use the Software for any purpose other than as expressly permitted under Section 2.</p></div>'
-  +'<div class="sec"><h2>5. Termination</h2><p>This License terminates immediately and automatically upon: (a) expiration or cancellation of the Subscription; (b) failure to renew; (c) any breach of this License; or (d) written notice from ctrl. Upon termination, Licensee shall immediately cease all use and destroy all copies.</p></div>'
-  +'<div class="sec"><h2>6. Ownership</h2><p>The Software and all intellectual property rights therein are and shall remain the exclusive property of ctrl. This License does not convey any ownership interest to the Licensee.</p></div>'
-  +'<div class="sec"><h2>7. Disclaimer of Warranties</h2><p>THE SOFTWARE IS PROVIDED &ldquo;AS IS&rdquo; WITHOUT WARRANTY OF ANY KIND. CTRL EXPRESSLY DISCLAIMS ALL WARRANTIES, WHETHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE.</p></div>'
-  +'<div class="sec"><h2>8. Limitation of Liability</h2><p>IN NO EVENT SHALL CTRL BE LIABLE FOR ANY INDIRECT, INCIDENTAL, OR CONSEQUENTIAL DAMAGES. CTRL\'S TOTAL LIABILITY SHALL NOT EXCEED AMOUNTS PAID IN THE TWELVE (12) MONTHS PRECEDING THE CLAIM.</p></div>'
-  +'<div class="sec"><h2>9. Governing Law</h2><p>This License shall be governed by applicable law. Disputes shall be subject to the exclusive jurisdiction of courts designated by ctrl.</p></div>'
-  +'<div class="sec"><h2>10. Entire Agreement</h2><p>This License constitutes the entire agreement between ctrl and the Licensee and supersedes all prior understandings or representations.</p></div>'
-  +'</div>'
 
-  // Signature block
-  +'<div class="sig-section"><h3>Electronic Signature</h3>'
-  +'<div class="sig-grid">'
-  +'<div class="sig-field"><div class="sig-label">Organization (Licensee)</div><div class="sig-value">'+a.org_name+'</div></div>'
-  +'<div class="sig-field"><div class="sig-label">Date Executed</div><div class="sig-value">'+signedAt+'</div></div>'
-  +'<div class="sig-field" style="grid-column:span 2;"><div class="sig-label">Signatory Full Legal Name</div><div class="sig-value" style="font-size:22px;font-style:italic;">'+a.signed_name+'</div></div>'
-  +'<div class="sig-field" style="grid-column:span 2;"><div class="sig-label">Drawn Signature</div>'+sigImg+'</div>'
-  +'</div>'
-  +'<div class="ua-box"><strong>Device &amp; Audit Record</strong><br>Signed At: '+signedAt+'<br>Agreement ID: '+a.id+'<br>User Agent: '+ua+'</div>'
-  +'</div>'
+  // Determine doc content based on agreement_type
+  var isROR = (a.agreement_type === 'ror');
+  var docTitleText = isROR ? 'Restriction of Rights' : 'Proprietary Software License';
+  var docCopyText  = isROR ? 'Copyright &copy; 2026 +ctrl. All Rights Reserved.' : 'Copyright &copy; 2026 ctrl. All rights reserved.';
+  var docBody = isROR
+    ? '<div class="sec"><h2>1. Ownership</h2><p>All intellectual property rights, including but not limited to source code, design assets, and documentation associated with this software, are the sole and exclusive property of +ctrl.</p></div>'
+    + '<div class="sec"><h2>2. Restriction of Rights</h2><p>No license, permission, or right of use is granted, issued, or implied by the publication or possession of these materials. Any use, reproduction, modification, distribution, sublicensing, or sale of this software, in whole or in part, is strictly prohibited without the express written consent of +ctrl.</p></div>'
+    + '<div class="sec"><h2>3. No Warranty</h2><p>THIS SOFTWARE IS PROVIDED &ldquo;AS IS,&rdquo; WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT.</p></div>'
+    + '<div class="sec"><h2>4. Limitation of Liability</h2><p>IN NO EVENT SHALL THE OWNER, +ctrl, BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p></div>'
+    : '<div class="sec"><h2>1. Definitions</h2><p>&ldquo;Software&rdquo; means the source code, object code, documentation, and all associated files provided by ctrl.</p><p>&ldquo;Licensee&rdquo; means the organization that has received explicit written approval from ctrl and holds an active subscription.</p><p>&ldquo;Subscription&rdquo; means a valid, current, and paid license agreement entered into between the Licensee and ctrl.</p></div>'
+    + '<div class="sec"><h2>2. License Grant</h2><p>Subject to the terms and conditions of this License, ctrl hereby grants to the Licensee a limited, non-exclusive, non-transferable, non-sublicensable, revocable license to use the Software solely for internal business purposes during the active Subscription term.</p></div>'
+    + '<div class="sec"><h2>3. Approval Requirement</h2><p>No rights are granted under this License until ctrl has provided explicit written approval to the Licensee.</p></div>'
+    + '<div class="sec"><h2>4. Restrictions</h2><p>The Licensee shall not copy, modify, distribute, sublicense, sell, reverse engineer, or use the Software for any purpose other than as expressly permitted under Section 2.</p></div>'
+    + '<div class="sec"><h2>5. Termination</h2><p>This License terminates immediately upon: (a) expiration or cancellation of the Subscription; (b) failure to renew; (c) any breach; or (d) written notice from ctrl.</p></div>'
+    + '<div class="sec"><h2>6. Ownership</h2><p>The Software and all intellectual property rights therein are and shall remain the exclusive property of ctrl.</p></div>'
+    + '<div class="sec"><h2>7. Disclaimer of Warranties</h2><p>THE SOFTWARE IS PROVIDED &ldquo;AS IS&rdquo; WITHOUT WARRANTY OF ANY KIND. CTRL EXPRESSLY DISCLAIMS ALL WARRANTIES.</p></div>'
+    + '<div class="sec"><h2>8. Limitation of Liability</h2><p>IN NO EVENT SHALL CTRL BE LIABLE FOR ANY INDIRECT OR CONSEQUENTIAL DAMAGES. CTRL\'S TOTAL LIABILITY SHALL NOT EXCEED AMOUNTS PAID IN THE TWELVE (12) MONTHS PRECEDING THE CLAIM.</p></div>'
+    + '<div class="sec"><h2>9. Governing Law</h2><p>This License shall be governed by applicable law. Disputes shall be subject to the exclusive jurisdiction of courts designated by ctrl.</p></div>'
+    + '<div class="sec"><h2>10. Entire Agreement</h2><p>This License constitutes the entire agreement between ctrl and the Licensee and supersedes all prior understandings.</p></div>';
 
-  +'<div class="footer">This document was electronically executed on '+signedAt+' &nbsp;|&nbsp; ctrl &mdash; Proprietary Software License &nbsp;|&nbsp; ID: '+a.id.slice(0,8).toUpperCase()+'</div>'
-  +'</div>'
-  
-  +'</body></html>';
+  // Build document section
+  var docSection = '<div class="doc-head"><div class="doc-title">'+docTitleText+'</div><div class="doc-copy">'+docCopyText+'</div></div>'
+    + '<div class="doc-body">' + docBody + '</div>';
+
+  var sigBlock = '<div class="sig-section"><h3>Electronic Signature</h3>'
+    + '<div class="sig-grid">'
+    + '<div class="sig-field"><div class="sig-label">Organization (Licensee)</div><div class="sig-value">'+a.org_name+'</div></div>'
+    + '<div class="sig-field"><div class="sig-label">Date Executed</div><div class="sig-value">'+signedAt+'</div></div>'
+    + '<div class="sig-field" style="grid-column:span 2;"><div class="sig-label">Signatory Full Legal Name</div><div class="sig-value" style="font-size:22px;font-style:italic;">'+a.signed_name+'</div></div>'
+    + '<div class="sig-field" style="grid-column:span 2;"><div class="sig-label">Drawn Signature</div>'+sigImg+'</div>'
+    + '</div>'
+    + '<div class="ua-box"><strong>Device &amp; Audit Record</strong><br>Signed At: '+signedAt+'<br>Agreement ID: '+a.id+'<br>User Agent: '+ua+'</div>'
+    + '</div>';
+
+  var footerLine = '<div class="footer">This document was electronically executed on '+signedAt+' &nbsp;|&nbsp; ctrl &mdash; '+docTitleText+' &nbsp;|&nbsp; ID: '+a.id.slice(0,8).toUpperCase()+'</div>';
+
+  htmlDoc += docSection + sigBlock + footerLine + '</div></body></html>';
   var blob   = new Blob([htmlDoc], {type:'text/html;charset=utf-8'});
   var dlUrl  = URL.createObjectURL(blob);
   var pdfWin = window.open(dlUrl, '_blank');
