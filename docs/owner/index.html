@@ -6482,13 +6482,105 @@ window.resendAgreementSMS = async function(id) {
 
 window.viewSignedPDF = function(id) {
   var a = _agreements.find(function(x){return x.id===id;}); if(!a) return;
-  window.open(SIGN_BASE_URL+'?token='+a.token,'_blank');
+  if(a.status !== 'signed') { showToast('Agreement not yet signed.'); return; }
+
+  var signedAt = new Date(a.signed_at).toLocaleString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',timeZoneName:'short'});
+  var sentAt   = new Date(a.created_at).toLocaleString('en-US',{year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit',timeZoneName:'short'});
+  var ua       = a.user_agent || 'Not recorded';
+  var sigImg   = a.signature_data ? '<img src="'+a.signature_data+'" style="max-width:340px;max-height:100px;border:1px solid #d4cfc6;background:#fdfcfa;padding:6px;display:block;margin-top:6px;" />' : '<span style="color:#888;font-style:italic;">No signature image recorded</span>';
+
+  var pdfWin = window.open('','_blank');
+  pdfWin.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Signed License Agreement — ctrl</title>'
+  +'<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">'
+  +'<style>'
+  +'*{box-sizing:border-box;margin:0;padding:0;}'
+  +'body{background:#f7f4ef;color:#0d0d0d;font-family:"Cormorant Garamond",Georgia,serif;font-size:16px;line-height:1.7;padding:0;}'
+  +'.page{max-width:760px;margin:0 auto;padding:48px 40px 80px;}'
+  +'.header{background:#1a1a2e;color:#e8e4dc;padding:22px 40px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #b8960c;margin-bottom:0;}'
+  +'.header-brand{font-size:20px;letter-spacing:0.18em;font-weight:300;}'
+  +'.header-label{font-family:"DM Mono",monospace;font-size:11px;letter-spacing:0.12em;color:#b8960c;text-transform:uppercase;}'
+  +'.stamp-box{background:#fff;border:2px solid #1a4a2e;border-radius:0;padding:20px 28px;margin:32px 0;}'
+  +'.stamp-title{font-family:"DM Mono",monospace;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:#1a4a2e;margin-bottom:14px;border-bottom:1px solid #d4cfc6;padding-bottom:8px;}'
+  +'.stamp-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 28px;}'
+  +'.stamp-label{font-family:"DM Mono",monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#6b6560;margin-bottom:2px;}'
+  +'.stamp-value{font-size:15px;color:#0d0d0d;font-weight:400;}'
+  +'.stamp-value.green{color:#1a4a2e;font-weight:600;}'
+  +'.stamp-full{grid-column:span 2;}'
+  +'.doc-head{background:#1a1a2e;color:#e8e4dc;padding:24px 40px;text-align:center;margin-bottom:0;}'
+  +'.doc-title{font-size:22px;font-weight:300;letter-spacing:0.12em;margin-bottom:4px;}'
+  +'.doc-copy{font-family:"DM Mono",monospace;font-size:10px;color:rgba(232,228,220,0.55);}'
+  +'.doc-body{background:#fff;border:1px solid #d4cfc6;padding:36px 40px;margin-bottom:0;}'
+  +'.sec{margin-bottom:24px;}'
+  +'.sec h2{font-size:11px;font-family:"DM Mono",monospace;letter-spacing:0.14em;text-transform:uppercase;color:#6b6560;border-bottom:1px solid #d4cfc6;padding-bottom:5px;margin-bottom:10px;}'
+  +'.sec p{font-size:14px;line-height:1.75;color:#2a2622;margin-bottom:7px;}'
+  +'.sec ul{padding-left:20px;margin-bottom:7px;}'
+  +'.sec li{font-size:14px;line-height:1.75;color:#2a2622;margin-bottom:3px;}'
+  +'.sig-section{background:#fff;border:1px solid #d4cfc6;border-top:none;padding:32px 40px;}'
+  +'.sig-section h3{font-size:16px;font-weight:400;letter-spacing:0.06em;margin-bottom:20px;padding-bottom:10px;border-bottom:1px solid #d4cfc6;}'
+  +'.sig-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 28px;margin-bottom:20px;}'
+  +'.sig-field{}'
+  +'.sig-label{font-family:"DM Mono",monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#6b6560;margin-bottom:4px;}'
+  +'.sig-value{font-size:16px;border-bottom:1px solid #d4cfc6;padding-bottom:6px;}'
+  +'.ua-box{background:#f7f4ef;border:1px solid #d4cfc6;padding:12px 16px;margin-top:16px;font-family:"DM Mono",monospace;font-size:10px;color:#6b6560;line-height:1.6;word-break:break-all;}'
+  +'.footer{text-align:center;padding:20px 40px;font-family:"DM Mono",monospace;font-size:10px;color:#6b6560;border-top:1px solid #d4cfc6;background:#fff;}'
+  +'@media print{body{background:#fff;}.header{-webkit-print-color-adjust:exact;print-color-adjust:exact;}.doc-head{-webkit-print-color-adjust:exact;print-color-adjust:exact;}.stamp-box{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}'
+  +'</style></head><body>'
+  +'<div class="header"><span class="header-brand">ctrl</span><span class="header-label">Executed License Agreement</span></div>'
+  +'<div class="page">'
+
+  // Execution stamp
+  +'<div class="stamp-box">'
+  +'<div class="stamp-title">&#10003; Execution Record — Legally Binding Electronic Signature</div>'
+  +'<div class="stamp-grid">'
+  +'<div><div class="stamp-label">Organization</div><div class="stamp-value">'+a.org_name+'</div></div>'
+  +'<div><div class="stamp-label">Signatory</div><div class="stamp-value">'+a.signed_name+'</div></div>'
+  +'<div><div class="stamp-label">Email</div><div class="stamp-value">'+a.email+'</div></div>'
+  +'<div><div class="stamp-label">Phone</div><div class="stamp-value">'+a.phone+'</div></div>'
+  +'<div><div class="stamp-label">Agreement Sent</div><div class="stamp-value">'+sentAt+'</div></div>'
+  +'<div><div class="stamp-label">Executed At</div><div class="stamp-value green">'+signedAt+'</div></div>'
+  +'<div class="stamp-full"><div class="stamp-label">Agreement ID</div><div class="stamp-value" style="font-family:\'DM Mono\',monospace;font-size:13px;">'+a.id+'</div></div>'
+  +'</div></div>'
+
+  // License document
+  +'<div class="doc-head"><div class="doc-title">Proprietary Software License</div><div class="doc-copy">Copyright &copy; 2026 ctrl. All rights reserved.</div></div>'
+  +'<div class="doc-body">'
+  +'<div class="sec"><h2>1. Definitions</h2><p>&ldquo;Software&rdquo; means the source code, object code, documentation, and all associated files provided by ctrl.</p><p>&ldquo;Licensee&rdquo; means the organization that has received explicit written approval from ctrl and holds an active subscription.</p><p>&ldquo;Subscription&rdquo; means a valid, current, and paid license agreement entered into between the Licensee and ctrl.</p></div>'
+  +'<div class="sec"><h2>2. License Grant</h2><p>Subject to the terms and conditions of this License, and contingent upon (a) prior written approval by ctrl and (b) maintenance of an active Subscription, ctrl hereby grants to the Licensee a limited, non-exclusive, non-transferable, non-sublicensable, revocable license to use the Software solely for the Licensee\'s internal business purposes during the active Subscription term.</p></div>'
+  +'<div class="sec"><h2>3. Approval Requirement</h2><p>No rights are granted under this License until ctrl has provided explicit written approval to the Licensee. Use of the Software prior to receiving such approval is strictly prohibited and constitutes a material breach of this License.</p></div>'
+  +'<div class="sec"><h2>4. Restrictions</h2><p>The Licensee shall not, and shall not permit any third party to: copy, modify, or create derivative works of the Software; distribute, sublicense, sell, or transfer any rights; reverse engineer or decompile the Software; remove any proprietary notices; or use the Software for any purpose other than as expressly permitted under Section 2.</p></div>'
+  +'<div class="sec"><h2>5. Termination</h2><p>This License terminates immediately and automatically upon: (a) expiration or cancellation of the Subscription; (b) failure to renew; (c) any breach of this License; or (d) written notice from ctrl. Upon termination, Licensee shall immediately cease all use and destroy all copies.</p></div>'
+  +'<div class="sec"><h2>6. Ownership</h2><p>The Software and all intellectual property rights therein are and shall remain the exclusive property of ctrl. This License does not convey any ownership interest to the Licensee.</p></div>'
+  +'<div class="sec"><h2>7. Disclaimer of Warranties</h2><p>THE SOFTWARE IS PROVIDED &ldquo;AS IS&rdquo; WITHOUT WARRANTY OF ANY KIND. CTRL EXPRESSLY DISCLAIMS ALL WARRANTIES, WHETHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE.</p></div>'
+  +'<div class="sec"><h2>8. Limitation of Liability</h2><p>IN NO EVENT SHALL CTRL BE LIABLE FOR ANY INDIRECT, INCIDENTAL, OR CONSEQUENTIAL DAMAGES. CTRL\'S TOTAL LIABILITY SHALL NOT EXCEED AMOUNTS PAID IN THE TWELVE (12) MONTHS PRECEDING THE CLAIM.</p></div>'
+  +'<div class="sec"><h2>9. Governing Law</h2><p>This License shall be governed by applicable law. Disputes shall be subject to the exclusive jurisdiction of courts designated by ctrl.</p></div>'
+  +'<div class="sec"><h2>10. Entire Agreement</h2><p>This License constitutes the entire agreement between ctrl and the Licensee and supersedes all prior understandings or representations.</p></div>'
+  +'</div>'
+
+  // Signature block
+  +'<div class="sig-section"><h3>Electronic Signature</h3>'
+  +'<div class="sig-grid">'
+  +'<div class="sig-field"><div class="sig-label">Organization (Licensee)</div><div class="sig-value">'+a.org_name+'</div></div>'
+  +'<div class="sig-field"><div class="sig-label">Date Executed</div><div class="sig-value">'+signedAt+'</div></div>'
+  +'<div class="sig-field" style="grid-column:span 2;"><div class="sig-label">Signatory Full Legal Name</div><div class="sig-value" style="font-size:22px;font-style:italic;">'+a.signed_name+'</div></div>'
+  +'<div class="sig-field" style="grid-column:span 2;"><div class="sig-label">Drawn Signature</div>'+sigImg+'</div>'
+  +'</div>'
+  +'<div class="ua-box"><strong>Device &amp; Audit Record</strong><br>Signed At: '+signedAt+'<br>Agreement ID: '+a.id+'<br>User Agent: '+ua+'</div>'
+  +'</div>'
+
+  +'<div class="footer">This document was electronically executed on '+signedAt+' &nbsp;|&nbsp; ctrl &mdash; Proprietary Software License &nbsp;|&nbsp; ID: '+a.id.slice(0,8).toUpperCase()+'</div>'
+  +'</div>'
+  +'<script>window.onload=function(){window.print();}<\/script>'
+  +'</body></html>');
+  pdfWin.document.close();
 };
 
 var _prevGoToTabAg = window.goToTab;
 window.goToTab = function(tabId) {
   if(typeof _prevGoToTabAg==='function') _prevGoToTabAg(tabId);
   if(tabId==='agreements') loadAgreements();
+  // Close view modal whenever tab changes
+  var vm = document.getElementById('viewAgreementModal');
+  if(vm) vm.classList.remove('open');
 };
 })();
 
