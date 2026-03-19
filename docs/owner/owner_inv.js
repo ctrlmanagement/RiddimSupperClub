@@ -1143,13 +1143,24 @@ async function costPullFromCounts() {
   const ordersIn = {}; // { product_id: cases (need ×case_size for bottles) }
   if (orders) orders.forEach(o => { ordersIn[o.product_id] = (ordersIn[o.product_id]||0) + o.confirmed_cases; });
 
-  // Pull stock-up requests (bar pulls from LR)
+  // Pull stock-up requests — keyed by to_location so each bar sees what it received
   const { data: stockUps } = await supabaseClient
-    .from('inv_stock_ups').select('product_id, quantity, from_location')
+    .from('inv_stock_ups').select('product_id, quantity, from_location, to_location')
     .gte('report_date', dateStart).lte('report_date', we);
 
-  const pulls = {}; // { product_id: qty } — total pulled from LR
-  if (stockUps) stockUps.forEach(s => { pulls[s.product_id] = (pulls[s.product_id]||0) + s.quantity; });
+  // pulls: { product_id: { location: qty } }
+  // LR loses qty (pulls_out), receiving bar gains qty (received_in)
+  const pulls = {};
+  if (stockUps) stockUps.forEach(s => {
+    if (!s.product_id) return;
+    if (!pulls[s.product_id]) pulls[s.product_id] = {};
+    // LR side: total out
+    pulls[s.product_id]['LR'] = (pulls[s.product_id]['LR']||0) + s.quantity;
+    // Bar side: received at to_location (if set)
+    if (s.to_location) {
+      pulls[s.product_id][s.to_location] = (pulls[s.product_id][s.to_location]||0) + s.quantity;
+    }
+  });
 
   // Get starting quantities from previous period's cost lines
   const prevPeriodId = await costGetPrevPeriodId();
@@ -1182,20 +1193,21 @@ async function costPullFromCounts() {
       const startQty = startQtys[pid_prod]?.[loc] ?? 0;
       // Orders in: convert cases to bottles — LR only gets full order deliveries
       const ordersBottles = loc === 'LR' ? (ordersIn[pid_prod]||0) * (product.case_size||1) : 0;
-      // Pulls: LR only — stock-up requests
-      const pullsOut  = loc === 'LR' ? (pulls[pid_prod]||0) : 0;
+      // LR loses bottles as pulls_out; bars gain bottles as received_in (+PULLS column)
+      const pullsOut   = loc === 'LR' ? (pulls[pid_prod]?.['LR']||0) : 0;
+      const receivedIn = loc !== 'LR' ? (pulls[pid_prod]?.[loc]||0) : 0;
 
-      if (endQty === 0 && startQty === 0 && ordersBottles === 0 && pullsOut === 0) continue;
+      if (endQty === 0 && startQty === 0 && ordersBottles === 0 && pullsOut === 0 && receivedIn === 0) continue;
 
       rows.push({
-        period_id:  pid,
-        product_id: pid_prod,
-        location:   loc,
-        start_qty:  startQty,
-        orders_in:  ordersBottles,
-        pulls_out:  pullsOut,
-        end_qty:    endQty,
-        unit_cost:  product.cost || 0
+        period_id:   pid,
+        product_id:  pid_prod,
+        location:    loc,
+        start_qty:   startQty,
+        orders_in:   loc === 'LR' ? ordersBottles : receivedIn,
+        pulls_out:   pullsOut,
+        end_qty:     endQty,
+        unit_cost:   product.cost || 0
       });
     }
   }
