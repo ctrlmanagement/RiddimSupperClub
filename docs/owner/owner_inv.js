@@ -33,8 +33,6 @@ let invMgrOrders     = [];
 let invMgrProductsF  = [];
 let invStaffList     = [];
 let invDistributors  = [];   // inv_distributors cache
-let invMgrProductsF  = [];
-let invStaffList     = [];
 
 // ── Cost report state ─────────────────────────────────────────────
 let costPeriods       = [];
