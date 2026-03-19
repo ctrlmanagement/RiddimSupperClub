@@ -1100,7 +1100,9 @@ async function costPullFromCounts() {
   showToast('Pulling counts…', '');
 
   // Load all sessions within period date range
-  const dateStart = costActivePeriod.date_start || we;
+  // If date_start not set, default to 6 days before week_ending (full week)
+  const dateStart = costActivePeriod.date_start ||
+    new Date(new Date(we + 'T12:00:00') - 6 * 86400000).toISOString().slice(0, 10);
   const { data: sessions } = await supabaseClient
     .from('inv_sessions').select('id, location')
     .gte('week_of', dateStart)
