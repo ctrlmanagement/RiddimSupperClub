@@ -786,10 +786,10 @@
     <table class="members-table" id="agreementsTable">
       <thead><tr>
         <th>Organization</th><th>Contact</th><th>Sent To</th>
-        <th>Sent</th><th>Status</th><th>Signed At</th><th>Actions</th>
+        <th>Type</th><th>Sent</th><th>Status</th><th>Signed At</th><th>Actions</th>
       </tr></thead>
       <tbody id="agreementsTableBody">
-        <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--ash);">Loading agreements...</td></tr>
+        <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--ash);">Loading agreements...</td></tr>
       </tbody>
     </table>
   </div>
@@ -807,6 +807,7 @@
       <div class="field"><label>Email *</label><input type="email" id="agEmail" placeholder="jane@acme.com" /></div>
       <div class="field"><label>Cell Phone *</label><input type="tel" id="agPhone" placeholder="+1 (404) 555-0100" /></div>
     </div>
+    <div class="field"><label>Agreement Type *</label><select id="agType"><option value="psl">Proprietary Software License</option><option value="ror">Restriction of Rights</option></select></div>
     <div class="field"><label>Note (internal, optional)</label><input type="text" id="agNote" placeholder="e.g. Annual renewal, referred by..." /></div>
     <div id="agSendMsg" style="font-size:13px;min-height:18px;margin-top:6px;color:var(--ember);"></div>
     <div class="modal-actions">
@@ -6375,7 +6376,7 @@ function renderAgreementsTable() {
   var tbody = document.getElementById('agreementsTableBody');
   var filtered = _agFilter === 'all' ? _agreements : _agreements.filter(function(a){return a.status===_agFilter;});
   if (!filtered.length) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--ash);">No agreements found.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--ash);">No agreements found.</td></tr>';
     return;
   }
   var SC = {pending:'var(--gold-warm)',signed:'#81C784',voided:'var(--ash)'};
@@ -6388,7 +6389,8 @@ function renderAgreementsTable() {
     var actions = '<button class="table-action-btn" onclick="viewAgreement(\''+a.id+'\')">View</button>';
     if (a.status==='pending') actions += '<button class="table-action-btn" style="margin-left:6px;" onclick="resendAgreementSMS(\''+a.id+'\')">Resend</button>';
     if (a.status==='signed')  actions += '<button class="table-action-btn" style="margin-left:6px;color:#81C784;border-color:rgba(76,175,80,0.3);" onclick="viewSignedPDF(\''+a.id+'\')">PDF</button>';
-    return '<tr><td class="td-name">'+a.org_name+'</td><td>'+a.contact_name+'</td><td style="font-size:12px;">'+a.email+'<br><span style="color:var(--ash);">'+a.phone+'</span></td><td style="font-size:12px;color:var(--ash);">'+sent+'</td><td><span style="display:inline-flex;padding:3px 10px;border-radius:999px;font-family:var(--font-label);font-size:9px;letter-spacing:0.15em;border:1px solid '+sd+';background:'+sb+';color:'+sc+';">'+a.status.toUpperCase()+'</span></td><td style="font-size:12px;color:var(--ash);">'+signed+'</td><td style="white-space:nowrap;">'+actions+'</td></tr>';
+    var typeShort = a.agreement_type === 'ror' ? '<span style="font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;color:var(--ash);border:1px solid var(--graphite);padding:2px 7px;border-radius:3px;">ROR</span>' : '<span style="font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;color:var(--owner-gold);border:1px solid rgba(218,165,32,0.3);padding:2px 7px;border-radius:3px;">PSL</span>';
+    return '<tr><td class="td-name">'+a.org_name+'</td><td>'+a.contact_name+'</td><td style="font-size:12px;">'+a.email+'<br><span style="color:var(--ash);">'+a.phone+'</span></td><td>'+typeShort+'</td><td style="font-size:12px;color:var(--ash);">'+sent+'</td><td><span style="display:inline-flex;padding:3px 10px;border-radius:999px;font-family:var(--font-label);font-size:9px;letter-spacing:0.15em;border:1px solid '+sd+';background:'+sb+';color:'+sc+';">'+a.status.toUpperCase()+'</span></td><td style="font-size:12px;color:var(--ash);">'+signed+'</td><td style="white-space:nowrap;">'+actions+'</td></tr>';
   }).join('');
 }
 
@@ -6400,6 +6402,7 @@ window.agreementsFilter = function(btn, filter) {
 
 window.openSendAgreementModal = function() {
   ['agOrgName','agContactName','agEmail','agPhone','agNote'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('agType').value = 'psl';
   document.getElementById('agSendMsg').textContent='';
   document.getElementById('agSendBtn').disabled=false;
   document.getElementById('sendAgreementModal').classList.add('open');
@@ -6415,6 +6418,7 @@ window.sendAgreement = async function() {
   var email = document.getElementById('agEmail').value.trim();
   var phone = document.getElementById('agPhone').value.trim();
   var note  = document.getElementById('agNote').value.trim();
+  var agType = document.getElementById('agType').value || 'psl';
   var msg   = document.getElementById('agSendMsg');
   if (!org||!name||!email||!phone) { msg.textContent='All fields except Note are required.'; return; }
   document.getElementById('agSendBtn').disabled=true;
@@ -6422,7 +6426,7 @@ window.sendAgreement = async function() {
   var token = crypto.randomUUID();
   var signingUrl = SIGN_BASE_URL+'?token='+token;
   try {
-    var ins = await supabaseClient.from('license_agreements').insert({org_name:org,contact_name:name,email:email,phone:phone,note:note||null,token:token,status:'pending'});
+    var ins = await supabaseClient.from('license_agreements').insert({org_name:org,contact_name:name,email:email,phone:phone,note:note||null,token:token,status:'pending',agreement_type:agType});
     if (ins.error) throw ins.error;
     var smsBody = 'Hi '+name+', ctrl has sent you a License Agreement to review and sign. Open the link to complete your signature:\n\n'+signingUrl+'\n\n\u2014 ctrl Management';
     window.open('sms:'+phone+'?body='+encodeURIComponent(smsBody),'_blank');
