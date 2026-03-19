@@ -6008,169 +6008,7 @@ function resendTicketSms(ticketId, qrToken, phone, evTitle, evDate, qty, typeLab
 /* ═══ END TICKETS ════════════════════════════════════════════ */
 
 </script>
-<script src="owner_inv.js" defer>
-// AGREEMENTS MODULE
-(function() {
-var SIGN_BASE_URL = 'https://portal.ctrlmanagement.com/license-sign.html';
-var _agFilter = 'all';
-var _agreements = [];
-var _viewAgId = null;
-
-async function loadAgreements() {
-  document.getElementById('agreementsTableBody').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--ash);"><div class="spinner" style="margin:0 auto;"></div></td></tr>';
-  try {
-    var res = await supabaseClient.from('license_agreements').select('*').order('created_at', {ascending:false});
-    if (res.error) throw res.error;
-    _agreements = res.data || [];
-    renderAgreementsTable();
-    updateAgreementStats();
-    updateAgreementsBadge();
-  } catch(e) {
-    document.getElementById('agreementsTableBody').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--ember);">Error: '+e.message+'</td></tr>';
-  }
-}
-
-function updateAgreementStats() {
-  document.getElementById('agStatTotal').textContent   = _agreements.length;
-  document.getElementById('agStatSigned').textContent  = _agreements.filter(function(a){return a.status==='signed';}).length;
-  document.getElementById('agStatPending').textContent = _agreements.filter(function(a){return a.status==='pending';}).length;
-  document.getElementById('agStatVoided').textContent  = _agreements.filter(function(a){return a.status==='voided';}).length;
-}
-
-function updateAgreementsBadge() {
-  var n = _agreements.filter(function(a){return a.status==='pending';}).length;
-  var b = document.getElementById('agreementsPendingBadge');
-  if (b) { b.textContent = n; b.style.display = n > 0 ? 'inline' : 'none'; }
-}
-
-function renderAgreementsTable() {
-  var tbody = document.getElementById('agreementsTableBody');
-  var filtered = _agFilter === 'all' ? _agreements : _agreements.filter(function(a){return a.status===_agFilter;});
-  if (!filtered.length) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--ash);">No agreements found.</td></tr>';
-    return;
-  }
-  var SC = {pending:'var(--gold-warm)',signed:'#81C784',voided:'var(--ash)'};
-  var SB = {pending:'rgba(212,168,67,0.08)',signed:'rgba(76,175,80,0.08)',voided:'transparent'};
-  var SD = {pending:'rgba(212,168,67,0.4)',signed:'rgba(76,175,80,0.4)',voided:'var(--graphite)'};
-  tbody.innerHTML = filtered.map(function(a) {
-    var sent   = new Date(a.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-    var signed = a.signed_at ? new Date(a.signed_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '&mdash;';
-    var sc=SC[a.status]||'var(--ash)', sb=SB[a.status]||'transparent', sd=SD[a.status]||'var(--graphite)';
-    var actions = '<button class="table-action-btn" onclick="viewAgreement(\''+a.id+'\')">View</button>';
-    if (a.status==='pending') actions += '<button class="table-action-btn" style="margin-left:6px;" onclick="resendAgreementSMS(\''+a.id+'\')">Resend</button>';
-    if (a.status==='signed')  actions += '<button class="table-action-btn" style="margin-left:6px;color:#81C784;border-color:rgba(76,175,80,0.3);" onclick="viewSignedPDF(\''+a.id+'\')">PDF</button>';
-    return '<tr><td class="td-name">'+a.org_name+'</td><td>'+a.contact_name+'</td><td style="font-size:12px;">'+a.email+'<br><span style="color:var(--ash);">'+a.phone+'</span></td><td style="font-size:12px;color:var(--ash);">'+sent+'</td><td><span style="display:inline-flex;padding:3px 10px;border-radius:999px;font-family:var(--font-label);font-size:9px;letter-spacing:0.15em;border:1px solid '+sd+';background:'+sb+';color:'+sc+';">'+a.status.toUpperCase()+'</span></td><td style="font-size:12px;color:var(--ash);">'+signed+'</td><td style="white-space:nowrap;">'+actions+'</td></tr>';
-  }).join('');
-}
-
-window.agreementsFilter = function(btn, filter) {
-  _agFilter = filter;
-  document.querySelectorAll('#tab-agreements .res-filter').forEach(function(b){b.classList.toggle('active',b===btn);});
-  renderAgreementsTable();
-};
-
-window.openSendAgreementModal = function() {
-  ['agOrgName','agContactName','agEmail','agPhone','agNote'].forEach(function(id){document.getElementById(id).value='';});
-  document.getElementById('agSendMsg').textContent='';
-  document.getElementById('agSendBtn').disabled=false;
-  document.getElementById('sendAgreementModal').classList.add('open');
-};
-
-window.closeSendAgreementModal = function() {
-  document.getElementById('sendAgreementModal').classList.remove('open');
-};
-
-window.sendAgreement = async function() {
-  var org   = document.getElementById('agOrgName').value.trim();
-  var name  = document.getElementById('agContactName').value.trim();
-  var email = document.getElementById('agEmail').value.trim();
-  var phone = document.getElementById('agPhone').value.trim();
-  var note  = document.getElementById('agNote').value.trim();
-  var msg   = document.getElementById('agSendMsg');
-  if (!org||!name||!email||!phone) { msg.textContent='All fields except Note are required.'; return; }
-  document.getElementById('agSendBtn').disabled=true;
-  msg.style.color='var(--ash)'; msg.textContent='Creating agreement...';
-  var token = crypto.randomUUID();
-  var signingUrl = SIGN_BASE_URL+'?token='+token;
-  try {
-    var ins = await supabaseClient.from('license_agreements').insert({org_name:org,contact_name:name,email:email,phone:phone,note:note||null,token:token,status:'pending'});
-    if (ins.error) throw ins.error;
-    msg.textContent='Sending SMS...';
-    var smsBody = 'Hi '+name+', ctrl has sent you a License Agreement to review and sign:\n\n'+signingUrl+'\n\n\u2014 ctrl Management';
-    try { await supabaseClient.functions.invoke('send-sms',{body:{to:phone,message:smsBody}}); } catch(se){ console.warn('SMS:',se); }
-    showToast('Agreement sent!','gold');
-    closeSendAgreementModal();
-    loadAgreements();
-  } catch(e) {
-    msg.style.color='var(--ember)'; msg.textContent='Error: '+e.message;
-    document.getElementById('agSendBtn').disabled=false;
-  }
-};
-
-window.viewAgreement = function(id) {
-  _viewAgId = id;
-  var a = _agreements.find(function(x){return x.id===id;}); if(!a) return;
-  var signingUrl = SIGN_BASE_URL+'?token='+a.token;
-  document.getElementById('viewAgTitle').textContent = a.org_name;
-  var SC={pending:'var(--gold-warm)',signed:'#81C784',voided:'var(--ash)'};
-  var sc=SC[a.status]||'var(--ash)';
-  var bodyHtml = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 24px;background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:16px;margin-bottom:16px;">'
-    +'<div><div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-bottom:3px;">ORGANIZATION</div><div>'+a.org_name+'</div></div>'
-    +'<div><div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-bottom:3px;">CONTACT</div><div>'+a.contact_name+'</div></div>'
-    +'<div><div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-bottom:3px;">EMAIL</div><div>'+a.email+'</div></div>'
-    +'<div><div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-bottom:3px;">PHONE</div><div>'+a.phone+'</div></div>'
-    +'<div><div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-bottom:3px;">STATUS</div><div style="color:'+sc+';font-weight:500;">'+a.status.toUpperCase()+'</div></div>'
-    +'<div><div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-bottom:3px;">SENT</div><div>'+new Date(a.created_at).toLocaleString()+'</div></div>';
-  if (a.signed_at) bodyHtml += '<div style="grid-column:span 2;"><div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-bottom:3px;">SIGNED AT</div><div style="color:#81C784;">'+new Date(a.signed_at).toLocaleString()+'</div></div>';
-  if (a.signed_name) bodyHtml += '<div style="grid-column:span 2;"><div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-bottom:3px;">SIGNED BY</div><div>'+a.signed_name+'</div></div>';
-  if (a.note) bodyHtml += '<div style="grid-column:span 2;"><div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-bottom:3px;">NOTE</div><div style="color:var(--mist);">'+a.note+'</div></div>';
-  bodyHtml += '</div><div style="background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:12px 16px;word-break:break-all;"><div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-bottom:6px;">SIGNING LINK</div><a href="'+signingUrl+'" target="_blank" style="color:var(--gold-warm);font-size:12px;">'+signingUrl+'</a></div>';
-  document.getElementById('viewAgBody').innerHTML = bodyHtml;
-  document.getElementById('viewAgVoidBtn').style.display = (a.status==='pending') ? 'inline-flex' : 'none';
-  document.getElementById('viewAgCopyBtn').textContent = a.status==='signed' ? '&#10003; Signed' : 'Copy Link';
-  document.getElementById('viewAgreementModal').classList.add('open');
-};
-
-window.copySigningLink = function() {
-  var a = _agreements.find(function(x){return x.id===_viewAgId;}); if(!a) return;
-  navigator.clipboard.writeText(SIGN_BASE_URL+'?token='+a.token);
-  showToast('Link copied!','gold');
-};
-
-window.voidAgreement = async function() {
-  if(!_viewAgId) return;
-  if(!confirm('Void this agreement? The signing link will stop working.')) return;
-  var res = await supabaseClient.from('license_agreements').update({status:'voided'}).eq('id',_viewAgId);
-  if(res.error){showToast('Error: '+res.error.message);return;}
-  document.getElementById('viewAgreementModal').classList.remove('open');
-  showToast('Agreement voided.','gold');
-  loadAgreements();
-};
-
-window.resendAgreementSMS = async function(id) {
-  var a = _agreements.find(function(x){return x.id===id;}); if(!a) return;
-  var signingUrl = SIGN_BASE_URL+'?token='+a.token;
-  var smsBody = 'Hi '+a.contact_name+', here is your License Agreement signing link from ctrl:\n\n'+signingUrl;
-  try {
-    await supabaseClient.functions.invoke('send-sms',{body:{to:a.phone,message:smsBody}});
-    showToast('SMS resent!','gold');
-  } catch(e){ showToast('SMS failed: '+e.message); }
-};
-
-window.viewSignedPDF = function(id) {
-  var a = _agreements.find(function(x){return x.id===id;}); if(!a) return;
-  window.open(SIGN_BASE_URL+'?token='+a.token,'_blank');
-};
-
-var _prevGoToTabAg = window.goToTab;
-window.goToTab = function(tabId) {
-  if(typeof _prevGoToTabAg==='function') _prevGoToTabAg(tabId);
-  if(tabId==='agreements') loadAgreements();
-};
-})();
-
-</script>
+<script src="owner_inv.js" defer></script>
 <!-- SEAT TABLE MODAL -->
 <div class="seat-modal-overlay" id="seatModalOverlay">
   <div class="seat-modal-card" id="seatModalCard">
@@ -6493,4 +6331,170 @@ window.goToTab = function(tabId) {
   </div>
 </div>
 <!-- ═══ END TICKETS COMP MODAL ════════════════════════════════════════════ -->
+
+<script>
+
+// AGREEMENTS MODULE
+(function() {
+var SIGN_BASE_URL = 'https://portal.ctrlmanagement.com/license-sign.html';
+var _agFilter = 'all';
+var _agreements = [];
+var _viewAgId = null;
+
+async function loadAgreements() {
+  document.getElementById('agreementsTableBody').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--ash);"><div class="spinner" style="margin:0 auto;"></div></td></tr>';
+  try {
+    var res = await supabaseClient.from('license_agreements').select('*').order('created_at', {ascending:false});
+    if (res.error) throw res.error;
+    _agreements = res.data || [];
+    renderAgreementsTable();
+    updateAgreementStats();
+    updateAgreementsBadge();
+  } catch(e) {
+    document.getElementById('agreementsTableBody').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--ember);">Error: '+e.message+'</td></tr>';
+  }
+}
+
+function updateAgreementStats() {
+  document.getElementById('agStatTotal').textContent   = _agreements.length;
+  document.getElementById('agStatSigned').textContent  = _agreements.filter(function(a){return a.status==='signed';}).length;
+  document.getElementById('agStatPending').textContent = _agreements.filter(function(a){return a.status==='pending';}).length;
+  document.getElementById('agStatVoided').textContent  = _agreements.filter(function(a){return a.status==='voided';}).length;
+}
+
+function updateAgreementsBadge() {
+  var n = _agreements.filter(function(a){return a.status==='pending';}).length;
+  var b = document.getElementById('agreementsPendingBadge');
+  if (b) { b.textContent = n; b.style.display = n > 0 ? 'inline' : 'none'; }
+}
+
+function renderAgreementsTable() {
+  var tbody = document.getElementById('agreementsTableBody');
+  var filtered = _agFilter === 'all' ? _agreements : _agreements.filter(function(a){return a.status===_agFilter;});
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--ash);">No agreements found.</td></tr>';
+    return;
+  }
+  var SC = {pending:'var(--gold-warm)',signed:'#81C784',voided:'var(--ash)'};
+  var SB = {pending:'rgba(212,168,67,0.08)',signed:'rgba(76,175,80,0.08)',voided:'transparent'};
+  var SD = {pending:'rgba(212,168,67,0.4)',signed:'rgba(76,175,80,0.4)',voided:'var(--graphite)'};
+  tbody.innerHTML = filtered.map(function(a) {
+    var sent   = new Date(a.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    var signed = a.signed_at ? new Date(a.signed_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '&mdash;';
+    var sc=SC[a.status]||'var(--ash)', sb=SB[a.status]||'transparent', sd=SD[a.status]||'var(--graphite)';
+    var actions = '<button class="table-action-btn" onclick="viewAgreement(\''+a.id+'\')">View</button>';
+    if (a.status==='pending') actions += '<button class="table-action-btn" style="margin-left:6px;" onclick="resendAgreementSMS(\''+a.id+'\')">Resend</button>';
+    if (a.status==='signed')  actions += '<button class="table-action-btn" style="margin-left:6px;color:#81C784;border-color:rgba(76,175,80,0.3);" onclick="viewSignedPDF(\''+a.id+'\')">PDF</button>';
+    return '<tr><td class="td-name">'+a.org_name+'</td><td>'+a.contact_name+'</td><td style="font-size:12px;">'+a.email+'<br><span style="color:var(--ash);">'+a.phone+'</span></td><td style="font-size:12px;color:var(--ash);">'+sent+'</td><td><span style="display:inline-flex;padding:3px 10px;border-radius:999px;font-family:var(--font-label);font-size:9px;letter-spacing:0.15em;border:1px solid '+sd+';background:'+sb+';color:'+sc+';">'+a.status.toUpperCase()+'</span></td><td style="font-size:12px;color:var(--ash);">'+signed+'</td><td style="white-space:nowrap;">'+actions+'</td></tr>';
+  }).join('');
+}
+
+window.agreementsFilter = function(btn, filter) {
+  _agFilter = filter;
+  document.querySelectorAll('#tab-agreements .res-filter').forEach(function(b){b.classList.toggle('active',b===btn);});
+  renderAgreementsTable();
+};
+
+window.openSendAgreementModal = function() {
+  ['agOrgName','agContactName','agEmail','agPhone','agNote'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('agSendMsg').textContent='';
+  document.getElementById('agSendBtn').disabled=false;
+  document.getElementById('sendAgreementModal').classList.add('open');
+};
+
+window.closeSendAgreementModal = function() {
+  document.getElementById('sendAgreementModal').classList.remove('open');
+};
+
+window.sendAgreement = async function() {
+  var org   = document.getElementById('agOrgName').value.trim();
+  var name  = document.getElementById('agContactName').value.trim();
+  var email = document.getElementById('agEmail').value.trim();
+  var phone = document.getElementById('agPhone').value.trim();
+  var note  = document.getElementById('agNote').value.trim();
+  var msg   = document.getElementById('agSendMsg');
+  if (!org||!name||!email||!phone) { msg.textContent='All fields except Note are required.'; return; }
+  document.getElementById('agSendBtn').disabled=true;
+  msg.style.color='var(--ash)'; msg.textContent='Creating agreement...';
+  var token = crypto.randomUUID();
+  var signingUrl = SIGN_BASE_URL+'?token='+token;
+  try {
+    var ins = await supabaseClient.from('license_agreements').insert({org_name:org,contact_name:name,email:email,phone:phone,note:note||null,token:token,status:'pending'});
+    if (ins.error) throw ins.error;
+    msg.textContent='Sending SMS...';
+    var smsBody = 'Hi '+name+', ctrl has sent you a License Agreement to review and sign:\n\n'+signingUrl+'\n\n\u2014 ctrl Management';
+    try { await supabaseClient.functions.invoke('send-sms',{body:{to:phone,message:smsBody}}); } catch(se){ console.warn('SMS:',se); }
+    showToast('Agreement sent!','gold');
+    closeSendAgreementModal();
+    loadAgreements();
+  } catch(e) {
+    msg.style.color='var(--ember)'; msg.textContent='Error: '+e.message;
+    document.getElementById('agSendBtn').disabled=false;
+  }
+};
+
+window.viewAgreement = function(id) {
+  _viewAgId = id;
+  var a = _agreements.find(function(x){return x.id===id;}); if(!a) return;
+  var signingUrl = SIGN_BASE_URL+'?token='+a.token;
+  document.getElementById('viewAgTitle').textContent = a.org_name;
+  var SC={pending:'var(--gold-warm)',signed:'#81C784',voided:'var(--ash)'};
+  var sc=SC[a.status]||'var(--ash)';
+  var bodyHtml = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 24px;background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:16px;margin-bottom:16px;">'
+    +'<div><div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-bottom:3px;">ORGANIZATION</div><div>'+a.org_name+'</div></div>'
+    +'<div><div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-bottom:3px;">CONTACT</div><div>'+a.contact_name+'</div></div>'
+    +'<div><div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-bottom:3px;">EMAIL</div><div>'+a.email+'</div></div>'
+    +'<div><div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-bottom:3px;">PHONE</div><div>'+a.phone+'</div></div>'
+    +'<div><div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-bottom:3px;">STATUS</div><div style="color:'+sc+';font-weight:500;">'+a.status.toUpperCase()+'</div></div>'
+    +'<div><div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-bottom:3px;">SENT</div><div>'+new Date(a.created_at).toLocaleString()+'</div></div>';
+  if (a.signed_at) bodyHtml += '<div style="grid-column:span 2;"><div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-bottom:3px;">SIGNED AT</div><div style="color:#81C784;">'+new Date(a.signed_at).toLocaleString()+'</div></div>';
+  if (a.signed_name) bodyHtml += '<div style="grid-column:span 2;"><div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-bottom:3px;">SIGNED BY</div><div>'+a.signed_name+'</div></div>';
+  if (a.note) bodyHtml += '<div style="grid-column:span 2;"><div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-bottom:3px;">NOTE</div><div style="color:var(--mist);">'+a.note+'</div></div>';
+  bodyHtml += '</div><div style="background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:12px 16px;word-break:break-all;"><div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-bottom:6px;">SIGNING LINK</div><a href="'+signingUrl+'" target="_blank" style="color:var(--gold-warm);font-size:12px;">'+signingUrl+'</a></div>';
+  document.getElementById('viewAgBody').innerHTML = bodyHtml;
+  document.getElementById('viewAgVoidBtn').style.display = (a.status==='pending') ? 'inline-flex' : 'none';
+  document.getElementById('viewAgCopyBtn').textContent = a.status==='signed' ? '&#10003; Signed' : 'Copy Link';
+  document.getElementById('viewAgreementModal').classList.add('open');
+};
+
+window.copySigningLink = function() {
+  var a = _agreements.find(function(x){return x.id===_viewAgId;}); if(!a) return;
+  navigator.clipboard.writeText(SIGN_BASE_URL+'?token='+a.token);
+  showToast('Link copied!','gold');
+};
+
+window.voidAgreement = async function() {
+  if(!_viewAgId) return;
+  if(!confirm('Void this agreement? The signing link will stop working.')) return;
+  var res = await supabaseClient.from('license_agreements').update({status:'voided'}).eq('id',_viewAgId);
+  if(res.error){showToast('Error: '+res.error.message);return;}
+  document.getElementById('viewAgreementModal').classList.remove('open');
+  showToast('Agreement voided.','gold');
+  loadAgreements();
+};
+
+window.resendAgreementSMS = async function(id) {
+  var a = _agreements.find(function(x){return x.id===id;}); if(!a) return;
+  var signingUrl = SIGN_BASE_URL+'?token='+a.token;
+  var smsBody = 'Hi '+a.contact_name+', here is your License Agreement signing link from ctrl:\n\n'+signingUrl;
+  try {
+    await supabaseClient.functions.invoke('send-sms',{body:{to:a.phone,message:smsBody}});
+    showToast('SMS resent!','gold');
+  } catch(e){ showToast('SMS failed: '+e.message); }
+};
+
+window.viewSignedPDF = function(id) {
+  var a = _agreements.find(function(x){return x.id===id;}); if(!a) return;
+  window.open(SIGN_BASE_URL+'?token='+a.token,'_blank');
+};
+
+var _prevGoToTabAg = window.goToTab;
+window.goToTab = function(tabId) {
+  if(typeof _prevGoToTabAg==='function') _prevGoToTabAg(tabId);
+  if(tabId==='agreements') loadAgreements();
+};
+})();
+
+
+</script>
 </body></html>
