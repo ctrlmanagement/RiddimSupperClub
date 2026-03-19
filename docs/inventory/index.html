@@ -11,6 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -297,14 +298,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
         <h1 class="page-title">Scan & Count</h1>
         <p class="page-sub" id="countWeekLabel">—</p>
       </div>
-      <div class="loc-tabs">
-        <button class="loc-tab active" data-loc="LR" onclick="setLocation('LR',this)">📦 Liquor Room</button>
-        <button class="loc-tab" data-loc="BAR1" onclick="setLocation('BAR1',this)">🍸 Bar 1</button>
-        <button class="loc-tab" data-loc="BAR2" onclick="setLocation('BAR2',this)">🍸 Bar 2</button>
-        <button class="loc-tab" data-loc="BAR3" onclick="setLocation('BAR3',this)">🍸 Bar 3</button>
-        <button class="loc-tab" data-loc="BAR4" onclick="setLocation('BAR4',this)">🍸 Bar 4</button>
-        <button class="loc-tab" data-loc="SVC" onclick="setLocation('SVC',this)">🥂 Service</button>
-      </div>
+      <div id="locTabsContainer" class="loc-tabs"></div>
       <div id="sessionBanner" class="session-banner"></div>
       <div id="countGrid" style="display:grid;grid-template-columns:300px 1fr;gap:20px;">
         <!-- Scanner panel -->
@@ -394,6 +388,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
         <input type="file" id="importFile" accept=".xls,.xlsx,.csv" style="display:none;" onchange="handleImportFile(this)"/>
         <div id="importStatus" style="margin-top:12px;font-size:13px;color:var(--ash);"></div>
         <div id="importPreview" style="margin-top:16px;display:none;">
+          <div id="importLocDisplay"></div>
           <div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--inv-light);margin-bottom:10px;">PREVIEW — <span id="importCount">0</span> ITEMS</div>
           <div id="importPreviewList" style="max-height:240px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;"></div>
           <div style="display:flex;gap:10px;margin-top:16px;">
@@ -430,10 +425,6 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
         <select id="parLocFilter" onchange="renderPar()"
           style="background:var(--void);border:1px solid var(--graphite);color:var(--mist);padding:8px 14px;border-radius:6px;font-family:var(--font-body);font-size:13px;">
-          <option value="LR">Liquor Room</option>
-          <option value="BAR1">Bar 1</option><option value="BAR2">Bar 2</option>
-          <option value="BAR3">Bar 3</option><option value="BAR4">Bar 4</option>
-          <option value="SVC">Service</option>
         </select>
         <button onclick="savePar()"
           style="padding:9px 20px;background:linear-gradient(135deg,var(--owner-accent),var(--owner-gold));border:none;border-radius:6px;color:#fff;font-family:var(--font-label);font-size:12px;letter-spacing:0.12em;cursor:pointer;">✓ Save PAR</button>
@@ -508,8 +499,29 @@ const SUPABASE_KEY      = 'sb_publishable_fQlHFhC7tPkZNRl1djnvcA_68LpKQpv';
 const GOOGLE_CLIENT_ID  = '46572233442-7ppaitpmvnm0vvmj6uqk0683rsocka9a.apps.googleusercontent.com';
 const OWNER_EMAILS      = ['inquiry@ctrlmanagement.com','gebriel@ctrlmanagement.com'];
 const DEV_MODE          = true;
-const INV_LOCATIONS     = ['LR','BAR1','BAR2','BAR3','BAR4','SVC'];
-const INV_CAT_ORDER     = ['COGNAC','VODKA','WHISKEY','TEQUILA','RUM','GIN','SCOTCH','CORDIAL','CHAMPAGNE','BEER','BEVERAGE'];
+
+// ── LOCATION CONFIG — scalable to 10 bars ──────────────────────────
+// active:false bars are defined but hidden until physically opened
+const BAR_CONFIG = [
+  { id:'LR',    label:'Liquor Room', emoji:'📦', pos:null,     active:true  },
+  { id:'BAR1',  label:'Bar 1',       emoji:'🍸', pos:'POS 1',  active:true  },
+  { id:'BAR2',  label:'Bar 2',       emoji:'🍸', pos:'POS 2',  active:true  },
+  { id:'BAR3',  label:'Bar 3',       emoji:'🍸', pos:'POS 3',  active:true  },
+  { id:'BAR4',  label:'Bar 4',       emoji:'🍸', pos:'POS 4',  active:true  },
+  { id:'BAR5',  label:'SVC',         emoji:'🥂', pos:'POS 7',  active:true  },
+  { id:'BAR6',  label:'Bar 6',       emoji:'🍸', pos:'POS 5',  active:false },
+  { id:'BAR7',  label:'Bar 7',       emoji:'🍸', pos:'POS 6',  active:false },
+  { id:'BAR8',  label:'Bar 8',       emoji:'🍸', pos:'POS 8',  active:false },
+  { id:'BAR9',  label:'Bar 9',       emoji:'🍸', pos:'POS 9',  active:false },
+  { id:'BAR10', label:'Bar 10',      emoji:'🍸', pos:'POS 10', active:false },
+];
+const ACTIVE_LOCATIONS = BAR_CONFIG.filter(b => b.active).map(b => b.id);
+const INV_LOCATIONS    = BAR_CONFIG.map(b => b.id);
+// Hot Sauce POS workstation name → bar location ID
+const POS_TO_LOCATION  = Object.fromEntries(
+  BAR_CONFIG.filter(b => b.pos).map(b => [b.pos, b.id])
+);
+const INV_CAT_ORDER = ['COGNAC','VODKA','WHISKEY','TEQUILA','RUM','GIN','SCOTCH','CORDIAL','CHAMPAGNE','BEER','BEVERAGE'];
 
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -517,7 +529,7 @@ let currentUser = null;
 let invProducts = [], invProductsF = [], invPars = {}, invPending = {};
 let invCounts = {}, invSession = null, invLocation = 'LR';
 let invScanProduct = null, fillVal = 1.0, invScanner = null;
-let pendingImport = [], invOrders = [];
+let pendingImport = [], pendingImportLocation = null, invOrders = [];
 let loginPhone = '', otpCode = '', resendInterval = null;
 
 // ── TOAST ──────────────────────────────────────────────────────────
@@ -668,6 +680,8 @@ async function enterPortal() {
   document.getElementById('navRoleBadge').textContent = roleLabel + ' · Inventory';
   document.getElementById('countWeekLabel').textContent = 'Week of ' + new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
   if (isMgr) document.querySelectorAll('.mgr-only').forEach(el => el.classList.add('show'));
+  renderLocTabs();
+  renderParLocSelect();
   await loadProducts();
   await loadPars();
   await loadSession();
@@ -870,46 +884,153 @@ async function deleteCount(pid) {
   delete invCounts[pid]; renderCountList(); renderSessionBanner();
 }
 
-// ── IMPORT ─────────────────────────────────────────────────────────
-function handleImportDrop(e) { e.preventDefault(); document.getElementById('importDropZone').style.borderColor='rgba(74,159,138,0.35)'; const f=e.dataTransfer.files[0]; if(f) parseImportFile(f); }
-function handleImportFile(input) { if(input.files[0]) parseImportFile(input.files[0]); }
-function parseImportFile(file) {
-  document.getElementById('importStatus').textContent = 'Parsing file…';
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      const lines = e.target.result.split(/\r?\n/); const items = []; let cat = '';
-      for (const line of lines) {
-        const cols = line.split(',').map(c => c.replace(/^"|"$/g,'').trim());
-        if (cols[0].startsWith('SU_') && !cols[0].includes('Total')) { cat = cols[0].replace('SU_',''); }
-        else if (cols[0] && !isNaN(parseFloat(cols[0])) && parseFloat(cols[0]) > 100) {
-          const posId=parseInt(cols[0]), name=cols[1]||'', qty=parseFloat(cols[4])||1;
-          if (name) { const matched = invProducts.find(p => p.pos_item_id===posId || p.name.toLowerCase()===name.toLowerCase() || (p.pos_name&&p.pos_name.toLowerCase()===name.toLowerCase())); items.push({ posId, name, category: cat, qty, matched }); }
-        }
-      }
-      pendingImport = items; renderImportPreview(items);
-    } catch(err) { document.getElementById('importStatus').textContent = 'Parse error — use CSV export'; }
-  };
-  reader.readAsText(file);
+// ── LOCATION TABS (dynamic) ────────────────────────────────────────
+function renderLocTabs() {
+  const container = document.getElementById('locTabsContainer');
+  if (!container) return;
+  container.innerHTML = ACTIVE_LOCATIONS.map((id, i) => {
+    const b = BAR_CONFIG.find(x => x.id === id);
+    return `<button class="loc-tab${i===0?' active':''}" data-loc="${id}" onclick="setLocation('${id}',this)">${b.emoji} ${b.label}</button>`;
+  }).join('');
 }
-function renderImportPreview(items) {
-  if (!items.length) { document.getElementById('importStatus').textContent = 'No STOCK_UP items found'; return; }
+
+function renderParLocSelect() {
+  const sel = document.getElementById('parLocFilter');
+  if (!sel) return;
+  sel.innerHTML = ACTIVE_LOCATIONS.map(id => {
+    const b = BAR_CONFIG.find(x => x.id === id);
+    return `<option value="${id}">${b.label}</option>`;
+  }).join('');
+}
+
+// ── IMPORT (SheetJS — handles real Hot Sauce XLS) ─────────────────
+function handleImportDrop(e) {
+  e.preventDefault();
+  document.getElementById('importDropZone').style.borderColor='rgba(74,159,138,0.35)';
+  const f = e.dataTransfer.files[0]; if (f) parseImportFile(f);
+}
+function handleImportFile(input) { if (input.files[0]) parseImportFile(input.files[0]); }
+
+async function parseImportFile(file) {
+  document.getElementById('importStatus').textContent = 'Parsing file…';
+  pendingImport = []; pendingImportLocation = null;
+  try {
+    const buf  = await file.arrayBuffer();
+    const wb   = XLSX.read(buf, { type:'array', cellDates:true });
+    const ws   = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, { header:1, defval:'' });
+
+    // Detect workstation → bar location + report date from header rows
+    let reportDate = '';
+    for (let i = 0; i < Math.min(15, rows.length); i++) {
+      const cell = String(rows[i][0] || '').trim();
+      if (cell.startsWith('Workstation:')) {
+        const wsName = cell.replace('Workstation:','').trim();
+        pendingImportLocation = POS_TO_LOCATION[wsName] || null;
+      }
+      if (cell.startsWith('Report Period:')) {
+        const m = cell.match(/(\d{1,2}\/\d{1,2}\/\d{4})/);
+        if (m) reportDate = m[1];
+      }
+    }
+
+    // Parse STOCK_UP line items
+    // Col 0: POS ID (numeric) or category (SU_COGNAC) or totals
+    // Col 1: Product name
+    // Col 3: Num Sold = bottles pulled from LR to this bar
+    let currentCat = '';
+    const items = [];
+    for (const row of rows) {
+      const col0 = String(row[0] || '').trim();
+      const col1 = String(row[1] || '').trim();
+      const col3 = row[3];
+      if (/^SU_[A-Z]+$/.test(col0) && !col0.includes('Total')) {
+        currentCat = col0.replace('SU_',''); continue;
+      }
+      const posId = parseInt(col0);
+      if (!isNaN(posId) && posId > 100 && col1 && !col0.includes('Total')) {
+        const qty = parseFloat(col3) || 0;
+        if (qty <= 0) continue;
+        const matched = invProducts.find(p =>
+          p.pos_item_id === posId ||
+          p.name.toLowerCase() === col1.toLowerCase()
+        );
+        items.push({ posId, name: col1, category: currentCat, qty, matched });
+      }
+    }
+    pendingImport = items;
+    renderImportPreview(items, reportDate);
+  } catch(err) {
+    document.getElementById('importStatus').textContent = 'Parse error — check file format';
+    console.error('Import parse error:', err);
+  }
+}
+
+function renderImportPreview(items, reportDate='') {
+  if (!items.length) { document.getElementById('importStatus').textContent = 'No STOCK_UP items found in file'; return; }
   document.getElementById('importStatus').textContent = '';
   document.getElementById('importPreview').style.display = 'block';
   document.getElementById('importCount').textContent = items.length;
-  document.getElementById('importPreviewList').innerHTML = items.map(item => `<div class="import-row ${item.matched?'':'unmatched'}"><div class="import-row-name">${item.name} <span style="font-size:10px;color:var(--ash);margin-left:6px;">${item.category}</span>${!item.matched?'<span style="font-size:10px;color:var(--gold-warm);margin-left:6px;">⚠ unmatched</span>':''}</div><div class="import-row-qty">×${item.qty}</div></div>`).join('');
+
+  // Location banner — detected from POS workstation or manual override
+  const barConf    = BAR_CONFIG.find(b => b.id === pendingImportLocation);
+  const needsManual = !pendingImportLocation;
+  document.getElementById('importLocDisplay').innerHTML = `
+    <div style="margin-bottom:14px;padding:12px 16px;border-radius:8px;border:1px solid ${needsManual?'rgba(212,168,67,0.4)':'rgba(74,159,138,0.35)'};background:${needsManual?'rgba(212,168,67,0.05)':'rgba(74,159,138,0.06)'};display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+      <div>
+        <div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:${needsManual?'var(--gold-warm)':'var(--inv-light)'};">
+          ${needsManual ? '⚠ WORKSTATION NOT DETECTED — SELECT BAR' : '✓ AUTO-ROUTED TO'}
+        </div>
+        ${!needsManual ? `<div style="font-size:14px;color:var(--ivory);margin-top:3px;">${barConf.emoji} ${barConf.label}${reportDate?' <span style="font-size:11px;color:var(--ash);"> · '+reportDate+'</span>':''}</div>` : ''}
+      </div>
+      ${needsManual ? `
+        <select id="locOverrideSelect" onchange="pendingImportLocation=this.value"
+          style="background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:7px 12px;color:var(--ivory);font-family:var(--font-body);font-size:13px;flex:1;min-width:160px;">
+          <option value="">— Select Bar —</option>
+          ${BAR_CONFIG.filter(b=>b.active&&b.id!=='LR').map(b=>`<option value="${b.id}">${b.emoji} ${b.label} (${b.pos||'No POS'})</option>`).join('')}
+        </select>` : ''}
+    </div>`;
+
+  document.getElementById('importPreviewList').innerHTML = items.map(item =>
+    `<div class="import-row ${item.matched?'':'unmatched'}">
+      <div class="import-row-name">${item.name}
+        <span style="font-size:10px;color:var(--ash);margin-left:6px;">${item.category}</span>
+        ${!item.matched?'<span style="font-size:10px;color:var(--gold-warm);margin-left:6px;">⚠ unmatched</span>':''}
+      </div>
+      <div class="import-row-qty">×${item.qty}</div>
+    </div>`
+  ).join('');
 }
+
 async function confirmImport() {
   if (!pendingImport.length) return;
+  if (!pendingImportLocation) { showToast('Select a bar location first',''); return; }
+  const loc = pendingImportLocation;
   const importId = crypto.randomUUID(), today = new Date().toISOString().slice(0,10);
-  const { error } = await sb.from('inv_stock_ups').insert(pendingImport.map(item => ({ import_id:importId, pos_item_id:item.posId, pos_name:item.name, pos_category:'SU_'+item.category, product_id:item.matched?.id||null, quantity:item.qty, from_location:'LR', report_date:today, imported_by:currentUser.phone })));
-  if (error) { showToast('Import failed', ''); return; }
-  document.getElementById('importPreview').style.display = 'none';
-  document.getElementById('importStatus').textContent = `✓ ${pendingImport.length} items imported`;
-  pendingImport = []; document.getElementById('importFile').value = '';
-  showToast('Stock up imported', 'success');
+  const { error } = await sb.from('inv_stock_ups').insert(
+    pendingImport.map(item => ({
+      import_id: importId, pos_item_id: item.posId, pos_name: item.name,
+      pos_category: 'SU_'+item.category, product_id: item.matched?.id||null,
+      quantity: item.qty, from_location:'LR', to_location: loc,
+      report_date: today, imported_by: currentUser.phone
+    }))
+  );
+  if (error) { showToast('Import failed',''); return; }
+  const barLabel = BAR_CONFIG.find(b=>b.id===loc)?.label || loc;
+  document.getElementById('importPreview').style.display='none';
+  document.getElementById('importLocDisplay').innerHTML='';
+  document.getElementById('importStatus').textContent=`✓ ${pendingImport.length} items imported → ${barLabel}`;
+  pendingImport=[]; pendingImportLocation=null; document.getElementById('importFile').value='';
+  showToast(`Stock up imported → ${barLabel}`, 'success');
 }
-function cancelImport() { pendingImport=[]; document.getElementById('importPreview').style.display='none'; document.getElementById('importStatus').textContent=''; document.getElementById('importFile').value=''; }
+
+function cancelImport() {
+  pendingImport=[]; pendingImportLocation=null;
+  document.getElementById('importPreview').style.display='none';
+  document.getElementById('importLocDisplay').innerHTML='';
+  document.getElementById('importStatus').textContent='';
+  document.getElementById('importFile').value='';
+}
 
 // ── HOUSE ──────────────────────────────────────────────────────────
 async function renderHouse() {
@@ -918,7 +1039,7 @@ async function renderHouse() {
   grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--ash);grid-column:1/-1;">Loading…</div>';
   const today = new Date().toISOString().slice(0,10);
   const allCounts = {};
-  for (const loc of INV_LOCATIONS) {
+  for (const loc of ACTIVE_LOCATIONS) {
     const { data: sessions } = await sb.from('inv_sessions').select('id').eq('location',loc).eq('week_of',today).order('opened_at',{ascending:false}).limit(1);
     if (!sessions?.length) continue;
     const { data: counts } = await sb.from('inv_counts').select('product_id, quantity').eq('session_id', sessions[0].id);
@@ -928,7 +1049,7 @@ async function renderHouse() {
   invProducts.forEach(p => {
     if (cat && p.category !== cat) return;
     if (!cats[p.category]) cats[p.category] = [];
-    const qty = allCounts[p.id]||0, par = INV_LOCATIONS.reduce((s,l) => s+(invPars[p.id]?.[l]||0), 0);
+    const qty = allCounts[p.id]||0, par = ACTIVE_LOCATIONS.reduce((s,l) => s+(invPars[p.id]?.[l]||0), 0);
     cats[p.category].push({ p, qty, par });
   });
   const sorted = INV_CAT_ORDER.filter(c => cats[c]).concat(Object.keys(cats).filter(c => !INV_CAT_ORDER.includes(c)));
@@ -976,13 +1097,13 @@ async function generateOrders() {
   const grid = document.getElementById('ordersGrid');
   grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--ash);">Calculating…</div>';
   const today = new Date().toISOString().slice(0,10), allCounts = {};
-  for (const loc of INV_LOCATIONS) {
+  for (const loc of ACTIVE_LOCATIONS) {
     const { data: sessions } = await sb.from('inv_sessions').select('id').eq('location',loc).eq('week_of',today).order('opened_at',{ascending:false}).limit(1);
     if (!sessions?.length) continue;
     const { data: counts } = await sb.from('inv_counts').select('product_id, quantity').eq('session_id', sessions[0].id);
     if (counts) counts.forEach(c => { allCounts[c.product_id]=(allCounts[c.product_id]||0)+c.quantity; });
   }
-  invOrders = invProducts.map(p => { const end=allCounts[p.id]||0, par=INV_LOCATIONS.reduce((s,l)=>s+(invPars[p.id]?.[l]||0),0), suggested=Math.max(0,par-end)>0?Math.ceil((par-end)/(p.case_size||1)):0; return {p,end,par,suggested,confirmed:suggested}; }).filter(r=>r.par>0);
+  invOrders = invProducts.map(p => { const end=allCounts[p.id]||0, par=ACTIVE_LOCATIONS.reduce((s,l)=>s+(invPars[p.id]?.[l]||0),0), suggested=Math.max(0,par-end)>0?Math.ceil((par-end)/(p.case_size||1)):0; return {p,end,par,suggested,confirmed:suggested}; }).filter(r=>r.par>0);
   renderOrdersView();
 }
 function renderOrdersView() {

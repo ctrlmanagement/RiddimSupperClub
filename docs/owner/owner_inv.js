@@ -1,12 +1,28 @@
 /* ═══════════════════════════════════════════════════════════════════
-   DOOR 64 — OWNER INVENTORY MANAGER
-   owner_inv.js · Session 59 · March 2026
+   AG ENTERTAINMENT — OWNER INVENTORY MANAGER
+   owner_inv.js · Session 60 · March 2026
    Depends on: supabaseClient, showToast, goToTab (owner portal)
-   New S59: inv_cost_periods, inv_cost_lines, inv_sales_entries
+   S59: inv_cost_periods, inv_cost_lines, inv_sales_entries
+   S60: inv_distributors, inv_price_history, BAR_CONFIG scalable
    ═══════════════════════════════════════════════════════════════════ */
 
-const INV_LOCATIONS     = ['LR','BAR1','BAR2','BAR3','BAR4','SVC'];
-const INV_BAR_LOCATIONS = ['BAR1','BAR2','BAR3','BAR4','SVC'];
+// ── LOCATION CONFIG (mirrors inventory/index.html) ─────────────────
+const BAR_CONFIG = [
+  { id:'LR',    label:'Liquor Room', pos:null,     active:true  },
+  { id:'BAR1',  label:'Bar 1',       pos:'POS 1',  active:true  },
+  { id:'BAR2',  label:'Bar 2',       pos:'POS 2',  active:true  },
+  { id:'BAR3',  label:'Bar 3',       pos:'POS 3',  active:true  },
+  { id:'BAR4',  label:'Bar 4',       pos:'POS 4',  active:true  },
+  { id:'BAR5',  label:'SVC',         pos:'POS 7',  active:true  },
+  { id:'BAR6',  label:'Bar 6',       pos:'POS 5',  active:false },
+  { id:'BAR7',  label:'Bar 7',       pos:'POS 6',  active:false },
+  { id:'BAR8',  label:'Bar 8',       pos:'POS 8',  active:false },
+  { id:'BAR9',  label:'Bar 9',       pos:'POS 9',  active:false },
+  { id:'BAR10', label:'Bar 10',      pos:'POS 10', active:false },
+];
+const INV_LOCATIONS     = BAR_CONFIG.map(b => b.id);
+const ACTIVE_LOCATIONS  = BAR_CONFIG.filter(b => b.active).map(b => b.id);
+const INV_BAR_LOCATIONS = BAR_CONFIG.filter(b => b.active && b.id !== 'LR').map(b => b.id);
 const INV_CAT_ORDER     = ['COGNAC','VODKA','WHISKEY','TEQUILA','RUM','GIN','SCOTCH','CORDIAL','CHAMPAGNE','BEER','BEVERAGE'];
 
 let invMgrTab        = 'staff';
@@ -14,6 +30,9 @@ let invMgrProducts   = [];
 let invMgrPars       = {};
 let invMgrPending    = {};
 let invMgrOrders     = [];
+let invMgrProductsF  = [];
+let invStaffList     = [];
+let invDistributors  = [];   // inv_distributors cache
 let invMgrProductsF  = [];
 let invStaffList     = [];
 
@@ -27,14 +46,20 @@ let costReportLoc     = 'house'; // 'house' | 'BAR1' … 'SVC'
 let costPeriodFilter  = 'week'; // 'week' | 'biweek' | 'month' | 'quarter' | 'custom'
 
 async function invMgrInit() {
+  await invMgrLoadDistributors();
   await invMgrLoadProducts();
   await invMgrLoadPars();
   invMgrSetTab('staff', document.querySelector('.invmgr-tab[data-itab="staff"]'));
 }
 
+async function invMgrLoadDistributors() {
+  const { data } = await supabaseClient.from('inv_distributors').select('*').order('name');
+  invDistributors = data || [];
+}
+
 async function invMgrLoadProducts() {
   const { data } = await supabaseClient
-    .from('inv_products').select('*').eq('active', true).order('category').order('name');
+    .from('inv_products').select('*, inv_distributors(name)').order('category').order('name');
   invMgrProducts  = data || [];
   invMgrProductsF = [...invMgrProducts];
   const el = document.getElementById('invMgrProdCount');
@@ -54,16 +79,17 @@ function invMgrSetTab(tab, btn) {
   invMgrTab = tab;
   document.querySelectorAll('.invmgr-tab').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
-  ['staff','products','par','orders','house','cost'].forEach(t => {
+  ['staff','products','par','orders','house','cost','distributors'].forEach(t => {
     const el = document.getElementById(`invmgr-${t}-area`);
     if (el) el.style.display = t === tab ? 'block' : 'none';
   });
-  if (tab === 'staff')    invMgrRenderStaff();
-  if (tab === 'products') invMgrRenderProducts();
-  if (tab === 'par')      invMgrRenderPar();
-  if (tab === 'orders')   invMgrRenderOrders();
-  if (tab === 'house')    invMgrRenderHouse();
-  if (tab === 'cost')     costInit();
+  if (tab === 'staff')         invMgrRenderStaff();
+  if (tab === 'products')      invMgrRenderProducts();
+  if (tab === 'par')           invMgrRenderPar();
+  if (tab === 'orders')        invMgrRenderOrders();
+  if (tab === 'house')         invMgrRenderHouse();
+  if (tab === 'cost')          costInit();
+  if (tab === 'distributors')  invMgrRenderDistributors();
 }
 
 // ── STAFF ──────────────────────────────────────────────────────────
@@ -138,21 +164,52 @@ function openInvStaffModal() {
 function invMgrRenderProducts() {
   const tbody = document.getElementById('invMgrProductsBody');
   if (!tbody) return;
-  tbody.innerHTML = invMgrProductsF.map(p => `
-    <tr style="border-bottom:1px solid rgba(42,42,42,0.4);">
-      <td style="padding:12px 16px;font-size:13px;color:var(--ivory);font-weight:500;">${p.name}</td>
+  const showInactive = document.getElementById('invMgrShowInactive')?.checked;
+  const list = showInactive ? invMgrProductsF : invMgrProductsF.filter(p => p.active !== false);
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="8" style="padding:40px;text-align:center;color:var(--ash);font-style:italic;">No products found.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map(p => {
+    const distName = p.inv_distributors?.name || p.distributor || '—';
+    const inactive = p.active === false;
+    return `<tr style="border-bottom:1px solid rgba(42,42,42,0.4);opacity:${inactive?'0.5':'1'};">
+      <td style="padding:12px 16px;font-size:13px;color:var(--ivory);font-weight:500;">${p.name}${inactive?'<span style="font-size:9px;color:var(--ash);margin-left:8px;">INACTIVE</span>':''}</td>
       <td style="padding:12px 16px;font-size:12px;color:var(--ash);">${p.category}</td>
-      <td style="padding:12px 16px;font-size:12px;color:var(--mist);">${p.distributor || '—'}</td>
-      <td style="padding:12px 16px;font-size:13px;color:var(--mist);text-align:center;">${p.cost ? '$'+p.cost : '—'}</td>
-      <td style="padding:12px 16px;font-size:13px;color:var(--mist);text-align:center;">${p.case_size || '—'}</td>
-      <td style="padding:12px 16px;">
-        <input class="invmgr-upc-input ${p.upc ? 'has-upc' : ''}" type="text"
-          placeholder="Scan or enter UPC…" value="${p.upc || ''}" data-pid="${p.id}"
-          onchange="invMgrSaveUpc(this)" onfocus="this.select()" />
+      <td style="padding:12px 16px;font-size:12px;color:var(--mist);">${distName}</td>
+      <td style="padding:10px 12px;">
+        <input style="width:72px;background:var(--void);border:1px solid var(--graphite);border-radius:4px;padding:5px 7px;color:var(--ivory);font-family:var(--font-display);font-size:14px;text-align:center;outline:none;"
+          type="number" min="0" step="0.01" placeholder="0.00" value="${p.cost||''}"
+          data-pid="${p.id}" data-field="cost"
+          onchange="invMgrSaveProductField(this)" onfocus="this.select()"/>
       </td>
-    </tr>`).join('');
+      <td style="padding:10px 12px;">
+        <input style="width:56px;background:var(--void);border:1px solid var(--graphite);border-radius:4px;padding:5px 7px;color:var(--ivory);font-family:var(--font-display);font-size:14px;text-align:center;outline:none;"
+          type="number" min="1" step="1" placeholder="12" value="${p.case_size||''}"
+          data-pid="${p.id}" data-field="case_size"
+          onchange="invMgrSaveProductField(this)" onfocus="this.select()"/>
+      </td>
+      <td style="padding:10px 12px;">
+        <input style="width:72px;background:var(--void);border:1px solid var(--graphite);border-radius:4px;padding:5px 7px;color:var(--ivory);font-family:var(--font-body);font-size:12px;text-align:center;outline:none;"
+          type="text" placeholder="POS ID" value="${p.pos_item_id||''}"
+          data-pid="${p.id}" data-field="pos_item_id"
+          onchange="invMgrSaveProductField(this)" onfocus="this.select()"/>
+      </td>
+      <td style="padding:10px 12px;">
+        <input class="invmgr-upc-input ${p.upc ? 'has-upc' : ''}" type="text"
+          placeholder="UPC…" value="${p.upc || ''}" data-pid="${p.id}"
+          onchange="invMgrSaveUpc(this)" onfocus="this.select()"/>
+      </td>
+      <td style="padding:10px 12px;">
+        <button onclick="invMgrToggleProduct('${p.id}',${inactive})"
+          style="padding:4px 10px;border-radius:4px;border:1px solid ${inactive?'rgba(76,175,80,0.3)':'rgba(192,57,43,0.3)'};background:none;color:${inactive?'#81C784':'#E57373'};font-family:var(--font-label);font-size:9px;letter-spacing:0.1em;cursor:pointer;">
+          ${inactive ? 'Activate' : 'Deactivate'}
+        </button>
+      </td>
+    </tr>`;
+  }).join('');
   const el = document.getElementById('invMgrProdCount');
-  if (el) el.textContent = invMgrProductsF.length + ' products';
+  if (el) el.textContent = list.length + ' products';
 }
 
 function invMgrFilterProducts(q) {
@@ -160,10 +217,24 @@ function invMgrFilterProducts(q) {
     ? invMgrProducts.filter(p =>
         p.name.toLowerCase().includes(q.toLowerCase()) ||
         (p.category||'').toLowerCase().includes(q.toLowerCase()) ||
-        (p.distributor||'').toLowerCase().includes(q.toLowerCase()) ||
+        (p.inv_distributors?.name||p.distributor||'').toLowerCase().includes(q.toLowerCase()) ||
+        String(p.pos_item_id||'').includes(q) ||
         (p.upc||'').includes(q))
     : [...invMgrProducts];
   invMgrRenderProducts();
+}
+
+async function invMgrSaveProductField(input) {
+  const pid = input.dataset.pid, field = input.dataset.field;
+  let val = input.value.trim();
+  if (field === 'cost') val = parseFloat(val) || null;
+  else if (field === 'case_size') val = parseInt(val) || null;
+  else if (field === 'pos_item_id') val = parseInt(val) || null;
+  const { error } = await supabaseClient.from('inv_products').update({ [field]: val }).eq('id', pid);
+  if (error) { showToast('Error saving', ''); return; }
+  const p = invMgrProducts.find(x => x.id === pid);
+  if (p) p[field] = val;
+  showToast('Saved', 'success');
 }
 
 async function invMgrSaveUpc(input) {
@@ -174,6 +245,210 @@ async function invMgrSaveUpc(input) {
   if (p) p.upc = upc || null;
   input.classList.toggle('has-upc', !!upc);
   showToast(upc ? `UPC saved — ${p?.name}` : 'UPC cleared', 'success');
+}
+
+async function invMgrToggleProduct(id, currentlyInactive) {
+  const newActive = currentlyInactive;
+  const { error } = await supabaseClient.from('inv_products').update({ active: newActive }).eq('id', id);
+  if (error) { showToast('Error updating product', ''); return; }
+  const p = invMgrProducts.find(x => x.id === id);
+  if (p) p.active = newActive;
+  invMgrFilterProducts(document.getElementById('invMgrProdSearch')?.value || '');
+  showToast(newActive ? 'Product activated' : 'Product deactivated', 'success');
+}
+
+async function openAddProductModal() {
+  const name = prompt('Product name:');
+  if (!name?.trim()) return;
+  const cat = prompt(`Category:\n${INV_CAT_ORDER.join(' · ')}`);
+  if (!cat?.trim()) return;
+  const catUpper = cat.trim().toUpperCase();
+  if (!INV_CAT_ORDER.includes(catUpper)) { showToast('Invalid category', ''); return; }
+  const distChoice = invDistributors.length
+    ? prompt(`Distributor (enter number or leave blank):\n${invDistributors.map((d,i)=>`${i+1}. ${d.name}`).join('\n')}`)
+    : null;
+  const distId = invDistributors[parseInt(distChoice)-1]?.id || null;
+  const cost = parseFloat(prompt('Cost per bottle (e.g. 24.50):') || '0') || null;
+  const caseSize = parseInt(prompt('Case size (e.g. 12):') || '0') || null;
+  const posId = parseInt(prompt('POS Item ID from Hot Sauce (or leave blank):') || '0') || null;
+  const { data, error } = await supabaseClient.from('inv_products').insert({
+    name: name.trim(), category: catUpper, distributor_id: distId,
+    cost, case_size: caseSize, pos_item_id: posId, active: true
+  }).select('*, inv_distributors(name)').single();
+  if (error) { showToast('Error adding product', ''); return; }
+  invMgrProducts.unshift(data);
+  invMgrFilterProducts('');
+  showToast(`${name.trim()} added`, 'success');
+}
+
+// ── DISTRIBUTORS ───────────────────────────────────────────────────
+async function invMgrRenderDistributors() {
+  const area = document.getElementById('invmgr-distributors-area');
+  if (!area) return;
+  await invMgrLoadDistributors();
+  area.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+      <div>
+        <p style="font-family:var(--font-label);font-size:11px;letter-spacing:0.35em;color:var(--owner-gold);">PURCHASING</p>
+        <h2 style="font-family:var(--font-display);font-size:28px;font-weight:300;color:var(--ivory);">Distributors</h2>
+      </div>
+      <button onclick="openAddDistributorModal()"
+        style="padding:9px 18px;background:linear-gradient(135deg,var(--owner-accent),var(--owner-gold));border:none;border-radius:6px;color:#fff;font-family:var(--font-label);font-size:12px;letter-spacing:0.12em;cursor:pointer;">
+        + Add Distributor
+      </button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;" id="distCardGrid">
+      ${invDistributors.length ? invDistributors.map(d => distCard(d)).join('') :
+        '<div style="grid-column:1/-1;text-align:center;padding:48px;color:var(--ash);font-style:italic;">No distributors yet. Add your first rep.</div>'}
+    </div>`;
+}
+
+function distCard(d) {
+  return `<div style="background:var(--carbon);border:1px solid var(--graphite);border-radius:8px;padding:20px;${!d.active?'opacity:0.5':''}">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;">
+      <div>
+        <div style="font-family:var(--font-display);font-size:18px;font-weight:300;color:var(--ivory);">${d.name}</div>
+        ${d.active===false?'<span style="font-size:9px;color:var(--ash);letter-spacing:0.15em;font-family:var(--font-label);">INACTIVE</span>':''}
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button onclick="openPriceHistoryModal('${d.id}','${d.name.replace(/'/g,String.fromCharCode(92)+"'")}')"
+          style="padding:4px 10px;border-radius:4px;border:1px solid rgba(218,165,32,0.35);background:none;color:var(--owner-gold);font-family:var(--font-label);font-size:9px;letter-spacing:0.1em;cursor:pointer;">
+          $ Pricing
+        </button>
+        <button onclick="invMgrToggleDist('${d.id}',${d.active===false})"
+          style="padding:4px 10px;border-radius:4px;border:1px solid ${d.active===false?'rgba(76,175,80,0.3)':'rgba(192,57,43,0.3)'};background:none;color:${d.active===false?'#81C784':'#E57373'};font-family:var(--font-label);font-size:9px;cursor:pointer;">
+          ${d.active===false?'Activate':'Deactivate'}
+        </button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;">
+      <div><span style="color:var(--ash);">Rep</span><div style="color:var(--mist);margin-top:2px;">${d.rep_name||'—'}</div></div>
+      <div><span style="color:var(--ash);">Phone</span><div style="color:var(--mist);margin-top:2px;">${d.rep_phone||'—'}</div></div>
+      <div style="grid-column:1/-1;"><span style="color:var(--ash);">Email</span><div style="color:var(--mist);margin-top:2px;">${d.rep_email||'—'}</div></div>
+      ${d.notes?`<div style="grid-column:1/-1;"><span style="color:var(--ash);">Notes</span><div style="color:var(--ash);font-size:11px;margin-top:2px;">${d.notes}</div></div>`:''}
+    </div>
+  </div>`;
+}
+
+async function openAddDistributorModal() {
+  const name = prompt('Distributor name (e.g. Republic National):');
+  if (!name?.trim()) return;
+  const rep_name  = prompt('Rep name (optional):') || null;
+  const rep_phone = prompt('Rep phone (optional):') || null;
+  const rep_email = prompt('Rep email (optional):') || null;
+  const notes     = prompt('Notes (optional):') || null;
+  const { error } = await supabaseClient.from('inv_distributors')
+    .insert({ name: name.trim(), rep_name, rep_phone, rep_email, notes, active: true });
+  if (error) { showToast('Error adding distributor', ''); return; }
+  showToast(`${name.trim()} added`, 'success');
+  invMgrRenderDistributors();
+}
+
+async function invMgrToggleDist(id, currentlyInactive) {
+  await supabaseClient.from('inv_distributors').update({ active: !currentlyInactive }).eq('id', id);
+  showToast(currentlyInactive ? 'Distributor activated' : 'Distributor deactivated', 'success');
+  invMgrRenderDistributors();
+}
+
+async function openPriceHistoryModal(distId, distName) {
+  const { data: hist } = await supabaseClient
+    .from('inv_price_history')
+    .select('*, inv_products(name, category)')
+    .eq('distributor_id', distId)
+    .order('effective_date', { ascending: false })
+    .limit(50);
+  const rows = hist || [];
+  const existing = document.getElementById('priceHistModal');
+  if (existing) existing.remove();
+  const modal = document.createElement('div');
+  modal.id = 'priceHistModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;padding:20px;';
+  modal.innerHTML = `
+    <div style="background:var(--carbon);border:1px solid var(--graphite);border-radius:10px;width:100%;max-width:680px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,0.6);">
+      <div style="padding:20px 24px;border-bottom:1px solid var(--graphite);display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.3em;color:var(--owner-gold);">PRICING HISTORY</div>
+          <div style="font-family:var(--font-display);font-size:20px;font-weight:300;color:var(--ivory);margin-top:2px;">${distName}</div>
+        </div>
+        <button onclick="document.getElementById('priceHistModal').remove()"
+          style="background:none;border:none;color:var(--ash);font-size:22px;cursor:pointer;line-height:1;">×</button>
+      </div>
+      <div style="padding:16px 24px;border-bottom:1px solid var(--graphite);">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+          <div style="flex:1;min-width:160px;">
+            <div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-bottom:4px;">PRODUCT</div>
+            <select id="phProduct" style="width:100%;background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:8px 10px;color:var(--ivory);font-family:var(--font-body);font-size:13px;">
+              <option value="">— Select —</option>
+              ${invMgrProducts.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-bottom:4px;">BOTTLE PRICE</div>
+            <input id="phBottle" type="number" step="0.01" placeholder="0.00"
+              style="width:90px;background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:8px 10px;color:var(--ivory);font-family:var(--font-display);font-size:15px;outline:none;"/>
+          </div>
+          <div>
+            <div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-bottom:4px;">CASE PRICE</div>
+            <input id="phCase" type="number" step="0.01" placeholder="0.00"
+              style="width:90px;background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:8px 10px;color:var(--ivory);font-family:var(--font-display);font-size:15px;outline:none;"/>
+          </div>
+          <div>
+            <div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-bottom:4px;">EFFECTIVE DATE</div>
+            <input id="phDate" type="date" value="${new Date().toISOString().slice(0,10)}"
+              style="background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:8px 10px;color:var(--ivory);font-family:var(--font-body);font-size:13px;outline:none;"/>
+          </div>
+          <button onclick="logPriceEntry('${distId}')"
+            style="padding:9px 16px;background:linear-gradient(135deg,var(--owner-accent),var(--owner-gold));border:none;border-radius:6px;color:#fff;font-family:var(--font-label);font-size:11px;letter-spacing:0.12em;cursor:pointer;white-space:nowrap;">
+            + Log Price
+          </button>
+        </div>
+      </div>
+      <div style="overflow-y:auto;flex:1;padding:0 8px;">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <thead><tr style="border-bottom:1px solid var(--graphite);">
+            <th style="padding:10px 16px;text-align:left;font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);">PRODUCT</th>
+            <th style="padding:10px 12px;text-align:right;font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);">BOTTLE</th>
+            <th style="padding:10px 12px;text-align:right;font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);">CASE</th>
+            <th style="padding:10px 16px;text-align:left;font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);">EFFECTIVE</th>
+          </tr></thead>
+          <tbody>
+            ${rows.length ? rows.map(r => `
+              <tr style="border-bottom:1px solid rgba(42,42,42,0.35);">
+                <td style="padding:10px 16px;color:var(--ivory);">${r.inv_products?.name||'—'}<span style="font-size:10px;color:var(--ash);margin-left:6px;">${r.inv_products?.category||''}</span></td>
+                <td style="padding:10px 12px;text-align:right;font-family:var(--font-display);font-size:14px;color:var(--mist);">${r.price_per_bottle?'$'+Number(r.price_per_bottle).toFixed(2):'—'}</td>
+                <td style="padding:10px 12px;text-align:right;font-family:var(--font-display);font-size:14px;color:var(--mist);">${r.price_per_case?'$'+Number(r.price_per_case).toFixed(2):'—'}</td>
+                <td style="padding:10px 16px;color:var(--ash);font-size:12px;">${r.effective_date}</td>
+              </tr>`).join('') :
+              '<tr><td colspan="4" style="padding:32px;text-align:center;color:var(--ash);font-style:italic;">No price history yet.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+}
+
+async function logPriceEntry(distId) {
+  const productId = document.getElementById('phProduct')?.value;
+  const bottle    = parseFloat(document.getElementById('phBottle')?.value) || null;
+  const casePrice = parseFloat(document.getElementById('phCase')?.value) || null;
+  const effDate   = document.getElementById('phDate')?.value;
+  if (!productId) { showToast('Select a product', ''); return; }
+  if (!bottle && !casePrice) { showToast('Enter at least one price', ''); return; }
+  const { error } = await supabaseClient.from('inv_price_history').insert({
+    distributor_id: distId, product_id: productId,
+    price_per_bottle: bottle, price_per_case: casePrice,
+    effective_date: effDate, created_by: 'owner'
+  });
+  if (error) { showToast('Error logging price', ''); return; }
+  if (bottle) {
+    await supabaseClient.from('inv_products').update({ cost: bottle, distributor_id: distId }).eq('id', productId);
+    const p = invMgrProducts.find(x => x.id === productId);
+    if (p) { p.cost = bottle; p.distributor_id = distId; }
+  }
+  showToast('Price logged — cost updated', 'success');
+  const distName = invDistributors.find(d=>d.id===distId)?.name || '';
+  openPriceHistoryModal(distId, distName);
 }
 
 // ── PAR ────────────────────────────────────────────────────────────
