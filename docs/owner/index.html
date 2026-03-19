@@ -818,7 +818,10 @@
 
 <div class="modal-overlay" id="viewAgreementModal">
   <div class="modal-card" style="max-width:520px;">
-    <div class="modal-title" id="viewAgTitle">Agreement</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0;">
+      <div class="modal-title" id="viewAgTitle" style="margin-bottom:0;">Agreement</div>
+      <button onclick="document.getElementById('viewAgreementModal').classList.remove('open')" style="background:none;border:none;color:var(--ash);font-size:20px;cursor:pointer;padding:0 0 0 16px;line-height:1;flex-shrink:0;" title="Close">&times;</button>
+    </div>
     <div id="viewAgBody" style="font-size:13px;color:var(--mist);line-height:1.8;"></div>
     <div class="modal-actions" style="margin-top:24px;">
       <button class="btn-ghost" onclick="document.getElementById('viewAgreementModal').classList.remove('open')">Close</button>
@@ -6573,14 +6576,11 @@ window.viewSignedPDF = function(id) {
   +'</div>'
   
   +'</body></html>';
-  var blob = new Blob([htmlDoc], {type:'text/html;charset=utf-8'});
-  var dlUrl = URL.createObjectURL(blob);
-  var dlA   = document.createElement('a');
-  dlA.href  = dlUrl;
-  dlA.download = fileName;
-  document.body.appendChild(dlA);
-  dlA.click();
-  setTimeout(function(){ URL.revokeObjectURL(dlUrl); document.body.removeChild(dlA); }, 2000);
+  var blob   = new Blob([htmlDoc], {type:'text/html;charset=utf-8'});
+  var dlUrl  = URL.createObjectURL(blob);
+  var pdfWin = window.open(dlUrl, '_blank');
+  if (!pdfWin) { showToast('Popup blocked — allow popups for this site.'); }
+  setTimeout(function(){ URL.revokeObjectURL(dlUrl); }, 60000);
 };
 
 var _prevGoToTabAg = window.goToTab;
