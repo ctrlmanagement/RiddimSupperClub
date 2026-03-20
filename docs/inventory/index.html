@@ -601,14 +601,14 @@ async function verifyOtp() {
     if (code !== otpCode) { document.getElementById('otpError').textContent = 'Incorrect code.'; return; }
     const { data: staff } = await sb.from('inv_staff').select('*').eq('phone', loginPhone).eq('active', true).maybeSingle();
     if (!staff) { document.getElementById('otpError').textContent = 'Access denied.'; return; }
-    currentUser = { name: staff.name, phone: staff.phone, role: staff.role };
+    currentUser = { name: staff.name, phone: staff.phone, role: staff.role, assigned_bar: staff.assigned_bar || null };
     enterPortal(); return;
   }
   const { data, error } = await sb.auth.verifyOtp({ phone: loginPhone, token: code, type: 'sms' });
   if (error || !data?.session) { document.getElementById('otpError').textContent = 'Incorrect code.'; return; }
   const { data: staff } = await sb.from('inv_staff').select('*').eq('phone', loginPhone).eq('active', true).maybeSingle();
   if (!staff) { document.getElementById('otpError').textContent = 'Access denied.'; return; }
-  currentUser = { name: staff.name, phone: staff.phone, role: staff.role };
+  currentUser = { name: staff.name, phone: staff.phone, role: staff.role, assigned_bar: staff.assigned_bar || null };
   enterPortal();
 }
 
@@ -671,9 +671,18 @@ function resetGoogleBtn() {
 
 // ── PORTAL ─────────────────────────────────────────────────────────
 async function enterPortal() {
-  const isMgr = currentUser.role === 'owner' || currentUser.role === 'manager';
+  const isMgr    = currentUser.role === 'owner' || currentUser.role === 'manager';
+  const isBarback = currentUser.role === 'key_barback';
   const initials = currentUser.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
   const roleLabel = currentUser.role === 'owner' ? 'Owner' : currentUser.role === 'manager' ? 'Manager' : 'Key Barback';
+  // Lock barback to their assigned bar
+  if (isBarback && currentUser.assigned_bar) {
+    invLocation = currentUser.assigned_bar;
+  } else if (isBarback) {
+    // No bar assigned — default to BAR1, show warning
+    invLocation = 'BAR1';
+    showToast('No bar assigned — defaulting to Bar 1. Contact manager.', '');
+  }
   document.getElementById('navUserName').textContent = currentUser.name;
   document.getElementById('navUserRole').textContent = roleLabel;
   document.getElementById('navInitials').textContent = initials;
@@ -729,6 +738,10 @@ async function loadPars() {
 }
 
 async function setLocation(loc, btn) {
+  if (currentUser?.role === 'key_barback') {
+    showToast('Location locked to your assigned bar', '');
+    return;
+  }
   invLocation = loc;
   document.querySelectorAll('.loc-tab').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
@@ -762,7 +775,9 @@ function renderSessionButtons() {
 
 async function openSession() {
   const today = new Date().toISOString().slice(0,10);
-  const { data, error } = await sb.from('inv_sessions').insert({ location: invLocation, opened_by: currentUser.phone, week_of: today, status: 'open' }).select().single();
+  // Barback guard — today only, no backdating possible
+  const weekOf = today;
+  const { data, error } = await sb.from('inv_sessions').insert({ location: invLocation, opened_by: currentUser.phone, week_of: weekOf, status: 'open' }).select().single();
   if (error) { showToast('Error opening session', ''); return; }
   invSession = data; invCounts = {};
   renderSessionBanner(); renderSessionButtons(); renderCountList();
@@ -888,9 +903,21 @@ async function deleteCount(pid) {
 function renderLocTabs() {
   const container = document.getElementById('locTabsContainer');
   if (!container) return;
+  const isBarback = currentUser?.role === 'key_barback';
+  if (isBarback) {
+    // Barback: show only their assigned bar, locked — no switching
+    const b = BAR_CONFIG.find(x => x.id === invLocation) || BAR_CONFIG.find(x => x.active);
+    container.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="loc-tab active" style="cursor:default;pointer-events:none;">${b.emoji} ${b.label}</span>
+        <span style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);">ASSIGNED BAR · TODAY ONLY</span>
+      </div>`;
+    return;
+  }
   container.innerHTML = ACTIVE_LOCATIONS.map((id, i) => {
     const b = BAR_CONFIG.find(x => x.id === id);
-    return `<button class="loc-tab${i===0?' active':''}" data-loc="${id}" onclick="setLocation('${id}',this)">${b.emoji} ${b.label}</button>`;
+    const isActive = id === invLocation;
+    return `<button class="loc-tab${isActive?' active':''}" data-loc="${id}" onclick="setLocation('${id}',this)">${b.emoji} ${b.label}</button>`;
   }).join('');
 }
 

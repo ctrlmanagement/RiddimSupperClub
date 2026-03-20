@@ -125,6 +125,15 @@ async function invMgrRenderStaff() {
         </span>
       </td>
       <td style="padding:14px 16px;">
+        ${s.role === 'key_barback' ? `
+        <div style="margin-bottom:8px;">
+          <span style="font-family:var(--font-label);font-size:9px;letter-spacing:0.15em;color:var(--ash);display:block;margin-bottom:4px;">ASSIGNED BAR</span>
+          <select onchange="invMgrSetBarbackBar('${s.id}',this.value)"
+            style="background:var(--void);border:1px solid var(--graphite);border-radius:4px;padding:4px 8px;color:var(--ivory);font-family:var(--font-body);font-size:12px;">
+            <option value="">— Unassigned —</option>
+            ${BAR_CONFIG.filter(b=>b.active&&b.id!=='LR').map(b=>`<option value="${b.id}" ${s.assigned_bar===b.id?'selected':''}>${b.label}</option>`).join('')}
+          </select>
+        </div>` : ''}
         <div style="display:flex;gap:8px;justify-content:flex-end;">
           <button onclick="invMgrToggleStaff('${s.id}',${s.active})"
             style="padding:5px 12px;border-radius:4px;border:1px solid ${s.active ? 'rgba(192,57,43,0.3)' : 'rgba(76,175,80,0.3)'};background:none;color:${s.active ? '#E57373' : '#81C784'};font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;cursor:pointer;">
@@ -150,6 +159,15 @@ async function invMgrDeleteStaff(id, name) {
   await supabaseClient.from('inv_staff').delete().eq('id', id);
   showToast(`${name} removed`, 'success');
   invMgrRenderStaff();
+}
+
+async function invMgrSetBarbackBar(id, bar) {
+  const { error } = await supabaseClient.from('inv_staff')
+    .update({ assigned_bar: bar || null }).eq('id', id);
+  if (error) { showToast('Error saving assignment', ''); return; }
+  const s = invStaffList.find(x => x.id === id);
+  if (s) s.assigned_bar = bar || null;
+  showToast(bar ? `Assigned to ${bar}` : 'Bar assignment cleared', 'success');
 }
 
 function openInvStaffModal() {
