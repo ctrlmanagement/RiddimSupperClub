@@ -87,7 +87,7 @@ function invMgrSetTab(tab, btn) {
   invMgrTab = tab;
   document.querySelectorAll('.invmgr-tab').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
-  ['staff','products','par','orders','house','cost','distributors'].forEach(t => {
+  ['staff','products','par','orders','house','cost','distributors','periods'].forEach(t => {
     const el = document.getElementById(`invmgr-${t}-area`);
     if (el) el.style.display = t === tab ? 'block' : 'none';
   });
@@ -98,6 +98,7 @@ function invMgrSetTab(tab, btn) {
   if (tab === 'house')         invMgrRenderHouse();
   if (tab === 'cost')          costInit();
   if (tab === 'distributors')  invMgrRenderDistributors();
+  if (tab === 'periods')       invMgrRenderPeriods();
 }
 
 // ── STAFF ──────────────────────────────────────────────────────────
@@ -1519,3 +1520,488 @@ window.addEventListener('load', function() {
     }
   }, 50);
 });
+
+// ═══════════════════════════════════════════════════════════════════
+// ── INV-04: PERIOD SYSTEM UI ───────────────────────────────────────
+// ── INV-05: OPENING BALANCE AUTO-CARRY ────────────────────────────
+// ═══════════════════════════════════════════════════════════════════
+
+let invPeriods      = [];
+let invActivePeriod = null;
+
+async function invMgrRenderPeriods() {
+  const area = document.getElementById('invmgr-periods-area');
+  if (!area) return;
+  area.innerHTML = invPeriodsShell();
+  bindNewPeriodModalEvents();
+  await invLoadPeriods();
+}
+
+function invPeriodsShell() {
+  return `
+<style>
+.inv-period-card{background:var(--carbon);border:1px solid var(--graphite);border-radius:8px;padding:16px 20px;cursor:pointer;transition:border-color 150ms;}
+.inv-period-card:hover{border-color:rgba(218,165,32,0.4);}
+.inv-period-card.active{border-color:var(--owner-gold);background:rgba(218,165,32,0.04);}
+.inv-pstatus{font-family:var(--font-label);font-size:9px;letter-spacing:0.15em;padding:3px 10px;border-radius:999px;border:1px solid;white-space:nowrap;}
+.inv-pstatus.open{color:#81C784;border-color:rgba(76,175,80,0.4);background:rgba(76,175,80,0.08);}
+.inv-pstatus.closed{color:var(--gold-warm);border-color:rgba(212,168,67,0.4);background:rgba(212,168,67,0.08);}
+.inv-pstatus.locked{color:var(--ash);border-color:rgba(136,136,136,0.3);background:rgba(136,136,136,0.06);}
+</style>
+
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+  <div>
+    <p style="font-family:var(--font-label);font-size:11px;letter-spacing:0.35em;color:var(--owner-gold);">INVENTORY</p>
+    <h2 style="font-family:var(--font-display);font-size:28px;font-weight:300;color:var(--ivory);">Count Periods</h2>
+  </div>
+  <button onclick="openInvPeriodModal()"
+    style="padding:9px 18px;background:linear-gradient(135deg,var(--owner-accent),var(--owner-gold));border:none;border-radius:6px;color:#fff;font-family:var(--font-label);font-size:12px;letter-spacing:0.12em;cursor:pointer;">
+    + New Period
+  </button>
+</div>
+
+<div style="display:grid;grid-template-columns:280px 1fr;gap:20px;align-items:start;" id="invPeriodsLayout">
+  <div id="invPeriodListPanel" style="display:flex;flex-direction:column;gap:8px;max-height:680px;overflow-y:auto;">
+    <div style="text-align:center;padding:32px;color:var(--ash);font-size:13px;">Loading…</div>
+  </div>
+  <div id="invPeriodDetailPanel">
+    <div style="text-align:center;padding:64px 20px;color:var(--ash);">
+      <div style="font-size:32px;margin-bottom:12px;opacity:0.2;">◑</div>
+      <div style="font-family:var(--font-display);font-size:20px;font-weight:300;color:var(--ivory);margin-bottom:6px;">Select a period</div>
+      <div style="font-size:13px;">Choose a period from the left or create a new one.</div>
+    </div>
+  </div>
+</div>
+
+<!-- New Period Modal -->
+<div id="invNewPeriodModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:2000;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--carbon);border:1px solid rgba(218,165,32,0.4);border-radius:12px;padding:32px 28px;width:100%;max-width:440px;box-shadow:0 8px 48px rgba(0,0,0,0.6);max-height:90vh;overflow-y:auto;">
+    <div style="font-family:var(--font-display);font-size:24px;font-weight:300;font-style:italic;color:var(--ivory);margin-bottom:4px;">New Count Period</div>
+    <div style="font-size:12px;color:var(--ash);margin-bottom:24px;">Define the date range for this counting cycle.</div>
+
+    <div style="margin-bottom:16px;">
+      <label style="display:block;font-family:var(--font-label);font-size:10px;letter-spacing:0.25em;color:var(--owner-gold);margin-bottom:6px;">PERIOD TYPE</label>
+      <select id="invNewPeriodType" onchange="invUpdateNewPeriodDates()"
+        style="width:100%;background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:11px 14px;color:var(--ivory);font-family:var(--font-body);font-size:14px;outline:none;-webkit-appearance:none;">
+        <option value="week">Weekly (7 days)</option>
+        <option value="biweek">Bi-Weekly (14 days)</option>
+        <option value="month">Monthly (28 days)</option>
+        <option value="quarter">Quarterly (91 days)</option>
+        <option value="custom">Custom</option>
+      </select>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+      <div>
+        <label style="display:block;font-family:var(--font-label);font-size:10px;letter-spacing:0.25em;color:var(--owner-gold);margin-bottom:6px;">START DATE</label>
+        <input type="date" id="invNewPeriodStart" onchange="invUpdateNewPeriodDates()"
+          style="width:100%;background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:11px 14px;color:var(--ivory);font-family:var(--font-body);font-size:13px;outline:none;"/>
+      </div>
+      <div>
+        <label style="display:block;font-family:var(--font-label);font-size:10px;letter-spacing:0.25em;color:var(--owner-gold);margin-bottom:6px;">END DATE</label>
+        <input type="date" id="invNewPeriodEnd"
+          style="width:100%;background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:11px 14px;color:var(--ivory);font-family:var(--font-body);font-size:13px;outline:none;"/>
+      </div>
+    </div>
+
+    <div style="margin-bottom:16px;">
+      <label style="display:block;font-family:var(--font-label);font-size:10px;letter-spacing:0.25em;color:var(--owner-gold);margin-bottom:6px;">LABEL (OPTIONAL)</label>
+      <input type="text" id="invNewPeriodLabel" placeholder="e.g. Week of Mar 17"
+        style="width:100%;background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:11px 14px;color:var(--ivory);font-family:var(--font-body);font-size:14px;outline:none;"/>
+    </div>
+
+    <div style="margin-bottom:20px;">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:var(--mist);">
+        <input type="checkbox" id="invNewPeriodSpotCheck" style="accent-color:var(--owner-gold);width:16px;height:16px;"/>
+        Mark as spot check (sub-period, won't auto-carry balances)
+      </label>
+    </div>
+
+    <div id="invNewPeriodPreview"
+      style="background:rgba(218,165,32,0.05);border:1px solid rgba(218,165,32,0.2);border-radius:8px;padding:12px 14px;margin-bottom:20px;font-size:12px;color:var(--ash);line-height:1.8;min-height:48px;">
+      Select a start date to preview.
+    </div>
+
+    <div style="display:flex;gap:10px;">
+      <button onclick="invCreatePeriod()"
+        style="flex:1;padding:13px;border-radius:6px;background:linear-gradient(135deg,var(--owner-accent),var(--owner-gold));border:none;color:#fff;font-family:var(--font-label);font-size:13px;letter-spacing:0.15em;cursor:pointer;">
+        Create Period
+      </button>
+      <button onclick="closeInvPeriodModal()"
+        style="padding:13px 20px;border-radius:6px;background:none;border:1px solid var(--graphite);color:var(--ash);font-family:var(--font-body);font-size:13px;cursor:pointer;">
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
+`;
+}
+
+function bindNewPeriodModalEvents() {
+  // Close on backdrop click
+  const modal = document.getElementById('invNewPeriodModal');
+  if (modal) modal.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
+}
+
+// ── Period loading & list ──────────────────────────────────────────
+async function invLoadPeriods() {
+  const { data } = await supabaseClient
+    .from('inv_periods')
+    .select('*')
+    .order('start_date', { ascending: false });
+  invPeriods = data || [];
+  invRenderPeriodList();
+}
+
+function invRenderPeriodList() {
+  const el = document.getElementById('invPeriodListPanel');
+  if (!el) return;
+  if (!invPeriods.length) {
+    el.innerHTML = `<div style="text-align:center;padding:32px;color:var(--ash);font-size:13px;font-style:italic;">No periods yet.<br>Create one to begin.</div>`;
+    return;
+  }
+  el.innerHTML = invPeriods.map(p => {
+    const isAct  = invActivePeriod?.id === p.id;
+    const start  = new Date(p.start_date + 'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    const end    = new Date(p.end_date   + 'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    const typeLabel = { week:'Weekly', biweek:'Bi-Weekly', month:'Monthly', quarter:'Quarterly', custom:'Custom' }[p.period_type] || p.period_type;
+    const displayLabel = p.label || `${typeLabel}: ${start} → ${end}`;
+    return `<div class="inv-period-card ${isAct?'active':''}" onclick="invSelectPeriod('${p.id}')">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px;">
+        <div style="font-family:var(--font-display);font-size:15px;font-weight:300;color:var(--ivory);flex:1;line-height:1.3;">${displayLabel}</div>
+        <span class="inv-pstatus ${p.status}">${p.status.toUpperCase()}</span>
+      </div>
+      <div style="font-size:11px;color:var(--ash);">${start} → ${end}${p.is_spot_check?' · <em>Spot Check</em>':''}</div>
+    </div>`;
+  }).join('');
+}
+
+function invSelectPeriod(id) {
+  invActivePeriod = invPeriods.find(p => p.id === id) || null;
+  invRenderPeriodList();
+  invRenderPeriodDetail();
+}
+
+// ── Period detail ──────────────────────────────────────────────────
+function invRenderPeriodDetail() {
+  const el = document.getElementById('invPeriodDetailPanel');
+  if (!el || !invActivePeriod) return;
+  const p     = invActivePeriod;
+  const start = new Date(p.start_date + 'T12:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  const end   = new Date(p.end_date   + 'T12:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  const days  = Math.round((new Date(p.end_date + 'T12:00:00') - new Date(p.start_date + 'T12:00:00')) / 86400000) + 1;
+  const label = p.label || `${({ week:'Weekly', biweek:'Bi-Weekly', month:'Monthly', quarter:'Quarterly', custom:'Custom' }[p.period_type]||p.period_type)} Period`;
+  const locked = p.status === 'locked';
+
+  // Action buttons based on status
+  const actionBtns = (() => {
+    if (p.status === 'open') return `
+      <button onclick="invPeriodAction('close','${p.id}')"
+        style="padding:9px 20px;border-radius:6px;border:1px solid rgba(212,168,67,0.4);background:none;color:var(--gold-warm);font-family:var(--font-label);font-size:11px;letter-spacing:0.12em;cursor:pointer;">
+        ■ Close Period
+      </button>`;
+    if (p.status === 'closed') return `
+      <button onclick="invPeriodAction('open','${p.id}')"
+        style="padding:9px 20px;border-radius:6px;border:1px solid rgba(76,175,80,0.4);background:none;color:#81C784;font-family:var(--font-label);font-size:11px;letter-spacing:0.12em;cursor:pointer;">
+        ▶ Re-open
+      </button>
+      <button onclick="invPeriodAction('lock','${p.id}')"
+        style="padding:9px 20px;border-radius:6px;background:linear-gradient(135deg,var(--owner-accent),var(--owner-gold));border:none;color:#fff;font-family:var(--font-label);font-size:11px;letter-spacing:0.12em;cursor:pointer;">
+        🔒 Lock Period
+      </button>`;
+    if (p.status === 'locked') return `
+      <span style="font-size:12px;color:var(--ash);font-style:italic;">🔒 Locked — read only</span>`;
+    return '';
+  })();
+
+  // INV-05 carry button — only on open periods that are not spot checks
+  const carryBtn = (!locked && !p.is_spot_check) ? `
+    <button onclick="invCarryOpeningBalances('${p.id}')"
+      style="padding:9px 20px;border-radius:6px;border:1px solid rgba(74,159,138,0.4);background:none;color:var(--inv-light,#6BBFA8);font-family:var(--font-label);font-size:11px;letter-spacing:0.12em;cursor:pointer;"
+      title="Copy closing counts from previous period as opening counts for this period">
+      ↺ Carry Opening Balances
+    </button>` : '';
+
+  el.innerHTML = `
+  <div class="panel">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+      <div>
+        <div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.3em;color:var(--owner-gold);margin-bottom:4px;">COUNT PERIOD</div>
+        <div style="font-family:var(--font-display);font-size:26px;font-weight:300;color:var(--ivory);">${label}</div>
+        <div style="font-size:13px;color:var(--ash);margin-top:4px;">${start} → ${end} · ${days} day${days!==1?'s':''}${p.is_spot_check?' · Spot Check':''}</div>
+      </div>
+      <span class="inv-pstatus ${p.status}" style="font-size:11px;padding:5px 14px;">${p.status.toUpperCase()}</span>
+    </div>
+
+    ${p.notes ? `<div style="background:rgba(218,165,32,0.05);border:1px solid rgba(218,165,32,0.15);border-radius:6px;padding:12px 14px;font-size:13px;color:var(--ash);margin-bottom:20px;">${p.notes}</div>` : ''}
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:28px;">
+      ${actionBtns}
+      ${carryBtn}
+    </div>
+
+    <div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.25em;color:var(--ash);margin-bottom:12px;">COUNT SESSIONS IN THIS PERIOD</div>
+    <div id="invPeriodSessionsArea"><div style="text-align:center;padding:24px;color:var(--ash);font-size:13px;">Loading sessions…</div></div>
+  </div>`;
+
+  invLoadPeriodSessions(p.id, p.start_date, p.end_date);
+}
+
+async function invLoadPeriodSessions(periodId, startDate, endDate) {
+  const el = document.getElementById('invPeriodSessionsArea');
+  if (!el) return;
+  // Fetch sessions linked by period_id OR that fall within date range
+  const { data: byPeriod } = await supabaseClient
+    .from('inv_sessions').select('*').eq('period_id', periodId).order('opened_at', { ascending: false });
+  const { data: byDate } = await supabaseClient
+    .from('inv_sessions').select('*').gte('week_of', startDate).lte('week_of', endDate).is('period_id', null).order('opened_at', { ascending: false });
+
+  const rows = [...(byPeriod||[]), ...(byDate||[])];
+  rows.sort((a,b) => b.opened_at.localeCompare(a.opened_at));
+
+  if (!rows.length) {
+    el.innerHTML = `<div style="text-align:center;padding:24px;color:var(--ash);font-size:13px;font-style:italic;">No count sessions for this period yet.</div>`;
+    return;
+  }
+  el.innerHTML = `
+  <div style="overflow-x:auto;">
+  <table style="width:100%;border-collapse:collapse;font-size:13px;min-width:480px;">
+    <thead><tr style="border-bottom:1px solid var(--graphite);">
+      <th style="padding:8px 12px;text-align:left;font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);">LOCATION</th>
+      <th style="padding:8px 12px;text-align:left;font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);">DATE</th>
+      <th style="padding:8px 12px;text-align:left;font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);">TYPE</th>
+      <th style="padding:8px 12px;text-align:left;font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);">STATUS</th>
+      <th style="padding:8px 12px;text-align:left;font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);">OPENED BY</th>
+    </tr></thead>
+    <tbody>
+      ${rows.map(s => {
+        const d    = new Date(s.opened_at).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+        const t    = new Date(s.opened_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+        const scol = s.status === 'open' ? '#81C784' : 'var(--ash)';
+        const ctype = s.count_type || 'closing';
+        const ctypeBadge = ctype === 'opening'
+          ? `<span style="font-size:9px;color:#81C784;border:1px solid rgba(76,175,80,0.4);border-radius:4px;padding:1px 6px;">OPENING</span>`
+          : ctype === 'spot_check'
+          ? `<span style="font-size:9px;color:var(--gold-warm);border:1px solid rgba(212,168,67,0.4);border-radius:4px;padding:1px 6px;">SPOT</span>`
+          : `<span style="font-size:9px;color:var(--ash);border:1px solid var(--graphite);border-radius:4px;padding:1px 6px;">CLOSING</span>`;
+        return `<tr style="border-bottom:1px solid rgba(42,42,42,0.35);">
+          <td style="padding:9px 12px;color:var(--ivory);font-weight:500;">${s.location}</td>
+          <td style="padding:9px 12px;color:var(--mist);">${d} <span style="color:var(--ash);font-size:11px;">${t}</span></td>
+          <td style="padding:9px 12px;">${ctypeBadge}</td>
+          <td style="padding:9px 12px;"><span style="color:${scol};font-size:12px;">${s.status}</span></td>
+          <td style="padding:9px 12px;color:var(--ash);font-size:12px;">${(s.opened_by||'—').replace('+1','').slice(-10)}</td>
+        </tr>`;
+      }).join('')}
+    </tbody>
+  </table>
+  </div>`;
+}
+
+// ── Period actions (open/close/lock) ──────────────────────────────
+async function invPeriodAction(action, id) {
+  const p = invPeriods.find(x => x.id === id);
+  if (!p) return;
+  const confirmMsg = {
+    close: 'Close this period? Counts can still be edited until locked.',
+    open:  'Re-open this period?',
+    lock:  'Lock this period? This cannot be undone — no further edits will be allowed.'
+  }[action];
+  if (!confirm(confirmMsg)) return;
+  const newStatus = { close:'closed', open:'open', lock:'locked' }[action];
+  const { error } = await supabaseClient.from('inv_periods').update({ status: newStatus }).eq('id', id);
+  if (error) { showToast('Error: ' + error.message, ''); return; }
+  p.status = newStatus;
+  invActivePeriod = p;
+  invRenderPeriodList();
+  invRenderPeriodDetail();
+  showToast(`Period ${newStatus}`, 'success');
+}
+
+// ── INV-05: Opening balance auto-carry ────────────────────────────
+async function invCarryOpeningBalances(periodId) {
+  const period = invPeriods.find(p => p.id === periodId);
+  if (!period) return;
+  if (period.status === 'locked') { showToast('Period is locked', ''); return; }
+
+  // Find the most recent prior period (by end_date, non-spot-check)
+  const { data: priorPeriods } = await supabaseClient
+    .from('inv_periods')
+    .select('id, end_date, label')
+    .lt('end_date', period.start_date)
+    .eq('is_spot_check', false)
+    .order('end_date', { ascending: false })
+    .limit(1);
+
+  if (!priorPeriods?.length) {
+    showToast('No prior period found — no balances to carry', '');
+    return;
+  }
+  const priorPeriod = priorPeriods[0];
+  if (!confirm(`Carry closing counts from period ending ${priorPeriod.end_date} as opening balances for this period?\n\nThis will create opening sessions for each active location.`)) return;
+
+  showToast('Carrying opening balances…', '');
+
+  // Get all closed sessions from the prior period (most recent per location)
+  const { data: priorSessions } = await supabaseClient
+    .from('inv_sessions')
+    .select('id, location, count_type')
+    .gte('week_of', priorPeriod.end_date)
+    .lte('week_of', priorPeriod.end_date)
+    .eq('status', 'closed')
+    .order('opened_at', { ascending: false });
+
+  // Also check sessions linked by period_id
+  const { data: priorByPId } = await supabaseClient
+    .from('inv_sessions')
+    .select('id, location, count_type')
+    .eq('period_id', priorPeriod.id)
+    .in('count_type', ['closing', null])
+    .eq('status', 'closed')
+    .order('opened_at', { ascending: false });
+
+  const allPrior = [...(priorByPId||[]), ...(priorSessions||[])];
+
+  // Deduplicate — most recent session per location
+  const latestByLoc = {};
+  allPrior.forEach(s => {
+    if (!latestByLoc[s.location]) latestByLoc[s.location] = s;
+  });
+
+  if (!Object.keys(latestByLoc).length) {
+    showToast('No closed sessions found in prior period', '');
+    return;
+  }
+
+  let created = 0;
+  const today = new Date().toISOString().slice(0, 10);
+
+  for (const [loc, priorSess] of Object.entries(latestByLoc)) {
+    // Get counts from that session
+    const { data: priorCounts } = await supabaseClient
+      .from('inv_counts')
+      .select('product_id, quantity')
+      .eq('session_id', priorSess.id);
+
+    if (!priorCounts?.length) continue;
+
+    // Create a new opening session for this location in the new period
+    const { data: newSess, error: sessErr } = await supabaseClient
+      .from('inv_sessions')
+      .insert({
+        location:     loc,
+        status:       'closed',  // opening balances are pre-closed — read-only reference
+        opened_by:    'owner-carry',
+        closed_at:    new Date().toISOString(),
+        week_of:      period.start_date,
+        period_id:    periodId,
+        count_type:   'opening',
+        assigned_to:  null
+      })
+      .select()
+      .single();
+
+    if (sessErr || !newSess) { showToast(`Error creating opening session for ${loc}`, ''); continue; }
+
+    // Insert counts into new opening session
+    const countRows = priorCounts.map(c => ({
+      session_id:  newSess.id,
+      product_id:  c.product_id,
+      location:    loc,
+      quantity:    c.quantity,
+      counted_by:  'owner-carry',
+      count_type:  'opening'
+    }));
+
+    const { error: cntErr } = await supabaseClient.from('inv_counts').insert(countRows);
+    if (!cntErr) created++;
+  }
+
+  showToast(`Opening balances carried — ${created} location${created!==1?'s':''} seeded`, 'success');
+  // Refresh session list
+  invLoadPeriodSessions(periodId, period.start_date, period.end_date);
+}
+
+// ── New period modal ───────────────────────────────────────────────
+function openInvPeriodModal() {
+  const modal = document.getElementById('invNewPeriodModal');
+  if (!modal) return;
+  const today = new Date().toISOString().slice(0, 10);
+  document.getElementById('invNewPeriodStart').value   = today;
+  document.getElementById('invNewPeriodType').value    = 'week';
+  document.getElementById('invNewPeriodLabel').value   = '';
+  document.getElementById('invNewPeriodSpotCheck').checked = false;
+  invUpdateNewPeriodDates();
+  modal.style.display = 'flex';
+}
+
+function closeInvPeriodModal() {
+  const modal = document.getElementById('invNewPeriodModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function invUpdateNewPeriodDates() {
+  const type     = document.getElementById('invNewPeriodType')?.value || 'week';
+  const startVal = document.getElementById('invNewPeriodStart')?.value;
+  const preview  = document.getElementById('invNewPeriodPreview');
+  const endInput = document.getElementById('invNewPeriodEnd');
+  if (!startVal) { if (preview) preview.textContent = 'Select a start date to preview.'; return; }
+
+  const daysOffset = { week:6, biweek:13, month:27, quarter:90, custom:null }[type];
+  let endVal = '';
+
+  if (daysOffset !== null) {
+    const end = new Date(startVal + 'T12:00:00');
+    end.setDate(end.getDate() + daysOffset);
+    endVal = end.toISOString().slice(0, 10);
+    if (endInput) { endInput.value = endVal; endInput.readOnly = true; endInput.style.opacity = '0.6'; }
+  } else {
+    if (endInput) { endInput.readOnly = false; endInput.style.opacity = '1'; endVal = endInput.value; }
+  }
+
+  if (preview && endVal) {
+    const s = new Date(startVal + 'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    const e = new Date(endVal   + 'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    const prevP = invPeriods.find(p => p.end_date < startVal && !p.is_spot_check);
+    const carryNote = prevP
+      ? `Auto-carry available from period ending <strong style="color:var(--ivory);">${prevP.end_date}</strong>`
+      : '<em>First period — opening balances require manual counts</em>';
+    preview.innerHTML = `Range: <strong style="color:var(--ivory);">${s} → ${e}</strong><br>${carryNote}`;
+  }
+}
+
+async function invCreatePeriod() {
+  const type     = document.getElementById('invNewPeriodType')?.value || 'week';
+  const startVal = document.getElementById('invNewPeriodStart')?.value;
+  const endVal   = document.getElementById('invNewPeriodEnd')?.value;
+  const label    = document.getElementById('invNewPeriodLabel')?.value.trim() || null;
+  const spotCheck = document.getElementById('invNewPeriodSpotCheck')?.checked || false;
+
+  if (!startVal)         { showToast('Select a start date', '');              return; }
+  if (!endVal)           { showToast('Select an end date', '');               return; }
+  if (endVal < startVal) { showToast('End date must be after start date', ''); return; }
+
+  // Warn on overlap
+  const overlap = invPeriods.find(p =>
+    !p.is_spot_check && !(p.end_date < startVal || p.start_date > endVal)
+  );
+  if (overlap && !spotCheck && !confirm(`This overlaps with an existing period (${overlap.start_date} → ${overlap.end_date}). Continue?`)) return;
+
+  const { data, error } = await supabaseClient.from('inv_periods').insert({
+    period_type:  type,
+    start_date:   startVal,
+    end_date:     endVal,
+    label:        label,
+    status:       'open',
+    is_spot_check: spotCheck,
+    created_by:   'owner'
+  }).select().single();
+
+  if (error) { showToast('Error: ' + error.message, ''); return; }
+
+  closeInvPeriodModal();
+  invPeriods.unshift(data);
+  invActivePeriod = data;
+  invRenderPeriodList();
+  invRenderPeriodDetail();
+  showToast('Period created', 'success');
+}
