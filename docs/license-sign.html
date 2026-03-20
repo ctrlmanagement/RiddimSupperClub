@@ -375,7 +375,13 @@ window.submitSignature = async function() {
 
   // Capture canvas as base64
   const canvas = document.getElementById('sigCanvas');
-  const sigDataUrl = canvas.toDataURL('image/jpeg', 0.3);
+  // Scale down for mobile — high DPR devices produce huge canvases
+  const offscreen = document.createElement('canvas');
+  offscreen.width = 400;
+  offscreen.height = 160;
+  const offCtx = offscreen.getContext('2d');
+  offCtx.drawImage(canvas, 0, 0, 400, 160);
+  const sigDataUrl = offscreen.toDataURL('image/jpeg', 0.3);
 
   try {
     const { error } = await SB.from('license_agreements').update({
