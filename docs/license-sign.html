@@ -375,7 +375,7 @@ window.submitSignature = async function() {
 
   // Capture canvas as base64
   const canvas = document.getElementById('sigCanvas');
-  const sigDataUrl = canvas.toDataURL('image/png');
+  const sigDataUrl = canvas.toDataURL('image/jpeg', 0.3);
 
   try {
     const { error } = await SB.from('license_agreements').update({
