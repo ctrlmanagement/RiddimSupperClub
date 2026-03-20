@@ -398,7 +398,7 @@ window.submitSignature = async function() {
     showScreen('success');
   } catch(e) {
     msg.className = 'state-msg error';
-    msg.textContent = 'Error saving signature: ' + e.message;
+    msg.textContent = 'Error: ' + JSON.stringify(e);
     document.getElementById('btnSign').disabled = false;
   }
 };
