@@ -382,7 +382,6 @@ window.submitSignature = async function() {
       status: 'signed',
       signed_at: new Date().toISOString(),
       signed_name: name,
-      signature_data: sigDataUrl,
       user_agent: navigator.userAgent,
     }).eq('id', _agreementId).eq('token', _token);
 
