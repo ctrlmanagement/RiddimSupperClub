@@ -375,22 +375,16 @@ window.submitSignature = async function() {
 
   // Capture canvas as base64
   const canvas = document.getElementById('sigCanvas');
-  // Scale down for mobile — high DPR devices produce huge canvases
-  const offscreen = document.createElement('canvas');
-  offscreen.width = 400;
-  offscreen.height = 160;
-  const offCtx = offscreen.getContext('2d');
-  offCtx.drawImage(canvas, 0, 0, 400, 160);
-  const sigDataUrl = offscreen.toDataURL('image/jpeg', 0.3);
+  const sigDataUrl = canvas.toDataURL('image/png');
 
   try {
-    const { error } = await SB.from('license_agreements').update({
-      status: 'signed',
-      signed_at: new Date().toISOString(),
-      signed_name: name,
-      signature_data: sigDataUrl,
-      user_agent: navigator.userAgent,
-    }).eq('id', _agreementId).eq('token', _token);
+    const { error } = await SB.rpc('sign_agreement', {
+      p_token: _token,
+      p_id: _agreementId,
+      p_name: name,
+      p_user_agent: navigator.userAgent,
+      p_signature: sigDataUrl
+    });
 
     if (error) throw error;
 
@@ -398,7 +392,7 @@ window.submitSignature = async function() {
     showScreen('success');
   } catch(e) {
     msg.className = 'state-msg error';
-    msg.textContent = 'Error: ' + JSON.stringify(e);
+    msg.textContent = 'Error saving signature: ' + e.message;
     document.getElementById('btnSign').disabled = false;
   }
 };
