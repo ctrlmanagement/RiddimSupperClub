@@ -1762,7 +1762,11 @@ function invRenderPeriodDetail() {
     <div id="invPeriodSessionsArea"><div style="text-align:center;padding:24px;color:var(--ash);font-size:13px;">Loading sessions…</div></div>
   </div>`;
 
-  invLoadPeriodSessions(p.id, p.start_date, p.end_date);
+  if (p.is_spot_check) {
+    invRenderSpotCheckDetail(p);
+  } else {
+    invLoadPeriodSessions(p.id, p.start_date, p.end_date);
+  }
 }
 
 async function invLoadPeriodSessions(periodId, startDate, endDate) {
@@ -2022,4 +2026,380 @@ async function invCreatePeriod() {
   invRenderPeriodList();
   invRenderPeriodDetail();
   showToast('Period created', 'success');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ── INV-08: SPOT CHECK SYSTEM ──────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════
+
+let spotCheckState = {
+  periodId:   null,
+  location:   null,
+  category:   '',
+  baseline:   {},   // { product_id: qty } — last known counts
+  spotCounts: {},   // { product_id: qty } — entered this session
+  savedSession: null
+};
+
+async function invRenderSpotCheckDetail(period) {
+  const el = document.getElementById('invPeriodDetailPanel');
+  if (!el) return;
+  const locked = period.status === 'locked';
+  const start  = new Date(period.start_date + 'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+
+  spotCheckState.periodId = period.id;
+  spotCheckState.location = spotCheckState.location || ACTIVE_LOCATIONS.find(l => l !== 'LR') || 'BAR1';
+
+  // Check if a spot check session already exists for this period
+  const { data: existingSessions } = await supabaseClient
+    .from('inv_sessions')
+    .select('id, location, status, opened_at')
+    .eq('period_id', period.id)
+    .eq('count_type', 'spot_check')
+    .order('opened_at', { ascending: false });
+
+  const hasSaved = existingSessions?.length > 0;
+
+  el.innerHTML = `
+  <div class="panel">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+      <div>
+        <div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.3em;color:var(--gold-warm);margin-bottom:4px;">SPOT CHECK</div>
+        <div style="font-family:var(--font-display);font-size:26px;font-weight:300;color:var(--ivory);">${period.label || start}</div>
+        <div style="font-size:13px;color:var(--ash);margin-top:4px;">Quick variance check — select location and category</div>
+      </div>
+      <span class="inv-pstatus ${period.status}" style="font-size:11px;padding:5px 14px;">${period.status.toUpperCase()}</span>
+    </div>
+
+    <!-- Controls -->
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:20px;padding:16px;background:rgba(218,165,32,0.04);border:1px solid rgba(218,165,32,0.15);border-radius:8px;">
+      <div>
+        <div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-bottom:5px;">LOCATION</div>
+        <select id="spotLocSelect" onchange="spotCheckChangeLocation(this.value)"
+          style="background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:8px 12px;color:var(--ivory);font-family:var(--font-body);font-size:13px;">
+          ${ACTIVE_LOCATIONS.map(id => {
+            const b = BAR_CONFIG.find(x => x.id === id);
+            return `<option value="${id}" ${id === spotCheckState.location ? 'selected' : ''}>${b.emoji} ${b.label}</option>`;
+          }).join('')}
+        </select>
+      </div>
+      <div>
+        <div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-bottom:5px;">CATEGORY</div>
+        <select id="spotCatSelect" onchange="spotCheckChangeCategory(this.value)"
+          style="background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:8px 12px;color:var(--ivory);font-family:var(--font-body);font-size:13px;">
+          <option value="">All Categories</option>
+          ${INV_CAT_ORDER.map(c => `<option value="${c}" ${c === spotCheckState.category ? 'selected' : ''}>${c}</option>`).join('')}
+        </select>
+      </div>
+      ${!locked ? `
+      <button onclick="spotCheckSave('${period.id}')"
+        style="padding:9px 20px;border-radius:6px;background:linear-gradient(135deg,var(--owner-accent),var(--owner-gold));border:none;color:#fff;font-family:var(--font-label);font-size:11px;letter-spacing:0.12em;cursor:pointer;margin-left:auto;">
+        ✓ Save Spot Count
+      </button>` : ''}
+    </div>
+
+    <!-- Prior sessions summary -->
+    ${hasSaved ? `
+    <div style="margin-bottom:16px;padding:10px 14px;background:rgba(76,175,80,0.06);border:1px solid rgba(76,175,80,0.25);border-radius:6px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+      <span style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:#81C784;">SAVED SESSIONS</span>
+      ${existingSessions.map(s => {
+        const t = new Date(s.opened_at).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+        return `<span style="font-size:12px;color:var(--mist);">${s.location} · ${t}</span>`;
+      }).join('<span style="color:var(--graphite);">|</span>')}
+      <button onclick="spotCheckLoadResults('${period.id}')"
+        style="margin-left:auto;padding:5px 14px;border-radius:4px;border:1px solid rgba(76,175,80,0.35);background:none;color:#81C784;font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;cursor:pointer;">
+        View Variance Report
+      </button>
+    </div>` : ''}
+
+    <!-- Product table -->
+    <div id="spotCheckTableArea">
+      <div style="text-align:center;padding:32px;color:var(--ash);">Loading baseline counts…</div>
+    </div>
+  </div>`;
+
+  await spotCheckLoadBaseline();
+}
+
+function spotCheckChangeLocation(loc) {
+  spotCheckState.location   = loc;
+  spotCheckState.spotCounts = {};
+  spotCheckLoadBaseline();
+}
+
+function spotCheckChangeCategory(cat) {
+  spotCheckState.category = cat;
+  spotCheckRenderTable();
+}
+
+async function spotCheckLoadBaseline() {
+  // Find most recent closed session for this location to use as baseline
+  const { data: sessions } = await supabaseClient
+    .from('inv_sessions')
+    .select('id, week_of')
+    .eq('location', spotCheckState.location)
+    .eq('status', 'closed')
+    .not('count_type', 'eq', 'spot_check')
+    .order('opened_at', { ascending: false })
+    .limit(1);
+
+  spotCheckState.baseline = {};
+
+  if (sessions?.length) {
+    const { data: counts } = await supabaseClient
+      .from('inv_counts')
+      .select('product_id, quantity')
+      .eq('session_id', sessions[0].id);
+    if (counts) counts.forEach(c => { spotCheckState.baseline[c.product_id] = c.quantity; });
+  }
+
+  spotCheckRenderTable();
+}
+
+function spotCheckRenderTable() {
+  const el = document.getElementById('spotCheckTableArea');
+  if (!el) return;
+  const loc    = spotCheckState.location;
+  const cat    = spotCheckState.category;
+  const locked = invActivePeriod?.status === 'locked';
+
+  const products = invMgrProducts.filter(p =>
+    p.active !== false && (!cat || p.category === cat)
+  );
+
+  if (!products.length) {
+    el.innerHTML = `<div style="text-align:center;padding:32px;color:var(--ash);font-size:13px;">No products found.</div>`;
+    return;
+  }
+
+  // Group by category
+  const byCat = {};
+  products.forEach(p => {
+    if (!byCat[p.category]) byCat[p.category] = [];
+    byCat[p.category].push(p);
+  });
+  const sorted = INV_CAT_ORDER.filter(c => byCat[c]).concat(Object.keys(byCat).filter(c => !INV_CAT_ORDER.includes(c)));
+
+  const hasBaseline = Object.keys(spotCheckState.baseline).length > 0;
+
+  el.innerHTML = `
+  <div style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);margin-bottom:8px;">
+    ${loc} · ${hasBaseline ? 'Baseline from last count session' : '⚠ No prior count found — variances will show as N/A'}
+  </div>
+  <div style="overflow-x:auto;">
+  <table style="width:100%;border-collapse:collapse;font-size:13px;min-width:480px;">
+    <thead><tr style="border-bottom:1px solid var(--graphite);">
+      <th style="padding:9px 12px;text-align:left;font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);">PRODUCT</th>
+      <th style="padding:9px 12px;text-align:right;font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);">LAST KNOWN</th>
+      <th style="padding:9px 12px;text-align:center;font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--owner-gold);">SPOT COUNT</th>
+      <th style="padding:9px 12px;text-align:right;font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);">VARIANCE</th>
+    </tr></thead>
+    <tbody>
+    ${sorted.map(cat => {
+      const rows = byCat[cat].map(p => {
+        const baseline  = spotCheckState.baseline[p.id];
+        const spot      = spotCheckState.spotCounts[p.id];
+        const variance  = (spot !== undefined && baseline !== undefined) ? (spot - baseline) : null;
+        const varColor  = variance === null ? 'var(--ash)'
+                        : variance === 0   ? '#81C784'
+                        : variance > 0     ? '#81C784'
+                        : Math.abs(variance) <= 0.5 ? 'var(--gold-warm)' : 'var(--ember)';
+        const varStr    = variance === null ? '—'
+                        : `${variance >= 0 ? '+' : ''}${variance % 1 === 0 ? variance : variance.toFixed(1)}`;
+        const alertFlag = variance !== null && variance < -0.5
+                        ? `<span style="font-size:9px;color:var(--ember);margin-left:4px;">⚠</span>` : '';
+
+        return `<tr style="border-bottom:1px solid rgba(42,42,42,0.3);">
+          <td style="padding:9px 12px;">
+            <div style="color:var(--ivory);font-size:13px;">${p.name}</div>
+            <div style="font-size:10px;color:var(--ash);">${p.category}</div>
+          </td>
+          <td style="padding:9px 12px;text-align:right;font-family:var(--font-display);font-size:15px;color:var(--ash);">
+            ${baseline !== undefined ? (baseline % 1 === 0 ? baseline : baseline.toFixed(1)) : '—'}
+          </td>
+          <td style="padding:8px 12px;text-align:center;">
+            ${locked ? `<span style="font-family:var(--font-display);font-size:15px;color:var(--mist);">${spot !== undefined ? spot : '—'}</span>` : `
+            <input type="number" min="0" step="0.5" placeholder="—"
+              value="${spot !== undefined ? spot : ''}"
+              data-pid="${p.id}"
+              onchange="spotCheckEnterCount('${p.id}', this.value)"
+              style="width:72px;background:var(--void);border:1px solid var(--graphite);border-radius:4px;padding:6px 8px;color:var(--ivory);font-family:var(--font-display);font-size:15px;text-align:center;outline:none;"
+              onfocus="this.select()"
+              oninput="spotCheckEnterCount('${p.id}', this.value)"/>`}
+          </td>
+          <td style="padding:9px 12px;text-align:right;font-family:var(--font-display);font-size:16px;color:${varColor};">
+            ${varStr}${alertFlag}
+          </td>
+        </tr>`;
+      }).join('');
+
+      return `<tr style="background:rgba(218,165,32,0.03);">
+        <td colspan="4" style="padding:6px 12px;font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--owner-gold);">${cat}</td>
+      </tr>${rows}`;
+    }).join('')}
+    </tbody>
+  </table>
+  </div>`;
+}
+
+function spotCheckEnterCount(pid, val) {
+  const qty = parseFloat(val);
+  if (!isNaN(qty) && qty >= 0) {
+    spotCheckState.spotCounts[pid] = qty;
+  } else {
+    delete spotCheckState.spotCounts[pid];
+  }
+  // Re-render variance column only (lightweight)
+  const rows = document.querySelectorAll('#spotCheckTableArea tbody tr');
+  rows.forEach(row => {
+    const input = row.querySelector(`input[data-pid="${pid}"]`);
+    if (!input) return;
+    const varCell = row.cells[3];
+    if (!varCell) return;
+    const baseline  = spotCheckState.baseline[pid];
+    const spot      = spotCheckState.spotCounts[pid];
+    const variance  = (spot !== undefined && baseline !== undefined) ? (spot - baseline) : null;
+    const varColor  = variance === null ? 'var(--ash)'
+                    : variance === 0   ? '#81C784'
+                    : variance > 0     ? '#81C784'
+                    : Math.abs(variance) <= 0.5 ? 'var(--gold-warm)' : 'var(--ember)';
+    const varStr    = variance === null ? '—'
+                    : `${variance >= 0 ? '+' : ''}${variance % 1 === 0 ? variance : variance.toFixed(1)}`;
+    const alertFlag = variance !== null && variance < -0.5
+                    ? `<span style="font-size:9px;color:var(--ember);margin-left:4px;">⚠</span>` : '';
+    varCell.innerHTML = `<span style="font-family:var(--font-display);font-size:16px;color:${varColor};">${varStr}${alertFlag}</span>`;
+  });
+}
+
+async function spotCheckSave(periodId) {
+  if (!Object.keys(spotCheckState.spotCounts).length) {
+    showToast('Enter at least one count before saving', '');
+    return;
+  }
+  const loc   = spotCheckState.location;
+  const today = new Date().toISOString().slice(0, 10);
+
+  // Create spot check session
+  const { data: sess, error: sessErr } = await supabaseClient
+    .from('inv_sessions')
+    .insert({
+      location:    loc,
+      status:      'closed',
+      opened_by:   'owner',
+      closed_at:   new Date().toISOString(),
+      week_of:     today,
+      period_id:   periodId,
+      count_type:  'spot_check'
+    })
+    .select()
+    .single();
+
+  if (sessErr || !sess) { showToast('Error saving session: ' + (sessErr?.message||''), ''); return; }
+
+  // Insert counts
+  const countRows = Object.entries(spotCheckState.spotCounts).map(([pid, qty]) => ({
+    session_id:  sess.id,
+    product_id:  pid,
+    location:    loc,
+    quantity:    qty,
+    counted_by:  'owner',
+    count_type:  'spot_check'
+  }));
+
+  const { error: cntErr } = await supabaseClient.from('inv_counts').insert(countRows);
+  if (cntErr) { showToast('Error saving counts: ' + cntErr.message, ''); return; }
+
+  showToast(`Spot check saved — ${countRows.length} items at ${loc}`, 'success');
+  spotCheckState.spotCounts = {};
+  // Reload detail to show saved sessions bar
+  invRenderSpotCheckDetail(invActivePeriod);
+}
+
+async function spotCheckLoadResults(periodId) {
+  const el = document.getElementById('spotCheckTableArea');
+  if (!el) return;
+  el.innerHTML = `<div style="text-align:center;padding:24px;color:var(--ash);">Loading results…</div>`;
+
+  // Load all spot check sessions for this period
+  const { data: sessions } = await supabaseClient
+    .from('inv_sessions')
+    .select('id, location')
+    .eq('period_id', periodId)
+    .eq('count_type', 'spot_check');
+
+  if (!sessions?.length) { el.innerHTML = `<div style="text-align:center;padding:24px;color:var(--ash);">No spot check data found.</div>`; return; }
+
+  // Load counts for all sessions
+  const allSpot = {};  // { location: { pid: qty } }
+  for (const s of sessions) {
+    const { data: counts } = await supabaseClient.from('inv_counts').select('product_id, quantity').eq('session_id', s.id);
+    if (!allSpot[s.location]) allSpot[s.location] = {};
+    if (counts) counts.forEach(c => { allSpot[s.location][c.product_id] = c.quantity; });
+  }
+
+  // Load baseline for each location
+  const allBaseline = {};
+  for (const loc of Object.keys(allSpot)) {
+    const { data: bSess } = await supabaseClient
+      .from('inv_sessions').select('id')
+      .eq('location', loc).eq('status', 'closed')
+      .not('count_type', 'eq', 'spot_check')
+      .order('opened_at', { ascending: false }).limit(1);
+    allBaseline[loc] = {};
+    if (bSess?.length) {
+      const { data: bCounts } = await supabaseClient.from('inv_counts').select('product_id, quantity').eq('session_id', bSess[0].id);
+      if (bCounts) bCounts.forEach(c => { allBaseline[loc][c.product_id] = c.quantity; });
+    }
+  }
+
+  // Build variance report
+  const flagged = [];
+  const rows = [];
+  for (const [loc, spotPids] of Object.entries(allSpot)) {
+    for (const [pid, spotQty] of Object.entries(spotPids)) {
+      const p        = invMgrProducts.find(pr => pr.id === pid);
+      if (!p) continue;
+      const baseline = allBaseline[loc]?.[pid];
+      const variance = baseline !== undefined ? spotQty - baseline : null;
+      rows.push({ loc, p, spotQty, baseline, variance });
+      if (variance !== null && variance < -0.5) flagged.push({ loc, p, spotQty, baseline, variance });
+    }
+  }
+
+  rows.sort((a,b) => (a.variance??0) - (b.variance??0));
+
+  el.innerHTML = `
+  <div style="margin-bottom:16px;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
+      <span style="font-family:var(--font-label);font-size:10px;letter-spacing:0.25em;color:var(--owner-gold);">VARIANCE REPORT</span>
+      ${flagged.length ? `<span style="font-family:var(--font-label);font-size:9px;letter-spacing:0.15em;padding:3px 10px;border-radius:999px;border:1px solid rgba(192,57,43,0.4);background:rgba(192,57,43,0.08);color:var(--ember);">${flagged.length} ITEMS FLAGGED</span>` : `<span style="font-family:var(--font-label);font-size:9px;letter-spacing:0.15em;padding:3px 10px;border-radius:999px;border:1px solid rgba(76,175,80,0.4);background:rgba(76,175,80,0.08);color:#81C784;">ALL CLEAR</span>`}
+    </div>
+    <div style="overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;font-size:13px;min-width:440px;">
+      <thead><tr style="border-bottom:1px solid var(--graphite);">
+        <th style="padding:8px 12px;text-align:left;font-family:var(--font-label);font-size:9px;letter-spacing:0.15em;color:var(--ash);">PRODUCT</th>
+        <th style="padding:8px 12px;text-align:left;font-family:var(--font-label);font-size:9px;letter-spacing:0.15em;color:var(--ash);">LOCATION</th>
+        <th style="padding:8px 12px;text-align:right;font-family:var(--font-label);font-size:9px;letter-spacing:0.15em;color:var(--ash);">BASELINE</th>
+        <th style="padding:8px 12px;text-align:right;font-family:var(--font-label);font-size:9px;letter-spacing:0.15em;color:var(--ash);">SPOT</th>
+        <th style="padding:8px 12px;text-align:right;font-family:var(--font-label);font-size:9px;letter-spacing:0.15em;color:var(--owner-gold);">VARIANCE</th>
+      </tr></thead>
+      <tbody>
+      ${rows.map(({loc, p, spotQty, baseline, variance}) => {
+        const varColor = variance === null ? 'var(--ash)'
+                       : variance >= 0 ? '#81C784'
+                       : Math.abs(variance) <= 0.5 ? 'var(--gold-warm)' : 'var(--ember)';
+        const varStr   = variance === null ? '—'
+                       : `${variance >= 0 ? '+' : ''}${variance % 1 === 0 ? variance : variance.toFixed(1)}`;
+        return `<tr style="border-bottom:1px solid rgba(42,42,42,0.3);${variance !== null && variance < -0.5 ? 'background:rgba(192,57,43,0.04);' : ''}">
+          <td style="padding:8px 12px;color:var(--ivory);">${p.name}</td>
+          <td style="padding:8px 12px;color:var(--ash);font-size:12px;">${loc}</td>
+          <td style="padding:8px 12px;text-align:right;font-family:var(--font-display);font-size:14px;color:var(--ash);">${baseline !== undefined ? baseline : '—'}</td>
+          <td style="padding:8px 12px;text-align:right;font-family:var(--font-display);font-size:14px;color:var(--mist);">${spotQty}</td>
+          <td style="padding:8px 12px;text-align:right;font-family:var(--font-display);font-size:16px;color:${varColor};">${varStr}</td>
+        </tr>`;
+      }).join('')}
+      </tbody>
+    </table>
+    </div>
+  </div>`;
 }
