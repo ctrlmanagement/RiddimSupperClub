@@ -92,7 +92,7 @@
  Didn't receive it?
  <button class="resend-link" id="btnResend" disabled>Resend in <span id="resendTimer">30</span>s</button></div><button class="btn-ghost" id="btnBack">← Back</button></div></div></div><div class="screen" id="screenPortal"><header class="portal-header"><div class="portal-nav-inner"><div class="portal-brand"><span class="portal-wordmark">RIDDIM</span><span class="portal-brand-divider"></span><span class="portal-role-badge">Staff Portal</span></div><nav class="portal-tabs"><button class="portal-tab portal-tab-back" onclick="window.location.href='../index.html'">
  ← Main Site
- </button><button class="portal-tab active" data-tab="checkin">⬡ Check-In</button><button class="portal-tab" data-tab="reservations">◈ Reservations <span id="resPendingBadge" style="display:none;background:var(--gold-warm);color:#000;font-family:var(--font-label);font-size:10px;letter-spacing:0.1em;padding:2px 6px;border-radius:10px;margin-left:4px;"></span></button><button class="portal-tab" data-tab="tables">⊟ Tables</button><button class="portal-tab" data-tab="guests">✦ Guests</button><button class="portal-tab" data-tab="schedule">⊞ My Schedule</button><button class="portal-tab" data-tab="referrals">★ Referrals</button><button class="portal-tab" data-tab="gallery">📷 Gallery</button><button class="portal-tab" data-tab="events">📅 Events</button></nav><div class="portal-user"><div><div class="portal-user-name" id="navStaffName">Staff</div><div class="portal-user-role">Floor Team</div></div><div class="avatar" id="navAvatar">ST
+ </button><button class="portal-tab active" data-tab="checkin">⬡ Check-In</button><button class="portal-tab" data-tab="reservations">◈ Reservations <span id="resPendingBadge" style="display:none;background:var(--gold-warm);color:#000;font-family:var(--font-label);font-size:10px;letter-spacing:0.1em;padding:2px 6px;border-radius:10px;margin-left:4px;"></span></button><button class="portal-tab" data-tab="tables">⊟ Tables</button><button class="portal-tab" data-tab="guests">✦ Guests</button><button class="portal-tab" data-tab="schedule">⊞ My Schedule</button><button class="portal-tab" data-tab="referrals">★ Referrals</button><button class="portal-tab" data-tab="gallery">📷 Gallery</button><button class="portal-tab" data-tab="events">📅 Events</button></nav><div class="portal-user"><div><div class="portal-user-name" id="navStaffName">Staff</div><div class="portal-user-role" id="navStaffRole">Floor Team</div></div><div class="avatar" id="navAvatar">ST
  <div class="avatar-menu" id="avatarMenu"><button class="avatar-menu-item danger" onclick="logout()">Sign Out</button></div></div></div></div></header><main class="portal-main" id="portalMain"><div class="tab-panel active" id="tab-checkin"><div class="page-header"><p class="page-eyebrow">Floor Operations</p><h1 class="page-title">Member Check-In</h1><p class="page-sub" id="tonightDate">—</p></div><div class="checkin-layout"><div><div class="panel" style="margin-bottom:20px;"><p class="panel-eyebrow">QR Scan</p><p class="panel-title">Scan Member Card</p><div id="checkinScannerIdle" class="guest-scanner-idle" onclick="startCheckinScanner()" style="max-width:100%;">
 <div class="guest-scanner-idle-icon">▣</div>
 <div class="guest-scanner-idle-label">Tap to Start Scanner</div>
@@ -492,9 +492,14 @@ document.getElementById('btnResend').addEventListener('click',()=>{
 if(DEV_MODE){ devOtpCode=String(Math.floor(100000+Math.random()*900000)); document.getElementById('devCodeVal').textContent=devOtpCode; }
 clearOtp(); startResendTimer();
 });
+const ROLE_LABELS = {
+  owner:'Owner', manager:'Manager', host:'Host', vip_host:'VIP Host',
+  waitress:'Waitress', barback:'Barback', key_barback:'Key Barback', staff:'Staff',
+};
 function enterPortal() {
 const initials = currentStaff.name.split(' ').map(n=>n[0]).join('').toUpperCase();
 document.getElementById('navStaffName').textContent = currentStaff.name;
+document.getElementById('navStaffRole').textContent = ROLE_LABELS[currentStaff.role] || currentStaff.role || 'Staff';
 document.getElementById('navAvatar').childNodes[0].textContent = initials;
 document.getElementById('tonightDate').textContent = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
 loadLiveData();
