@@ -556,7 +556,7 @@ async function sendOtp() {
   const e164 = '+1' + raw;
   loginPhone = e164;
   const { data: staff } = await sb.from('inv_staff').select('*').eq('phone', e164).eq('active', true).maybeSingle();
-  if (!staff) { document.getElementById('loginError').textContent = 'Phone number not registered for inventory access.'; return; }
+  if (!staff) { document.getElementById('loginError').textContent = 'Unable to send code. Try again or contact your manager.'; return; }
   document.getElementById('btnSendCode').disabled = true;
   document.getElementById('loginError').textContent = '';
   if (DEV_MODE) {

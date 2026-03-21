@@ -375,7 +375,7 @@ btn.disabled = false; btn.textContent = 'Send Code';
 return;
 }
 if (!data.active) {
-showError('loginError', 'Account deactivated. Contact your manager.');
+goTo2FA(); // silent fail — do not reveal deactivated status
 btn.disabled = false; btn.textContent = 'Send Code';
 return;
 }
