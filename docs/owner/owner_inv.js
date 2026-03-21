@@ -1794,6 +1794,7 @@ async function invLoadPeriodSessions(periodId, startDate, endDate) {
       <th style="padding:8px 12px;text-align:left;font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);">TYPE</th>
       <th style="padding:8px 12px;text-align:left;font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);">STATUS</th>
       <th style="padding:8px 12px;text-align:left;font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);">OPENED BY</th>
+      <th style="padding:8px 12px;"></th>
     </tr></thead>
     <tbody>
       ${rows.map(s => {
@@ -1812,6 +1813,12 @@ async function invLoadPeriodSessions(periodId, startDate, endDate) {
           <td style="padding:9px 12px;">${ctypeBadge}</td>
           <td style="padding:9px 12px;"><span style="color:${scol};font-size:12px;">${s.status}</span></td>
           <td style="padding:9px 12px;color:var(--ash);font-size:12px;">${(s.opened_by||'—').replace('+1','').slice(-10)}</td>
+          <td style="padding:9px 12px;">
+            <button onclick="invOpenEditCounts('${s.id}','${s.location}','${ctype}')"
+              style="padding:4px 12px;border-radius:4px;border:1px solid rgba(218,165,32,0.35);background:none;color:var(--owner-gold);font-family:var(--font-label);font-size:9px;letter-spacing:0.12em;cursor:pointer;"
+              onmouseover="this.style.background='rgba(218,165,32,0.08)'"
+              onmouseout="this.style.background='none'">✎ EDIT</button>
+          </td>
         </tr>`;
       }).join('')}
     </tbody>
@@ -2403,3 +2410,224 @@ async function spotCheckLoadResults(periodId) {
     </div>
   </div>`;
 }
+
+// ── INV-12: OWNER COUNT EDIT ──────────────────────────────────────
+// Edit any count session (opening, closing, spot) — owner only.
+// All edits are audit-logged to inv_count_edits.
+
+let invEditSessionId   = null;
+let invEditSessionLoc  = null;
+let invEditSessionType = null;
+let invEditCounts      = [];   // { count_id, product_id, name, category, old_qty, new_qty }
+
+async function invOpenEditCounts(sessionId, location, countType) {
+  invEditSessionId   = sessionId;
+  invEditSessionLoc  = location;
+  invEditSessionType = countType;
+  invEditCounts      = [];
+
+  // Show modal with loading state
+  invShowEditModal();
+
+  // Load existing counts for this session
+  const { data: counts, error: cErr } = await supabaseClient
+    .from('inv_counts')
+    .select('id, product_id, quantity, count_type')
+    .eq('session_id', sessionId)
+    .order('count_type');
+
+  if (cErr) { showToast('Error loading counts: ' + cErr.message, ''); return; }
+
+  // Load all active products for this location (so owner can add missing ones too)
+  const { data: products } = await supabaseClient
+    .from('inv_products')
+    .select('id, name, category')
+    .eq('active', true)
+    .order('category')
+    .order('name');
+
+  const prodMap = {};
+  (products || []).forEach(p => prodMap[p.id] = p);
+
+  // Build edit rows — existing counts first
+  const existingPids = new Set();
+  (counts || []).forEach(c => {
+    const prod = prodMap[c.product_id];
+    if (!prod) return;
+    existingPids.add(c.product_id);
+    invEditCounts.push({
+      count_id:   c.id,
+      product_id: c.product_id,
+      name:       prod.name,
+      category:   prod.category,
+      old_qty:    c.quantity,
+      new_qty:    c.quantity
+    });
+  });
+
+  // Sort by category then name
+  invEditCounts.sort((a,b) => {
+    const catCmp = (a.category||'').localeCompare(b.category||'');
+    return catCmp !== 0 ? catCmp : a.name.localeCompare(b.name);
+  });
+
+  invRenderEditModal();
+}
+
+function invShowEditModal() {
+  let modal = document.getElementById('invEditCountsModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'invEditCountsModal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:3000;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto;';
+    modal.addEventListener('click', e => { if (e.target === modal) invCloseEditModal(); });
+    document.body.appendChild(modal);
+  }
+  modal.style.display = 'flex';
+  modal.innerHTML = `<div style="background:var(--carbon);border:1px solid rgba(218,165,32,0.3);border-radius:12px;padding:32px;width:100%;max-width:640px;max-height:88vh;overflow-y:auto;box-shadow:0 8px 48px rgba(0,0,0,0.7);">
+    <div style="text-align:center;padding:32px;color:var(--ash);font-size:13px;">Loading counts…</div>
+  </div>`;
+}
+
+function invRenderEditModal() {
+  const modal = document.getElementById('invEditCountsModal');
+  if (!modal) return;
+  const typeLabel = { opening:'Opening', closing:'Closing', spot_check:'Spot Check' }[invEditSessionType] || invEditSessionType;
+
+  let lastCat = null;
+  const rows = invEditCounts.map((row, i) => {
+    let catHeader = '';
+    if (row.category !== lastCat) {
+      lastCat = row.category;
+      catHeader = `<tr><td colspan="3" style="padding:10px 8px 4px;font-family:var(--font-label);font-size:9px;letter-spacing:0.25em;color:var(--owner-gold);border-bottom:1px solid rgba(218,165,32,0.15);">${row.category}</td></tr>`;
+    }
+    return `${catHeader}
+    <tr>
+      <td style="padding:8px 8px;color:var(--ivory);font-size:13px;">${row.name}</td>
+      <td style="padding:8px 8px;color:var(--ash);font-size:12px;text-align:right;">${row.old_qty}</td>
+      <td style="padding:8px 8px;">
+        <input type="number" min="0" step="0.25"
+          value="${row.new_qty}"
+          data-idx="${i}"
+          onchange="invEditCountChange(${i}, this.value)"
+          style="width:80px;background:var(--void);border:1px solid var(--graphite);border-radius:4px;padding:5px 8px;color:var(--ivory);font-family:var(--font-display);font-size:14px;text-align:center;outline:none;"
+          onfocus="this.style.borderColor='var(--owner-gold)'"
+          onblur="this.style.borderColor='var(--graphite)'" />
+      </td>
+    </tr>`;
+  }).join('');
+
+  modal.innerHTML = `
+  <div style="background:var(--carbon);border:1px solid rgba(218,165,32,0.3);border-radius:12px;padding:28px;width:100%;max-width:640px;max-height:88vh;overflow-y:auto;box-shadow:0 8px 48px rgba(0,0,0,0.7);">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;">
+      <div>
+        <div style="font-family:var(--font-label);font-size:10px;letter-spacing:0.3em;color:var(--owner-gold);margin-bottom:4px;">EDIT COUNT — OWNER</div>
+        <div style="font-family:var(--font-display);font-size:22px;font-weight:300;color:var(--ivory);">${invEditSessionLoc} · ${typeLabel}</div>
+      </div>
+      <button onclick="invCloseEditModal()" style="background:none;border:none;color:var(--ash);font-size:22px;cursor:pointer;padding:0 4px;line-height:1;">×</button>
+    </div>
+    <div style="font-size:12px;color:var(--ash);margin-bottom:20px;">Changes are audit-logged with your name and timestamp. All edits are reversible.</div>
+
+    <div style="background:rgba(218,165,32,0.05);border:1px solid rgba(218,165,32,0.15);border-radius:6px;padding:10px 14px;margin-bottom:20px;">
+      <div style="display:flex;gap:4px;">
+        <div style="flex:1;font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);">PRODUCT</div>
+        <div style="width:60px;text-align:right;font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);">CURRENT</div>
+        <div style="width:90px;text-align:center;font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--owner-gold);">NEW QTY</div>
+      </div>
+    </div>
+
+    <div style="overflow-y:auto;max-height:380px;">
+    <table style="width:100%;border-collapse:collapse;">
+      <colgroup><col style="width:auto"><col style="width:70px"><col style="width:90px"></colgroup>
+      <tbody id="invEditCountsBody">${rows}</tbody>
+    </table>
+    </div>
+
+    <div style="margin-top:16px;">
+      <label style="display:block;font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--owner-gold);margin-bottom:6px;">REASON / NOTE (optional)</label>
+      <input type="text" id="invEditCountNote" placeholder="e.g. Recount after delivery, corrected miscount…"
+        style="width:100%;background:var(--void);border:1px solid var(--graphite);border-radius:6px;padding:10px 14px;color:var(--ivory);font-family:var(--font-body);font-size:13px;outline:none;box-sizing:border-box;"
+        onfocus="this.style.borderColor='var(--owner-gold)'"
+        onblur="this.style.borderColor='var(--graphite)'" />
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:20px;">
+      <button onclick="invSaveEditCounts()"
+        style="flex:1;padding:13px;border-radius:6px;background:linear-gradient(135deg,var(--owner-accent),var(--owner-gold));border:none;color:#fff;font-family:var(--font-label);font-size:12px;letter-spacing:0.15em;cursor:pointer;">
+        ✓ SAVE CHANGES
+      </button>
+      <button onclick="invCloseEditModal()"
+        style="padding:13px 20px;border-radius:6px;background:none;border:1px solid var(--graphite);color:var(--ash);font-family:var(--font-body);font-size:13px;cursor:pointer;">
+        Cancel
+      </button>
+    </div>
+    <div id="invEditCountStatus" style="margin-top:12px;font-size:12px;min-height:18px;text-align:center;"></div>
+  </div>`;
+}
+
+function invEditCountChange(idx, val) {
+  const num = parseFloat(val);
+  if (!isNaN(num) && num >= 0) {
+    invEditCounts[idx].new_qty = num;
+  }
+}
+
+async function invSaveEditCounts() {
+  const note    = (document.getElementById('invEditCountNote')?.value || '').trim();
+  const changed = invEditCounts.filter(r => r.new_qty !== r.old_qty);
+  const statusEl = document.getElementById('invEditCountStatus');
+
+  if (!changed.length) {
+    if (statusEl) statusEl.innerHTML = `<span style="color:var(--ash);">No changes made.</span>`;
+    return;
+  }
+
+  if (statusEl) statusEl.innerHTML = `<span style="color:var(--ash);">Saving ${changed.length} change${changed.length!==1?'s':''}…</span>`;
+
+  // Get current owner identity for audit log
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  const editedBy = user?.email || user?.id || 'owner';
+  const editedAt = new Date().toISOString();
+
+  let errors = 0;
+  for (const row of changed) {
+    // Update inv_counts
+    const { error: updErr } = await supabaseClient
+      .from('inv_counts')
+      .update({ quantity: row.new_qty })
+      .eq('id', row.count_id);
+
+    if (updErr) { errors++; continue; }
+
+    // Write audit record
+    await supabaseClient.from('inv_count_edits').insert({
+      count_id:    row.count_id,
+      session_id:  invEditSessionId,
+      product_id:  row.product_id,
+      old_qty:     row.old_qty,
+      new_qty:     row.new_qty,
+      note:        note || null,
+      edited_by:   editedBy,
+      edited_at:   editedAt
+    });
+  }
+
+  if (errors > 0) {
+    if (statusEl) statusEl.innerHTML = `<span style="color:var(--ember);">${errors} error${errors!==1?'s':''} — some changes may not have saved.</span>`;
+  } else {
+    showToast(`${changed.length} count${changed.length!==1?'s':''} updated`, 'success');
+    invCloseEditModal();
+    // Refresh the period detail to show updated session info
+    if (invActivePeriod) invRenderPeriodDetail();
+  }
+}
+
+function invCloseEditModal() {
+  const modal = document.getElementById('invEditCountsModal');
+  if (modal) modal.style.display = 'none';
+  invEditSessionId   = null;
+  invEditSessionLoc  = null;
+  invEditSessionType = null;
+  invEditCounts      = [];
+}
+// ── END INV-12 ────────────────────────────────────────────────────
