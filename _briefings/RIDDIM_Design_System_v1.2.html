@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RIDDIM — Global Design System v1.2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --obsidian: #0A0A0A;
+    --void: #111111;
+    --carbon: #1A1A1A;
+    --graphite: #2A2A2A;
+    --ash: #888888;
+    --mist: #CCCCCC;
+    --ivory: #F5F0E8;
+    --gold-deep: #B8860B;
+    --gold-warm: #D4A843;
+    --gold-bright: #F0C060;
+    --gold-light: #FAE29A;
+    --ember: #C0392B;
+    --electric: #E8C55A;
+    --staff-bg: #0D0F14;
+    --staff-surface: #161B24;
+    --staff-accent: #1E2836;
+    --staff-amber: #F59E0B;
+    --staff-red: #EF4444;
+    --staff-green: #22C55E;
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-12: 48px;
+    --space-16: 64px;
+    --space-24: 96px;
+    --space-32: 128px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0E0E0E;
+    color: var(--ivory);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+  }
+
+  /* COVER */
+  .cover {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: var(--space-16) var(--space-16) var(--space-12);
+    background: var(--obsidian);
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid var(--gold-deep);
+  }
+  .cover::before {
+    content: '';
+    position: absolute;
+    top: -200px; right: -200px;
+    width: 700px; height: 700px;
+    background: radial-gradient(circle, rgba(184,134,11,0.12) 0%, transparent 65%);
+    pointer-events: none;
+  }
+  .cover::after {
+    content: 'RIDDIM';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(120px, 25vw, 320px);
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(184,134,11,0.08);
+    pointer-events: none;
+    white-space: nowrap;
+    letter-spacing: 0.05em;
+  }
+  .cover-eyebrow {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold-warm);
+    margin-bottom: var(--space-4);
+  }
+  .cover-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(36px, 6vw, 80px);
+    font-weight: 300;
+    line-height: 1.1;
+    color: var(--ivory);
+    margin-bottom: var(--space-6);
+  }
+  .cover-title em { color: var(--gold-warm); font-style: italic; }
+  .cover-meta {
+    display: flex;
+    gap: var(--space-8);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ash);
+  }
+  .cover-meta span { color: var(--gold-deep); }
+
+  /* LAYOUT */
+  .doc {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: var(--space-16);
+  }
+
+  /* SECTION HEADERS */
+  .section-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.4em;
+    color: var(--gold-deep);
+    display: block;
+    margin-bottom: var(--space-2);
+  }
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(28px, 4vw, 52px);
+    font-weight: 300;
+    line-height: 1.1;
+    color: var(--ivory);
+    margin-bottom: var(--space-12);
+    padding-bottom: var(--space-6);
+    border-bottom: 1px solid var(--graphite);
+  }
+  .section-title em { color: var(--gold-warm); font-style: italic; }
+
+  .section { margin-bottom: var(--space-24); }
+
+  /* SUBSECTION */
+  .sub-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 0.15em;
+    color: var(--gold-bright);
+    margin-bottom: var(--space-6);
+    margin-top: var(--space-12);
+  }
+
+  p { color: var(--mist); font-size: 15px; line-height: 1.8; margin-bottom: var(--space-4); }
+
+  /* COLOR SWATCHES */
+  .swatch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: var(--space-4);
+    margin-bottom: var(--space-8);
+  }
+  .swatch {
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .swatch-color {
+    height: 80px;
+  }
+  .swatch-info {
+    background: var(--carbon);
+    padding: var(--space-3) var(--space-4);
+  }
+  .swatch-name { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ash); }
+  .swatch-hex { font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--ivory); font-weight: 400; }
+  .swatch-use { font-size: 11px; color: var(--ash); margin-top: 2px; }
+
+  /* TYPE SPECIMENS */
+  .type-specimen {
+    background: var(--carbon);
+    border: 1px solid var(--graphite);
+    border-radius: 4px;
+    padding: var(--space-8);
+    margin-bottom: var(--space-4);
+  }
+  .type-label {
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold-deep);
+    margin-bottom: var(--space-4);
+  }
+  .t-display { font-family: 'Cormorant Garamond', serif; font-size: 64px; font-weight: 300; line-height: 1; color: var(--ivory); }
+  .t-display-italic { font-family: 'Cormorant Garamond', serif; font-size: 64px; font-weight: 300; font-style: italic; color: var(--gold-warm); line-height: 1; }
+  .t-headline { font-family: 'Bebas Neue', sans-serif; font-size: 36px; letter-spacing: 0.12em; color: var(--ivory); }
+  .t-body { font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 300; color: var(--mist); line-height: 1.8; }
+  .t-caption { font-family: 'DM Sans', sans-serif; font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--ash); }
+  .type-meta { font-size: 12px; color: var(--ash); margin-top: var(--space-3); font-family: monospace; }
+
+  /* SPACING TABLE */
+  .spacing-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-6);
+    margin-bottom: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: var(--carbon);
+    border-radius: 3px;
+  }
+  .spacing-bar { background: var(--gold-warm); height: 8px; border-radius: 2px; min-width: 4px; }
+  .spacing-label { font-size: 12px; color: var(--ash); font-family: monospace; width: 70px; flex-shrink: 0; }
+  .spacing-desc { font-size: 13px; color: var(--mist); }
+
+  /* ARCHITECTURE */
+  .arch-tree {
+    background: var(--carbon);
+    border: 1px solid var(--graphite);
+    border-radius: 4px;
+    padding: var(--space-8);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+  }
+  .arch-domain {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 0.12em;
+    color: var(--gold-bright);
+    margin-bottom: var(--space-4);
+  }
+  .arch-layer {
+    margin-bottom: var(--space-6);
+    padding-left: var(--space-6);
+    border-left: 2px solid var(--graphite);
+  }
+  .arch-layer.public { border-left-color: var(--gold-warm); }
+  .arch-layer.member { border-left-color: #60A5FA; }
+  .arch-layer.staff { border-left-color: var(--staff-green); }
+  .arch-layer-title {
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: var(--space-3);
+  }
+  .arch-layer.public .arch-layer-title { color: var(--gold-warm); }
+  .arch-layer.member .arch-layer-title { color: #60A5FA; }
+  .arch-layer.staff .arch-layer-title { color: var(--staff-green); }
+  .arch-route {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-4);
+    margin-bottom: var(--space-2);
+    color: var(--mist);
+  }
+  .arch-route-path {
+    font-family: monospace;
+    font-size: 13px;
+    color: var(--ivory);
+    width: 200px;
+    flex-shrink: 0;
+  }
+  .arch-route-desc { font-size: 13px; color: var(--ash); }
+  .arch-route-badge {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 99px;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+  .badge-seo { background: rgba(184,134,11,0.2); color: var(--gold-warm); }
+  .badge-auth { background: rgba(96,165,250,0.15); color: #93C5FD; }
+  .badge-role { background: rgba(34,197,94,0.15); color: #86EFAC; }
+  .badge-live { background: rgba(239,68,68,0.15); color: #FCA5A5; }
+
+  /* ENVIRONMENT CARDS */
+  .env-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-4);
+    margin-bottom: var(--space-8);
+  }
+  @media (max-width: 800px) { .env-grid { grid-template-columns: 1fr; } }
+  .env-card {
+    border-radius: 6px;
+    padding: var(--space-8);
+    border: 1px solid;
+  }
+  .env-card.public { background: rgba(184,134,11,0.05); border-color: rgba(184,134,11,0.25); }
+  .env-card.member { background: rgba(96,165,250,0.05); border-color: rgba(96,165,250,0.2); }
+  .env-card.staff { background: rgba(34,197,94,0.04); border-color: rgba(34,197,94,0.2); }
+  .env-icon { font-size: 28px; margin-bottom: var(--space-4); }
+  .env-label { font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; margin-bottom: var(--space-2); }
+  .env-card.public .env-label { color: var(--gold-warm); }
+  .env-card.member .env-label { color: #60A5FA; }
+  .env-card.staff .env-label { color: var(--staff-green); }
+  .env-name { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 300; color: var(--ivory); margin-bottom: var(--space-4); }
+  .env-features li { font-size: 13px; color: var(--ash); margin-bottom: var(--space-1); list-style: none; padding-left: var(--space-4); position: relative; }
+  .env-features li::before { content: '—'; position: absolute; left: 0; }
+  .env-card.public .env-features li::before { color: var(--gold-warm); }
+  .env-card.member .env-features li::before { color: #60A5FA; }
+  .env-card.staff .env-features li::before { color: var(--staff-green); }
+
+  /* ANIMATION TABLE */
+  table { width: 100%; border-collapse: collapse; margin-bottom: var(--space-8); }
+  th { text-align: left; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold-deep); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--graphite); }
+  td { font-size: 13px; color: var(--mist); padding: var(--space-3) var(--space-4); border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: top; }
+  td:first-child { color: var(--ivory); font-weight: 400; }
+  td code { font-family: monospace; font-size: 12px; color: var(--gold-light); background: rgba(255,255,255,0.04); padding: 2px 6px; border-radius: 3px; }
+
+  /* DIVIDER */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--graphite) 30%, var(--graphite) 70%, transparent);
+    margin: var(--space-16) 0;
+  }
+
+  /* RECOGNITION FLOW */
+  .recognition-flow {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    background: var(--carbon);
+    border: 1px solid var(--graphite);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: var(--space-8);
+  }
+  @media (max-width: 700px) { .recognition-flow { grid-template-columns: 1fr; } }
+  .rf-step {
+    padding: var(--space-6);
+    border-right: 1px solid var(--graphite);
+    position: relative;
+  }
+  .rf-step:last-child { border-right: none; }
+  .rf-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 40px;
+    color: rgba(184,134,11,0.15);
+    line-height: 1;
+    margin-bottom: var(--space-2);
+  }
+  .rf-title { font-size: 12px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold-warm); margin-bottom: var(--space-2); }
+  .rf-desc { font-size: 12px; color: var(--ash); line-height: 1.6; }
+
+  /* STAFF PALETTE */
+  .staff-demo {
+    background: var(--staff-bg);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 6px;
+    padding: var(--space-8);
+    margin-bottom: var(--space-8);
+  }
+  .staff-demo-bar {
+    display: flex;
+    gap: var(--space-3);
+    margin-bottom: var(--space-6);
+  }
+  .staff-chip {
+    padding: var(--space-1) var(--space-4);
+    border-radius: 3px;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  .chip-vip { background: rgba(245,158,11,0.2); color: var(--staff-amber); }
+  .chip-seated { background: rgba(34,197,94,0.15); color: var(--staff-green); }
+  .chip-waiting { background: rgba(239,68,68,0.15); color: var(--staff-red); }
+  .staff-table { width: 100%; }
+  .staff-table td { border-color: rgba(255,255,255,0.06); font-size: 13px; }
+  .staff-table td:first-child { color: var(--ivory); }
+
+  /* STATUS BADGES */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 99px;
+    margin-left: 12px;
+    vertical-align: middle;
+    position: relative;
+    top: -2px;
+  }
+  .status-locked { background: rgba(34,197,94,0.12); color: #86EFAC; border: 1px solid rgba(34,197,94,0.25); }
+  .status-partial { background: rgba(245,158,11,0.12); color: #FCD34D; border: 1px solid rgba(245,158,11,0.25); }
+  .status-pending { background: rgba(148,163,184,0.1); color: #94A3B8; border: 1px solid rgba(148,163,184,0.2); }
+  .status-designed { background: rgba(96,165,250,0.12); color: #93C5FD; border: 1px solid rgba(96,165,250,0.2); }
+
+  /* STATUS DASHBOARD */
+  .status-dashboard {
+    background: var(--carbon);
+    border: 1px solid rgba(184,134,11,0.2);
+    border-radius: 6px;
+    padding: var(--space-8);
+    margin-bottom: var(--space-16);
+  }
+  .status-dashboard-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.3em;
+    color: var(--gold-deep);
+    margin-bottom: var(--space-6);
+  }
+  .status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--space-3);
+  }
+  .status-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-3) var(--space-4);
+    background: var(--graphite);
+    border-radius: 3px;
+  }
+  .status-row-label {
+    font-size: 12px;
+    color: var(--mist);
+    font-family: 'DM Sans', sans-serif;
+  }
+  .status-row-label span {
+    color: var(--ash);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    margin-right: 8px;
+  }
+
+  /* SECTION CHANGE LOG */
+  .change-note {
+    display: flex;
+    gap: var(--space-3);
+    align-items: flex-start;
+    padding: var(--space-3) var(--space-4);
+    background: rgba(184,134,11,0.05);
+    border-left: 2px solid var(--gold-deep);
+    border-radius: 0 3px 3px 0;
+    margin-top: var(--space-6);
+    margin-bottom: var(--space-4);
+  }
+  .change-note-tag {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold-warm);
+    font-weight: 500;
+    white-space: nowrap;
+    padding-top: 2px;
+  }
+  .change-note p {
+    font-size: 13px;
+    color: var(--ash);
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  /* FOOTER */
+  .doc-footer {
+    padding: var(--space-12) 0;
+    border-top: 1px solid var(--graphite);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .doc-footer-brand { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 0.2em; color: var(--gold-warm); }
+  .doc-footer-meta { font-size: 11px; color: var(--ash); letter-spacing: 0.1em; text-align: right; }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="cover-eyebrow">Global Design System · v1.2 · Updated Session 19</div>
+  <h1 class="cover-title">AG Entertainment<br><em>RIDDIM Supper Club</em><br>Design Architecture</h1>
+  <div class="cover-meta">
+    <div>One Domain <span>·</span> Three Audience States</div>
+    <div>Public <span>·</span> Member <span>·</span> Staff</div>
+    <div>March 4, 2026</div>
+  </div>
+</div>
+
+<div class="doc">
+
+  <!-- STATUS DASHBOARD -->
+  <div class="status-dashboard">
+    <div class="status-dashboard-title">Design System — Build Status · Session 19 · v1.2</div>
+    <div class="status-grid">
+      <div class="status-row"><span class="status-row-label"><span>01</span>Architecture</span><span class="status-badge status-locked">✓ Locked</span></div>
+      <div class="status-row"><span class="status-row-label"><span>02</span>Color Science</span><span class="status-badge status-locked">✓ Locked</span></div>
+      <div class="status-row"><span class="status-row-label"><span>03</span>Typography</span><span class="status-badge status-locked">✓ Locked</span></div>
+      <div class="status-row"><span class="status-row-label"><span>04</span>Spacing System</span><span class="status-badge status-locked">✓ Locked</span></div>
+      <div class="status-row"><span class="status-row-label"><span>05</span>Interaction Language</span><span class="status-badge status-designed">Designed — Pending Build</span></div>
+      <div class="status-row"><span class="status-row-label"><span>06</span>Member Recognition</span><span class="status-badge status-partial">⚠ Partial</span></div>
+      <div class="status-row"><span class="status-row-label"><span>07</span>Staff Environment</span><span class="status-badge status-partial">⚠ Partial</span></div>
+      <div class="status-row"><span class="status-row-label"><span>08</span>Reference Analysis</span><span class="status-badge status-locked">✓ Reference Only</span></div>
+      <div class="status-row"><span class="status-row-label"><span>09</span>Component Tokens</span><span class="status-badge status-designed">Designed — Not in CSS</span></div>
+      <div class="status-row"><span class="status-row-label"><span>—</span>CSS Token Consolidation</span><span class="status-badge status-pending">Pending Phase 1</span></div>
+      <div class="status-row"><span class="status-row-label"><span>—</span>Site Copy (all 7 pages)</span><span class="status-badge status-partial">Written — Not in HTML</span></div>
+      <div class="status-row"><span class="status-row-label"><span>—</span>Expansion Portal UI</span><span class="status-badge status-pending">Pending Phase 1A</span></div>
+    </div>
+  </div>
+
+  <!-- SECTION 1: ENVIRONMENT OVERVIEW -->
+  <div class="section">
+    <span class="section-num">01 — ARCHITECTURE</span>
+    <h2 class="section-title">One Domain.<br><em>Three Audience States.</em> <span class="status-badge status-locked">✓ Locked</span></h2>
+
+    <p>The RIDDIM platform operates on a single domain with three distinct UI environments — each calibrated to its audience's context, lighting conditions, and emotional state. The public site courts strangers into desire. The member portal converts desire into loyalty. The staff dashboard turns loyalty into operational execution.</p>
+
+    <div class="env-grid" style="margin-top: var(--space-8);">
+      <div class="env-card public">
+        <div class="env-icon">🌐</div>
+        <div class="env-label">Environment 01</div>
+        <div class="env-name">Public Site</div>
+        <ul class="env-features">
+          <li>Home — cinematic hero, patio showcase</li>
+          <li>Menu — visual/interactive scroll</li>
+          <li>Reservations — API-connected form</li>
+          <li>Gallery — lazy-load, filterable</li>
+          <li>Events — calendar + slug pages</li>
+          <li>Private Events — conversion page</li>
+          <li>Join — member registration CTA</li>
+        </ul>
+      </div>
+      <div class="env-card member">
+        <div class="env-icon">👑</div>
+        <div class="env-label">Environment 02</div>
+        <div class="env-name">Member Portal</div>
+        <ul class="env-features">
+          <li>Dashboard — points, tier, wallet</li>
+          <li>Secret Menu — members-only access</li>
+          <li>QR Wallet — digital membership card</li>
+          <li>Benefits — tonight's active perks</li>
+          <li>Reservations — member request flow</li>
+          <li>Visit History — gamified timeline</li>
+          <li>Concierge — SMS thread UI</li>
+        </ul>
+      </div>
+      <div class="env-card staff">
+        <div class="env-icon">⚡</div>
+        <div class="env-label">Environment 03</div>
+        <div class="env-name">Staff Dashboard</div>
+        <ul class="env-features">
+          <li>Guest lookup + VIP notes</li>
+          <li>Reward redemption toggle</li>
+          <li>Floor plan status (live seats)</li>
+          <li>Check-in via QR scan</li>
+          <li>Role-scoped SMS threads</li>
+          <li>Reservation queue</li>
+          <li>Owner analytics + audit log</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sub-title">Full Site Map & Route Logic</div>
+    <div class="arch-tree">
+      <div class="arch-domain">riddimatlanta.com</div>
+
+      <div class="arch-layer public">
+        <div class="arch-layer-title">Public Routes — No Auth Required</div>
+        <div class="arch-route"><span class="arch-route-path">/</span><span class="arch-route-desc">Homepage — hero, patio, tonight's event, join CTA</span><span class="arch-route-badge badge-seo">SEO Priority</span></div>
+        <div class="arch-route"><span class="arch-route-path">/menu</span><span class="arch-route-desc">Interactive visual menu — full and bar sections</span><span class="arch-route-badge badge-seo">SEO</span></div>
+        <div class="arch-route"><span class="arch-route-path">/menu#bar</span><span class="arch-route-desc">Bar menu anchor (redirect target from old domain)</span></div>
+        <div class="arch-route"><span class="arch-route-path">/events</span><span class="arch-route-desc">Events calendar + upcoming listings</span><span class="arch-route-badge badge-seo">SEO</span></div>
+        <div class="arch-route"><span class="arch-route-path">/events/[slug]</span><span class="arch-route-desc">Individual event SEO pages — schema markup</span><span class="arch-route-badge badge-seo">SEO</span></div>
+        <div class="arch-route"><span class="arch-route-path">/experience</span><span class="arch-route-desc">Venue story — patio, hookah, dining, nightlife</span><span class="arch-route-badge badge-seo">SEO</span></div>
+        <div class="arch-route"><span class="arch-route-path">/gallery</span><span class="arch-route-desc">Filterable photo/video gallery (Cloudflare Images)</span></div>
+        <div class="arch-route"><span class="arch-route-path">/reserve</span><span class="arch-route-desc">Reservation request form — API-connected</span><span class="arch-route-badge badge-seo">SEO</span></div>
+        <div class="arch-route"><span class="arch-route-path">/private-events</span><span class="arch-route-desc">Group bookings — buyouts, birthdays, corporate</span><span class="arch-route-badge badge-seo">SEO</span></div>
+        <div class="arch-route"><span class="arch-route-path">/join</span><span class="arch-route-desc">Member registration — captive portal bridge</span></div>
+        <div class="arch-route"><span class="arch-route-path">/contact</span><span class="arch-route-desc">Contact page</span></div>
+      </div>
+
+      <div class="arch-layer member">
+        <div class="arch-layer-title">Member Routes — Phone Auth Required</div>
+        <div class="arch-route"><span class="arch-route-path">/members</span><span class="arch-route-desc">Dashboard — points, tier status, tonight's benefits</span><span class="arch-route-badge badge-auth">Auth</span></div>
+        <div class="arch-route"><span class="arch-route-path">/members/wallet</span><span class="arch-route-desc">QR card, tier badge, member ID</span><span class="arch-route-badge badge-auth">Auth</span></div>
+        <div class="arch-route"><span class="arch-route-path">/members/secret-menu</span><span class="arch-route-desc">Members-only menu items — tier gated</span><span class="arch-route-badge badge-auth">Auth</span></div>
+        <div class="arch-route"><span class="arch-route-path">/members/reserve</span><span class="arch-route-desc">Pre-filled reservation with member profile</span><span class="arch-route-badge badge-auth">Auth</span></div>
+        <div class="arch-route"><span class="arch-route-path">/members/history</span><span class="arch-route-desc">Visit timeline — gamified milestones</span><span class="arch-route-badge badge-auth">Auth</span></div>
+        <div class="arch-route"><span class="arch-route-path">/members/events</span><span class="arch-route-desc">Events calendar with Save the Date</span><span class="arch-route-badge badge-auth">Auth</span></div>
+      </div>
+
+      <div class="arch-layer staff">
+        <div class="arch-layer-title">Staff Routes — Staff Auth + Role Gated</div>
+        <div class="arch-route"><span class="arch-route-path">/staff</span><span class="arch-route-desc">Staff login — phone 2FA</span><span class="arch-route-badge badge-role">Role</span></div>
+        <div class="arch-route"><span class="arch-route-path">/staff/floor</span><span class="arch-route-desc">Floor plan — live seat status, table threads</span><span class="arch-route-badge badge-role">Host+</span></div>
+        <div class="arch-route"><span class="arch-route-path">/staff/checkin</span><span class="arch-route-desc">QR scanner + guest list management</span><span class="arch-route-badge badge-role">All Staff</span></div>
+        <div class="arch-route"><span class="arch-route-path">/staff/guests</span><span class="arch-route-desc">Guest lookup — VIP notes, profile</span><span class="arch-route-badge badge-role">All Staff</span></div>
+        <div class="arch-route"><span class="arch-route-path">/staff/reservations</span><span class="arch-route-desc">Reservation queue — approve/seat</span><span class="arch-route-badge badge-role">Manager+</span></div>
+        <div class="arch-route"><span class="arch-route-path">/owner</span><span class="arch-route-desc">Owner dashboard — Google OAuth · inquiry@ctrlmanagement.com only</span><span class="arch-route-badge badge-role">Owner Only</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- SECTION 2: COLOR SCIENCE -->
+  <div class="section">
+    <span class="section-num">02 — COLOR SCIENCE</span>
+    <h2 class="section-title">The <em>Palette.</em> <span class="status-badge status-locked">✓ Locked</span></h2>
+    <p>Three palette tiers — Foundation (all three environments), Public/Member accent extensions, and the Staff-specific high-contrast utility palette optimized for low-light venue conditions.</p>
+
+    <div class="sub-title">Foundation — Dark Grounds</div>
+    <div class="swatch-grid">
+      <div class="swatch"><div class="swatch-color" style="background:#0A0A0A;"></div><div class="swatch-info"><div class="swatch-name">Obsidian</div><div class="swatch-hex">#0A0A0A</div><div class="swatch-use">Page background</div></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:#111111;"></div><div class="swatch-info"><div class="swatch-name">Void</div><div class="swatch-hex">#111111</div><div class="swatch-use">Section backgrounds</div></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:#1A1A1A;"></div><div class="swatch-info"><div class="swatch-name">Carbon</div><div class="swatch-hex">#1A1A1A</div><div class="swatch-use">Cards, panels</div></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:#2A2A2A;"></div><div class="swatch-info"><div class="swatch-name">Graphite</div><div class="swatch-hex">#2A2A2A</div><div class="swatch-use">Borders, dividers</div></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:#888888;"></div><div class="swatch-info"><div class="swatch-name">Ash</div><div class="swatch-hex">#888888</div><div class="swatch-use">Secondary text</div></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:#CCCCCC;"></div><div class="swatch-info"><div class="swatch-name">Mist</div><div class="swatch-hex">#CCCCCC</div><div class="swatch-use">Body text</div></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:#F5F0E8;"></div><div class="swatch-info"><div class="swatch-name">Ivory</div><div class="swatch-hex">#F5F0E8</div><div class="swatch-use">Headlines, emphasis</div></div></div>
+    </div>
+
+    <div class="sub-title">Gold Spectrum — Public & Member</div>
+    <div class="swatch-grid">
+      <div class="swatch"><div class="swatch-color" style="background:#B8860B;"></div><div class="swatch-info"><div class="swatch-name">Gold Deep</div><div class="swatch-hex">#B8860B</div><div class="swatch-use">Section numbers, borders</div></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:#D4A843;"></div><div class="swatch-info"><div class="swatch-name">Gold Warm</div><div class="swatch-hex">#D4A843</div><div class="swatch-use">Primary CTA, accents</div></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:#F0C060;"></div><div class="swatch-info"><div class="swatch-name">Gold Bright</div><div class="swatch-hex">#F0C060</div><div class="swatch-use">Hover states, icons</div></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:#FAE29A;"></div><div class="swatch-info"><div class="swatch-name">Gold Light</div><div class="swatch-hex">#FAE29A</div><div class="swatch-use">Code, small labels</div></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:#C0392B;"></div><div class="swatch-info"><div class="swatch-name">Ember</div><div class="swatch-hex">#C0392B</div><div class="swatch-use">Urgency, sold-out</div></div></div>
+    </div>
+
+    <div class="sub-title">Staff Palette — High Contrast, Low Light</div>
+    <p>The staff UI runs on a distinctly cooler, blue-shifted dark mode. This is intentional — it reads cleanly under venue lighting conditions where warm amber tends to wash out, and it creates a visual "mode shift" that staff immediately register as a work tool, not a guest-facing surface.</p>
+    <div class="swatch-grid" style="margin-top:var(--space-4);">
+      <div class="swatch"><div class="swatch-color" style="background:#0D0F14;"></div><div class="swatch-info"><div class="swatch-name">Staff BG</div><div class="swatch-hex">#0D0F14</div><div class="swatch-use">Page background</div></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:#161B24;"></div><div class="swatch-info"><div class="swatch-name">Staff Surface</div><div class="swatch-hex">#161B24</div><div class="swatch-use">Cards, panels</div></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:#1E2836;"></div><div class="swatch-info"><div class="swatch-name">Staff Accent</div><div class="swatch-hex">#1E2836</div><div class="swatch-use">Active states</div></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:#F59E0B;"></div><div class="swatch-info"><div class="swatch-name">Amber</div><div class="swatch-hex">#F59E0B</div><div class="swatch-use">VIP, warnings</div></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:#EF4444;"></div><div class="swatch-info"><div class="swatch-name">Alert Red</div><div class="swatch-hex">#EF4444</div><div class="swatch-use">Waiting, errors</div></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:#22C55E;"></div><div class="swatch-info"><div class="swatch-name">Confirm Green</div><div class="swatch-hex">#22C55E</div><div class="swatch-use">Seated, success</div></div></div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- SECTION 3: TYPOGRAPHY -->
+  <div class="section">
+    <span class="section-num">03 — TYPOGRAPHY</span>
+    <h2 class="section-title">The <em>Voice.</em> <span class="status-badge status-locked">✓ Locked</span></h2>
+    <p>Three typefaces. Each chosen to occupy a distinct emotional register — no overlap, no competition. Together they define the RIDDIM voice: cinematic luxury with Afro-diasporic warmth.</p>
+
+    <div class="type-specimen">
+      <div class="type-label">Display / Serif — Cormorant Garamond (Light 300, Italic)</div>
+      <div class="t-display">The Night</div>
+      <div class="t-display-italic">Awaits You</div>
+      <div class="type-meta">font-family: 'Cormorant Garamond' · weights: 300, 600 · Use: Page titles, section headers, hero text, pull quotes</div>
+    </div>
+
+    <div class="type-specimen">
+      <div class="type-label">Utility Display — Bebas Neue (Regular)</div>
+      <div class="t-headline">FRIDAY · VIP SECTION · 8PM — CLOSE</div>
+      <div class="type-meta">font-family: 'Bebas Neue' · weight: 400 · Use: Labels, eyebrows, navigation, section numbers, staff UI headers</div>
+    </div>
+
+    <div class="type-specimen">
+      <div class="type-label">Body — DM Sans (Light 300, Regular 400)</div>
+      <div class="t-body">Reserve your table for an evening of elevated hookah, modern dining, and Atlanta's premier hip-hop lounge experience on our signature outdoor patio.</div>
+      <div class="type-meta">font-family: 'DM Sans' · weights: 300, 400, 500 · Use: All body copy, form labels, navigation items, descriptions</div>
+    </div>
+
+    <div class="type-specimen">
+      <div class="type-label">Caption / Micro — DM Sans Uppercase</div>
+      <div class="t-caption">Member Since March 2026 · OBSIDIAN TIER · 2,400 Points</div>
+      <div class="type-meta">font-size: 10–11px · letter-spacing: 0.25–0.35em · text-transform: uppercase · Use: Tags, badges, metadata, form field labels</div>
+    </div>
+
+    <div class="sub-title">Type Scale</div>
+    <table>
+      <tr><th>Token</th><th>Size</th><th>Font</th><th>Use</th></tr>
+      <tr><td>--t-hero</td><td>clamp(56px, 10vw, 140px)</td><td>Cormorant Garamond 300</td><td>Hero sections</td></tr>
+      <tr><td>--t-display</td><td>clamp(36px, 6vw, 80px)</td><td>Cormorant Garamond 300</td><td>Section titles</td></tr>
+      <tr><td>--t-subhead</td><td>clamp(24px, 3vw, 40px)</td><td>Cormorant Garamond 300</td><td>Card headers</td></tr>
+      <tr><td>--t-headline</td><td>18–24px</td><td>Bebas Neue</td><td>Labels, nav, callouts</td></tr>
+      <tr><td>--t-body-lg</td><td>17–18px</td><td>DM Sans 300</td><td>Lead body text</td></tr>
+      <tr><td>--t-body</td><td>14–16px</td><td>DM Sans 300</td><td>Standard body</td></tr>
+      <tr><td>--t-caption</td><td>10–12px</td><td>DM Sans 400 CAPS</td><td>Labels, badges</td></tr>
+    </table>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- SECTION 4: SPACING -->
+  <div class="section">
+    <span class="section-num">04 — SPACING SYSTEM</span>
+    <h2 class="section-title">The <em>Breath.</em> <span class="status-badge status-locked">✓ Locked</span></h2>
+    <p>4px base unit. Cinematic whitespace is not empty — it is pressure. Wide margins create anticipation before content arrives. Dense grids in the staff UI communicate urgency and data density.</p>
+
+    <div class="spacing-row"><span class="spacing-label">--space-1</span><div class="spacing-bar" style="width:4px;"></div><span class="spacing-desc">4px — Icon gap, tight badge padding</span></div>
+    <div class="spacing-row"><span class="spacing-label">--space-2</span><div class="spacing-bar" style="width:8px;"></div><span class="spacing-desc">8px — Inline element spacing</span></div>
+    <div class="spacing-row"><span class="spacing-label">--space-3</span><div class="spacing-bar" style="width:12px;"></div><span class="spacing-desc">12px — Cell padding, compact rows</span></div>
+    <div class="spacing-row"><span class="spacing-label">--space-4</span><div class="spacing-bar" style="width:16px;"></div><span class="spacing-desc">16px — Standard component padding</span></div>
+    <div class="spacing-row"><span class="spacing-label">--space-6</span><div class="spacing-bar" style="width:24px;"></div><span class="spacing-desc">24px — Card internal spacing</span></div>
+    <div class="spacing-row"><span class="spacing-label">--space-8</span><div class="spacing-bar" style="width:32px;"></div><span class="spacing-desc">32px — Section padding (mobile)</span></div>
+    <div class="spacing-row"><span class="spacing-label">--space-12</span><div class="spacing-bar" style="width:48px;"></div><span class="spacing-desc">48px — Between major components</span></div>
+    <div class="spacing-row"><span class="spacing-label">--space-16</span><div class="spacing-bar" style="width:64px;"></div><span class="spacing-desc">64px — Section padding (desktop)</span></div>
+    <div class="spacing-row"><span class="spacing-label">--space-24</span><div class="spacing-bar" style="width:96px;"></div><span class="spacing-desc">96px — Between page sections</span></div>
+    <div class="spacing-row"><span class="spacing-label">--space-32</span><div class="spacing-bar" style="width:128px;"></div><span class="spacing-desc">128px — Hero breathing room</span></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- SECTION 5: INTERACTION & ANIMATION -->
+  <div class="section">
+    <span class="section-num">05 — INTERACTION LANGUAGE</span>
+    <h2 class="section-title">The <em>Lounge Feel.</em> <span class="status-badge status-designed">Designed — Pending Build</span></h2>
+    <p>Every animation on the public site should feel like the moment your eyes adjust after walking through the front door — slow revelation, nothing jarring. Member portal interactions should feel like a concierge remembering your name. Staff UI never animates: it snaps.</p>
+
+    <div class="sub-title">Scroll & Entrance Animations (Public Site)</div>
+    <table>
+      <tr><th>Element</th><th>Animation</th><th>CSS / JS</th></tr>
+      <tr><td>Hero text</td><td>Fade up with stagger — headline → subline → CTA, 0.8s total</td><td><code>animation-delay: 0, 0.2s, 0.4s</code></td></tr>
+      <tr><td>Section reveals</td><td>Fade up 30px on IntersectionObserver entry, once per session</td><td><code>translateY(30px) → 0, opacity 0 → 1</code></td></tr>
+      <tr><td>Gold accent lines</td><td>Horizontal scale-in from left (scaleX 0 → 1), 0.6s ease-out</td><td><code>transform-origin: left center</code></td></tr>
+      <tr><td>Gallery images</td><td>Blur-to-sharp on lazy-load: <code>filter: blur(10px) → blur(0)</code></td><td>0.4s ease-out on <code>onload</code></td></tr>
+      <tr><td>Nav items</td><td>Underline slides in from left on hover</td><td>CSS <code>::after</code> pseudo, scaleX</td></tr>
+      <tr><td>CTA buttons</td><td>Gold glow pulse on hover + 2px lift</td><td><code>box-shadow</code> + <code>translateY(-2px)</code></td></tr>
+      <tr><td>Page transitions</td><td>Fade out → route change → fade in, 200ms each</td><td>Astro View Transitions API</td></tr>
+    </table>
+
+    <div class="sub-title">Member Portal Micro-Interactions</div>
+    <table>
+      <tr><th>Element</th><th>Interaction</th><th>Emotional Intent</th></tr>
+      <tr><td>Login → Dashboard transition</td><td>Name slides in from right with gold flash on tier badge</td><td>"We know you"</td></tr>
+      <tr><td>Points counter</td><td>Animated number count-up from 0 to current on first render</td><td>Reward dopamine loop</td></tr>
+      <tr><td>QR code appearance</td><td>Dissolve in with subtle scanline effect overlay</td><td>Exclusivity signal</td></tr>
+      <tr><td>Tier badge</td><td>Slow pulse glow matching tier color on hover</td><td>Status reinforcement</td></tr>
+      <tr><td>Secret menu unlock</td><td>Content blurs then sharpens with gold border flash</td><td>Reveal theatre</td></tr>
+      <tr><td>Perk card tap</td><td>Subtle haptic-like scale (1 → 0.97 → 1.01 → 1)</td><td>Physical confirmation</td></tr>
+    </table>
+
+    <div class="sub-title">Staff UI — No Animation Policy</div>
+    <p>Staff interfaces operate in fast-paced, dimly lit, high-stakes environments. All state changes are instant. The only motion allowed is a 150ms color-state transition on status chips (waiting → seated → done). No page transitions, no entrance animations, no loading theatrics. Speed is the UX.</p>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- SECTION 6: MEMBER RECOGNITION -->
+  <div class="section">
+    <span class="section-num">06 — MEMBER RECOGNITION</span>
+    <h2 class="section-title">The Moment of<br><em>Recognition.</em> <span class="status-badge status-partial">⚠ Partial</span></h2>
+    <p>The four-beat sequence that makes a returning member feel seen from the first pixel. This is not generic personalization — it is a choreographed identity confirmation ceremony.</p>
+
+    <div class="recognition-flow">
+      <div class="rf-step">
+        <div class="rf-num">01</div>
+        <div class="rf-title">Name Drop</div>
+        <div class="rf-desc">First name appears first — before tier, before points. Large, serif, italic. "Welcome back, Marcus." Not a greeting: a recognition.</div>
+      </div>
+      <div class="rf-step">
+        <div class="rf-num">02</div>
+        <div class="rf-title">Tier Signal</div>
+        <div class="rf-desc">Tier badge materializes with a color flash. Gold for Obsidian, silver for Standard. The visual hierarchy tells them where they stand without words.</div>
+      </div>
+      <div class="rf-step">
+        <div class="rf-num">03</div>
+        <div class="rf-title">Points Count-Up</div>
+        <div class="rf-desc">Animated counter from 0 to current balance. Turns each visit into a visible reward. If they earned points last visit, the delta highlights briefly in gold.</div>
+      </div>
+      <div class="rf-step">
+        <div class="rf-num">04</div>
+        <div class="rf-title">Tonight's Perks</div>
+        <div class="rf-desc">Active perks for this evening stacked below — what they can use right now, not later. Immediacy over abstraction. The card knows what night it is.</div>
+      </div>
+    </div>
+
+    <div class="sub-title">Member Tier System</div>
+    <div class="change-note">
+      <span class="change-note-tag">Open Question</span>
+      <p>Tier thresholds confirmed as points-based. Design system lists visit count requirements (5/15/50 visits). Context briefing uses points only. Confirm with owner whether visit counts are required for unlock or points alone suffice.</p>
+    </div>
+    <table>
+      <tr><th>Tier</th><th>Color</th><th>Hex</th><th>Unlock Threshold</th><th>Key Perks</th></tr>
+      <tr><td>🥉 Bronze</td><td>Muted Gold</td><td>#9A7B2A</td><td>0 — all members</td><td>Events access, digital wallet, save-the-date</td></tr>
+      <tr><td>🥈 Silver</td><td>Mist Silver</td><td>#C0C8D0</td><td>500 pts / 5 visits</td><td>Priority reservation, birthday perk, secret menu preview</td></tr>
+      <tr><td>🥇 Gold</td><td>Gold Warm</td><td>#D4A843</td><td>1,500 pts / 15 visits</td><td>Full secret menu, comp access, VIP queue bypass</td></tr>
+      <tr><td>💎 Obsidian</td><td>Electric Gold</td><td>#F0C060</td><td>5,000 pts / 50 visits</td><td>Concierge line, table hold, event presale, owner direct</td></tr>
+    </table>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- SECTION 7: STAFF ENVIRONMENT -->
+  <div class="section">
+    <span class="section-num">07 — STAFF ENVIRONMENT</span>
+    <h2 class="section-title">The <em>Operator's View.</em> <span class="status-badge status-partial">⚠ Partial</span></h2>
+    <p>The staff UI is a tool, not an experience. Every pixel serves function. Designed specifically for 60% ambient lighting environments with phones held at arm's length in motion. High contrast. Snap-state. Zero decorative noise.</p>
+
+    <div class="sub-title">Live Status Chip System</div>
+    <div class="staff-demo">
+      <div class="staff-demo-bar">
+        <span class="staff-chip chip-vip">⭐ VIP — Marcus T.</span>
+        <span class="staff-chip chip-seated">✓ Seated — T12</span>
+        <span class="staff-chip chip-waiting">⏳ Waiting — 3 parties</span>
+      </div>
+      <table class="staff-table">
+        <tr><th>Guest</th><th>Status</th><th>Table</th><th>Server</th><th>Notes</th></tr>
+        <tr><td>Marcus T.</td><td><span class="staff-chip chip-vip" style="font-size:10px;">⭐ VIP</span></td><td>T-12</td><td>Jordan</td><td>Obsidian member · prefers booth · no ice in drinks</td></tr>
+        <tr><td>Williams, party 4</td><td><span class="staff-chip chip-seated" style="font-size:10px;">✓ Seated</span></td><td>T-08</td><td>Ashley</td><td>Birthday table — confirmed comp dessert</td></tr>
+        <tr><td>Pending walk-in</td><td><span class="staff-chip chip-waiting" style="font-size:10px;">⏳ Waiting</span></td><td>—</td><td>—</td><td>Party of 2</td></tr>
+      </table>
+    </div>
+
+    <div class="sub-title">Role Access Matrix</div>
+    <div class="change-note">
+      <span class="change-note-tag">Session 18</span>
+      <p>Role matrix updated: Comp authorization restricted to Owner, Manager, VIP Host only — mandatory reason code on all comps. Schedule creation and time-off approval: Owner, Manager, VIP Host. See Platform Expansion Outline v2 for full role definitions.</p>
+    </div>
+    <table>
+      <tr><th>Feature</th><th>Waitress</th><th>Host</th><th>VIP Host</th><th>Manager</th><th>Owner</th></tr>
+      <tr><td>Guest lookup</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+      <tr><td>QR check-in</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+      <tr><td>Reward redemption</td><td>—</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+      <tr><td>Table seating</td><td>—</td><td>—</td><td>✓</td><td>✓</td><td>✓</td></tr>
+      <tr><td>Floor plan full</td><td>Own tables only</td><td>—</td><td>✓</td><td>✓</td><td>✓</td></tr>
+      <tr><td>Reservation approval</td><td>—</td><td>—</td><td>—</td><td>—</td><td>✓</td></tr>
+      <tr><td>SMS concierge</td><td>Floor only</td><td>Front-of-house</td><td>VIP threads</td><td>All</td><td>All</td></tr>
+      <tr><td>Audit log / analytics</td><td>—</td><td>—</td><td>—</td><td>—</td><td>✓</td></tr>
+    </table>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- SECTION 8: COMPETITIVE INSIGHTS -->
+  <div class="section">
+    <span class="section-num">08 — REFERENCE SITE ANALYSIS</span>
+    <h2 class="section-title">What the<br><em>Benchmarks Taught Us.</em> <span class="status-badge status-locked">✓ Reference Only</span></h2>
+
+    <div class="sub-title">Bekeb (bekebsma.com) — Artisanal Cocktail Bar</div>
+    <p><strong style="color:var(--ivory);">What they do right:</strong> Full-bleed photography as the dominant design element. Navigation is invisible until needed. The brand story is embedded in the imagery, not the copy. The site feels like looking through a window at something you want to be inside.</p>
+    <p><strong style="color:var(--ivory);">What RIDDIM takes:</strong> Lead with photography. The outdoor patio is RIDDIM's strongest differentiator — it should open the homepage exactly the way Bekeb opens theirs: full screen, no chrome, let the venue speak first.</p>
+
+    <div class="sub-title">Drai's Supper Club (draisnyc.com) — Modern Supper Club</div>
+    <p><strong style="color:var(--ivory);">What they do right:</strong> The "Downstairs at Drai's" dual-environment concept maps directly to RIDDIM's dining + nightclub identity. Clear navigation hierarchy. Live jazz + fine dining combination is clearly communicated. The multi-space narrative gives the venue depth and multiple reasons to return.</p>
+    <p><strong style="color:var(--ivory);">What RIDDIM takes:</strong> Name each experience. "The Patio," "The Dining Room," "The Floor" — named spaces with their own visual identity create a sense of place that drives return visits. Reservation widget is prominent and persistent across the site.</p>
+
+    <div class="sub-title">Sip & Guzzle (sipandguzzlenyc.com) — Members Club Bar</div>
+    <p><strong style="color:var(--ivory);">What they do right:</strong> Dual-venue model (Sip + Guzzle) clearly communicated. Hours prominently displayed. Merch as community signal. The brand feels like a local secret even though it's a NYC venue — that insider warmth is exactly what a members club needs.</p>
+    <p><strong style="color:var(--ivory);">What RIDDIM takes:</strong> The members portal should feel like a secret. Not just gated access — but a different visual register entirely. The contrast between the public site's "invite you in" energy and the portal's "you belong here" familiarity is a deliberate design move.</p>
+
+    <div class="sub-title">The RIDDIM Competitive Gap</div>
+    <p>None of these three reference sites have a native members club with point tracking, a digital wallet, or staff-facing operations infrastructure. That triple-stack — public site + member portal + staff dashboard — on a single domain, at this visual quality level, does not exist in the Atlanta market. This is the moat.</p>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- SECTION 9: COMPONENT TOKENS -->
+  <div class="section">
+    <span class="section-num">09 — COMPONENT TOKENS</span>
+    <h2 class="section-title">The <em>Atoms.</em> <span class="status-badge status-designed">Designed — Not in CSS</span></h2>
+
+    <div class="sub-title">Button System</div>
+    <table>
+      <tr><th>Variant</th><th>Background</th><th>Text</th><th>Use</th></tr>
+      <tr><td>Primary</td><td><code>#D4A843</code></td><td><code>#0A0A0A</code></td><td>Reserve, Join, primary CTA</td></tr>
+      <tr><td>Primary Hover</td><td><code>#F0C060</code> + 2px lift</td><td><code>#0A0A0A</code></td><td>—</td></tr>
+      <tr><td>Ghost</td><td>Transparent + 1px gold border</td><td><code>#D4A843</code></td><td>Secondary actions</td></tr>
+      <tr><td>Destructive</td><td><code>#C0392B</code></td><td><code>#F5F0E8</code></td><td>Cancel, delete</td></tr>
+      <tr><td>Staff Action</td><td><code>#1E2836</code></td><td><code>#F5F0E8</code></td><td>All staff UI buttons</td></tr>
+      <tr><td>Staff Confirm</td><td><code>#22C55E</code></td><td><code>#0A0A0A</code></td><td>Seat, confirm, redeem</td></tr>
+    </table>
+
+    <div class="sub-title">Border Radius</div>
+    <table>
+      <tr><th>Token</th><th>Value</th><th>Use</th></tr>
+      <tr><td>--radius-sm</td><td>3px</td><td>Chips, badges, inline elements</td></tr>
+      <tr><td>--radius-md</td><td>6px</td><td>Cards, panels, modals</td></tr>
+      <tr><td>--radius-lg</td><td>12px</td><td>Member portal featured cards</td></tr>
+      <tr><td>--radius-full</td><td>999px</td><td>Pill badges, avatar rings</td></tr>
+    </table>
+
+    <div class="sub-title">Shadow System</div>
+    <table>
+      <tr><th>Token</th><th>Value</th><th>Use</th></tr>
+      <tr><td>--shadow-card</td><td><code>0 4px 24px rgba(0,0,0,0.4)</code></td><td>Public site cards</td></tr>
+      <tr><td>--shadow-gold</td><td><code>0 0 24px rgba(212,168,67,0.2)</code></td><td>CTA buttons on hover</td></tr>
+      <tr><td>--shadow-gold-lg</td><td><code>0 0 48px rgba(212,168,67,0.15)</code></td><td>Member dashboard hero card</td></tr>
+      <tr><td>--shadow-inset</td><td><code>inset 0 1px 0 rgba(255,255,255,0.06)</code></td><td>Panel top edge lift</td></tr>
+    </table>
+  </div>
+
+  <div class="divider"></div>
+
+  <div style="padding: var(--space-8); background: var(--carbon); border: 1px solid rgba(184,134,11,0.2); border-radius: 6px; margin-bottom: var(--space-8);">
+    <div class="sub-title" style="margin-top:0;">Session 19 Updates</div>
+    <p>Design system updated to v1.2. Owner Portal auth rebuilt — hardcoded PIN (1717) removed, replaced with Google OAuth bound to inquiry@ctrlmanagement.com. Google Identity Services library added to owner portal. Auth portability principle established. TOTP Edge Function built but superseded.</p>
+    <div class="sub-title">Session 18 Updates</div>
+    <p>Design system updated to v1.1. Status dashboard added. All nine sections now carry build status badges. Role access matrix updated to reflect Session 18 comp authorization and scheduling decisions.</p>
+    <p style="margin-top: var(--space-4);">Companion operational tracker: <strong style="color:var(--gold-warm);">RIDDIM_Design_System_Status_v1.md</strong> — load this alongside the context briefing at the start of any UI or frontend session. It tracks what is designed vs. built vs. integrated at the component level.</p>
+  </div>
+
+  <div style="padding: var(--space-8); background: var(--carbon); border: 1px solid rgba(184,134,11,0.2); border-radius: 6px; margin-bottom: var(--space-16);">
+    <div class="sub-title" style="margin-top:0;">Immediate Next Steps</div>
+    <p>🔴 Wire <strong style="color:var(--gold-warm);">RIDDIM_Site_Copy_v1.md</strong> into all 7 public HTML files in <code style="color:var(--gold-light); background:rgba(255,255,255,0.05); padding:2px 6px; border-radius:3px;">/docs</code>.</p>
+    <p style="margin-top:var(--space-3);">🔴 Fix desktop hero sizing — verify <code style="color:var(--gold-light); background:rgba(255,255,255,0.05); padding:2px 6px; border-radius:3px;">clamp(40px, 5vw, 72px)</code> on large screens.</p>
+    <p style="margin-top:var(--space-3);">🟡 Consolidate all CSS design tokens into <code style="color:var(--gold-light); background:rgba(255,255,255,0.05); padding:2px 6px; border-radius:3px;">_shared.css</code> before Phase 1 Astro build begins.</p>
+    <p style="margin-top:var(--space-3);">🟢 Owner Portal Google OAuth — LIVE. PIN fully removed.</p>
+    <p style="margin-top:var(--space-3);">🔴 Next: Phase 1A — Scheduling schema + UI. Wire site copy into HTML. Add real staff to Supabase.</p>
+  </div>
+
+  <div class="doc-footer">
+    <div class="doc-footer-brand">RIDDIM</div>
+    <div class="doc-footer-meta">AG Entertainment Members Club<br>Global Design System v1.2 · Session 19 · March 4, 2026</div>
+  </div>
+
+</div>
+</body>
+</html>
