@@ -458,6 +458,12 @@ method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer
 body:JSON.stringify({phone:loginPhone,code})
 });
 if(!res.ok) throw new Error();
+try {
+  const body = await res.clone().json();
+  if (body?.session?.access_token && body?.session?.refresh_token) {
+    await supabaseClient.auth.setSession({ access_token: body.session.access_token, refresh_token: body.session.refresh_token });
+  }
+} catch(e) { /* verify-2fa response has no session — continue */ }
 const { data: staffData } = await supabaseClient
   .from('staff')
   .select('id, first_name, last_name, role')
@@ -498,6 +504,7 @@ setTimeout(generateStaffQR, 1000);
 }
 async function devLoginAs(phone) {
   loginPhone = phone;
+  await supabaseClient.auth.signInAnonymously().catch(() => {});
   const { data } = await supabaseClient.from('staff').select('id,first_name,last_name,role').eq('phone',phone).single();
   currentStaff = {
     name: data ? `${data.first_name} ${data.last_name}` : 'Staff Member',
@@ -2089,12 +2096,13 @@ let STAFF_EVENTS = [];
 async function loadStaffEvents() {
 if (!LIVE_DATA || !supabaseClient) return;
 try {
-const { data } = await supabaseClient.from('events')
+const { data, error } = await supabaseClient.from('events')
 .select('id, title, event_date, start_time, end_time, status, description, flyer_url, promo_video_url, capacity, visible_staff')
 .not('status', 'eq', 'cancelled')
 .order('event_date', { ascending: true });
+if (error) throw error;
 STAFF_EVENTS = (data || []).filter(e => e.visible_staff !== false);
-} catch(e) { console.warn('Staff events fetch:', e); STAFF_EVENTS = []; }
+} catch(e) { console.warn('Staff events fetch error:', e); STAFF_EVENTS = []; }
 }
 function staffEvtCalNav(dir) {
 staffEvtMonth += dir;
