@@ -12,6 +12,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://accounts.google.com/gsi/client"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -492,7 +493,6 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
 </div>
 
 <div class="toast" id="toast"></div>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
 const SUPABASE_URL      = 'https://cbvryfgrqzdvbqigyrgh.supabase.co';
 const SUPABASE_KEY      = 'sb_publishable_fQlHFhC7tPkZNRl1djnvcA_68LpKQpv';
@@ -675,13 +675,11 @@ async function enterPortal() {
   const isBarback = currentUser.role === 'key_barback';
   const initials = currentUser.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
   const roleLabel = currentUser.role === 'owner' ? 'Owner' : currentUser.role === 'manager' ? 'Manager' : 'Key Barback';
-  // Lock barback to their assigned bar
+  // Default barback to their assigned bar; they can switch to any bar freely
   if (isBarback && currentUser.assigned_bar) {
     invLocation = currentUser.assigned_bar;
   } else if (isBarback) {
-    // No bar assigned — default to BAR1, show warning
     invLocation = 'BAR1';
-    showToast('No bar assigned — defaulting to Bar 1. Contact manager.', '');
   }
   document.getElementById('navUserName').textContent = currentUser.name;
   document.getElementById('navUserRole').textContent = roleLabel;
@@ -738,10 +736,6 @@ async function loadPars() {
 }
 
 async function setLocation(loc, btn) {
-  if (currentUser?.role === 'key_barback') {
-    showToast('Location locked to your assigned bar', '');
-    return;
-  }
   invLocation = loc;
   document.querySelectorAll('.loc-tab').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
@@ -903,17 +897,6 @@ async function deleteCount(pid) {
 function renderLocTabs() {
   const container = document.getElementById('locTabsContainer');
   if (!container) return;
-  const isBarback = currentUser?.role === 'key_barback';
-  if (isBarback) {
-    // Barback: show only their assigned bar, locked — no switching
-    const b = BAR_CONFIG.find(x => x.id === invLocation) || BAR_CONFIG.find(x => x.active);
-    container.innerHTML = `
-      <div style="display:flex;align-items:center;gap:10px;">
-        <span class="loc-tab active" style="cursor:default;pointer-events:none;">${b.emoji} ${b.label}</span>
-        <span style="font-family:var(--font-label);font-size:9px;letter-spacing:0.2em;color:var(--ash);">ASSIGNED BAR · TODAY ONLY</span>
-      </div>`;
-    return;
-  }
   container.innerHTML = ACTIVE_LOCATIONS.map((id, i) => {
     const b = BAR_CONFIG.find(x => x.id === id);
     const isActive = id === invLocation;

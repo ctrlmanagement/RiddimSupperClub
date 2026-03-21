@@ -88,7 +88,7 @@
 </style></head><body><div class="screen active" id="screenLogin"><div class="auth-wrap"><div class="auth-card"><div class="auth-logo"><span class="auth-wordmark">RIDDIM</span><div style="display:flex;justify-content:center;margin-top:8px;"><span class="auth-role"><span class="auth-role-dot"></span>
  Staff Portal
  </span></div></div><div class="auth-divider"></div><h1 class="auth-heading">Staff Sign In</h1><p class="auth-hint">Enter your registered phone number</p><div class="field"><label for="phoneInput">Phone Number</label><input type="tel" id="phoneInput" placeholder="(404) 555-0100" inputmode="tel" autocomplete="tel" maxlength="14" /></div><button class="btn-primary" id="btnSendCode">Send Code</button><div class="auth-error" id="loginError"></div><div class="auth-footer">
- Not staff? <a href="../index.html">← Back to RIDDIM</a></div></div></div></div><div class="screen" id="screen2FA"><div class="auth-wrap"><div class="auth-card"><div class="auth-logo"><span class="auth-wordmark">RIDDIM</span><div style="display:flex;justify-content:center;margin-top:8px;"><span class="auth-role"><span class="auth-role-dot"></span>Staff Portal</span></div></div><div class="auth-divider"></div><h1 class="auth-heading">Verify your number</h1><p class="otp-phone" id="otpPhoneDisplay">Code sent to <strong></strong></p><div class="otp-row" id="otpRow"><input class="otp-input" type="text" inputmode="numeric" maxlength="1" /><input class="otp-input" type="text" inputmode="numeric" maxlength="1" /><input class="otp-input" type="text" inputmode="numeric" maxlength="1" /><input class="otp-input" type="text" inputmode="numeric" maxlength="1" /><input class="otp-input" type="text" inputmode="numeric" maxlength="1" /><input class="otp-input" type="text" inputmode="numeric" maxlength="1" /></div><div class="dev-code-inline" id="devCodeInline"><p class="dev-code-inline-label">DEV MODE · YOUR CODE</p><p class="dev-code-inline-value" id="devCodeVal">—</p></div><button class="btn-primary" id="btnVerify">Verify</button><div class="auth-error" id="otpError"></div><div class="resend-row">
+ Not staff? <a href="../index.html">← Back to RIDDIM</a></div><div id="devQuickLogin" style="display:none;margin-top:20px;padding-top:18px;border-top:1px solid rgba(255,255,255,0.08);"></div></div></div></div><div class="screen" id="screen2FA"><div class="auth-wrap"><div class="auth-card"><div class="auth-logo"><span class="auth-wordmark">RIDDIM</span><div style="display:flex;justify-content:center;margin-top:8px;"><span class="auth-role"><span class="auth-role-dot"></span>Staff Portal</span></div></div><div class="auth-divider"></div><h1 class="auth-heading">Verify your number</h1><p class="otp-phone" id="otpPhoneDisplay">Code sent to <strong></strong></p><div class="otp-row" id="otpRow"><input class="otp-input" type="text" inputmode="numeric" maxlength="1" /><input class="otp-input" type="text" inputmode="numeric" maxlength="1" /><input class="otp-input" type="text" inputmode="numeric" maxlength="1" /><input class="otp-input" type="text" inputmode="numeric" maxlength="1" /><input class="otp-input" type="text" inputmode="numeric" maxlength="1" /><input class="otp-input" type="text" inputmode="numeric" maxlength="1" /></div><div class="dev-code-inline" id="devCodeInline"><p class="dev-code-inline-label">DEV MODE · YOUR CODE</p><p class="dev-code-inline-value" id="devCodeVal">—</p></div><button class="btn-primary" id="btnVerify">Verify</button><div class="auth-error" id="otpError"></div><div class="resend-row">
  Didn't receive it?
  <button class="resend-link" id="btnResend" disabled>Resend in <span id="resendTimer">30</span>s</button></div><button class="btn-ghost" id="btnBack">← Back</button></div></div></div><div class="screen" id="screenPortal"><header class="portal-header"><div class="portal-nav-inner"><div class="portal-brand"><span class="portal-wordmark">RIDDIM</span><span class="portal-brand-divider"></span><span class="portal-role-badge">Staff Portal</span></div><nav class="portal-tabs"><button class="portal-tab portal-tab-back" onclick="window.location.href='../index.html'">
  ← Main Site
@@ -300,6 +300,9 @@ function tierBadgeHTML(tier) {
 return `<span class="tier-badge tier-${tier}"><span class="tier-dot"></span>${TIERS[tier].label}</span>`;
 }
 const MOCK_STAFF = { name: 'Jordan Mills', phone: '+14045550199' };
+const DEV_QUICK_LOGINS = [
+  { label: 'Jordan Mills — Host', phone: '+14045550199' },
+];
 const MOCK_MEMBERS = [
 { id:'RDM-0042', first_name:'Marcus', last_name:'Thompson', phone:'+14045550100', total_points:2847, total_visits:31, created_at:'2024-03-15' },
 { id:'RDM-0017', first_name:'Nia', last_name:'Carter', phone:'+14045550101', total_points:5240, total_visits:58, created_at:'2023-11-01' },
@@ -455,7 +458,17 @@ method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer
 body:JSON.stringify({phone:loginPhone,code})
 });
 if(!res.ok) throw new Error();
-currentStaff = {name:'Staff Member',phone:loginPhone};
+const { data: staffData } = await supabaseClient
+  .from('staff')
+  .select('id, first_name, last_name, role')
+  .eq('phone', loginPhone)
+  .single();
+currentStaff = {
+  name: staffData ? `${staffData.first_name} ${staffData.last_name}` : 'Staff Member',
+  role: staffData ? staffData.role : 'staff',
+  phone: loginPhone,
+  supabaseId: staffData ? staffData.id : null,
+};
 enterPortal();
 } catch { showError('otpError','Incorrect code.'); clearOtp(); }
 btn.disabled=false; btn.textContent='Verify';
@@ -482,6 +495,25 @@ goScreen('screenPortal');
 setTimeout(()=>document.getElementById('portalMain').classList.add('visible'),100);
 setTimeout(generateResQR, 900);
 setTimeout(generateStaffQR, 1000);
+}
+async function devLoginAs(phone) {
+  loginPhone = phone;
+  const { data } = await supabaseClient.from('staff').select('id,first_name,last_name,role').eq('phone',phone).single();
+  currentStaff = {
+    name: data ? `${data.first_name} ${data.last_name}` : 'Staff Member',
+    role: data ? data.role : 'staff',
+    phone: loginPhone,
+    supabaseId: data ? data.id : null,
+  };
+  enterPortal();
+}
+if (DEV_MODE) {
+  const _dp = document.getElementById('devQuickLogin');
+  if (_dp) {
+    _dp.innerHTML = '<p style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--staff-accent);margin-bottom:10px;">DEV — QUICK LOGIN</p>' +
+      DEV_QUICK_LOGINS.map(a => `<button class="btn-ghost" style="width:100%;margin-bottom:8px;font-size:13px;text-align:left;" onclick="devLoginAs('${a.phone}')">${a.label}</button>`).join('');
+    _dp.style.display = 'block';
+  }
 }
 let liveMembers = [];
 async function loadLiveData() {

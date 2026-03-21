@@ -60,7 +60,7 @@
  maxlength="14"
  /></div><button class="btn-primary" id="btnSendCode">Send Code</button><div class="auth-error" id="loginError"></div><div class="auth-footer">
  Not a member yet? <a href="../join.html">Join free →</a>
- &nbsp;·&nbsp; <a href="javascript:void(0)" onclick="returnToMainSite()">← Main Site</a></div></div></div></div><div class="screen" id="screen2FA"><div class="auth-wrap"><div class="auth-card"><div class="auth-logo"><span class="auth-wordmark">RIDDIM</span><span class="auth-sub">Members Club</span></div><div class="auth-divider"></div><h1 class="auth-heading">Verify your number</h1><p class="otp-phone" id="otpPhoneDisplay">Enter the code sent to <strong></strong></p><div class="otp-row" id="otpRow"><input class="otp-input" type="text" inputmode="numeric" maxlength="1" /><input class="otp-input" type="text" inputmode="numeric" maxlength="1" /><input class="otp-input" type="text" inputmode="numeric" maxlength="1" /><input class="otp-input" type="text" inputmode="numeric" maxlength="1" /><input class="otp-input" type="text" inputmode="numeric" maxlength="1" /><input class="otp-input" type="text" inputmode="numeric" maxlength="1" /></div><div class="dev-code-inline" id="devCodeInline"><p class="dev-code-inline-label">DEV MODE · YOUR CODE</p><p class="dev-code-inline-value" id="devCodeInlineValue">—</p></div><button class="btn-primary" id="btnVerify">Verify</button><div class="auth-error" id="otpError"></div><div class="resend-row">
+ &nbsp;·&nbsp; <a href="javascript:void(0)" onclick="returnToMainSite()">← Main Site</a></div><div id="devQuickLogin" style="display:none;margin-top:20px;padding-top:18px;border-top:1px solid rgba(255,255,255,0.08);"></div></div></div></div><div class="screen" id="screen2FA"><div class="auth-wrap"><div class="auth-card"><div class="auth-logo"><span class="auth-wordmark">RIDDIM</span><span class="auth-sub">Members Club</span></div><div class="auth-divider"></div><h1 class="auth-heading">Verify your number</h1><p class="otp-phone" id="otpPhoneDisplay">Enter the code sent to <strong></strong></p><div class="otp-row" id="otpRow"><input class="otp-input" type="text" inputmode="numeric" maxlength="1" /><input class="otp-input" type="text" inputmode="numeric" maxlength="1" /><input class="otp-input" type="text" inputmode="numeric" maxlength="1" /><input class="otp-input" type="text" inputmode="numeric" maxlength="1" /><input class="otp-input" type="text" inputmode="numeric" maxlength="1" /><input class="otp-input" type="text" inputmode="numeric" maxlength="1" /></div><div class="dev-code-inline" id="devCodeInline"><p class="dev-code-inline-label">DEV MODE · YOUR CODE</p><p class="dev-code-inline-value" id="devCodeInlineValue">—</p></div><button class="btn-primary" id="btnVerify">Verify</button><div class="auth-error" id="otpError"></div><div class="resend-row">
  Didn't receive it?
  <button class="resend-link" id="btnResend" disabled>
  Resend in <span id="resendTimer">30</span>s
@@ -198,6 +198,12 @@ total_visits: 31,
 created_at: '2024-03-15T00:00:00Z',
 status: 'active',
 };
+const DEV_QUICK_LOGINS = [
+  { label: 'Marcus Thompson — Gold',    phone: '+14045550100' },
+  { label: 'Nia Carter — Obsidian',     phone: '+14045550101' },
+  { label: 'Devon Harris — Silver',     phone: '+14045550102' },
+  { label: 'Kai Williams — Bronze',     phone: '+14045550104' },
+];
 const MOCK_LEDGER = [
 { created_at: '2026-02-28T22:00:00Z', type: 'visit', amount: 25, note: 'DJ Kev Night', balance_after: 2847 },
 { created_at: '2026-02-14T21:30:00Z', type: 'visit', amount: 25, note: 'Valentine\'s Night', balance_after: 2822 },
@@ -439,6 +445,18 @@ main.classList.add('visible');
 animatePoints(member.total_points);
 updateBookTableLabel();
 }, 380);
+}
+async function devLoginAs(phone) {
+  loginPhone = phone;
+  await loadMember(phone);
+}
+if (DEV_MODE) {
+  const _dp = document.getElementById('devQuickLogin');
+  if (_dp) {
+    _dp.innerHTML = '<p style="font-family:var(--font-label);font-size:10px;letter-spacing:0.2em;color:var(--gold-warm);margin-bottom:10px;">DEV — QUICK LOGIN</p>' +
+      DEV_QUICK_LOGINS.map(a => `<button class="btn-ghost" style="width:100%;margin-bottom:8px;font-size:13px;text-align:left;" onclick="devLoginAs('${a.phone}')">${a.label}</button>`).join('');
+    _dp.style.display = 'block';
+  }
 }
 function renderPortal(m) {
 const tier = getTier(m.total_points);
